@@ -25,8 +25,7 @@
                     {
                         "Names" : "IndexPrefix",
                         "Type" : STRING_TYPE,
-                        "Description" : "The prefix applied to generate the index name ( if not using roll over this will be the index name)",
-                        "Mandatory" : true
+                        "Description" : "The prefix applied to generate the index name ( if not using roll over this will be the index name)"
                     },
                     {
                         "Names" : "IndexRotation",
@@ -38,8 +37,24 @@
                     {
                         "Names" : "DocumentType",
                         "Type" : STRING_TYPE,
-                        "Description" : "The document type used when creating the document",
-                        "Mandatory" : true
+                        "Description" : "The document type used when creating the document"
+                    }
+                ]
+            },
+            {
+                "Names" : "Bucket",
+                "Children" : [ 
+                    {
+                        "Names" : "Prefix",
+                        "Type" : STRING_TYPE,
+                        "Description" : "The prefix appeneded to the object name when processed succesfully",
+                        "Default" : "data/"
+                    },
+                    {
+                        "Names" : "ErrorPrefix",
+                        "Type" : STRING_TYPE,
+                        "Description" : "The prefix appeneded to the object name when processing failed",
+                        "Default" : "error/"
                     }
                 ]
             },
@@ -74,6 +89,11 @@
             {
                 "Names" : "Backup",
                 "Children" : [
+                    {
+                        "Names" : "Enabled",
+                        "Type" : BOOLEAN_TYPE,
+                        "Default" : true
+                    },
                     {
                         "Names" : "FailureDuration",
                         "Type" : NUMBER_TYPE,

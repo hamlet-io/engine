@@ -223,7 +223,7 @@
                                                 streamLgName,
                                                 streamLgBackupName )]
 
-        [#local streamS3BackupDestination = getFirehoseStreamS3Destination(
+        [#local streamS3BackupDestination = getFirehoseStreamBackupS3Destination(
                                                 dataBucketId,
                                                 dataBucketPrefix,
                                                 solution.Buffering.Interval,
@@ -235,6 +235,31 @@
 
 
         [#switch (destinationLink.Core.Type)!"notfound" ]
+            [#case S3_COMPONENT_TYPE ]
+                [#local s3Id = destinationLink.State.Resources["bucket"].Id ]
+                [#local streamS3Destination = getFirehoseStreamS3Destination(
+                                                s3Id,
+                                                solution.Bucket.Prefix,
+                                                solution.Bucket.ErrorPrefix,
+                                                solution.Buffering.Interval,
+                                                solution.Buffering.Size,
+                                                streamRoleId,
+                                                encrypted,
+                                                cmkKeyId,
+                                                streamLoggingConfiguration,
+                                                solution.Backup.Enabled,
+                                                streamS3BackupDestination,
+                                                streamProcessors
+                )]
+
+                [@createFirehoseStream
+                    id=streamId
+                    name=streamName
+                    destination=streamS3Destination
+                    dependencies=streamDependencies
+                /]
+                [#break]
+                
             [#case ES_COMPONENT_TYPE ]
 
                 [#local esId = destinationLink.State.Resources["es"].Id ]

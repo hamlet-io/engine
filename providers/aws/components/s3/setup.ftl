@@ -26,7 +26,7 @@
     [#local replicationBucket = ""]
 
     [#-- Baseline component lookup --]
-    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "CDNOriginKey" ])]
+    [#local baselineLinks = getBaselineLinks(occurrence, [ "CDNOriginKey" ])]
     [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
     [#local cfAccessId  = getExistingReference(baselineComponentIds["CDNOriginKey"]!"", CANONICAL_ID_ATTRIBUTE_TYPE) ]
 
