@@ -23,6 +23,14 @@
         [#local userPoolCustomDomainId = resources["customdomain"].Id ]
         [#local userPoolCustomDomainName = resources["customdomain"].Name ]
         [#local userPoolCustomDomainCertArn = resources["customdomain"].CertificateArn]
+
+        [#if ! userPoolCustomDomainCertArn?has_content ]
+            [@fatal 
+                message="ACM Certificate required in us-east-1"
+                context=resources
+                enabled=true
+            /]
+        [/#if]
     [/#if]
 
     [#local smsVerification = false]

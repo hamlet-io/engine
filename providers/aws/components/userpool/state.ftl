@@ -64,10 +64,7 @@
             [#local userPoolCustomBaseUrl = "https://" + userPoolCustomDomainName + "/" ]
 
             [#local certificateId = formatDomainCertificateId(certificateObject, userPoolDomainName)]
-            [#local certificateArn = (getExistingReference(certificateId, ARN_ATTRIBUTE_TYPE, "us-east-1" )?has_content)?then(
-                                            getExistingReference(certificateId, ARN_ATTRIBUTE_TYPE, "us-east-1" ),
-                                            "COTFatal: ACM Certificate required in us-east-1"
-                                    )]
+            [#local certificateArn = getExistingReference(certificateId, ARN_ATTRIBUTE_TYPE, "us-east-1")]
         [/#if]
 
         [#assign componentState =
