@@ -114,7 +114,8 @@
             "ManagedPolicy" : [],
             "Files" : {},
             "Directories" : {},
-            "DataVolumes" : {}
+            "DataVolumes" : {},
+            "VolumeMounts" : {}
         }
     ]
 
