@@ -335,6 +335,7 @@
     [#local parentSolution = occurrence.Configuration.Solution ]
 
     [#local ecsId = parentResources["cluster"].Id ]
+    [#local ecsClusterName = parentResources["cluster"].Name ]
     [#local ecsSecurityGroupId = parentResources["securityGroup"].Id ]
     [#local ecsServiceRoleId = parentResources["serviceRole"].Id ]
 
@@ -636,6 +637,133 @@
                     [#local desiredCount = 0 ]
                 [/#if]
 
+                [#if solution.ScalingPolicies?has_content ]
+                    [#local scalingTargetId = resources["scalingTarget"] ]
+                    [#local scalingRoleId = resources["scalingRole"] ]
+
+                    [#local serviceResourceType = resources["service"].Type ]
+
+                    [#local scheduledActions = []]
+                    [#list solution.ScalingPolicies as name, scalingPolicy ]
+                        [#local scalingPolicyId = resources["scalingPolicy" + name].Id ]
+                        [#local scalingPolicyName = resources["scalingPolicy" + name].Name ]
+
+                        [#switch scalingPolicy.Type?lower_case ]
+                            [#case "stepped"]
+                            [#case "tracked"]
+
+                                [#local scalingPolicyLink = (scalingPolicy.TrackingResource.Link)!{} ]
+                                [#if scalingPolicyLink?has_content && scalingPolicyLink?is_hash ]
+
+                                    [#local scalingPolicyLinkTarget = getLinkTarget(subOccurrence, scalingPolicyLink, false) ]
+
+                                    [@debug message="Scaling Link Target" context=scalingPolicyLinkTarget enabled=false /]
+
+                                    [#if !scalingPolicyLinkTarget?has_content]
+                                        [#continue]
+                                    [/#if]
+
+                                    [#local scalingTargetCore = scalingPolicyLink.Core ]
+                                    [#local scalingTargetResources = scalingPolicyLinkTarget.State.Resources ]
+                                [#else]
+                                    [#local scalingTargetCore = core]
+                                    [#local scalingTargetResources = resources + { "cluster" : parentResources["cluster"] }]
+                                [/#if]
+
+                                [#local monitoredResources = getMonitoredResources(scalingTargetResources, scalingPolicy.TrackingResource.Resource)]
+
+                                [#if monitoredResources?keys?size > 1 ] 
+                                    [@fatal 
+                                        message="A scaling policy can only track one metric"
+                                        context={ "trackingPolicy" : name, "monitoredResources" : monitoredResources }
+                                        detail="Please add an extra resource filter to the metric policy"
+                                    /]
+                                [/#if]
+
+                                [#local monitoredResource = monitoredResources[0]]
+
+                                [#local metricDimensions = getResourceMetricDimensions(monitoredResource, scalingTargetResources )]
+                                [#local metricName = getMetricName(scalingPolicy.TrackingResource.Metric, monitoredResource.Type, scalingTargetCore.ShortFullName)]
+                                [#local metricNamespace = getResourceMetricNamespace(monitoredResources.Type)]
+
+                                [#if scalingPolicy.Type?lower_case == "stepped" ]
+                                    [@createCountAlarm
+                                        id=formatDependentAlarmId(scalingPolicyId, monitoredResource.Id )
+                                        severity="Scaling"
+                                        resourceName=scalingTargetCore.FullName
+                                        alertName=scalingPolicy.TrackingResource.Name
+                                        actions=
+                                        metric=metricDimensions
+                                        namespace=metricNamespace
+                                        description=alert.Description!alert.Name
+                                        threshold=scalingPolicy.TrackingResource.Threshold
+                                        statistic=scalingPolicy.TrackingResource.Statistic
+                                        evaluationPeriods=scalingPolicy.TrackingResource.Periods
+                                        period=scalingPolicy.TrackingResource.Time
+                                        operator=scalingPolicy.TrackingResource.Operator
+                                        reportOK=scalingPolicy.TrackingResource.ReportOk
+                                        missingData=scalingPolicy.TrackingResource.MissingData
+                                        dimensions=metricDimensions
+                                    /]
+                                [/#if]
+                                [#if scalingPolicy.Type?lower_case == "tracked" ]
+
+                                    [#local metricSpecification = getAppAutoScalingTrackMetric(
+                                                                    getResourceMetricDimensions(monitoredResource, scalingTargetResources )]
+                                                                    getMetricName(scalingPolicy.TrackingResource.Metric, monitoredResource.Type, scalingTargetCore.ShortFullName)
+                                                                    getResourceMetricNamespace(monitoredResources.Type)
+                                                                    scalingPolicy.TrackingResource.Statistic 
+                                                                )]
+
+                                    [#local trackPolicy = getAppAutoScalingTrackPolicy(
+                                                                scalingPolicy.Tracked.ScaleInEnabled,
+                                                                scalingPolicy.Cooldown.ScaleIn,
+                                                                scalingPolicy.Cooldown.ScaleOut,
+                                                                scalingPolicy.Tracked.TargetValue,
+                                                                metricSpecification
+                                                            )]
+
+                                    [@createAppAutoScalingPolicy
+                                        id=scalingPolicyId
+                                        name=scalingPolicyName
+                                        policyType="TargetTrackingScaling"
+                                        scalingPolicy=trackPolicy
+                                        scalingTargetId=scalingTargetId
+                                    /]
+                                [/#if]
+                                [#break]
+                            
+                            [#case "scheduled"]
+                                [#local scheduleProcessor = getProcessor(
+                                                                subOccurrence, 
+                                                                ECS_SERVICE_COMPONENT_TYPE, 
+                                                                scalingPolicy.Schdeuled.processorProfile)]
+                                [#local scheduledActions += [
+                                    {
+                                        "ScalableTargetAction" : {
+                                            "MaxCapacity" : scheduleProcessor.MaxCount,
+                                            "MinCapacity" : scheduleProcessor.MinCount
+                                        },
+                                        "Schedule" : scalingPolicy.Scheduled.Schedule,
+                                        "ScheduledActionName" : scalingPolicyName
+                                    }
+                                ]]
+                                [#break]
+                        [/#switch]
+                    [/#list]
+
+                    [@createAppAutoScalingTarget 
+                        id=scalingTargetId
+                        processorProfile=
+                        scalingResourceId=getAppAutoScalingEcsResourceId(ecsId, serviceId)
+                        scalableDimension="ecs:service:DesiredCount"
+                        resourceType=serviceResourceType
+                        scheduledActions=scheduledActions
+                        roleId=scalingRoleId
+                        dependencies=[serviceId]
+                    /]
+
+                [/#if]
                 [@createECSService
                     id=serviceId
                     ecsId=ecsId

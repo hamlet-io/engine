@@ -607,11 +607,11 @@ behaviour.
 [/#function]
 
 [#-- Get processor settings --]
-[#function getProcessor occurrence type ]
+[#function getProcessor occurrence type proccessorProfile="" ]
 
     [#local tc = formatComponentShortName( occurrence.Core.Tier.Id, occurrence.Core.Component.Id)]
 
-    [#local processorProfile = occurrence.Configuration.Solution.Profiles.Processor ]
+    [#local processorProfile = proccessorProfileName!(occurrence.Configuration.Solution.Profiles.Processor) ]
 
     [#if (component[type].Processor)??]
         [#return component[type].Processor]

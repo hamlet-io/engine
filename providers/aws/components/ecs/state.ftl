@@ -120,6 +120,7 @@
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
 
+    [#local serviceId = formatResourceId(AWS_ECS_SERVICE_RESOURCE_TYPE, core.Id)]
     [#local taskId = formatResourceId(AWS_ECS_TASK_RESOURCE_TYPE, core.Id) ]
     [#local taskName = core.Name]
 
@@ -140,11 +141,39 @@
         }]
     [/#list]
 
+    [#local autoScaling = {}]
+    [#if solution.ScalingPolicies?has_content ]
+        [#local autoScaling += 
+            {
+                "scalingTarget" : {
+                    "Id" : formatResourceId(AWS_APP_AUTOSCALING_TARGET_RESOURCE_TYPE, core.Id),
+                    "Type" : AWS_APP_AUTOSCALING_TARGET_RESOURCE_TYPE
+                },
+                "scalingRole" :  {
+                    "Id" : formatDependentRoleId(serviceId, "scalingRole"),
+                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE,
+                    "IncludeInDeploymentState" : false
+                }
+            }
+        ]
+        [#list solution.ScalingPolicies as name, scalingPolicy ]
+            [#local autoScaling += 
+                {
+                    "scalingPolicy" + name : {
+                        "Id" : formatDependentAppAutoScalingPolicyId(serviceId, name),
+                        "Name" : formatName(core.FullName, name)
+                        "Type" : AWS_APP_AUTOSCALING_POLICY_RESOURCE_TYPE
+                    } 
+                }
+            ]
+        [/#list]        
+    [/#if]
+
     [#assign componentState =
         {
             "Resources" : {
                 "service" : {
-                    "Id" : formatResourceId(AWS_ECS_SERVICE_RESOURCE_TYPE, core.Id),
+                    "Id" : serviceId,
                     "Type" : AWS_ECS_SERVICE_RESOURCE_TYPE,
                     "Monitored" : true
                 },
@@ -190,7 +219,8 @@
                     "Type" : AWS_IAM_ROLE_RESOURCE_TYPE,
                     "IncludeInDeploymentState" : false
                 }
-            ),
+            ) + 
+            autoScaling,
             "Attributes" : {
                 "Name" : core.Name
             },

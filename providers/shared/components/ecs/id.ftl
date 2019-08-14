@@ -263,6 +263,11 @@
                 "Default" : -1
             },
             {
+                "Names" : "ScalingPolicies",
+                "Subobjects" : true,
+                "Children" : scalingPolicyChildrenConfiguration
+            },
+            {
                 "Names" : "UseTaskRole",
                 "Type" : BOOLEAN_TYPE,
                 "Default" : true
