@@ -1,62 +1,147 @@
 [#ftl]
 
-[#-- Support routines for output generation --]
+[#------------------------------------------
+-- Public functions for output generation --
+--------------------------------------------]
 
 [#assign OUTPUT_TEXT_FORMAT = "text"]
 [#assign OUTPUT_JSON_FORMAT = "json"]
 
-[#-- Support multiple outputs simultaneously --]
+[#-- Support multiple output streams simultaneously           --]
 [#-- Useful if assembling in parts e.g. resources and outputs --]
 [#assign outputs = {} ]
+
+[#-- An output has one or more named sections to which content is added.   --]
+[#-- The serialiser macro converts the content of each section into a      --]
+[#-- format suitable for the format of the output.                         --]
+[#-- Attributes provide metadata about the output specific to each format. --]
+[#macro createOutput name format attributes={} serialiser="" ]
+    [#assign outputs +=
+        {
+            name :
+                {
+                    "Sections" : {},
+                    "ContentAdded" : false,
+                    "Attributes" : attributes,
+                    "Format" : format,
+                    "Serialiser" : serialiser
+                }
+        } ]
+[/#macro]
+
+[#-- The content first added to a section defines the section content type --]
+[#-- The converter is an optional function to convert the section content  --]
+[#-- to be compatible with the output format                               --]
+[#macro addOutputSection name section initialContent converter=""]
+    [#assign outputs =
+        combineEntities(
+            outputs,
+            {
+                name : {
+                    "Sections" : {
+                        section : {
+                            "Content" : initialContent
+                        } +
+                        attributeIfContent("Converter", converter)
+                    }
+                }
+            }
+        ) ]
+[/#macro]
+
+[#macro addOutputContent name content section="default" treatAsContent=true]
+    [#if content?has_content]
+        [#assign outputs =
+            combineEntities(
+                outputs,
+                {
+                    name : {
+                        "Sections" : {
+                            section : {
+                                "Content" : content
+                            }
+                        }
+                    } +
+                    attributeIfTrue("ContentAdded", treatAsContent, true)
+                },
+                APPEND_COMBINE_BEHAVIOUR
+            ) ]
+    [/#if]
+[/#macro]
+
+[#macro addOutputAttributes name attributes={} ]
+    [#if attributes?has_content]
+        [#assign outputs =
+            mergeObjects(
+                outputs,
+                {
+                    name : {
+                        "Attributes" : attributes
+                    }
+                }
+            ) ]
+    [/#if]
+[/#macro]
 
 [#function isOutput name]
     [#return outputs[name]?? ]
 [/#function]
 
-[#function getOutput name]
-    [#return outputs[name].Content ]
+[#function isOutputSection name section]
+    [#return (outputs[name].Sections[section])?? ]
 [/#function]
 
 [#function getOutputFormat name]
     [#return outputs[name].Format ]
 [/#function]
 
+[#function getOutputContent name section="default"]
+    [#return outputs[name].Sections[section].Content ]
+[/#function]
+
+[#function getOutputAttributes name]
+    [#return (outputs[name].Attributes)!{} ]
+[/#function]
+
 [#function wasOutputContentAdded name]
     [#return outputs[name].ContentAdded!false ]
 [/#function]
 
-[#-- Text based output --]
+[#macro serialiseOutput name]
+    [#local serialiser = outputs[name].Serialiser ]
+    [#if (outputs[name].ContentAdded!false) && serialiser?has_content]
+        [#-- Output is serialisable --]
+        [@invokeMacro serialiser outputs[name] /]
+    [/#if]
+[/#macro]
+
+[#-- OUTPUT_TEXT_FORMAT --]
 
 [#function isTextOutput name]
-    [#return (outputs[name].IsText)!false]
+    [#return (getOutputAttributes(name).IsText)!false]
 [/#function]
 
-[#macro addToTextOutput name lines=[] treatAsContent=true]
-    [#if lines?has_content]
-        [#assign outputs =
-            mergeObjects(
-                outputs,
-                {
-                    name : {
-                        "Content" : outputs[name].Content + asArray(lines)
-                    } +
-                    attributeIfTrue("ContentAdded", treatAsContent, true)
-                }
-            ) ]
-    [/#if]
+[#macro addToTextOutput name lines=[] section="default" treatAsContent=true]
+    [@addOutputContent
+        name=name
+        content=asArray(lines)
+        section=section
+        treatAsContent=treatAsContent
+    /]
 [/#macro]
 
 [#function formatCommentsForTextOutput name lines=[] ]
     [#local comments = [] ]
+    [#local marker = getOutputAttributes(name).CommentMarker!""]
     [#if lines?has_content]
         [#list asArray(lines) as line]
-            [#local comments += [outputs[name].CommentMarker + line]]
+            [#local comments += [marker + line] ]
         [/#list]
     [/#if]
     [#return comments]
 [/#function]
 
-[#macro addMessagesToTextOutput name messages]
+[#macro addMessagesToTextOutput name messages=[] section="zzzfooter" ]
     [#if messages?has_content]
         [#local comments =
             [
@@ -71,28 +156,36 @@
             [#if message.Context?has_content]
                 [#local comments += [" ...." + getJSON(message.Context)] ]
             [/#if]
+            [#if message.Detail?has_content]
+                [#local comments += [" ...." + getJSON(message.Detail)] ]
+            [/#if]
         [/#list]
-        [@addToTextOutput
+        [@addOutputContent
             name=name
-            lines=formatCommentsForTextOutput(name, comments)
+            content=formatCommentsForTextOutput(name, comments)
+            section=section
+            treatAsContent=true
         /]
     [/#if]
 [/#macro]
 
 [#macro initialiseTextOutput name format=OUTPUT_TEXT_FORMAT headerLines=[] commentMarker="#" ]
-    [#assign outputs +=
-        {
-            name : {
-                "Format" : format,
-                "IsText" : true,
-                "CommentMarker" : commentMarker,
-                "Content" : asArray(headerLines)
-            }
-        } ]
-
-    [@addToTextOutput
+    [@createOutput
         name=name
-        lines=
+        format=format
+        attributes=
+            {
+                "IsText" : true,
+                "CommentMarker" : commentMarker
+            }
+        serialiser="text_output_serialiser"
+    /]
+
+    [@addOutputContent
+        name=name
+        section="000header"
+        content=
+            asArray(headerLines) +
             formatCommentsForTextOutput(
                 name,
                 [
@@ -105,100 +198,109 @@
     /]
 [/#macro]
 
-[#macro serialiseTextOutput name]
-    [#list outputs[name].Content as line]
-        ${line}
+[#-- Sort the sections and then serialise as lines of text --]
+[#macro text_output_serialiser args=[] ]
+    [#local output = asFlattenedArray(args)[0] ]
+    [#local sections = output.Sections?keys?sort]
+    [#list sections as sectionKey]
+        [#local section = output.Sections[sectionKey] ]
+        [#local lines = section.Content]
+        [#if section.Converter?has_content]
+            [#local lines = invokeFunction(section.Converter, section.Content)]
+        [/#if]
+        [#if lines?is_sequence]
+            [#list lines as line]
+            ${line}
+            [/#list]
+        [/#if]
     [/#list]
 [/#macro]
 
-[#-- JSON based output --]
+[#-- OUTPUT_JSON_FORMAT --]
 
 [#function isJsonOutput name]
-    [#return (outputs[name].IsJson)!false ]
+    [#return (getOutputAttributes(name).IsJson)!false ]
 [/#function]
 
-[#macro mergeWithJsonOutput name content={} treatAsContent=true]
-    [#assign outputs =
-        mergeObjects(
-            outputs,
-            {
-                name : {
-                    "Content" : content
-                } +
-                attributeIfTrue("ContentAdded", treatAsContent, true)
-            }
-        ) ]
-[/#macro]
-
-[#macro addToJsonOutput name content={} treatAsContent=true]
-    [@mergeWithJsonOutput
+[#macro mergeWithJsonOutput name content={} section="default" treatAsContent=true]
+    [@addOutputContent
         name=name
-        content=outputs[name].Content + content
+        section=section
+        content=content
         treatAsContent=treatAsContent
     /]
 [/#macro]
 
-[#macro addMessagesToJsonOutput name messages=[] ]
+[#macro addToJsonOutput name content={} section="default" treatAsContent=true]
+    [@mergeWithJsonOutput
+        name=name
+        section=section
+        content=((outputs[name].Sections[section].Content)!{}) + content
+        treatAsContent=treatAsContent
+    /]
+[/#macro]
+
+[#macro addMessagesToJsonOutput name messages=[] section="zzzfooter" ]
     [#if messages?has_content]
-        [#local messagesAttribute = (outputs[name].MessagesAttribute)!""]
+        [#local messagesAttribute = (getOutputAttributes(name).MessagesAttribute)!""]
         [#if messagesAttribute?has_content]
-            [@addToJsonOutput
+            [@mergeWithJsonOutput
                 name=name
+                section=section
                 content=
                     {
-                        messagesAttribute :
-                            (outputs[name].Content[messagesAttribute])![] +
-                            asArray(messages)
+                        messagesAttribute : asArray(messages)
                     }
             /]
         [/#if]
     [/#if]
 [/#macro]
 
-[#macro initialiseJsonOutput name format=OUTPUT_JSON_FORMAT content={} messagesAttribute="" ]
-    [#assign outputs +=
-        {
-            name : {
-                "Format" : format,
-                "IsJson" : true,
-                "Content" : content
+[#macro initialiseJsonOutput name format=OUTPUT_JSON_FORMAT messagesAttribute="" ]
+    [@createOutput
+        name=name
+        format=format
+        attributes=
+            {
+                "IsJson" : true
             } +
             attributeIfContent("MessagesAttribute", messagesAttribute)
-        } ]
+        serialiser="json_output_serialiser"
+    /]
 [/#macro]
 
-[#macro serialiseJsonOutput name]
-    [@toJSON outputs[name].Content /]
+[#macro json_output_serialiser args=[] ]
+    [#local output = asFlattenedArray(args)[0] ]
+    [#local sections = output.Sections?keys?sort]
+    [#local result = {} ]
+    [#list sections as sectionKey]
+        [#local section = output.Sections[sectionKey] ]
+        [#local content = section.Content]
+        [#if section.Converter?has_content]
+            [#local content = invokeFunction(section.Converter, section.Content)]
+        [/#if]
+        [#if content?is_hash]
+            [#local result = mergeObjects(result, content) ]
+        [/#if]
+    [/#list]
+    [@toJSON result /]
 [/#macro]
 
 [#-- Cross-format support --]
-[#macro addMessagesToOutput name messages ]
+[#macro addMessagesToOutput name messages section="zzzfooter" ]
     [#if isTextOutput(name)]
         [@addMessagesToTextOutput
             name=name
+            section=section
             messages=messages
         /]
     [/#if]
     [#if isJsonOutput(name)]
         [@addMessagesToJsonOutput
             name=name
+            section=section
             messages=messages
         /]
-    [/#if]
-[/#macro]
-
-[#macro serialiseOutput name ]
-    [#if wasOutputContentAdded(name)]
-        [#if isTextOutput(name)]
-            [@serialiseTextOutput
-                name=name
-            /]
-        [/#if]
-        [#if isJsonOutput(name)]
-            [@serialiseJsonOutput
-                name=name
-            /]
-        [/#if]
     [/#if]
 [/#macro]
 
@@ -226,3 +328,6 @@
     [/#if]
 [/#macro]
 
+[#----------------------------------------------------
+-- Internal support functions for output generation --
+------------------------------------------------------]

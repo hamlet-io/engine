@@ -337,12 +337,13 @@ function process_template_pass() {
   local args=()
   [[ -n "${provider}" ]]               && args+=("-v" "provider=${provider}")
   [[ -n "${deployment_framework}" ]]   && args+=("-v" "deploymentFramework=${deployment_framework}")
+  [[ -n "${GENERATION_MODEL}" ]]       && args+=("-v" "deploymentFrameworkModel=${GENERATION_MODEL}")
   [[ -n "${output_type}" ]]            && args+=("-v" "outputType=${output_type}")
   [[ -n "${output_format}" ]]          && args+=("-v" "outputFormat=${output_format}")
   [[ -n "${deployment_unit}" ]]        && args+=("-v" "deploymentUnit=${deployment_unit}")
   [[ -n "${build_deployment_unit}" ]]  && args+=("-v" "buildDeploymentUnit=${build_deployment_unit}")
   [[ -n "${build_reference}" ]]        && args+=("-v" "buildReference=${build_reference}")
-  [[ -n "${GENERATION_LOG_LEVEL}" ]]    && args+=("-v" "logLevel=${GENERATION_LOG_LEVEL}")
+  [[ -n "${GENERATION_LOG_LEVEL}" ]]   && args+=("-v" "logLevel=${GENERATION_LOG_LEVEL}")
 
   # Include the template composites
   # Removal of drive letter (/?/) is specifically for MINGW

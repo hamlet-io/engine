@@ -69,7 +69,7 @@
                                         "",
                                         originPathPattern
         )]
-        
+
         [#if !subSolution.Enabled]
             [#continue]
         [/#if]
@@ -109,6 +109,8 @@
 
             [#local cfRedirectLink = {
                 "cfredirect" : {
+                    "Id" : "cfredirect",
+                    "Name" : "cfredirect",
                     "Tier" : "gbl",
                     "Component" : "cfredirect",
                     "Version" : subSolution.RedirectAliases.RedirectVersion,
@@ -279,7 +281,7 @@
 
             [#case LB_PORT_COMPONENT_TYPE ]
 
-                [#local origin = 
+                [#local origin =
                             getCFHTTPOrigin(
                                 originId,
                                 originLinkTargetAttributes["FQDN"],
@@ -288,7 +290,7 @@
                             )]
                 [#local origins += origin ]
 
-                [#local behaviour = 
+                [#local behaviour =
                             getCFLBCacheBehaviour(
                                 origin,
                                 behaviourPattern,
@@ -300,7 +302,7 @@
                 [#break]
 
             [#case APIGATEWAY_COMPONENT_TYPE ]
-                [#local origin = 
+                [#local origin =
                             getCFHTTPOrigin(
                                 originId,
                                 originLinkTargetAttributes["FQDN"],
@@ -309,7 +311,7 @@
                             )]
                 [#local origins += origin ]
 
-                [#local behaviour = 
+                [#local behaviour =
                             getCFLBCacheBehaviour(
                                 origin,
                                 behaviourPattern,
@@ -320,7 +322,7 @@
                 [#local routeBehaviours += behaviour ]
                 [#break]
         [/#switch]
-        
+
         [#list routeBehaviours as behaviour ]
             [#if (behaviour.PathPattern!"")?has_content && originDefaultPath ]
                 [#local cacheBehaviours += [ behaviour ] ]
@@ -328,10 +330,10 @@
                 [#if ! defaultCacheBehaviour?has_content ]
                     [#local defaultCacheBehaviour = behaviour ]
                 [#else]
-                    [@fatal 
+                    [@fatal
                         message="Multiple default routes have been defined"
-                        context=solution 
-                        defailt="Check your routes to make sure PathPattern is different" 
+                        context=solution
+                        defailt="Check your routes to make sure PathPattern is different"
                         enabled=true
                     /]
                 [/#if]

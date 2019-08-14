@@ -78,6 +78,8 @@
 
             [#local baselineLink =
                 {
+                    "Id" : "baseline",
+                    "Name" : "baseline",
                     "Tier" : "mgmt",
                     "Component" : "baseline",
                     "Instance" : "",
@@ -85,7 +87,7 @@
                     subComponentType : value
                 }
             ]
-            [#local baselineLinkTarget = getLinkTarget( {}, baselineLink, activeOnly, activeRequired )]
+            [#local baselineLinkTarget = getLinkTarget(occurrence, baselineLink, activeOnly, activeRequired )]
 
             [#-- Skip missing targets --]
             [#if baselineLinkTarget?has_content]

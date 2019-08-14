@@ -27,8 +27,6 @@
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution ]
 
-    [#local parentSolution = parent.Configuration.Solution ]
-
     [#local id = formatResourceId(AWS_LAMBDA_FUNCTION_RESOURCE_TYPE, core.Id)]
     [#local versionId = formatResourceId(AWS_LAMBDA_VERSION_RESOURCE_TYPE, core.Id )]
 
@@ -90,7 +88,7 @@
                                 true)
                 ),
                 "NAME" : core.FullName,
-                "DEPLOYMENT_TYPE": parentSolution.DeploymentType
+                "DEPLOYMENT_TYPE": solution.DeploymentType
             },
             "Roles" : {
                 "Inbound" : {

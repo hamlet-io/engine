@@ -728,7 +728,7 @@
             {
                 "Names" : "Placement",
                 "Type" : STRING_TYPE,
-                "Default" : ""
+                "Default" : "default"
             },
             {
                 "Names" : "Baseline",

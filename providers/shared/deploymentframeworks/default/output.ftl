@@ -1,28 +1,37 @@
 [#ftl]
 
+[#--------------------------------------------------
+-- Public functions for default output processing --
+----------------------------------------------------]
+
 [#-- Default script formats --]
-[#assign DEFAULT_OUTPUT_BASH_FORMAT = "bash"]
-[#assign DEFAULT_OUTPUT_PS_FORMAT = "ps"]
+[#assign BASH_DEFAULT_OUTPUT_FORMAT = "bash"]
+[#assign PS_DEFAULT_OUTPUT_FORMAT = "ps"]
 
 [#-- Default output types --]
-[#assign DEFAULT_OUTPUT_SCRIPT_TYPE = "script"]
-[#assign DEFAULT_OUTPUT_JSON_TYPE = "json"]
-[#assign DEFAULT_OUTPUT_MODEL_TYPE = "model"]
+[#assign SCRIPT_DEFAULT_OUTPUT_TYPE = "script"]
+[#assign JSON_DEFAULT_OUTPUT_TYPE = "json"]
+[#assign MODEL_DEFAULT_OUTPUT_TYPE = "model"]
 
-[#-- Script output --]
+[#-- SCRIPT_DEFAULT_OUTPUT_TYPE --]
+
+[#-- A script is considered to consist of a number of ordered sections      --]
+[#-- Sections are serialised in alphabetical order.                         --]
+[#-- Section content can either be an array of lines or json content,       --]
+[#-- with the decision based on the first content provided for the section. --]
 
 [#function isDefaultBashOutput name]
-    [#return outputs[name].Format == DEFAULT_OUTPUT_BASH_FORMAT ]
+    [#return getOutputFormat(name) == BASH_DEFAULT_OUTPUT_FORMAT ]
 [/#function]
 
 [#function isDefaultPSOutput name]
-    [#return outputs[name].Format == DEFAULT_OUTPUT_PS_FORMAT ]
+    [#return getOutputFormat(name) == PS_DEFAULT_OUTPUT_FORMAT ]
 [/#function]
 
 [#function isDefaultScriptOutput name]
-    [#switch outputs[name].Format]
-        [#case DEFAULT_OUTPUT_BASH_FORMAT ]
-        [#case DEFAULT_OUTPUT_PS_FORMAT ]
+    [#switch getOutputFormat(name)]
+        [#case BASH_DEFAULT_OUTPUT_FORMAT ]
+        [#case PS_DEFAULT_OUTPUT_FORMAT ]
             [#return true]
         [#default]
             [#return false]
@@ -32,7 +41,7 @@
 [#macro initialiseDefaultBashOutput name ]
     [@initialiseTextOutput
         name=name
-        format=DEFAULT_OUTPUT_BASH_FORMAT
+        format=BASH_DEFAULT_OUTPUT_FORMAT
         headerLines="#!/usr/bin/env bash"
     /]
 [/#macro]
@@ -40,85 +49,78 @@
 [#macro initialiseDefaultPSOutput name ]
     [@initialiseTextOutput
         name=name
-        format=DEFAULT_OUTPUT_PS_FORMAT
+        format=PS_DEFAULT_OUTPUT_FORMAT
         headerLines="#!/usr/bin/env pwsh"
     /]
 [/#macro]
 
 [#macro initialiseDefaultScriptOutput format ]
     [#switch format]
-        [#case DEFAULT_OUTPUT_BASH_FORMAT ]
-            [@initialiseDefaultBashOutput name=DEFAULT_OUTPUT_SCRIPT_TYPE /]
+        [#case BASH_DEFAULT_OUTPUT_FORMAT ]
+            [@initialiseDefaultBashOutput name=SCRIPT_DEFAULT_OUTPUT_TYPE /]
             [#break]
-        [#case DEFAULT_OUTPUT_PS_FORMAT ]
-            [@initialiseDefaultPSOutput name=DEFAULT_OUTPUT_SCRIPT_TYPE /]
+        [#case PS_DEFAULT_OUTPUT_FORMAT ]
+            [@initialiseDefaultPSOutput name=SCRIPT_DEFAULT_OUTPUT_TYPE /]
             [#break]
     [/#switch]
 [/#macro]
 
-[#-- Output macros for default deployment framework --]
-
-[#-- DEFAULT_OUTPUT_SCRIPT_TYPE --]
-
-[#-- Internal use only --]
-[#macro default_output_script_internal format level include]
-    [#if !isOutput(DEFAULT_OUTPUT_SCRIPT_TYPE) ]
-        [@initialiseDefaultScriptOutput format=format /]
-    [/#if]
-
-    [#if include?has_content]
-        [#include include?ensure_starts_with("/")]
-    [#else]
-        [@processComponents level /]
-    [/#if]
-
-    [@addMessagesToOutput name=DEFAULT_OUTPUT_SCRIPT_TYPE messages=logMessages /]
-    [@serialiseOutput DEFAULT_OUTPUT_SCRIPT_TYPE /]
-[/#macro]
-
 [#macro default_output_script_bash level include]
-    [@default_output_script_internal format=DEFAULT_OUTPUT_BASH_FORMAT level=level include=include /]
+    [@default_output_script_internal format=BASH_DEFAULT_OUTPUT_FORMAT level=level include=include /]
 [/#macro]
 
 [#macro default_output_script_ps level include]
-    [@default_output_script_internal format=DEFAULT_OUTPUT_PS_FORMAT level=level include=include/]
+    [@default_output_script_internal format=PS_DEFAULT_OUTPUT_FORMAT level=level include=include/]
 [/#macro]
 
 [#-- If multiple formats supported, ignore the ones not needed for current format --]
-[#macro addToDefaultBashScriptOutput content=[] ]
-    [#if isDefaultBashOutput(DEFAULT_OUTPUT_SCRIPT_TYPE)]
-        [@addToTextOutput name=DEFAULT_OUTPUT_SCRIPT_TYPE lines=content /]
+[#macro addToDefaultBashScriptOutput content=[] section="default"]
+    [#if isDefaultBashOutput(SCRIPT_DEFAULT_OUTPUT_TYPE)]
+        [@addToTextOutput
+            name=SCRIPT_DEFAULT_OUTPUT_TYPE
+            lines=content
+            section=section
+         /]
     [/#if]
 [/#macro]
 
-[#macro addToDefaultPSScriptOutput content=[] ]
-    [#if isDefaultPSOutput(DEFAULT_OUTPUT_SCRIPT_TYPE)]
-        [@addToTextOutput name=DEFAULT_OUTPUT_SCRIPT_TYPE lines=content /]
+[#macro addToDefaultPSScriptOutput content=[] section="default"]
+    [#if isDefaultPSOutput(SCRIPT_DEFAULT_OUTPUT_TYPE)]
+        [@addToTextOutput
+            name=SCRIPT_DEFAULT_OUTPUT_TYPE
+            lines=content
+            section=section
+        /]
     [/#if]
 [/#macro]
 
-[#macro addToDefaultScriptOutput content=[] ]
-    [@addToTextOutput name=DEFAULT_OUTPUT_SCRIPT_TYPE lines=content /]
+[#macro addToDefaultScriptOutput content=[] section="default"]
+    [@addToTextOutput
+        name=SCRIPT_DEFAULT_OUTPUT_TYPE
+        lines=content
+        section=section
+    /]
 [/#macro]
 
-[#-- DEFAULT_OUTPUT_JSON_TYPE --]
+[#-- JSON_DEFAULT_OUTPUT_TYPE --]
 
 [#macro default_output_json level include]
-    [@initialiseJsonOutput name=DEFAULT_OUTPUT_JSON_TYPE /]
+    [@initialiseJsonOutput name=JSON_DEFAULT_OUTPUT_TYPE /]
+
     [#if include?has_content]
         [#include include?ensure_starts_with("/")]
     [#else]
         [@processComponents level /]
     [/#if]
-    [@serialiseOutput name=DEFAULT_OUTPUT_JSON_TYPE /]
+    [@serialiseOutput name=JSON_DEFAULT_OUTPUT_TYPE /]
 [/#macro]
 
 [#macro addToDefaultJsonOutput content={} ]
-    [@addToJsonOutput name=DEFAULT_OUTPUT_JSON_TYPE content=content /]
+    [@addToJsonOutput name=JSON_DEFAULT_OUTPUT_TYPE content=content /]
 [/#macro]
 
 [#macro mergeWithDefaultJsonOutput content={} ]
-    [@mergeWithJsonOutput name=DEFAULT_OUTPUT_JSON_TYPE content=content /]
+    [@mergeWithJsonOutput name=JSON_DEFAULT_OUTPUT_TYPE content=content /]
 [/#macro]
 
 [#macro addCliToDefaultJsonOutput id command content={} ]
@@ -132,13 +134,219 @@
     /]
 [/#macro]
 
-[#-- DEFAULT_OUTPUT_MODEL_TYPE --]
+[#-- MODEL_DEFAULT_OUTPUT_TYPE --]
+
 [#macro default_output_model level include]
-    [@initialiseJsonOutput name=DEFAULT_OUTPUT_JSON_TYPE /]
-    [@addToDefaultJsonOutput
-        content=
-            model +
-            attributeIfContent("COTMessages", logMessages)
+    [@initialiseJsonOutput
+        name=MODEL_DEFAULT_OUTPUT_TYPE
+        messagesAttribute="COTMessages"
     /]
-    [@serialiseOutput name=DEFAULT_OUTPUT_JSON_TYPE /]
+    [@mergeWithJsonOutput
+        name=MODEL_DEFAULT_OUTPUT_TYPE
+        content=model
+    /]
+    [@addMessagesToJsonOutput
+        name=MODEL_DEFAULT_OUTPUT_TYPE
+        messages=logMessages
+    /]
+    [@serialiseOutput
+        name=MODEL_DEFAULT_OUTPUT_TYPE
+    /]
+[/#macro]
+
+[#-- GENPLAN --]
+
+[#-- Genplans leverage the general script output but add JSON based sections --]
+[#-- to order steps and ensure steps aren't repeated.                        --]
+[#-- Genplan sections have their own converter to convert the JSON to text   --]
+
+[#function getGenerationPlanSteps subset alternatives]
+
+    [#-- Determine the script format --]
+    [#local outputFormat = getOutputFormat(SCRIPT_DEFAULT_OUTPUT_TYPE) ]
+
+    [#local steps = {} ]
+
+    [#-- Determine the steps required --]
+    [#list asArray(alternatives) as alternative]
+        [#switch subset]
+            [#case "genplan"]
+            [#case "depplan"]
+            [#case "pregeneration"]
+            [#case "prologue"]
+            [#case "epilogue"]
+                [#local step =
+                    {
+                        "OutputType" : SCRIPT_DEFAULT_OUTPUT_TYPE,
+                        "OutputFormat" : outputFormat
+                    }]
+                [#break]
+            [#case "template"]
+                [#local step =
+                    {
+                        "OutputType" : AWS_OUTPUT_RESOURCE_TYPE,
+                        "OutputFormat" : ""
+                    }]
+                [#break]
+            [#case "cli"]
+            [#case "config"]
+                [#local step =
+                    {
+                        "OutputType" : JSON_DEFAULT_OUTPUT_TYPE,
+                        "OutputFormat" : ""
+                    }]
+                [#break]
+            [#default]
+                [#-- Unknown subset --]
+                [#return {} ]
+        [/#switch]
+        [#local step_name = [subset, alternative, provider, deploymentFramework]?join("-") ]
+        [#local steps =
+            mergeObjects(
+                steps,
+                {
+                    subset : {
+                        alternative : {
+                            provider : {
+                                deploymentFramework : {
+                                    "Name" : step_name
+                                } + step
+                            }
+                        }
+                    }
+                }
+            ) ]
+    [/#list]
+    [#return steps]
+[/#function]
+
+[#-- Genplan header - named to come after script header but before genplan content --]
+[#assign HEADER_GENPLAN_DEFAULT_OUTPUT_SECTION="100header"]
+
+[#macro addDefaultGenerationPlan subsets=[] alternatives=["primary"]  section="default" ]
+
+    [#-- First ensure we have captured the gen plan header --]
+    [#if !isOutputSection(SCRIPT_DEFAULT_OUTPUT_TYPE, HEADER_GENPLAN_DEFAULT_OUTPUT_SECTION)]
+        [@addOutputSection
+            name=SCRIPT_DEFAULT_OUTPUT_TYPE
+            section=HEADER_GENPLAN_DEFAULT_OUTPUT_SECTION
+            initialContent=
+                [
+                    "local plan_steps=()",
+                    "declare -A plan_subsets",
+                    "declare -A plan_alternatives",
+                    "declare -A plan_providers",
+                    "declare -A plan_deployment_frameworks",
+                    "declare -A plan_output_types",
+                    "declare -A plan_output_formats",
+                    "#"
+                ]
+        /]
+    [/#if]
+
+    [#list asArray(subsets) as subset]
+        [#-- Each subset gets its own section --]
+        [#local name = "" ]
+        [#switch subset]
+            [#case "genplan"]
+                [#local name = section + "-100" ]
+                [#break]
+            [#case "depplan"]
+                [#local name = section + "-200"]
+                [#break]
+            [#case "pregeneration"]
+                [#local name = section + "-300"]
+                [#break]
+            [#case "prologue"]
+                [#local name = section + "-400"]
+                [#break]
+            [#case "template"]
+                [#local name = section + "-500"]
+                [#break]
+            [#case "epilogue"]
+                [#local name = section + "-600"]
+                [#break]
+            [#case "cli"]
+                [#local name = section + "-700"]
+                [#break]
+            [#case "config"]
+                [#local name = section + "-800"]
+                [#break]
+        [/#switch]
+
+        [#-- Unknown subset --]
+        [#if !name?has_content]
+            [#continue]
+        [/#if]
+
+        [#-- Create section if not already defined --]
+        [#if !isOutputSection(SCRIPT_DEFAULT_OUTPUT_TYPE, name)]
+            [@addOutputSection
+                name=SCRIPT_DEFAULT_OUTPUT_TYPE
+                section=name
+                initialContent={}
+                converter="genplan_script_output_converter"
+            /]
+        [/#if]
+
+        [#-- Now add the steps --]
+        [@mergeWithJsonOutput
+            name=SCRIPT_DEFAULT_OUTPUT_TYPE
+            content=getGenerationPlanSteps(subset, alternatives)
+            section=name
+        /]
+    [/#list]
+[/#macro]
+
+[#function genplan_script_output_converter args=[] ]
+    [#local result = [] ]
+    [#list args[0] as subset, subsetValue]
+        [#list subsetValue as alternative, alternativeValue]
+            [#list alternativeValue as provider, providerValue]
+                [#list providerValue as deploymentFramework, value]
+                    [#local step_name = value.Name]
+                    [#local result +=
+                        [
+                            "## ${step_name} ##",
+                            "plan_steps+=(\"${step_name}\")",
+                            "plan_subsets[\"${step_name}\"]=\"" + subset + "\"",
+                            "plan_alternatives[\"${step_name}\"]=\"" + alternative + "\"",
+                            "plan_providers[\"${step_name}\"]=\"" + provider + "\"",
+                            "plan_deployment_frameworks[\"${step_name}\"]=\"" + deploymentFramework + "\"",
+                            "plan_output_types[\"${step_name}\"]=\"" + value.OutputType + "\"",
+                            "plan_output_formats[\"${step_name}\"]=\"" + value.OutputFormat + "\"",
+                            "#"
+                        ] ]
+                [/#list]
+            [/#list]
+        [/#list]
+    [/#list]
+    [#return result]
+[/#function]
+
+[#------------------------------------------------------------
+-- internal support functions for default output processing --
+--------------------------------------------------------------]
+
+[#-- SCRIPT_DEFAULT_OUTPUT_TYPE --]
+
+[#-- Internal use only --]
+[#macro default_output_script_internal format level include]
+    [#if !isOutput(SCRIPT_DEFAULT_OUTPUT_TYPE) ]
+        [@initialiseDefaultScriptOutput format=format /]
+    [/#if]
+
+    [#if include?has_content]
+        [#include include?ensure_starts_with("/")]
+    [#else]
+        [@processComponents level /]
+    [/#if]
+
+    [@addMessagesToOutput
+        name=SCRIPT_DEFAULT_OUTPUT_TYPE
+        messages=logMessages
+    /]
+    [@serialiseOutput
+        name=SCRIPT_DEFAULT_OUTPUT_TYPE
+    /]
 [/#macro]

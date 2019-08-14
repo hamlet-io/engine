@@ -217,9 +217,15 @@
     [#return result]
 [/#function]
 
-[#-----------------
+[#function splitArray array index]
+    [#if array?has_content && (index < array?size)]
+        [#return array[index..]]
+    [/#if]
+    [#return [] ]
+[/#function]
+[#-------------------
 -- Object handling --
--------------------]
+---------------------]
 
 [#-- Output object as JSON --]
 [#function getJSON obj escaped=false]
@@ -253,18 +259,6 @@
 [#macro toJSON obj escaped=false]
     ${getJSON(obj, escaped)}[/#macro]
 
-[#function mergeObjects current new]
-    [#local result = current]
-    [#list new as key,value]
-        [#local newValue = value]
-        [#if current[key]?? && current[key]?is_hash && value?is_hash]
-            [#local newValue = mergeObjects(current[key], value)]
-        [/#if]
-        [#local result += {key : newValue}]
-    [/#list]
-    [#return result]
-[/#function]
-
 [#function filterObjectAttributes obj attributes removeAttributes=false]
     [#local result = {}]
     [#local atts = asFlattenedArray(attributes)]
@@ -285,6 +279,88 @@
 
 [#function removeObjectAttributes obj attributes]
     [#return filterObjectAttributes(obj, attributes, true)]
+[/#function]
+
+[#--------------------
+-- Combine entities --
+----------------------
+
+Combine two entities into a single entity based on a "CombineBehaviour".
+
+"replace" means the righthand value replaces the lefthand value.
+"add" behaves the same as replace, but object or array values are added.
+"merge" behaves the same as replace, but object values are merged.
+"append" behaves the same as merge except that array values are added, with
+the righthand value converted to an array.
+"unique" behaves the same as append, except that only unique righthand values
+are added.
+
+--]
+
+[#assign REPLACE_COMBINE_BEHAVIOUR = "replace"]
+[#assign ADD_COMBINE_BEHAVIOUR = "add"]
+[#assign MERGE_COMBINE_BEHAVIOUR = "merge"]
+[#assign APPEND_COMBINE_BEHAVIOUR = "append"]
+[#assign UNIQUE_COMBINE_BEHAVIOUR = "unique"]
+
+[#function combineEntities left right behaviour=MERGE_COMBINE_BEHAVIOUR]
+
+    [#-- Handle replace first --]
+    [#if behaviour == REPLACE_COMBINE_BEHAVIOUR]
+        [#return right ]
+    [/#if]
+
+    [#-- Default is to return the right value --]
+    [#local result = right]
+
+    [#if left?is_sequence || right?is_sequence]
+        [#-- Handle arrays --]
+        [#switch behaviour]
+            [#case MERGE_COMBINE_BEHAVIOUR]
+                [#local result = asArray(right) ]
+                [#break]
+            [#case ADD_COMBINE_BEHAVIOUR]
+            [#case APPEND_COMBINE_BEHAVIOUR]
+                [#local result = asArray(left) + asArray(right) ]
+                [#break]
+            [#case UNIQUE_COMBINE_BEHAVIOUR]
+                [#local result = getUniqueArrayElements(left, right) ]
+                [#break]
+        [/#switch]
+    [#else]
+        [#if left?is_hash && right?is_hash]
+            [#-- Handle objects --]
+            [#switch behaviour]
+                [#case ADD_COMBINE_BEHAVIOUR]
+                    [#local result = left + right]
+                    [#break]
+                [#default]
+                    [#-- For other behaviours, merge objects --]
+                    [#local result = left]
+                    [#list right as key,value]
+                        [#local newValue = value]
+                        [#if left[key]??]
+                            [#local newValue = combineEntities(left[key], value, behaviour) ]
+                        [/#if]
+                        [#local result += { key : newValue } ]
+                    [/#list]
+                [#break]
+            [/#switch]
+        [/#if]
+    [/#if]
+    [#return result]
+[/#function]
+
+[#function mergeObjects objects...]
+    [#local result = {} ]
+    [#list asFlattenedArray(objects) as object]
+        [#if object?index == 0]
+            [#local result = object]
+        [#else]
+            [#local result = combineEntities(result, object) ]
+        [/#if]
+    [/#list]
+    [#return result]
 [/#function]
 
 [#-----------------
@@ -516,7 +592,18 @@
 
 [#function getFirstDefinedDirective directives=[] ]
     [#list asArray(directives) as directive]
-        [#local name = concatenate(directive, "_")]
+        [#if directive?is_sequence]
+            [#local name = concatenate(directive, "_") ]
+        [#elseif directive?is_string]
+            [#local name = directive ]
+        [#else]
+            [@precondition
+                function="getFirstDefinedDirective"
+                context=directives
+                detail="Directive must be an array or a string"
+            /]
+            [#return ""]
+        [/#if]
         [#if (.vars[name]!"")?is_directive]
             [#return name]
         [/#if]
@@ -524,34 +611,89 @@
     [#return ""]
 [/#function]
 
-[#function invokeDynamicFunction options args...]
+[#function invokeFunction fn args...]
 
-    [#local fn = getFirstDefinedDirective(options) ]
-
-    [#if fn?has_content]
-        [#return (.vars[fn])(args) ]
+    [#if (.vars[fn]!"")?is_directive]
+        [#return (.vars[fn])(asFlattenedArray(args)) ]
     [#else]
         [@debug
             message="Unable to invoke function"
-            context=options
+            context=fn
             enabled=true
         /]
     [/#if]
     [#return {} ]
 [/#function]
 
-[#macro invokeDynamicMacro options args...]
-    [#local macro = getFirstDefinedDirective(options) ]
+[#macro invokeMacro macro args...]
 
-    [#if macro?has_content]
-        [@(.vars[macro]) args /]
+    [#if (.vars[macro]!"")?is_directive]
+        [@(.vars[macro]) asFlattenedArray(args) /]
     [#else]
         [@debug
             message="Unable to invoke macro"
-            context=options
+            context=macro
             enabled=false
         /]
     [/#if]
+[/#macro]
+
+[#function invokeFunctionOn fn targets args...]
+    [#if targets?is_sequence]
+        [#local result = [] ]
+        [#list targets as target]
+            [#local result += [invokeFunction(fn, target, args)] ]
+        [/#list]
+    [#elseif targets?is_hash]
+        [#local result = {} ]
+        [#list targets as key,value]
+            [#local result +=
+                {
+                    key :
+                        invokeFunction(
+                            fn,
+                            {
+                                "Id" : key
+                            } + value,
+                            args
+                        )
+                } ]
+        [/#list]
+    [#else]
+        [#local result = {} ]
+        [@precondition
+            function="invokeFunctionOn"
+            context=targets
+            detail="Targets must be provided as an array or an object"
+        /]
+    [/#if]
+    [#return result ]
+[/#function]
+
+[#macro invokeMacroOn macro targets args...]
+    [#if targets?is_sequence]
+        [#list targets as target]
+            [@invokeMacro macro target args /]
+        [/#list]
+    [#elseif targets?is_hash]
+        [#local result = {} ]
+        [#list targets as key,value]
+            [@invokeMacro
+                macro
+                {
+                    "Id" : key
+                } + value
+                args
+            /]
+        [/#list]
+    [#else]
+        [@precondition
+            function="invokeMacroOn"
+            context=targets
+            detail="Targets must be provided as an array or an object"
+        /]
+    [/#if]
+
 [/#macro]
 
 [#--------------------------

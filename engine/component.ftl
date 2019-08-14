@@ -1,6 +1,8 @@
 [#ftl]
 
-[#-- Core processing of tiers/components --]
+[#---------------------------------------------
+-- Public functions for component processing --
+-----------------------------------------------]
 
 [#-- Component configuration is extended dynamically by each component type --]
 [#assign componentConfiguration = {} ]
@@ -15,21 +17,9 @@
 [#-- Placement profiles --]
 [#assign DEFAULT_PLACEMENT_PROFILE = "default"]
 
-[#-- Helper macro - not for general use --]
-[#macro mergeComponentConfiguration type configuration]
-    [#assign componentConfiguration =
-        mergeObjects(
-            componentConfiguration,
-            {
-                type: configuration
-            }
-        )
-    ]
-[/#macro]
-
 [#-- Macros to assemble the component configuration --]
 [#macro addComponent type properties attributes dependencies=[] ]
-    [@mergeComponentConfiguration
+    [@internalMergeComponentConfiguration
         type=type
         configuration=
             {
@@ -64,7 +54,7 @@
             }
         ]
     ]
-    [@mergeComponentConfiguration
+    [@internalMergeComponentConfiguration
         type=parent
         configuration=
             {
@@ -108,7 +98,7 @@
         [/#list]
         [#local extendedAttributes += [profileAttribute] ]
     [/#if]
-    [@mergeComponentConfiguration
+    [@internalMergeComponentConfiguration
         type=type
         configuration=
             {
@@ -144,14 +134,6 @@
     [#return (componentConfiguration[type].Components)![] ]
 [/#function]
 
-[#function getComponentChildrenAttributes type]
-    [#local result = [] ]
-    [#list (componentConfiguration[type].Components)![] as child]
-        [#local result += [child.Component]]
-    [/#list]
-    [#return result]
-[/#function]
-
 [#function getComponentChildType child]
     [#return child.Type ]
 [/#function]
@@ -164,6 +146,22 @@
     [#return asArray(child.Link![]) ]
 [/#function]
 
+[#function getComponentChildrenAttributes type]
+    [#local result = [] ]
+    [#list (componentConfiguration[type].Components)![] as child]
+        [#local result += [getComponentChildAttribute(child)] ]
+    [/#list]
+    [#return result]
+[/#function]
+
+[#function getComponentChildrenLinkAttributes type]
+    [#local result = [] ]
+    [#list (componentConfiguration[type].Components)![] as child]
+        [#local result += getComponentChildLinkAttributes(child)] ]
+    [/#list]
+    [#return result]
+[/#function]
+
 [#function getResourceGroupPlacement key profile]
     [#return profile[key]!{} ]
 [/#function]
@@ -173,21 +171,13 @@
     [#if placement?has_content]
         [#local macroOptions = [] ]
             [#list asArray(levels) as level]
-                [#if level?has_content]
-                    [#local macroOptions +=
-                        [
-                            [placement.Provider, occurrence.Core.Type, resourceGroup, placement.DeploymentFramework, level],
-                            [placement.Provider, occurrence.Core.Type, placement.DeploymentFramework, level],
-                            [placement.Provider, resourceGroup, placement.DeploymentFramework, level]
-                        ]]
-                [#else]
-                    [#local macroOptions +=
-                        [
-                            [placement.Provider, occurrence.Core.Type, resourceGroup, placement.DeploymentFramework],
-                            [placement.Provider, occurrence.Core.type, placement.DeploymentFramework],
-                            [placement.Provider, resourceGroup, placement.DeploymentFramework]
-                        ]]
-                [/#if]
+                [#-- An empty level is assumed to be ignored --]
+                [#local macroOptions +=
+                    [
+                        [placement.Provider, occurrence.Core.Type, resourceGroup, placement.DeploymentFramework, level],
+                        [placement.Provider, occurrence.Core.Type, placement.DeploymentFramework, level],
+                        [placement.Provider, resourceGroup, placement.DeploymentFramework, level]
+                    ]]
             [/#list]
         [#local macro = getFirstDefinedDirective(macroOptions)]
         [#if macro?has_content]
@@ -400,3 +390,19 @@
     [/#list]
     [#return {} ]
 [/#function]
+
+[#-------------------------------------------------------
+-- Internal support functions for component processing --
+---------------------------------------------------------]
+
+[#-- Helper macro - not for general use --]
+[#macro internalMergeComponentConfiguration type configuration]
+    [#assign componentConfiguration =
+        mergeObjects(
+            componentConfiguration,
+            {
+                type: configuration
+            }
+        ) ]
+[/#macro]
+
