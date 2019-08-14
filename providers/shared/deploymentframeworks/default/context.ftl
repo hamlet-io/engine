@@ -4,55 +4,273 @@
 -- Public functions for context processing --
 ---------------------------------------------]
 
-[#-- Contexts
+[#-- Filters
 
-A context represents a scoping boundary when performing searches for content. A
-context wraps the content, but treats it as opaque.
+A filter consists of one or more values for each of one or more filter attributes.
+Filter comparison is a core mechanism of context processing.
 
-Each context has a filter than can be used to determine if it should be
-considered during a search.
+When filters need to be compared, a "FilterBehaviour" attribute controls the
+algorithm used. Algorithms are defined in terms of a "contextFilter" and a
+"matchFilter".
 
-Contexts are arranged hierarchically so that if a context filter does not match,
-the entire subtree can be excluded from further search activity.
+The "any" behaviour requires that at least one value of the Any attribute of the
+matchFilter needs to match one value in any of the attributes of the
+contextFilter for the comparison to succeed.
+
+The "mininal" behaviour requires that a value of each attribute of the matchFilter
+must match a value of the same named attribute in the contextFilter for a
+successful match, or the attribute must be absent from the contextFilter.
+
+Stricter variants of the minimal behaviour are the "subset" that requires every
+matchFilter attribute be present on the contextFilter, and the "exact" that
+requires the matchFilter to have the same set of attributes as the contextFilter.
+
+A filter attribute can optionally have properties to control its processing.
+
 --]
 
-[#function createContext type content filter={} ]
-    [#return
-        {
-            "Type" : type?lower_case,
-            "Content" : content,
-            "Filter" : filter
-        }]
-[/#function]
+[#assign ANY_FILTER_BEHAVIOUR = "any"]
+[#assign MINIMAL_FILTER_BEHAVIOUR = "minimal"]
+[#assign SUBSET_FILTER_BEHAVIOUR = "subset"]
+[#assign EXACT_FILTER_BEHAVIOUR = "exact"]
 
-[#function createChildContext type content parent={} filterAttribute=""]
-    [#local filterValues = {} ]
+[#function addFilterAttribute filter attribute content={} properties={} ]
+    [#local attributeValue = {} ]
+    [#-- Extend filter with child Id/Name --]
     [#if content.Id?? || content.Name??]
-        [#local filterValues =
+        [#local attributeValue =
             {
                 "Id" : content.Id!content.Name,
                 "Name" : content.Name!content.Id
             } ]
     [/#if]
     [#return
-        createContext(
-            type,
-            content,
-            parent.Filter +
+        mergeObjects(
+            filter,
             valueIfContent(
                 {
-                    contentIfContent(filterAttribute, type)?capitalize : filterValues
+                    attribute?cap_first : {
+                        "Values" : attributeValue
+                    } +
+                    attributeIfContent("Properties", properties)
                 },
-                filterValues
+                attributeValue
             )
         ) ]
 [/#function]
 
-[#function createIntermediateContext content parent={} ]
-    [#-- A context for shared content but with the filter of the parent --]
-    [#return createContext("intermediate", content, parent.Filter) ]
+[#function getFilterAttributeValues filter attribute]
+    [#return (filter[attribute].Values)!filter[attribute]!{} ]
 [/#function]
 
+[#function getFilterAttributeProperties filter attribute]
+    [#return (filter[attribute].Properties)!{} ]
+[/#function]
+
+
+[#-- Qualifiers
+
+Qualifiers allow a nominal value to be varied based on the value of a
+contextFilter.
+
+Each qualifier has a filter and a value. The qualifier filter acts as the
+matchFilter for filter comparison purposes.
+
+Where the filter matches a contextFilter, the qualifier value is combined with
+the nominal value.
+
+More than one qualifier may match, in which case the matching qualifier values
+are combined with the nominal value in the order in which the qualifiers are
+defined.
+
+The way in which the nominal and qualifier value are combined is controlled by
+the "CombineBehaviour" of the qualifier.
+
+One or more qualifiers are attached to a nominal value via a QualifiedValue object.
+The qualifiers are provided via a "Qualifiers" attribute, while the nominal
+value is provided by a "Value" attribute, or is the containing object minus the
+"Qualifiers" attribute. Thus any object can be qualified simply by adding a
+"Qualifiers" attribute.
+
+There is a short form and a long form for qualifiers.
+
+In the short form, the "Qualifiers" attribute value is an object, each
+attribute of which represents a qualifier. The attribute key is the value of the
+"Any" attribute of the matchFilter, and the FilterBehaviour is
+ANY_FILTER_BEHAVIOUR.
+
+The qualifier value is the value of the attribute. Because object attribute
+processing is not ordered, the short form does not provide fine control in the
+situation where multiple qualifiers match - effectively each qualifier needs
+to be independent.
+
+The short form is useful for simple situations such as setting variation based
+on environment, In the following example, the nominal value is 100, but 50 will
+be used assuming one attribute (e.g Environment) of the contextFilter has a
+value of "prod";
+
+{
+  "Value" : 100,
+  "Qualifiers" : { "prod" : 50}
+}
+
+In the long form, the "Qualifiers" attribute value is a list of qualifier
+objects. Each qualifier object must have a "Filter" attribute and a "Value"
+attribute, as well as optional "FilterBehaviour" and "CombineBehaviour"
+attributes. By default, the FilterBehaviour is SUBSET_FILTER_BEHAVIOUR, and the
+CombineBehaviour is MERGE_COMBINE_BEHAVIOUR.
+
+The long form gives full control over the qualification process, and allows
+ordering of qualifier application. The following long form example would achieve
+the same as the previous short form example;
+
+{
+    "Value" : 100,
+    "Qualifiers : [
+        {
+            "Value" : 50,
+            "Filter" : {"Environment" : "prod"},
+            "FilterBehaviour" : SUBSET_FILTER_BEHAVIOUR,
+            "CombineBehaviour" : MERGE_COMBINE_BEHAVIOUR
+        }
+    ]
+}
+
+Qualifiers are applied recursively.
+
+--]
+
+[#function getQualifiedValue entity contextFilter]
+
+    [#if entity?is_sequence]
+        [#local value = [] ]
+        [#list entity as item]
+            [#-- Qualify each of the items in the array --]
+            [#local value += [getQualifiedValue(item, contextFilter)] ]
+        [/#list]
+        [#return value]
+    [/#if]
+
+    [#-- Nothing further to do if a primitive value --]
+    [#if !entity?is_hash]
+        [#return entity]
+    [/#if]
+
+    [#-- If not qualified, look for subqualification --]
+    [#if !entity.Qualifiers?has_content]
+        [#if entity.Value??]
+            [#return getQualifiedValue(entity.Value, contextFilter)]
+        [#else]
+            [#local value = {}]
+            [#list entity as key, keyValue]
+                [#local value += {key, getQualifiedValue(keyValue, contextFilter)} ]
+            [/#list]
+            [#return value]
+        [/#if]
+    [/#if]
+
+    [#local qualifiers = entity.Qualifiers]
+    [#local value = entity.Value!removeObjectAttributes(entity, "Qualifiers")]
+
+    [#if qualifiers?is_hash]
+        [#list qualifiers as anyFilter,anyValue]
+            [#local value =
+                internalApplyQualifier(
+                    contextFilter,
+                    {
+                        "Value" : anyValue,
+                        "Filter" : {"Any" : anyFilter},
+                        "FilterBehaviour" : ANY_FILTER_BEHAVIOUR,
+                        "CombineBehaviour" : MERGE_COMBINE_BEHAVIOUR
+                    },
+                    value) ]
+        [/#list]
+    [/#if]
+
+    [#if qualifiers?is_sequence]
+        [#list qualifiers as qualifier]
+            [#if qualifier?is_hash]
+                [#local value =
+                    internalApplyQualifier(
+                        contextFilter,
+                        {
+                            "FilterBehaviour" : SUBSET_FILTER_BEHAVIOUR,
+                            "CombineBehaviour" : MERGE_COMBINE_BEHAVIOUR
+                        } + qualifier,
+                        value) ]
+            [/#if]
+        [/#list]
+    [/#if]
+
+    [#-- Now look for lower level qualification --]
+    [#return getQualifiedValue(value, contextFilter) ]
+[/#function]
+
+
+[#-- Contexts
+
+A context represents a scoping boundary when performing searches for content. A
+context wraps the content, but treats it as opaque.
+
+Each context has a type and a filter that can be used to determine if it should
+be considered during a search.
+
+Contexts can be arranged hierarchically so that if a context filter does not
+match, all its children can be excluded from further search activity.
+--]
+
+[#assign ROOT_CONTEXT_TYPE = "root"]
+[#assign AGGREGATOR_CONTEXT_TYPE = "aggregator"]
+[#assign ENTERPRISE_CONTEXT_TYPE = "enterprise"]
+[#assign TENANT_CONTEXT_TYPE = "tenant"]
+[#assign POD_CONTEXT_TYPE = "pod"]
+[#assign PRODUCT_CONTEXT_TYPE = "product"]
+[#assign ENVIRONMENT_CONTEXT_TYPE = "environment"]
+[#assign SEGMENT_CONTEXT_TYPE = "segment"]
+[#assign SOLUTION_CONTEXT_TYPE = "solution"]
+[#assign TIER_CONTEXT_TYPE = "tier"]
+[#assign COMPONENT_CONTEXT_TYPE = "component"]
+[#assign INSTANCE_CONTEXT_TYPE = "instance"]
+[#assign VERSION_CONTEXT_TYPE = "version"]
+[#assign INTERMEDIATE_CONTEXT_TYPE = "intermediate"]
+
+[#-- Control whether context filter attribute is merged with a link --]
+[#assign IGNORE_CONTEXT_FILTER_PROPERTY = "IgnoreOnMerge"]
+[#assign SUBCOMPONENT_CONTEXT_FILTER_PROPERTY = "SubComponent"]
+
+[#-- The basics of a context object --]
+[#function createContext type content filter={} intermediate=false]
+    [#return
+        {
+            "Type" : type?lower_case,
+            "Content" : content,
+            "Filter" : filter
+        } +
+        attributeIfTrue("IsIntermediate", intermediate, true) ]
+[/#function]
+
+[#-- A context for shared content but with the filter of the parent --]
+[#function createIntermediateContext content parent={} type=INTERMEDIATE_CONTEXT_TYPE]
+    [#return createContext(type, content, parent.Filter, true) ]
+[/#function]
+
+[#-- A child context extends the filter of its parent --]
+[#function createChildContext type content parent={} properties={} filterAttribute=""]
+    [#return
+        createContext(
+            type,
+            content,
+            addFilterAttribute(
+                parent.Filter,
+                contentIfContent(filterAttribute, type),
+                content,
+                properties
+            ),
+            false
+        ) ]
+[/#function]
+
+[#-- Support a context hierarchy --]
 [#function addChildContexts context childContexts=[] ]
     [#return
         context +
@@ -73,65 +291,117 @@ the entire subtree can be excluded from further search activity.
     [#return context.Filter]
 [/#function]
 
+[#function isIntermediateContext context]
+    [#return context.IsIntermediate]
+[/#function]
+
+[#function getContextChildren context]
+    [#return context.Children![] ]
+[/#function]
+
+[#function getContextWithoutChildren context]
+    [#return removeObjectAttributes(context, "Children") ]
+[/#function]
+
+[#-- A contextList is an array of contexts --]
+[#function getContextByIndex contextList index]
+    [#if contextList?size > index]
+        [#return contextList[index] ]
+    [/#if]
+    [#return {} ]
+[/#function]
+
+[#-- -1 if no items --]
+[#function getLastContextIndex contextList]
+    [#return contextList?size - 1]
+[/#function]
+
+[#function getLastContext contextList]
+    [#return getContextByIndex(contextList, getLastContextIndex(contextList))]
+[/#function]
+
+[#function contextFiltersMatch a b]
+    [#return internalFilterMatch(a.Filter, b.Filter, EXACT_FILTER_BEHAVIOUR)]
+[/#function]
+
 [#-- Context hierarchies
 
-Commonly used hierarchies
-
-Organisation - Aggregators -> Integrators -> Tenants -> Pods
+Organisation - Aggregators -> Enterprises -> Tenants -> Pods
 Product      - Products -> Environments -> Segments
-Solution     - Solutions -> Tiers -> Components -> SubComponents
+Solution     - Solutions -> Tiers -> Instances -> Versions -> Components
+
 --]
 
 [#function createRootContext content={} ]
-    [#return createContext("root", content) ]
+    [#return createContext(ROOT_CONTEXT_TYPE, content) ]
 [/#function]
 
 [#function createAggregatorContext aggregator parent={} ]
-    [#return createChildContext("aggregator", aggregator, parent) ]
+    [#return createChildContext(CONTEXT_AGGREGATOR_TYPE, aggregator, parent) ]
 [/#function]
 
-[#function createIntegratorContext integrator parent={} ]
-    [#return createChildContext("integrator", integrator, parent) ]
+[#function createEnterpriseContext enterprise parent={} ]
+    [#return createChildContext(ENTERPRISE_CONTEXT_TYPE, enterprise, parent) ]
 [/#function]
 
 [#function createTenantContext tenant parent={} ]
-    [#return createChildContext("tenant", tenant, parent) ]
+    [#return createChildContext(TENANT_CONTEXT_TYPE, tenant, parent) ]
 [/#function]
 
 [#function createPodContext pod parent={} ]
-    [#return createChildContext("pod", pod, parent) ]
+    [#return createChildContext(POD_CONTEXT_TYPE, pod, parent) ]
 [/#function]
 
 [#function createProductContext product parent={} ]
-    [#return createChildContext("product", product, parent) ]
+    [#return createChildContext(PRODUCT_CONTEXT_TYPE, product, parent) ]
 [/#function]
 
 [#function createEnvironmentContext environment parent={} ]
-    [#return createChildContext("environment", environment, parent) ]
+    [#return createChildContext(ENVIRONMENT_CONTEXT_TYPE, environment, parent) ]
 [/#function]
 
 [#function createSegmentContext segment parent={} ]
-    [#return createChildContext("segment", segment, parent) ]
+    [#return createChildContext(SEGMENT_CONTEXT_TYPE, segment, parent) ]
 [/#function]
 
 [#function createSolutionContext solution parent={} ]
-    [#return createIntermediateContext(solution, parent) ]
+    [#return createIntermediateContext(solution, parent, SOLUTION_CONTEXT_TYPE) ]
 [/#function]
 
 [#function createTierContext tier parent={} ]
-    [#return createChildContext("tier", tier, parent) ]
-[/#function]
-
-[#function createComponentContext component parent={} attribute="" ]
-    [#return createChildContext("component", component, parent, attribute) ]
+    [#return createChildContext(TIER_CONTEXT_TYPE, tier, parent) ]
 [/#function]
 
 [#function createInstanceContext instance parent={} ]
-    [#return createChildContext("instance", instance, parent) ]
+    [#return createChildContext(INSTANCE_CONTEXT_TYPE, instance, parent) ]
 [/#function]
 
 [#function createVersionContext version parent={} ]
-    [#return createChildContext("version", version, parent) ]
+    [#return createChildContext(VERSION_CONTEXT_TYPE, version, parent) ]
+[/#function]
+
+[#function createComponentContext component parent={} attribute="" ]
+    [#return createChildContext(
+        COMPONENT_CONTEXT_TYPE,
+        component,
+        parent,
+        {IGNORE_CONTEXT_FILTER_PROPERTY : true} +
+        valueIfContent(
+            {
+                SUBCOMPONENT_CONTEXT_FILTER_PROPERTY : true
+            },
+            attribute
+        ),
+        attribute) ]
+[/#function]
+
+[#function getSubComponentFilterValues filter]
+    [#list filter as key,value]
+        [#if (value.Properties[SUBCOMPONENT_CONTEXT_FILTER_PROPERTY])!false]
+            [#return value.Values]
+        [/#if]
+    [/#list]
+    [#return {} ]
 [/#function]
 
 [#function constructInstanceContexts instances parent component attribute="" ]
@@ -151,10 +421,18 @@ Solution     - Solutions -> Tiers -> Components -> SubComponents
                         "Id" : instanceId,
                         "Name" : instanceId
                     } +
-                    removeObjectAttributes(instance, ["Versions", componentChildrenAttributes]),
+                    removeObjectAttributes(instance, ["DeploymentUnits", "Versions", componentChildrenAttributes]),
                     parent
                 ) ]
 
+        [#-- Occurrences of a component inherit any parent component deploymentUnit --]
+        [#local componentConfiguration =
+            mergeObjects(
+                component + attributeIfContent("DeploymentUnits", instance.DeploymentUnits![]),
+                getObjectAttributes(instance, componentChildrenAttributes)
+            ) ]
+
+        [#-- Occurrences of a component inherit any parent component deploymentUnit --]
         [#if instance.Versions?has_content]
             [#local
                 instanceContexts +=
@@ -164,10 +442,7 @@ Solution     - Solutions -> Tiers -> Components -> SubComponents
                             constructVersionContexts(
                                 instance.Versions,
                                 instanceContext,
-                                mergeObjects(
-                                    component,
-                                    getObjectAttributes(instance, componentChildrenAttributes)
-                                ),
+                                componentConfiguration,
                                 attribute
                             )
                         )
@@ -179,8 +454,7 @@ Solution     - Solutions -> Tiers -> Components -> SubComponents
                         addChildContexts(
                             instanceContext,
                             constructComponentContext(
-                                component +
-                                    attributeIfContent("DeploymentUnits", instance.DeploymentUnits![]),
+                                componentConfiguration,
                                 instanceContext,
                                 attribute
                             )
@@ -209,9 +483,16 @@ Solution     - Solutions -> Tiers -> Components -> SubComponents
                         "Id" : versionId,
                         "Name" : versionId
                     } +
-                    removeObjectAttributes(version, ["Instances", componentChildrenAttributes]),
+                    removeObjectAttributes(version, ["DeploymentUnits", "Instances", componentChildrenAttributes]),
                     parent
                 ) ]
+
+        [#-- Occurrences of a component inherit any parent component deploymentUnit --]
+        [#local componentConfiguration =
+            mergeObjects(
+                component + attributeIfContent("DeploymentUnits", version.DeploymentUnits![]),
+                getObjectAttributes(version, componentChildrenAttributes)
+            ) ]
 
         [#if version.Instances?has_content]
             [#local
@@ -222,10 +503,7 @@ Solution     - Solutions -> Tiers -> Components -> SubComponents
                             constructInstanceContexts(
                                 version.Instances,
                                 versionContext,
-                                mergeObjects(
-                                    component,
-                                    getObjectAttributes(version, componentChildrenAttributes)
-                                ),
+                                componentConfiguration,
                                 attribute
                             )
                         )
@@ -237,8 +515,7 @@ Solution     - Solutions -> Tiers -> Components -> SubComponents
                         addChildContexts(
                             versionContext,
                             constructComponentContext(
-                                component +
-                                    attributeIfContent("DeploymentUnits", version.DeploymentUnits![]),
+                                componentConfiguration,
                                 versionContext,
                                 attribute
                             )
@@ -250,6 +527,10 @@ Solution     - Solutions -> Tiers -> Components -> SubComponents
 [/#function]
 
 [#function constructComponentContext component parent={} attribute="" ]
+
+    [#-- First ensure the core information about the component is known --]
+    [@includeSharedComponentConfiguration component=component.Type /]
+
     [#-- Determine any child component content to pass on --]
     [#local componentChildrenAttributes = getComponentChildrenAttributes(component.Type) ]
 
@@ -261,7 +542,8 @@ Solution     - Solutions -> Tiers -> Components -> SubComponents
             componentConfiguration =
                 getObjectAttributes(
                     component,
-                    ["Id", "Name", "Type"] + componentChildrenAttributes
+                    ["Id", "Name", "Type", "DeploymentUnits"] +
+                    componentChildrenAttributes
                 ) ]
 
         [#-- Capture configuration as an intermediate context --]
@@ -270,7 +552,8 @@ Solution     - Solutions -> Tiers -> Components -> SubComponents
                 createIntermediateContext(
                     removeObjectAttributes(
                         component,
-                        ["Id", "Name", "Type", "Instances", "Versions"] + componentChildrenAttributes
+                        ["Id", "Name", "Type", "DeploymentUnits", "Instances", "Versions"] +
+                        componentChildrenAttributes
                     ),
                     parent
                 ) ]
@@ -309,6 +592,7 @@ Solution     - Solutions -> Tiers -> Components -> SubComponents
                 ) ]
 
         [#-- Handle any child components --]
+        [#-- Child components inherit any parent component deploymentUnit --]
         [#local childContexts = [] ]
         [#list getComponentChildren(component.Type) as child]
             [#local childComponents = component[getComponentChildAttribute(child)]!{} ]
@@ -323,7 +607,9 @@ Solution     - Solutions -> Tiers -> Components -> SubComponents
                                             "Id" : childComponentId,
                                             "Name" : childComponentId,
                                             "Type" : getComponentChildType(child)
-                                        } + childComponent,
+                                        } +
+                                            attributeIfContent("DeploymentUnits", component.DeploymentUnits![]) +
+                                            childComponent,
                                         componentContext,
                                         getComponentChildLinkAttributes(child)[0]
                                     )
@@ -380,12 +666,23 @@ Solution     - Solutions -> Tiers -> Components -> SubComponents
         [#local componentContexts = [] ]
         [#list tier.Components!{} as componentId, component]
             [#if component?is_hash]
+
+                [#-- First inject a default Id/Name for the component --]
                 [#local componentObject =
                     {
                         "Id" : componentId,
                         "Name" : componentId
-                    } + component ]
-                [#-- Determine the type specific attribute, if any --]
+                    } +
+                    component ]
+
+                [#-- Next inject a default type  --]
+                [#local componentObject =
+                    {
+                        "Type" : getComponentType(componentObject)
+                    } +
+                    componentObject ]
+
+                [#-- Merge in the type specific information, if any --]
                 [#local componentTypeAttribute = getComponentTypeObjectAttribute(componentObject) ]
                 [#if componentTypeAttribute?has_content]
                     [#local
@@ -401,9 +698,7 @@ Solution     - Solutions -> Tiers -> Components -> SubComponents
                     componentContexts +=
                         [
                             constructComponentContext(
-                                {
-                                    "Type" : getComponentType(componentObject)
-                                } + componentObject,
+                                componentObject,
                                 tierContext
                             )
                         ] ]
@@ -414,27 +709,9 @@ Solution     - Solutions -> Tiers -> Components -> SubComponents
     [#return tierContexts]
 [/#function]
 
-[#-- Filters
+[#-- Matches
 
-A filter consists of one or more values for each of one or more filter attributes.
-Filter comparison is a core mechanism of context processing.
-
-When filters need to be compared, a "MatchBehaviour" attribute controls the
-algorithm used. Algorithms are defined in terms of a "contextFilter" and a
-"matchFilter".
-
-The "any" behaviour requires that at least one value of the Any attribute of the
-matchFilter needs to match one value in any of the attributes of the contextFilter.
-
-The "right" behaviour requires that a value of each attribute of the matchFilter
-must match a value of the same named attribute in the contextFilter, or
-the attribute must be absent from the contextFilter. A variant of this is the
-"inner" which requires every matchFilter attribute be present on
-the contextFilter.
-
-One way to think of filters is in terms of Venn Diagrams/SQL joins. Each filter
-defines/matches a set of configuration entities and if the intersection of the
-sets is not empty based on the MatchBehaviour, then the filters match.
+A match represents the criteria for a search of a context tree
 
 --]
 
@@ -449,12 +726,7 @@ sets is not empty based on the MatchBehaviour, then the filters match.
     [#return createMatch(context.Filter)]
 [/#function]
 
-[#assign FILTER_ANY_MATCH_BEHAVIOUR = "any"]
-[#assign FILTER_RIGHT_MATCH_BEHAVIOUR = "right"]
-[#assign FILTER_MINIMAL_MATCH_BEHAVIOUR = "minimal"]
-[#assign FILTER_EXACT_MATCH_BEHAVIOUR = "inner"]
-
-[#function findContexts context matches ancestors=true leafMatch=FILTER_EXACT_MATCH_BEHAVIOUR]
+[#function findContexts context matches ancestors=true leafMatch=EXACT_FILTER_BEHAVIOUR]
     [#local result = [] ]
     [#list asArray(matches) as match]
         [#local result += internalFilterContexts(context, match, ancestors, leafMatch) ]
@@ -462,9 +734,28 @@ sets is not empty based on the MatchBehaviour, then the filters match.
     [#return result]
 [/#function]
 
-[#function createLink filter={} direction="outbound" role="" attributes={} enabled=true]
+[#-- Links
+
+A link declares a directional dependency between two components.
+
+The link filter points from a source component to a target component.
+The direction of the link is relative to the source component, while the role
+expresses the nature of the relationship relative to the target context.
+
+The optional attributes provide link specific configuration for the role.
+
+The roles available are defined as part of the state of the target component.
+
+--]
+
+[#assign INBOUND_LINK_DIRECTION = "inbound"]
+[#assign OUTBOUND_LINK_DIRECTION = "outbound"]
+
+[#function createLink id name filter={} direction="outbound" role="" attributes={} enabled=true]
     [#return
         {
+            "Id" : id,
+            "Name" : name,
             "Enabled" : enabled,
             "Filter" : filter,
             "Direction" : direction,
@@ -487,12 +778,14 @@ sets is not empty based on the MatchBehaviour, then the filters match.
     [#-- TODO(mfl) Remove exclusion of "Type" once external link support not needed --]
     [#return
         createLink(
-            removeObjectAttributes(link, ["Direction", "Role", "Attributes", "Enabled", "Type"]),
-            link.Direction!"outbound",
+            link.Id!"COTFatal: Id not provided on link",
+            link.Name!"COTFatal: Name not provided on link",
+            removeObjectAttributes(link, ["Id", "Name", "Direction", "Role", "Attributes", "Enabled", "Type"]),
+            link.Direction!OUTBOUND_LINK_DIRECTION,
+            link.Role!"",
             link.Attributes!{},
             link.Enabled!true
-        ) +
-        attributeIfContent("Role", link.Role!"")
+        )
 ]
 [/#function]
 
@@ -517,12 +810,19 @@ sets is not empty based on the MatchBehaviour, then the filters match.
 
 [#function getContextFullLink context link]
 
-    [#-- Ensure we are dealing with the full link format --]
-    [#-- Merge the context filter with the link filter --]
+    [#-- Ensure we are dealing with the full link format              --]
+    [#-- Determine the parts of the context filter that are mergeable --]
+    [#local mergeableContextFilter = {} ]
+    [#list context.Filter as key,value]
+        [#if !((value.Properties[IGNORE_CONTEXT_FILTER_PROPERTY])!false) ]
+            [#local mergeableContextFilter += {key : value} ]
+        [/#if]
+    [/#list]
+    [#-- Create the full link --]
     [#local fullLink =
         mergeObjects(
             {
-                "Filter" : context.Filter
+                "Filter" : mergeableContextFilter
             },
             convertSimplifiedLink(link)
         ) ]
@@ -546,9 +846,34 @@ sets is not empty based on the MatchBehaviour, then the filters match.
     [#return fullLink]
 [/#function]
 
+
+[#-- Derive effective content based on a contextList --]
+[#function getContextListContent contextList contextFilter]
+
+    [#local content = {} ]
+    [#list contextList as ancestor]
+        [#local content = mergeObjects(content, qualifyEntity(getContextContent(ancestor), contextFilter)) ]
+    [/#list]
+
+    [#return content]
+
+[/#function]
+
+
 [#-----------------------------------------------------
 -- Internal support functions for context processing --
 -------------------------------------------------------]
+
+[#-- Qualifiers --]
+
+[#function internalApplyQualifier contextFilter qualifier nominalValue]
+
+    [#if internalFilterMatch(contextFilter, qualifier.Filter!{}, qualifier.FilterBehaviour) ]
+        [#return combineEntities(nominalValue, qualifier.Value, qualifier.CombineBehaviour) ]
+    [/#if]
+
+    [#return nominalValue]
+[/#function]
 
 [#-- Context searches
 
@@ -560,7 +885,10 @@ with a matching context.
 --]
 
 [#function internalGetFilterKeyValues value]
-    [#return value?is_hash?then(value?values, value)]
+    [#if value?is_hash]
+        [#return (value.Values!value)?values]
+    [/#if]
+    [#return value]
 [/#function]
 
 [#-- A filter attribute value can be an array of strings, a string, or an object --]
@@ -569,7 +897,7 @@ with a matching context.
 [#function internalFilterMatch contextFilter matchFilter matchBehaviour]
 
     [#switch matchBehaviour]
-        [#case FILTER_ANY_MATCH_BEHAVIOUR]
+        [#case ANY_FILTER_BEHAVIOUR]
             [#if !(matchFilter.Any??)]
                 [#return true]
             [/#if]
@@ -583,11 +911,11 @@ with a matching context.
             [/#list]
             [#break]
 
-        [#case FILTER_RIGHT_MATCH_BEHAVIOUR]
-        [#case FILTER_MINIMAL_MATCH_BEHAVIOUR]
+        [#case MINIMAL_FILTER_BEHAVIOUR]
+        [#case SUBSET_FILTER_BEHAVIOUR]
             [#list matchFilter as key,value]
                 [#if !(contextFilter[key]??)]
-                    [#if matchBehaviour == FILTER_RIGHT_MATCH_BEHAVIOUR]
+                    [#if matchBehaviour == MINIMAL_FILTER_BEHAVIOUR]
                         [#-- Treat missing attributes in the context as a match --]
                         [#continue]
                     [#else]
@@ -606,7 +934,7 @@ with a matching context.
             [#return true]
             [#break]
 
-        [#case FILTER_EXACT_MATCH_BEHAVIOUR]
+        [#case EXACT_FILTER_BEHAVIOUR]
             [#-- Should have the same number of attributes --]
             [#if contextFilter?keys?size != matchFilter?keys?size]
                 [@debug
@@ -654,11 +982,13 @@ with a matching context.
     [#return false]
 [/#function]
 
-
-[#function internalFilterContexts context match ancestors=true leafMatch=FILTER_EXACT_MATCH_BEHAVIOUR]
+[#-- Find matching contexts based on a matchFilter and optionally a context type       --]
+[#-- Type is useful if intermediate nodes of the same type as the leaf nodes also need --]
+[#-- to be processed --]
+[#function internalFilterContexts context match ancestors leafMatch]
 
     [#-- Terminate the search if no potential for a more specific match --]
-    [#if !internalFilterMatch(context.Filter, match.Filter, FILTER_RIGHT_MATCH_BEHAVIOUR)]
+    [#if !internalFilterMatch(context.Filter, match.Filter, MINIMAL_FILTER_BEHAVIOUR)]
         [@debug
             message="Failed filter match"
             context=
@@ -672,7 +1002,7 @@ with a matching context.
     [/#if]
 
     [#-- This context's contribution to the result --]
-    [#local returnedContext = removeObjectAttributes(context, "Children")]
+    [#local returnedContext = getContextWithoutChildren(context) ]
 
     [#-- Check for a more specific match on a child --]
     [#local childContent = [] ]
@@ -684,26 +1014,41 @@ with a matching context.
     [/#list]
 
     [#if childContent?has_content]
-            [#return childContent ]
+        [#-- Return children plus any type match --]
+        [#return
+            arrayIfTrue(
+                [[returnedContext]],
+                match.Type?? && (match.Type == context.Type)
+            ) + childContent ]
     [#else]
         [#-- No child matches so this is the last matching context --]
         [#if !internalFilterMatch(context.Filter, match.Filter, leafMatch)]
-            [#-- Not an match based on the provided filter behaviour --]
+            [#-- Not an match based on the provided match --]
             [@debug
-                message="Leaf context does not match"
+                message="Leaf context does not match filter"
                 context=
                     {
-                        "Context" : context.Filter,
-                        "Match" : match.Filter,
-                        "Behaviour" : leafMatch
+                        "Context" : context,
+                        "Match" : match,
+                        "FilterBehaviour" : leafMatch
                     }
                 enabled=false
             /]
             [#return [] ]
-        [#else]
-            [#return [[returnedContext]] ]
+        [/#if]
+        [#if match.Type?? && (match.Type != context.Type)]
+            [@debug
+                message="Leaf context does not match type"
+                context=
+                    {
+                        "Context" : context,
+                        "Match" : match
+                    }
+                enabled=false
+            /]
+            [#return [] ]
         [/#if]
     [/#if]
-
+    [#return [[returnedContext]] ]
 [/#function]
 

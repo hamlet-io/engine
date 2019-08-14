@@ -337,7 +337,8 @@
                     [#assign tierNetwork =
                         blueprintTier.Network +
                         {
-                            "Index" : networkTier?index
+                            "Index" : networkTier?index,
+                            "Link" : addIdNameToObject(blueprintTier.Network.Link, "network")
                         } ]
                     [#break]
                 [/#if]

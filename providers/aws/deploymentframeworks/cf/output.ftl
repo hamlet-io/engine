@@ -153,7 +153,7 @@
         [/#if]
     [/#list]
 
-    [@addToJsonOutput
+    [@mergeWithJsonOutput
         name="resources"
         content=
             {
@@ -205,8 +205,8 @@
 [#macro cf_output_resource level="" include=""]
 
     [#-- Initialise outputs --]
-    [@initialiseJsonOutput "resources" /]
-    [@initialiseJsonOutput "outputs" /]
+    [@initialiseJsonOutput name="resources" /]
+    [@initialiseJsonOutput name="outputs" /]
 
     [#-- Resources --]
     [#if include?has_content]
@@ -215,7 +215,7 @@
         [@processComponents level /]
     [/#if]
 
-    [#if getOutput("resources")?has_content || logMessages?has_content]
+    [#if getOutputContent("resources")?has_content || logMessages?has_content]
         [@toJSON
             {
                 "AWSTemplateFormatVersion" : "2010-09-09",
@@ -227,9 +227,9 @@
                         "RunId" : runId
                     } +
                     attributeIfContent("CostCentre", accountObject.CostCentre!""),
-                "Resources" : getOutput("resources"),
+                "Resources" : getOutputContent("resources"),
                 "Outputs" :
-                    getOutput("outputs") +
+                    getOutputContent("outputs") +
                     getCFTemplateCoreOutputs()
             } +
             attributeIfContent("COTMessages", logMessages)

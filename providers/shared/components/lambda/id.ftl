@@ -19,12 +19,6 @@
         ]
     attributes=
         [
-            {
-                "Names" : "DeploymentType",
-                "Type" : STRING_TYPE,
-                "Values" : ["EDGE", "REGIONAL"],
-                "Default" : "REGIONAL"
-            }
         ]
 /]
 
@@ -47,6 +41,12 @@
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentType",
+                "Type" : STRING_TYPE,
+                "Values" : ["EDGE", "REGIONAL"],
+                "Default" : "REGIONAL"
+            },
             {
                 "Names" : ["Fragment", "Container"],
                 "Type" : STRING_TYPE,

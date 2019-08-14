@@ -428,6 +428,8 @@
 
                         [#-- legacy OAI lookup --]
                         [#local opsDataLink = {
+                                    "Id" : "opsData",
+                                    "Name" : "opsData",
                                     "Tier" : "mgmt",
                                     "Component" : "baseline",
                                     "Instance" : "",
@@ -435,7 +437,7 @@
                                     "DataBucket" : "opsdata"
                             }]
 
-                        [#local opsDataLinkTarget = getLinkTarget({}, opsDataLink )]
+                        [#local opsDataLinkTarget = getLinkTarget(occurrence, opsDataLink )]
 
                         [#if opsDataLinkTarget?has_content ]
                             [#local opsDataBucketId = opsDataLinkTarget.State.Resources["bucket"].Id ]

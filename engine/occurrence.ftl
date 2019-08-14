@@ -4,11 +4,6 @@
 -- Public functions for occurrence processing --
 ------------------------------------------------]
 
-[#-- Get the occurrences of versions/instances of a component --]
-[#function getOccurrences tier component ]
-    [#return internalGetOccurrences(component, tier) ]
-[/#function]
-
 [#function getOccurrenceSettingValue occurrence names emptyIfNotProvided=false]
     [#return internalGetOccurrenceSetting(occurrence, names, emptyIfNotProvided).Value]
 [/#function]
@@ -59,6 +54,10 @@
         internalIsOneResourceDeployed((occurrence.State.Resources)!{}) ]
 [/#function]
 
+[#function getOccurrenceCore occurrence ]
+    [#return (occurrence.Core)!{} ]
+[/#function]
+
 [#function getOccurrenceType occurrence ]
     [#return occurrence.Core.Type]
 [/#function]
@@ -95,6 +94,10 @@
     [#return (occurrence.Configuration.Solution)!{} ]
 [/#function]
 
+[#function getOccurrenceResources occurrence ]
+    [#return (occurrence.State.Resources)!{} ]
+[/#function]
+
 [#function getOccurrenceChildren occurrence]
     [#return (occurrence.Occurrences)![] ]
 [/#function]
@@ -103,51 +106,88 @@
     [#return getOccurrenceChildren(occurrence)?has_content ]
 [/#function]
 
-[#function createOccurrenceFromExternalLink occurrence link]
-    [#local targetOccurrence =
-        {
-            "Core" : {
-                "External" : true,
-                "Type" : link.Type!"external",
-                "Tier" : {
-                    "Id" : link.Tier,
-                    "Name" : link.Tier
-                },
-                "Component" : {
-                    "Id" : link.Component,
-                    "Name" : link.Component
-                },
-                "Instance" : {
-                    "Id" : "",
-                    "Name" : ""
-                },
-                "Version" : {
-                    "Id" : "",
-                    "Name" : ""
+[#function constructOccurrenceSettings baseOccurrence type]
+
+    [#local occurrence = baseOccurrence]
+
+    [#local occurrence =
+        mergeObjects(
+            occurrence,
+            {
+                "Core" : {
+                    "Id" : formatId(occurrence.Core.Extensions.Id),
+                    "TypedId" : formatId(occurrence.Core.Extensions.Id, type),
+                    "Name" : formatName(occurrence.Core.Extensions.Name),
+                    "TypedName" : formatName(occurrence.Core.Extensions.Name, type),
+                    "FullName" : formatSegmentFullName(occurrence.Core.Extensions.Name),
+                    "TypedFullName" : formatSegmentFullName(occurrence.Core.Extensions.Name, type),
+                    "ShortName" : formatName(occurrence.Core.Extensions.Id),
+                    "ShortTypedName" : formatName(occurrence.Core.Extensions.Id, type),
+                    "ShortFullName" : formatSegmentShortName(occurrence.Core.Extensions.Id),
+                    "ShortTypedFullName" : formatSegmentShortName(occurrence.Core.Extensions.Id, type),
+                    "RelativePath" : formatRelativePath(occurrence.Core.Extensions.Name),
+                    "FullRelativePath" : formatSegmentRelativePath(occurrence.Core.Extensions.Name),
+                    "AbsolutePath" : formatAbsolutePath(occurrence.Core.Extensions.Name),
+                    "FullAbsolutePath" : formatSegmentAbsolutePath(occurrence.Core.Extensions.Name)
                 }
-            },
-            "Configuration" : {
-                "Environment" : occurrence.Configuration.Environment
-            },
-            "State" : {
-                "ResourceGroups" : {},
-                "Attributes" : {}
             }
-        }
-    ]
-    [#return
-        targetOccurrence +
-        {
-            "State" : internalConstructOccurrenceState(targetOccurrence, {})
-        }
-    ]
+        ) ]
+
+    [#local occurrence =
+        mergeObjects(
+            occurrence,
+            {
+                "Configuration" : {
+                    "Settings" : {
+                        "Build" : internalConstructOccurrenceBuildSettings(occurrence),
+                        "Account" : internalConstructAccountSettings(),
+                        "Product" :
+                            internalConstructOccurrenceProductSettings(occurrence) +
+                            internalConstructOccurrenceSensitiveSettings(occurrence)
+                    }
+                }
+            }
+        ) ]
+
+    [#-- Some core settings are controlled by product level settings --]
+    [#-- (e.g. file prefixes) so initialise core last                --]
+    [#local occurrence =
+        mergeObjects(
+            occurrence,
+            {
+                "Configuration" : {
+                    "Settings" : {
+                        "Core" : internalConstructOccurrenceCoreSettings(occurrence)
+                    }
+                }
+            }
+        ) ]
+    [#local occurrence =
+        mergeObjects(
+            occurrence,
+            {
+                "Configuration" : {
+                    "Environment" : {
+                        "Build" :
+                            getSettingsAsEnvironment(occurrence.Configuration.Settings.Build),
+                        "General" :
+                            internalGetOccurrenceSettingsAsEnvironment(
+                                occurrence,
+                                {"Include" : {"Sensitive" : false}}
+                            ),
+                        "Sensitive" :
+                            internalGetOccurrenceSettingsAsEnvironment(
+                                occurrence,
+                                {"Include" : {"General" : false}}
+                            )
+                    }
+                }
+            }
+        ) ]
+    [#return occurrence]
 [/#function]
 
-[#--------------------------------------------------------
--- Internal support functions for occurrence processing --
-----------------------------------------------------------]
-
-[#function internalConstructOccurrenceAttributes occurrence]
+[#function constructOccurrenceAttributes occurrence]
     [#local attributes = [] ]
 
     [#list getComponentResourceGroups(occurrence.Core.Type) as key, value]
@@ -159,32 +199,7 @@
     [#return attributes]
 [/#function]
 
-[#function internalGetDeploymentState resources ]
-    [#local result = resources ]
-    [#if resources?is_hash]
-        [#list resources as alias,resource]
-            [#if resource.Id?has_content]
-                [#local result +=
-                    {
-                        alias :
-                          resource +
-                          {
-                              "Deployed" : (resource.Deployed)!getExistingReference(resource.Id)?has_content
-                          }
-                    } ]
-            [#else]
-                [#local result +=
-                    {
-                        alias : internalGetDeploymentState(resource)
-                    } ]
-            [/#if]
-        [/#list]
-    [/#if]
-    [#return result]
-[/#function]
-
-
-[#function internalConstructOccurrenceState occurrence parentOccurrence]
+[#function constructOccurrenceState occurrence parentOccurrence]
 
     [#local groupState = {} ]
     [#local attributes = {} ]
@@ -265,6 +280,35 @@
         ) ]
 [/#function]
 
+[#--------------------------------------------------------
+-- Internal support functions for occurrence processing --
+----------------------------------------------------------]
+
+[#function internalGetDeploymentState resources ]
+    [#local result = resources ]
+    [#if resources?is_hash]
+        [#list resources as alias,resource]
+            [#if resource.Id?has_content]
+                [#local result +=
+                    {
+                        alias :
+                          resource +
+                          {
+                              "Deployed" : getExistingReference(resource.Id)?has_content
+                          }
+                    } ]
+            [#else]
+                [#local result +=
+                    {
+                        alias : internalGetDeploymentState(resource)
+                    } ]
+            [/#if]
+        [/#list]
+    [/#if]
+    [#return result]
+[/#function]
+
+
 [#function internalConstructOccurrenceSettings possibilities root prefixes alternatives]
     [#local contexts = [] ]
 
@@ -296,7 +340,7 @@
             [/#if]
         [/#list]
     [/#list]
-    [#return asFlattenedSettings(getCompositeObject({ "Names" : "*" }, contexts)) ]
+    [#return asFlattenedSettings(getCompositeObject(["InhibitEnabled", { "Names" : "*" }], contexts)) ]
 [/#function]
 
 [#function internalGetOccurrenceSetting occurrence names emptyIfNotProvided=false]
@@ -476,327 +520,6 @@
     [#return
         getSettingsAsEnvironment(occurrence.Configuration.Settings.Core, format) +
         getSettingsAsEnvironment(occurrence.Configuration.Settings.Product, format) ]
-[/#function]
-
-[#-- treat the value "default" for version/instance as the same as blank --]
-[#function getContextId context]
-    [#return
-        (context.Id == "default")?then(
-            "",
-            context.Id
-        )
-    ]
-[/#function]
-
-[#function getContextName context]
-    [#return
-        getContextId(context)?has_content?then(
-            context.Name,
-            ""
-        )
-    ]
-[/#function]
-
-[#-- Get the occurrences of versions/instances of a component           --]
-[#-- This function should NOT be called directly - it is for the use of --]
-[#-- other functions in this file                                       --]
-[#function internalGetOccurrences component tier={} parentOccurrence={} parentContexts=[] componentType="" ]
-
-    [#if !(component?has_content) ]
-        [#return [] ]
-    [/#if]
-
-    [#local componentContexts = asArray(parentContexts) ]
-
-    [#if tier?has_content]
-        [#local type = getComponentType(component) ]
-        [#local typeObject = getComponentTypeObject(component) ]
-    [#else]
-        [#local type = componentType ]
-        [#local typeObject = component ]
-    [/#if]
-
-    [#-- Ensure we know the basic resource group information for the component --]
-    [@includeSharedComponentConfiguration type /]
-
-    [#if tier?has_content]
-        [#local tierId = getTierId(tier) ]
-        [#local tierName = getTierName(tier) ]
-        [#local componentId = getComponentId(component) ]
-        [#local componentName = getComponentName(component) ]
-        [#local subComponentId = [] ]
-        [#local subComponentName = [] ]
-        [#local componentContexts += [component, typeObject] ]
-    [#else]
-        [#local tierId = parentOccurrence.Core.Tier.Id ]
-        [#local tierName = parentOccurrence.Core.Tier.Name ]
-        [#local componentId = parentOccurrence.Core.Component.Id ]
-        [#local componentName = parentOccurrence.Core.Component.Name ]
-        [#local subComponentId = typeObject.Id?split("-") ]
-        [#local subComponentName = typeObject.Name?split("-") ]
-        [#local componentContexts += [typeObject] ]
-    [/#if]
-
-    [#local occurrences=[] ]
-
-    [#list typeObject.Instances!{"default" : {}} as instanceKey, instanceValue]
-        [#if instanceValue?is_hash ]
-            [#local instance = {"Id" : instanceKey, "Name" : instanceKey} + instanceValue]
-            [#local instanceId = getContextId(instance) ]
-            [#local instanceName = getContextName(instance) ]
-
-            [#list instance.Versions!{"default" : {}} as versionKey, versionValue]
-                [#if versionValue?is_hash ]
-                    [#local version = {"Id" : versionKey, "Name" : versionKey} + versionValue]
-                    [#local versionId = getContextId(version) ]
-                    [#local versionName = getContextName(version) ]
-                    [#local occurrenceContexts = componentContexts + [instance, version] ]
-                    [#local idExtensions =
-                                subComponentId +
-                                asArray(instanceId, true, true) +
-                                asArray(versionId, true, true) ]
-                    [#local nameExtensions =
-                                subComponentName +
-                                asArray(instanceName, true, true) +
-                                asArray(versionName, true, true) ]
-                    [#local occurrence =
-                        {
-                            "Core" : {
-                                "Type" : type,
-                                "Tier" : {
-                                    "Id" : tierId,
-                                    "Name" : tierName
-                                },
-                                "Component" : {
-                                    "Id" : componentId,
-                                    "RawId" : component.Id,
-                                    "Name" : componentName,
-                                    "RawName" : component.Name,
-                                    "Type" : type
-                                },
-                                "Instance" : {
-                                    "Id" : firstContent(instanceId, (parentOccurrence.Core.Instance.Id)!""),
-                                    "Name" : firstContent(instanceName, (parentOccurrence.Core.Instance.Name)!"")
-                                },
-                                "Version" : {
-                                    "Id" : firstContent(versionId, (parentOccurrence.Core.Version.Id)!""),
-                                    "Name" : firstContent(versionName, (parentOccurrence.Core.Version.Name)!"")
-                                },
-                                "Internal" : {
-                                    "IdExtensions" : idExtensions,
-                                    "NameExtensions" : nameExtensions
-                                },
-                                "Extensions" : {
-                                    "Id" :
-                                        ((parentOccurrence.Core.Extensions.Id)![tierId, componentId]) + idExtensions,
-                                    "Name" :
-                                        ((parentOccurrence.Core.Extensions.Name)![tierName, componentName]) + nameExtensions
-                                }
-
-                            } +
-                            attributeIfContent(
-                                "SubComponent",
-                                subComponentId,
-                                {
-                                    "Id" : formatId(subComponentId),
-                                    "Name" : formatName(subComponentName)
-                                }
-                            ),
-                            "State" : {
-                                "ResourceGroups" : {},
-                                "Attributes" : {}
-                            }
-                        }
-                    ]
-
-                    [#-- Determine the occurrence deployment and placement profiles based on normal cmdb hierarchy --]
-                    [#local profiles =
-                        getCompositeObject(
-                            coreProfileChildConfiguration,
-                            occurrenceContexts).Profiles ]
-
-                    [#-- Determine placement profile --]
-                    [#local placementProfile = getPlacementProfile(profiles.Placement, segmentQualifiers) ]
-
-                    [#-- Add resource group placements to the occurrence --]
-                    [#list getComponentResourceGroups(type)?keys as key]
-                        [#local occurrence =
-                            mergeObjects(
-                                occurrence,
-                                {
-                                    "State" : {
-                                        "ResourceGroups" : {
-                                            key : {
-                                                "Placement" : getResourceGroupPlacement(key, placementProfile)
-                                            }
-                                        }
-                                    }
-                                }
-                            ) ]
-                    [/#list]
-
-                    [#-- Ensure we have loaded the component configuration --]
-                    [@includeComponentConfiguration
-                        component=type
-                        placements=occurrence.State.ResourceGroups /]
-
-                    [#-- Determine the required attributes now the provider specific configuration is in place --]
-                    [#local attributes = internalConstructOccurrenceAttributes(occurrence) ]
-
-                    [#-- Apply deployment profile overrides --]
-                    [#local occurrenceContexts +=
-                        [
-                            (getDeploymentProfile(profiles.Deployment, deploymentMode)[type])!{}
-                        ]
-                    ]
-
-                    [#local occurrence +=
-                        {
-                            "Configuration" : {
-                                "Solution" : getCompositeObject(attributes, occurrenceContexts)
-                            }
-                        }
-                    ]
-
-                    [#local occurrence =
-                        mergeObjects(
-                            occurrence,
-                            {
-                                "Core" : {
-                                    "Id" : formatId(occurrence.Core.Extensions.Id),
-                                    "TypedId" : formatId(occurrence.Core.Extensions.Id, type),
-                                    "Name" : formatName(occurrence.Core.Extensions.Name),
-                                    "TypedName" : formatName(occurrence.Core.Extensions.Name, type),
-                                    "FullName" : formatSegmentFullName(occurrence.Core.Extensions.Name),
-                                    "TypedFullName" : formatSegmentFullName(occurrence.Core.Extensions.Name, type),
-                                    "ShortName" : formatName(occurrence.Core.Extensions.Id),
-                                    "ShortTypedName" : formatName(occurrence.Core.Extensions.Id, type),
-                                    "ShortFullName" : formatSegmentShortName(occurrence.Core.Extensions.Id),
-                                    "ShortTypedFullName" : formatSegmentShortName(occurrence.Core.Extensions.Id, type),
-                                    "RelativePath" : formatRelativePath(occurrence.Core.Extensions.Name),
-                                    "FullRelativePath" : formatSegmentRelativePath(occurrence.Core.Extensions.Name),
-                                    "AbsolutePath" : formatAbsolutePath(occurrence.Core.Extensions.Name),
-                                    "FullAbsolutePath" : formatSegmentAbsolutePath(occurrence.Core.Extensions.Name)
-                                }
-                            }
-                        ) ]
-
-                    [#local occurrence =
-                        mergeObjects(
-                            occurrence,
-                            {
-                                "Configuration" : {
-                                    "Settings" : {
-                                        "Build" : internalConstructOccurrenceBuildSettings(occurrence),
-                                        "Account" : internalConstructAccountSettings(),
-                                        "Product" :
-                                            internalConstructOccurrenceProductSettings(occurrence) +
-                                            internalConstructOccurrenceSensitiveSettings(occurrence)
-                                    }
-                                }
-                            }
-                        ) ]
-                    [#-- Some core settings are controlled by product level settings --]
-                    [#-- (e.g. file prefixes) so initialise core last                --]
-                    [#local occurrence =
-                        mergeObjects(
-                            occurrence,
-                            {
-                                "Configuration" : {
-                                    "Settings" : {
-                                        "Core" : internalConstructOccurrenceCoreSettings(occurrence)
-                                    }
-                                }
-                            }
-                        ) ]
-                    [#local occurrence =
-                        mergeObjects(
-                            occurrence,
-                            {
-                                "Configuration" : {
-                                    "Environment" : {
-                                        "Build" :
-                                            getSettingsAsEnvironment(occurrence.Configuration.Settings.Build),
-                                        "General" :
-                                            internalGetOccurrenceSettingsAsEnvironment(
-                                                occurrence,
-                                                {"Include" : {"Sensitive" : false}}
-                                            ),
-                                        "Sensitive" :
-                                            internalGetOccurrenceSettingsAsEnvironment(
-                                                occurrence,
-                                                {"Include" : {"General" : false}}
-                                            )
-                                    }
-                                }
-                            }
-                        ) ]
-                    [#local occurrence +=
-                        {
-                            "State" : internalConstructOccurrenceState(occurrence, parentOccurrence)
-
-                        } ]
-                    [#local subOccurrences = [] ]
-
-                    [#list getComponentChildren(type) as subComponent]
-                        [#-- Subcomponent instances can either be under a Components --]
-                        [#-- attribute or directly under the subcomponent object.    --]
-                        [#-- To cater for the latter case, any default configuration --]
-                        [#-- must be under a "Configuration" attribute to avoid the  --]
-                        [#-- configuration being treated as subcomponent instances.  --]
-                        [#local subComponentInstances = {} ]
-                        [#if ((typeObject[subComponent.Component])!{})?is_hash ]
-                            [#local subComponentInstances =
-                                (typeObject[subComponent.Component].Components)!
-                                (typeObject[subComponent.Component])!{}
-                            ]
-                        [#else]
-                            [@fatal
-                              message="Subcomponent " + subComponent.Component + " content is not a hash"
-                              context=typeObject[subComponent.Component] /]
-                        [/#if]
-
-                        [#list subComponentInstances as key,subComponentInstance ]
-                            [#if subComponentInstance?is_hash ]
-                                [#if
-                                    (!((typeObject[subComponent.Component].Components)?has_content)) &&
-                                    (key == "Configuration") ]
-                                    [#continue]
-                                [/#if]
-                                [#local
-                                    subOccurrences +=
-                                        internalGetOccurrences(
-                                            {
-                                                "Id" : key,
-                                                "Name" : key
-                                            } +
-                                                subComponentInstance,
-                                            {},
-                                            occurrence,
-                                            occurrenceContexts +
-                                                [
-                                                    typeObject[subComponent.Component],
-                                                    typeObject[subComponent.Component].Configuration!{}
-                                                ],
-                                            subComponent.Type
-                                        )
-                                ]
-                            [/#if]
-                        [/#list]
-                    [/#list]
-
-                    [#local occurrences +=
-                        [
-                            occurrence +
-                            attributeIfContent("Occurrences", subOccurrences)
-                        ]
-                    ]
-                [/#if]
-            [/#list]
-        [/#if]
-    [/#list]
-
-    [#return occurrences ]
 [/#function]
 
 [#function internalIsOneResourceDeployed resources ]

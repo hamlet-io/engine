@@ -8,9 +8,12 @@
 [#include "base.ftl" ]
 
 [#-- Component handling --]
-[#include "context.ftl" ]
 [#include "component.ftl" ]
 [#include "setting.ftl" ]
+
+[#--Occurrence handling --]
+[#include "occurrence.ftl"]
+[#include "link.ftl"]
 
 [#-- Provider handling --]
 [#include "provider.ftl" ]
@@ -43,11 +46,12 @@
 
 [#-- Populate the model to be used --]
 [#assign model =
-    invokeDynamicFunction(
-        [
-            [deploymentFramework, "model", deploymentFrameworkModel!""],
-            [DEFAULT_DEPLOYMENT_FRAMEWORK, "model", deploymentFrameworkModel!""]
-        ],
-        []
+    invokeFunction(
+        getFirstDefinedDirective(
+            [
+                [deploymentFramework, "model", deploymentFrameworkModel!""],
+                [DEFAULT_DEPLOYMENT_FRAMEWORK, "model", deploymentFrameworkModel!""]
+            ]
+        )
     ) ]
 
