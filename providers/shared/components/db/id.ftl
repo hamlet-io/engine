@@ -15,6 +15,16 @@
             {
                 "Type" : "ComponentLevel",
                 "Value" : "solution"
+            },
+            {
+                "Type" : "Note",
+                "Value" : "Major Version Upgrades - When performing a major version upgrade only change the EngineVersion",
+                "Severity" : "warning"
+            },
+            {
+                "Type" : "Note",
+                "Value" : "AWS RDS - Major Version - Follow this guide to select the right version when performing a major version update - https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_UpgradeDBInstance.Upgrading.html".
+                "Sererity" : "information"
             }
         ]
     attributes=
@@ -25,7 +35,8 @@
             },
             {
                 "Names" : "EngineVersion",
-                "Type" : STRING_TYPE
+                "Type" : STRING_TYPE,
+                "Mandatory" : true
             },
             {
                 "Names" : "Port",
@@ -99,6 +110,12 @@
                         "Default" : "Snapshot"
                     }
                 ]
+            },
+            {
+                "Names" : "AllowMajorVersionUpgrade",
+                "Description" : "If the EngineVersion paramter is updated allow for major version updates to run",
+                "Type" : BOOLEAN_TYPE,
+                "Default" : true
             },
             {
                 "Names" : "AutoMinorVersionUpgrade",

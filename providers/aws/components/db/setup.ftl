@@ -16,9 +16,12 @@
     [#local attributes = occurrence.State.Attributes ]
 
     [#-- Baseline component lookup --]
-    [#local baselineLinks = getBaselineLinks(occurrence, [ "OpsData", "AppData", "Encryption", "SSHKey" ] )]
+    [#local baselineLinks = getBaselineLinks(occurrence, [ "Encryption" ] )]
     [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
-    [#local cmkKeyId = baselineComponentIds["Encryption"] ]
+
+    [@debug message="Baseline Ids" context=baselineComponentIds enabled=true /]
+
+    [#local cmkKeyId = baselineComponentIds["Encryption"]!"" ]
     [#local cmkKeyArn = getReference(cmkKeyId, ARN_ATTRIBUTE_TYPE)]
 
     [#local networkLink = getOccurrenceNetwork(occurrence).Link!{} ]
@@ -38,14 +41,6 @@
     [#local engine = solution.Engine]
     [#switch engine]
         [#case "mysql"]
-            [#local engineVersion =
-                valueIfContent(
-                    solution.EngineVersion!"",
-                    solution.EngineVersion!"",
-                    "5.6"
-                )
-            ]
-            [#local family = "mysql" + engineVersion]
             [#local port = solution.Port!"mysql" ]
             [#if (ports[port].Port)?has_content]
                 [#local port = ports[port].Port ]
@@ -55,14 +50,6 @@
             [#break]
 
         [#case "postgres"]
-            [#local engineVersion =
-                valueIfContent(
-                    solution.EngineVersion!"",
-                    solution.EngineVersion!"",
-                    "9.4"
-                )
-            ]
-            [#local family = "postgres" + engineVersion]
             [#local port = solution.Port!"postgresql" ]
             [#if (ports[port].Port)?has_content]
                 [#local port = ports[port].Port ]
@@ -87,7 +74,10 @@
     [#local rdsFullName = resources["db"].Name ]
     [#local rdsSubnetGroupId = resources["subnetGroup"].Id ]
     [#local rdsParameterGroupId = resources["parameterGroup"].Id ]
+    [#local rdsParameterGroupFamily = resources["parameterGroup"].Family ]
     [#local rdsOptionGroupId = resources["optionGroup"].Id ]
+
+    [#local engineVersion = solution.EngineVersion]
 
     [#local rdsSecurityGroupId =  formatDependentComponentSecurityGroupId(core.Tier, core.Component, rdsId) ]
     [#local rdsSecurityGroupIngressId = formatDependentSecurityGroupIngressId(
@@ -288,7 +278,7 @@
             type="AWS::RDS::DBParameterGroup"
             properties=
                 {
-                    "Family" : family,
+                    "Family" : rdsParameterGroupFamily,
                     "Description" : rdsFullName,
                     "Parameters" : dbParameters
                 }
@@ -406,8 +396,9 @@
                     parameterGroupId=getReference(rdsParameterGroupId)
                     optionGroupId=getReference(rdsOptionGroupId)
                     securityGroupId=getReference(rdsSecurityGroupId)
-                    autoMinorVersionUpgrade = solution.AutoMinorVersionUpgrade!RDSAutoMinorVersionUpgrade
-                    deleteAutomatedBackups = solution.Backup.DeleteAutoBackups
+                    allowMajorVersionUpgrade=solution.AllowMajorVersionUpgrade
+                    autoMinorVersionUpgrade=solution.AutoMinorVersionUpgrade!RDSAutoMinorVersionUpgrade
+                    deleteAutomatedBackups=solution.Backup.DeleteAutoBackups
                     deletionPolicy=deletionPolicy
                     updateReplacePolicy=updateReplacePolicy
                 /]
