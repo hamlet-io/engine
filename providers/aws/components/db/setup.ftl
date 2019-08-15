@@ -18,9 +18,6 @@
     [#-- Baseline component lookup --]
     [#local baselineLinks = getBaselineLinks(occurrence, [ "Encryption" ] )]
     [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
-
-    [@debug message="Baseline Ids" context=baselineComponentIds enabled=true /]
-
     [#local cmkKeyId = baselineComponentIds["Encryption"]!"" ]
     [#local cmkKeyArn = getReference(cmkKeyId, ARN_ATTRIBUTE_TYPE)]
 
