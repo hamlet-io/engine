@@ -146,7 +146,7 @@ function wait_for_deployment_execution() {
 
     case ${DEPLOYMENT_OPERATION} in
       update | create)
-        if [[" ${DEPLOYMENT_SCOPE}" == "resourceGroup" ]]; then
+        if [[ "${DEPLOYMENT_SCOPE}" == "resourceGroup" ]]; then
           DEPLOYMENT=$(az group deployment show --resource-group "${DEPLOYMENT_GROUP_NAME}" --name "${DEPLOYMENT_GROUP_NAME}")
         else
           DEPLOYMENT=$(az deployment show --name "${DEPLOYMENT_GROUP_NAME}")
