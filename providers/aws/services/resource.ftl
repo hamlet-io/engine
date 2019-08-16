@@ -169,6 +169,10 @@
 [#-- Allows resources to share a template or be separated --]
 [#-- Note that if separate, creation order becomes important --]
 [#function getExistingReference resourceId attributeType="" inRegion="" inDeploymentUnit="" inAccount=(accountObject.AWSId)!""]
+    [#local attributeType = (attributeType == REFERENCE_ATTRIBUTE_TYPE)?then(
+                                "",
+                                attributeType
+    )]
     [#return getStackOutput(formatAttributeId(resourceId, attributeType), inDeploymentUnit, inRegion, inAccount) ]
 [/#function]
 

@@ -607,11 +607,14 @@ behaviour.
 [/#function]
 
 [#-- Get processor settings --]
-[#function getProcessor occurrence type proccessorProfile="" ]
+[#function getProcessor occurrence type proccessorProfileName="" ]
 
     [#local tc = formatComponentShortName( occurrence.Core.Tier.Id, occurrence.Core.Component.Id)]
 
-    [#local processorProfile = proccessorProfileName!(occurrence.Configuration.Solution.Profiles.Processor) ]
+    [#local processorProfile = (proccessorProfileName?has_content)?then(
+                                    proccessorProfileName,
+                                    occurrence.Configuration.Solution.Profiles.Processor
+                                )]
 
     [#if (component[type].Processor)??]
         [#return component[type].Processor]
@@ -1282,6 +1285,7 @@ behaviour.
                         }]]
                         [#break]
                     [#case "Output" ]
+                        [@debug message="output lookup" context={ "resourceId" : resource.Id, "value" : value } enabled=true /]
                         [#local occurrenceDimensions += [{
                             "Name" : name,
                             "Value" : getReference(resource.Id, value)

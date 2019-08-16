@@ -259,7 +259,7 @@
     /]
 [/#macro]
 
-[#macro createCountAlarm id
+[#macro createAlarm id
             severity
             resourceName
             alertName

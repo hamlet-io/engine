@@ -256,7 +256,7 @@
 
                 [#switch alert.Comparison ]
                     [#case "Threshold" ]
-                        [@createCountAlarm
+                        [@createAlarm
                             id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
                             severity=alert.Severity
                             resourceName=core.FullName
@@ -271,6 +271,7 @@
                             period=alert.Time
                             operator=alert.Operator
                             reportOK=alert.ReportOk
+                            unit=alert.Unit
                             missingData=alert.MissingData
                             dimensions=getResourceMetricDimensions(monitoredResource, resources)
                             dependencies=monitoredResource.Id
