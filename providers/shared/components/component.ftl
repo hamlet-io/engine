@@ -325,6 +325,11 @@
             "Names" : "MissingData",
             "Type" : STRING_TYPE,
             "Default" : "notBreaching"
+        },
+        {
+            "Names" : "Unit",
+            "Type" : STRING_TYPE,
+            "Default" : "Count"
         }
     ]
 ]
@@ -338,7 +343,7 @@
             "Default" : "Step"
         },
         {
-            "Names" : "Cooldown"
+            "Names" : "Cooldown",
             "Description" : "Cooldown time ( seconds ) after a scaling event has occurred before another event can be triggered",
             "Children" : [
                 {
@@ -348,7 +353,7 @@
                 },
                 {
                     "Names" : "ScaleOut",
-                    "Type" : "NUMBER_TYPE,
+                    "Type" : "NUMBER_TYPE",
                     "Default" : 600
                 }
             ]
@@ -360,8 +365,11 @@
                 {
                     "Names" : "Link",
                     "Children" : linkChildrenConfiguration
-                } + 
-                alertChildrenConfiguration
+                },
+                {
+                    "Names" : "MetricTrigger",
+                    "Children" : alertChildrenConfiguration
+                }
             ]
         },
         {
@@ -371,8 +379,8 @@
                     "Names" : "MetricAggregation",
                     "Description" : "The method used to agregate the cloudwatch metric",
                     "Type" : STRING_TYPE,
-                    "Values" : [ "Avergae", "Minimum", "Maximum" ]
-                    "Default" : "Avergae"
+                    "Values" : [ "Average", "Minimum", "Maximum" ],
+                    "Default" : "Average"
                 },
                 {
                     "Names" : "CapacityAdjustment",
@@ -395,14 +403,12 @@
                         {
                             "Names" : "LowerBound",
                             "Description" : "The lower bound for the difference between the alarm threshold and the metric",
-                            "Type" : NUMBER_TYPE,
-                            "Default" : -1
+                            "Type" : NUMBER_TYPE
                         },
                         {
                             "Names" : "UpperBound",
                             "Description" : "The upper bound for the difference between the alarm threshold and the metric",
-                            "Type" : NUMBER_TYPE,
-                            "Default" : -1
+                            "Type" : NUMBER_TYPE
                         },
                         {
                             "Names" : "AdjustmentValue",
@@ -419,7 +425,7 @@
             "Children" : [
                 {
                     "Names" : "TargetValue",
-                    "Type" : "NUMBER_TYPE"
+                    "Type" : NUMBER_TYPE
                 },
                 {
                     "Names" : "ScaleInEnabled",

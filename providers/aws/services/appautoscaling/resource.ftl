@@ -24,17 +24,29 @@
 ]
 
 [#function getAppAutoScalingEcsResourceId clusterId serviceId ]
-    [#return formatRelativeUrl("service", getReference(clusterId), getReference(serviceId, NAME_ATTRIBUTE_TYPE)) ]
+    [#return 
+        {
+            "Fn::Join" : [
+                "/",
+                [
+                    "service",
+                    getReference(clusterId),
+                    getReference(serviceId, NAME_ATTRIBUTE_TYPE)
+                ]
+            ]
+        }
+    ]
 [/#function]
 
 [#macro createAppAutoScalingTarget 
         id
-        processorProfile
+        minCount
+        maxCount
         scalingResourceId
         scalableDimension
         resourceType
-        scheduledActions=[]
         roleId
+        scheduledActions=[]
         dependencies=""
         outputId=""
 ]
@@ -57,8 +69,8 @@
         type="AWS::ApplicationAutoScaling::ScalableTarget"
         properties=
             {
-                "MaxCapacity" : processorProfile.MinCount,
-                "MinCapacity" : processorProfile.MaxCount,
+                "MaxCapacity" : maxCount,
+                "MinCapacity" : minCount,
                 "ResourceId" : scalingResourceId,
                 "RoleARN" : getArn(roleId),
                 "ScalableDimension" : scalableDimension,
@@ -75,16 +87,16 @@
 [/#macro]
 
 [#function getAppAutoScalingStepAdjustment 
-    adjustment
-    lowerBound=""
-    upperBound=""
-     
+        adjustment
+        lowerBound=""
+        upperBound=""
 ]
     [#if ! lowerBound?has_content && ! upperBound?has_content ]
         [@fatal
             message="AutoScaling Step - must have upper or lower bound"
             context={ "Adjustment" : adjustment, "lowerBound" : lowerBound, "upperBound" : upperBound}
         /]
+    [/#if]
     [#return 
         [
             {
@@ -109,6 +121,21 @@
     minAdjustment
     stepAdjustments
 ]
+
+    [#switch adjustmentType ]
+        [#case "Change" ]
+            [#local adjustmentType = "ChangeInCapacity" ]
+            [#break]
+        [#case "Exact" ]
+            [#local adjustmentType = "ExactCapacity" ]
+            [#break]
+        [#case "Percentage" ]
+            [#local adjustmentType = "PercentChangeInCapacity" ]
+            [#break]
+        [#default]
+            [#local adjustmentType = "COTFatal: Unsupported adjustmentType ${adjustmentType}" ]
+    [/#switch]
+    
     [#return 
         {
             "AdjustmentType" : adjustmentType,
@@ -181,29 +208,33 @@
         id
         name
         policyType
-        scalingPolicy
+        scalingAction
         scalingTargetId
         dependencies=""
         outputId=""
 ]
 
+    [#]
     [@cfResource
         id=id
         type="AWS::ApplicationAutoScaling::ScalingPolicy"
-        properties= {
+        properties={
             "PolicyName" : name,
-            "PolicyType" : policyType,
-            "ScalingTargetId" : getReference(scalingTargetId),
+            "ScalingTargetId" : getReference(scalingTargetId)
         } + 
-        attributeIfTrue(
-            "StepScalingPolicyConfiguration",
-            policyType?lower_case == "step",
-            scalingPolicy 
+        (policyType?lower_case == "tracked")?then(
+            {
+                "TargetTrackingScalingPolicyConfiguration" : scalingAction,
+                "PolicyType" : "TargetTrackingScaling"
+            },
+            {}
         ) + 
-        attributeIfTrue(
-            "TargetTrackingScalingPolicyConfiguration",
-            policyType?lower_case == "track",
-            scalingPolicy
+        (policyType?lower_case == "stepped")?then(
+            {
+                "StepScalingPolicyConfiguration" : scalingAction,
+                "PolicyType" : "StepScaling"
+            },
+            {}
         )
         outputs=APP_AUTOSCALING_POLICY_OUTPUT_MAPPINGS
         outputId=outputId

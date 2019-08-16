@@ -259,8 +259,7 @@
             },
             {
                 "Names" : "DesiredCount",
-                "Type" : NUMBER_TYPE,
-                "Default" : -1
+                "Type" : NUMBER_TYPE
             },
             {
                 "Names" : "ScalingPolicies",
@@ -341,6 +340,11 @@
                     [                    
                         {
                             "Names" : "Alert",
+                            "Type" : STRING_TYPE,
+                            "Default" : "default"
+                        },
+                        {
+                            "Names" : "Processor",
                             "Type" : STRING_TYPE,
                             "Default" : "default"
                         }

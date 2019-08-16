@@ -1297,6 +1297,11 @@
       "ElasticSearch": {
         "Processor": "m3.medium.elasticsearch",
         "CountPerZone": 1
+      },
+      "service" : {
+        "DesiredPerZone" : 1,
+        "MinPerZone" : 1,
+        "MaxPerZone" : 1
       }
     }
   },

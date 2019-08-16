@@ -161,7 +161,7 @@
                 {
                     "scalingPolicy" + name : {
                         "Id" : formatDependentAppAutoScalingPolicyId(serviceId, name),
-                        "Name" : formatName(core.FullName, name)
+                        "Name" : formatName(core.FullName, name),
                         "Type" : AWS_APP_AUTOSCALING_POLICY_RESOURCE_TYPE
                     } 
                 }

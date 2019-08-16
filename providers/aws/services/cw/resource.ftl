@@ -275,6 +275,7 @@
             operator="GreaterThanOrEqualToThreshold"
             missingData="notBreaching"
             reportOK=false
+            unit="Count"
             dependencies=""]
     [@cfResource
         id=id
@@ -291,14 +292,18 @@
                 "Statistic" : statistic,
                 "Threshold" : threshold,
                 "TreatMissingData" : missingData,
-                "Unit" : "Count"
+                "Unit" : unit
             } +
             attributeIfContent("Dimensions", dimensions) +
-            attributeIfTrue("OKActions", reportOK, actions) +
+            attributeIfTrue(
+                "OKActions", 
+                reportOK, 
+                asArray(actions)
+            ) +
             valueIfContent(
                 {
                     "ActionsEnabled" : true,
-                    "AlarmActions" : actions
+                    "AlarmActions" : asArray(actions)
                 },
                 actions
             )
