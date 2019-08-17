@@ -231,10 +231,10 @@ function process_deployment() {
         if [[ "${DEPLOYMENT_SCOPE}" == "resourceGroup" ]]; then
 
           # Check resource group status
-          info "Checking if the ${DEPLOYMENT_GROUP_NAME} resource group exists..."
+          info "Creating resource group ${DEPLOYMENT_GROUP_NAME} if required..."
           deployment_group_exists=$(az group exists --resource-group "${DEPLOYMENT_GROUP_NAME}")
           if [[ ${deployment_group_exists} = "false" ]]; then
-            az group create --resource-group "${DEPLOYMENT_GROUP_NAME}" --location "${REGION}"
+            az group create --resource-group "${DEPLOYMENT_GROUP_NAME}" --location "${REGION}" > /dev/null || return $?
           fi
 
           # validate resource group level deployment
