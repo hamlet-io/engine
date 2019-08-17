@@ -1285,7 +1285,6 @@ behaviour.
                         }]]
                         [#break]
                     [#case "Output" ]
-                        [@debug message="output lookup" context={ "resourceId" : resource.Id, "value" : value } enabled=true /]
                         [#local occurrenceDimensions += [{
                             "Name" : name,
                             "Value" : getReference(resource.Id, value)
