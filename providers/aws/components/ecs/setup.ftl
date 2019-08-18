@@ -14,7 +14,6 @@
     [#local ecsId = resources["cluster"].Id ]
     [#local ecsName = resources["cluster"].Name ]
     [#local ecsRoleId = resources["role"].Id ]
-    [#local ecsServiceRoleId = resources["serviceRole"].Id ]
     [#local ecsInstanceProfileId = resources["instanceProfile"].Id ]
     [#local ecsAutoScaleGroupId = resources["autoScaleGroup"].Id ]
     [#local ecsLaunchConfigId = resources["launchConfig"].Id ]
@@ -150,12 +149,6 @@
                     linkPolicies)
         /]
 
-        [@createRole
-            id=ecsServiceRoleId
-            trustedServices=["ecs.amazonaws.com" ]
-            managedArns=["arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole"]
-        /]
-
     [/#if]
 
     [#if solution.ClusterLogGroup &&
@@ -187,12 +180,13 @@
             [#local linkTargetAttributes = linkTarget.State.Attributes ]
 
             [#switch linkTargetCore.Type]
+                
                 [#case EFS_MOUNT_COMPONENT_TYPE]
                     [#local configSets +=
                         getInitConfigEFSMount(
                             linkTargetCore.Id,
-                            linkTargetAttributes.EFS,
-                            linkTargetAttributes.DIRECTORY,
+                            linkTargetAttributes["EFS"],
+                            linkTargetAttributes["DIRECTORY"],
                             linkId
                         )]
                     [#break]
@@ -336,7 +330,6 @@
 
     [#local ecsId = parentResources["cluster"].Id ]
     [#local ecsSecurityGroupId = parentResources["securityGroup"].Id ]
-    [#local ecsServiceRoleId = parentResources["serviceRole"].Id ]
 
     [#-- Baseline component lookup --]
     [#local baselineLinks = getBaselineLinks(occurrence, [ "OpsData", "AppData", "Encryption" ] )]
@@ -644,7 +637,6 @@
                     taskId=taskId
                     loadBalancers=loadBalancers
                     serviceRegistries=serviceRegistries
-                    roleId=ecsServiceRoleId
                     networkMode=networkMode
                     networkConfiguration=aswVpcNetworkConfiguration!{}
                     placement=solution.Placement

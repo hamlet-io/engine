@@ -266,7 +266,6 @@
             engine
             networkMode=""
             networkConfiguration={}
-            roleId=""
             placement={}
             dependencies=""
     ]
@@ -307,12 +306,6 @@
                 {
                     "DesiredCount" : desiredCount
                 }
-            ) +
-            valueIfTrue(
-                {
-                    "Role" : getReference(roleId)
-                },
-                (loadBalancers![])?has_content && networkMode != "awsvpc"
             ) +
             attributeIfTrue(
                 "LaunchType",
