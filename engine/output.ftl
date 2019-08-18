@@ -96,7 +96,7 @@
 [/#function]
 
 [#function getOutputContent name section="default"]
-    [#return outputs[name].Sections[section].Content ]
+    [#return (outputs[name].Sections[section].Content)!{} ]
 [/#function]
 
 [#function getOutputAttributes name]

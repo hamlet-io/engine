@@ -179,7 +179,7 @@
 [#assign products = (blueprintObject.Products)!{} ]
 [#assign productObject = (blueprintObject.Product)!(products[product])!{} ]
 [#if productObject?has_content]
-    [#assign productId = productObject.Id!product]
+    [#assign productId = (productObject.Id!product)!"" ]
     [#assign productName = productObject.Name!productId]
     [#assign products +=
         {
@@ -207,7 +207,7 @@
 [#assign segments = (blueprintObject.Segments)!{} ]
 [#assign segmentObject = (blueprintObject.Segment)!(segments[segment])!{} ]
 [#if segmentObject?has_content]
-    [#assign segmentId = segmentObject.Id!segment]
+    [#assign segmentId = (segmentObject.Id!segment)!""]
     [#assign segmentName = segmentObject.Name!segmentId]
     [#assign segments +=
         {

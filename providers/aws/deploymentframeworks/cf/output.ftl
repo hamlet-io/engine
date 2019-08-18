@@ -107,6 +107,10 @@
     [/#if]
 
     [#if maxTagCount gte 0 ]
+        [#local maxTagCount = ( maxTagCount -1 lt result?size )?then(
+                                    maxTagCount,
+                                    result?size
+        )]
         [#local result=result[0..( maxTagCount -1 )]]
     [/#if]
     [#return result]
