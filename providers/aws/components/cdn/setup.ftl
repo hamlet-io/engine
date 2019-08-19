@@ -385,12 +385,12 @@
             ]
         [/#if]
 
-        [#list solution.ErrorResponses as key,errorResponse ]
+        [#list solution.ErrorResponseOverrides as key,errorResponseOverride ]
             [#local errorResponses += 
                 getErrorResponse(
-                        errorResponse.ErrorCode,
-                        errorResponse.ResponseCode,
-                        errorResponse.ResponsePagePath
+                        errorResponseOverride.ErrorCode,
+                        errorResponseOverride.ResponseCode,
+                        errorResponseOverride.ResponsePagePath
                 )
             ]
         [/#list] 

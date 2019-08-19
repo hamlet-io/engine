@@ -59,7 +59,7 @@
                 ]
             },
             {
-                "Names" : "ErrorResponses",
+                "Names" : "ErrorResponseOverrides",
                 "Subobjects" : true,
                 "Children" : [
                     {
