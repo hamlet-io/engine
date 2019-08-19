@@ -41,10 +41,20 @@
         /]
     [/#if]
 
+    [#if (settings["JENKINS_LOCAL_FQDN"]!"")?has_content ]
+        [@Settings
+            {
+                "AGENT_JNLP_TUNNEL" : settings["JENKINS_LOCAL_FQDN"],
+                "AGENT_JENKINS_URL" : "http://" + settings["JENKINS_LOCAL_FQDN"] + ":8080"
+            }
+        /]
+    [/#if]
+
     [@AltSettings
         {
             "JENKINS_URL" : "JENKINSLB_URL"
-        }/]
+        }
+    /]
 
     [#-- Validate that the appropriate settings have been provided for the container to work --]
     [#switch settings["JENKINSENV_SECURITYREALM"]!""]
