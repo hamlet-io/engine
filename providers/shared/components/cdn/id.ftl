@@ -59,6 +59,26 @@
                 ]
             },
             {
+                "Names" : "ErrorResponses",
+                "Subobjects" : true,
+                "Children" : [
+                    {
+                        "Names" : "ErrorCode",
+                        "Type" : NUMBER_TYPE,
+                        "Mandatory" : true
+                    },
+                    {
+                        "Names" : "ResponseCode",
+                        "Type" : NUMBER_TYPE,
+                        "Default" : 200
+                    },
+                    {
+                        "Names" : "ResponsePagePath",
+                        "Type" : STRING_TYPE
+                    }
+                ]
+            },
+            {
                 "Names" : "EnableLogging",
                 "Type" : BOOLEAN_TYPE,
                 "Default" : true
