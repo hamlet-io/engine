@@ -539,9 +539,9 @@
             [/#if]
 
             [#if port.Registry.Configured]
-                [#local RegistryLink = getRegistryLink(task, port)]
+                [#local registryLink = getRegistryLink(task, port)]
 
-                [#if isDuplicateLink(containerLinks, RegistryLink) ]
+                [#if isDuplicateLink(containerLinks, registryLink) ]
                     [@fatal
                         message="Duplicate Link Name"
                         context=containerLinks
@@ -550,9 +550,10 @@
                 [/#if]
 
                 [#-- Add to normal container links --]
-                [#local containerLinks += RegistryLink]
 
-                [#list RegistryLink as key,serviceRegistry]
+                [#local containerLinks += registryLink]
+
+                [#list registryLink as key,serviceRegistry]
                     [#local containerPortMapping +=
                         {
                             "ServiceRegistry" :

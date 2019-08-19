@@ -562,7 +562,13 @@
 
                         [#if portMapping.ServiceRegistry?has_content]
                             [#local serviceRegistry = portMapping.ServiceRegistry]
-                            [#local link = container.Links[serviceRegistry.Link] ]
+
+                            [#local link = (container.Links[serviceRegistry.Link])!{} ]
+                            [#if ! link?has_content ]
+                                [@fatal message="could not find registry link" context=serviceRegistry enabled=true /]
+                                [#continue]
+                            [/#if]
+
                             [@debug message="Link" context=link enabled=false /]
                             [#local linkCore = link.Core ]
                             [#local linkResources = link.State.Resources ]

@@ -996,7 +996,8 @@ behaviour.
             "Id" : targetLinkName,
             "Name" : targetLinkName,
             "Tier" : targetTierId,
-            "Component" : targetComponentId
+            "Component" : targetComponentId,
+            "Enabled" : (port.LB.Enabled)!true
         } +
         attributeIfTrue("Instance", port.LB.Instance??, port.LB.Instance!"") +
         attributeIfTrue("Version",  port.LB.Version??, port.LB.Version!"") +
@@ -1028,7 +1029,8 @@ behaviour.
             "Id" : targetLinkName,
             "Name" : targetLinkName,
             "Tier" : targetTierId,
-            "Component" : targetComponentId
+            "Component" : targetComponentId,
+            "Enabled" : (port.Registry.Enabled)!true
         } +
         attributeIfTrue("Instance", port.Registry.Instance??, port.Registry.Instance!"") +
         attributeIfTrue("Version",  port.Registry.Version??, port.Registry.Version!"") +
