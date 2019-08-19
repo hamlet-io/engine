@@ -44,7 +44,7 @@
     [#if (settings["JENKINS_LOCAL_FQDN"]!"")?has_content ]
         [@Settings
             {
-                "AGENT_JNLP_TUNNEL" : settings["JENKINS_LOCAL_FQDN"],
+                "AGENT_JNLP_TUNNEL" : settings["JENKINS_LOCAL_FQDN"] + ":50000",
                 "AGENT_JENKINS_URL" : "http://" + settings["JENKINS_LOCAL_FQDN"] + ":8080"
             }
         /]
