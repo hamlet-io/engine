@@ -29,15 +29,32 @@
     [#assign javaOpts = (javaStandardOpts + javaExtraOpts)?join(" ")]
 
     [@Settings {
-            "ECS_ARN" :  getExistingReference(ecsId),
             "JAVA_OPTS" : javaOpts
         }
     /]
 
+    [#if ! settings["ECS_ARN"]?? ]
+        [@fatal
+            message="Could not find ecs host for agents - add a link to the ECS Host that will run your agents"
+            context=_context.Links 
+            detail="Add a link with the id ecs"
+        /]
+    [/#if]
+
+    [#if (settings["JENKINS_LOCAL_FQDN"]!"")?has_content ]
+        [@Settings
+            {
+                "AGENT_JNLP_TUNNEL" : settings["JENKINS_LOCAL_FQDN"] + ":50000",
+                "AGENT_JENKINS_URL" : "http://" + settings["JENKINS_LOCAL_FQDN"] + ":8080"
+            }
+        /]
+    [/#if]
+
     [@AltSettings
         {
             "JENKINS_URL" : "JENKINSLB_URL"
-        }/]
+        }
+    /]
 
     [#-- Validate that the appropriate settings have been provided for the container to work --]
     [#switch settings["JENKINSENV_SECURITYREALM"]!""]

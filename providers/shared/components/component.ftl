@@ -43,7 +43,7 @@
 [#assign ECS_TASK_COMPONENT_TYPE = "task" ]
 
 [#assign EFS_COMPONENT_TYPE = "efs" ]
-[#assign EFS_MOUNT_COMPONENT_TYPE = "efsMount"]
+[#assign EFS_MOUNT_COMPONENT_TYPE = "efsmount"]
 
 [#assign ES_COMPONENT_TYPE = "es"]
 [#assign ES_LEGACY_COMPONENT_TYPE = "elasticsearch"]

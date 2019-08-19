@@ -7,7 +7,8 @@
     services=
         [
             AWS_CLOUDMAP_SERVICE,
-            AWS_ROUTE53_SERVICE
+            AWS_ROUTE53_SERVICE,
+            AWS_CERTIFICATE_MANAGER_SERVICE
         ]
 /]
 
@@ -19,6 +20,7 @@
     services=
         [
             AWS_CLOUDMAP_SERVICE,
-            AWS_ROUTE53_SERVICE
+            AWS_ROUTE53_SERVICE,
+            AWS_CERTIFICATE_MANAGER_SERVICE
         ]
 /]

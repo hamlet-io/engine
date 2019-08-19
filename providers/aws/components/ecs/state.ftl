@@ -25,6 +25,8 @@
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
 
+    [#local clusterId = formatResourceId(AWS_ECS_RESOURCE_TYPE, core.Id)]
+
     [#local lgId = formatLogGroupId(core.Id) ]
     [#local lgName = core.FullAbsolutePath ]
 
@@ -58,7 +60,7 @@
         {
             "Resources" : {
                 "cluster" : {
-                    "Id" : formatResourceId(AWS_ECS_RESOURCE_TYPE, core.Id),
+                    "Id" : clusterId,
                     "Name" : core.FullName,
                     "Type" : AWS_ECS_RESOURCE_TYPE,
                     "Monitored" : true
@@ -69,11 +71,6 @@
                 },
                 "role" : {
                     "Id" : formatComponentRoleId(core.Tier, core.Component),
-                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE,
-                    "IncludeInDeploymentState" : false
-                },
-                "serviceRole" : {
-                    "Id" : formatComponentRoleId(core.Tier, core.Component, "service"),
                     "Type" : AWS_IAM_ROLE_RESOURCE_TYPE,
                     "IncludeInDeploymentState" : false
                 },
@@ -107,6 +104,7 @@
             } +
             attributeIfContent("logMetrics", logMetrics),
             "Attributes" : {
+                "ARN" : getExistingReference(clusterId, ARN_ATTRIBUTE_TYPE)
             },
             "Roles" : {
                 "Inbound" : {},

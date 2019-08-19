@@ -186,8 +186,8 @@
                 [#local configSets +=
                     getInitConfigEFSMount(
                         linkTargetCore.Id,
-                        linkTargetAttributes.EFS,
-                        linkTargetAttributes.DIRECTORY,
+                        linkTargetAttributes["EFS"],
+                        linkTargetAttributes["DIRECTORY"],
                         link.Id
                     )]
                 [#break]
