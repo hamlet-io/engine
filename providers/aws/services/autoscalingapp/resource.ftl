@@ -1,6 +1,6 @@
 [#ftl]
 
-[#assign APP_AUTOSCALING_TARGET_OUTPUT_MAPPINGS =
+[#assign AUTOSCALING_APP_TARGET_OUTPUT_MAPPINGS =
     {
         REFERENCE_ATTRIBUTE_TYPE : {
             "UseRef" : true
@@ -8,7 +8,7 @@
     }
 ]
 
-[#assign APP_AUTOSCALING_POLICY_OUTPUT_MAPPINGS =
+[#assign AUTOSCALING_APP_POLICY_OUTPUT_MAPPINGS =
     {
         REFERENCE_ATTRIBUTE_TYPE : {
             "UseRef" : true
@@ -18,12 +18,12 @@
 
 [#assign outputMappings +=
     {
-        AWS_APP_AUTOSCALING_TARGET_RESOURCE_TYPE : APP_AUTOSCALING_TARGET_OUTPUT_MAPPINGS,
-        AWS_APP_AUTOSCALING_POLICY_RESOURCE_TYPE : APP_AUTOSCALING_POLICY_OUTPUT_MAPPINGS
+        AWS_AUTOSCALING_APP_TARGET_RESOURCE_TYPE : AUTOSCALING_APP_TARGET_OUTPUT_MAPPINGS,
+        AWS_APP_AUTOSCALING_POLICY_RESOURCE_TYPE : AUTOSCALING_APP_POLICY_OUTPUT_MAPPINGS
     }
 ]
 
-[#function getAppAutoScalingEcsResourceId clusterId serviceId ]
+[#function getAutoScalingAppEcsResourceId clusterId serviceId ]
     [#return 
         {
             "Fn::Join" : [
@@ -38,7 +38,7 @@
     ]
 [/#function]
 
-[#macro createAppAutoScalingTarget 
+[#macro createAutoScalingAppTarget 
         id
         minCount
         maxCount
@@ -80,13 +80,13 @@
                 "ScheduledActions",
                 scheduledActions
             )
-        outputs=APP_AUTOSCALING_TARGET_OUTPUT_MAPPINGS
+        outputs=AUTOSCALING_APP_TARGET_OUTPUT_MAPPINGS
         outputId=outputId
         dependencies=dependencies
     /]
 [/#macro]
 
-[#function getAppAutoScalingStepAdjustment 
+[#function getAutoScalingAppStepAdjustment 
         adjustment
         lowerBound=""
         upperBound=""
@@ -114,7 +114,7 @@
     ]
 [/#function]
 
-[#function getAppAutoScalingStepPolicy 
+[#function getAutoScalingAppStepPolicy 
     adjustmentType 
     cooldown
     metricAggregationType
@@ -156,7 +156,7 @@
 [/#function]
 
 
-[#function getAppAutoScalingTrackMetric
+[#function getAutoScalingAppTrackMetric
     dimensions
     metricName
     namespace
@@ -173,7 +173,7 @@
     ]
 [/#function]
 
-[#function getAppAutoScalingTrackPolicy 
+[#function getAutoScalingAppTrackPolicy 
     scaleIn
     scaleInCoolDown
     scaleOutCooldown
@@ -204,7 +204,7 @@
     ]
 [/#function]
 
-[#macro createAppAutoScalingPolicy
+[#macro createAutoScalingAppPolicy
         id
         name
         policyType
@@ -236,7 +236,7 @@
             },
             {}
         )
-        outputs=APP_AUTOSCALING_POLICY_OUTPUT_MAPPINGS
+        outputs=AUTOSCALING_APP_POLICY_OUTPUT_MAPPINGS
         outputId=outputId
         dependencies=dependencies
     /]

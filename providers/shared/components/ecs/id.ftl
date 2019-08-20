@@ -179,6 +179,11 @@
                 "Children" : autoScalingChildConfiguration
             },
             {
+                "Names" : "ScalingPolicies",
+                "Subobjects" : true,
+                "Children" : scalingPolicyChildrenConfiguration
+            },
+            {
                 "Names" : "DockerUsers",
                 "Subobjects" : true,
                 "Children" : [

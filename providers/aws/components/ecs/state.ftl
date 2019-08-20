@@ -146,8 +146,8 @@
         [#local autoScaling += 
             {
                 "scalingTarget" : {
-                    "Id" : formatResourceId(AWS_APP_AUTOSCALING_TARGET_RESOURCE_TYPE, core.Id),
-                    "Type" : AWS_APP_AUTOSCALING_TARGET_RESOURCE_TYPE
+                    "Id" : formatResourceId(AWS_AUTOSCALING_APP_TARGET_RESOURCE_TYPE, core.Id),
+                    "Type" : AWS_AUTOSCALING_APP_TARGET_RESOURCE_TYPE
                 },
                 "scalingRole" :  {
                     "Id" : formatDependentRoleId(serviceId, "scalingRole"),
@@ -160,7 +160,7 @@
             [#local autoScaling += 
                 {
                     "scalingPolicy" + name : {
-                        "Id" : formatDependentAppAutoScalingPolicyId(serviceId, name),
+                        "Id" : formatDependentAutoScalingAppPolicyId(serviceId, name),
                         "Name" : formatName(core.FullName, name),
                         "Type" : AWS_APP_AUTOSCALING_POLICY_RESOURCE_TYPE
                     } 
