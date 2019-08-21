@@ -16,9 +16,19 @@
     }
 ]
 
+[#assign AWS_EC2_AUTO_SCALE_POLICY_OUTPUT_MAPPINGS =
+    {
+        REFERENCE_ATTRIBUTE_TYPE : {
+            "UseRef" : true
+        }
+    }
+]
+
+
 [#assign outputMappings +=
     {
         AWS_EC2_AUTO_SCALE_GROUP_RESOURCE_TYPE : AWS_EC2_AUTO_SCALE_GROUP_OUTPUT_MAPPINGS,
+        AWS_EC2_AUTO_SCALE_POLICY_RESOURCE_TYPE : AWS_EC2_AUTO_SCALE_POLICY_OUTPUT_MAPPINGS,
         AWS_EC2_EBS_RESOURCE_TYPE : AWS_EC2_EBS_VOLUME_OUTPUT_MAPPINGS
     }
 ]
@@ -624,7 +634,6 @@
     ]
 [/#function]
 
-
 [#function getBlockDevices storageProfile]
     [#if (storageProfile.Volumes)?has_content]
         [#local ebsVolumes = [] ]
@@ -870,6 +879,158 @@
                 },
                 {}
             )
+    /]
+[/#macro]
+
+[#function getEc2AutoScalingTrackMetric
+    dimensions
+    metricName
+    namespace
+    statistic 
+]
+
+    [#return 
+        {
+            "Dimensions" : dimensions,
+            "MetricName" : metricName,
+            "Namespace" : namespace,
+            "Statistic" : statistic
+        }
+    ]
+[/#function]
+
+[#function getEc2AutoScalingTrackPolicy 
+    scaleIn
+    scaleInCoolDown
+    scaleOutCooldown
+    targetValue
+    metricSpecification
+    ]
+
+    [#return 
+        {
+            "CustomizedMetricSpecification" : metricSpecification,
+            "TargetValue" : targetValue
+        } + 
+        attributeIfTrue(
+            "DisableScaleIn",
+            scaleIn == false,
+            true
+        )
+    ]
+[/#function]
+
+[#function getEc2AutoScalingStepAdjustment 
+        adjustment
+        lowerBound=""
+        upperBound=""
+]
+    [#if ! lowerBound?has_content && ! upperBound?has_content ]
+        [@fatal
+            message="AutoScaling Step - must have upper or lower bound"
+            context={ "Adjustment" : adjustment, "lowerBound" : lowerBound, "upperBound" : upperBound}
+        /]
+    [/#if]
+    [#return 
+        [
+            {
+                "ScalingAdjustment" : adjustment
+            } + 
+            attributeIfContent(
+                "MetricIntervalLowerBound",
+                lowerBound
+            ) + 
+            attributeIfContent(
+                "MetricIntervalUpperBound",
+                upperBound
+            )
+        ]
+    ]
+[/#function]
+
+[#macro createEc2AutoScalingPolicy
+        id
+        autoScaleGroupId
+        scalingAction
+        policyType
+        metricAggregationType=""
+        adjustmentType=""
+        dependencies=""
+        outputId=""
+]
+
+    [#if policyType == "stepped" ]
+        [#switch adjustmentType ]
+            [#case "Change" ]
+                [#local adjustmentType = "ChangeInCapacity" ]
+                [#break]
+            [#case "Exact" ]
+                [#local adjustmentType = "ExactCapacity" ]
+                [#break]
+            [#case "Percentage" ]
+                [#local adjustmentType = "PercentChangeInCapacity" ]
+                [#break]
+            [#default]
+                [#local adjustmentType = "COTFatal: Unsupported adjustmentType ${adjustmentType}" ]
+        [/#switch]
+    [/#if]
+
+    [@cfResource
+        id=id
+        type="AWS::AutoScaling::ScalingPolicy"
+        properties= {
+            "AutoScalingGroupName" : getReference(autoScaleGroupId)
+        } +
+        (policyType?lower_case == "tracked")?then(
+            {
+                "TargetTrackingConfiguration" : scalingAction,
+                "PolicyType" : "TargetTrackingScaling"
+            },
+            {}
+        ) + 
+        (policyType?lower_case == "stepped")?then(
+            {
+                "StepAdjustments" : scalingAction,
+                "PolicyType" : "StepScaling",
+                "AdjustmentType" : adjustmentType,
+                "MetricAggregationType" : metricAggregationType
+            },
+            {}
+        ) + 
+        attributeIfTrue(
+            "MinAdjustmentMagnitude",
+            ( minAdjustment > 0 && policyType?lower_case == "stepped") ,
+            minAdjustment
+        )
+        outputs=AWS_EC2_AUTO_SCALE_POLICY_OUTPUT_MAPPINGS
+        outputId=outputId
+        dependencies=dependencies
+    /]
+[/#macro]
+
+[#macro createEc2AutoScalingSchedule 
+    id
+    schedule
+    processorCount
+    dependencies=""
+    outputId=""
+]
+
+    [#if schedule?starts_with ]
+
+    [@cfResource
+        id=id
+        type="AWS::AutoScaling::ScheduledAction"
+        properties= {
+            "AutoScalingGroupName" : getReference(autoScaleGroupId),
+            "DesiredCapacity" : processorCount.DesiredCount,
+            "MaxSize" : processorCount.MaxCount,
+            "MinSize" : processorCount.MinCount,
+            "Recurrence" : schedule
+        }
+        outputs=AWS_EC2_AUTO_SCALE_SCHEDULE_OUTPUT_MAPPINGS
+        outputId=outputId
+        dependencies=dependencies
     /]
 [/#macro]
 

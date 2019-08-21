@@ -213,8 +213,6 @@
         dependencies=""
         outputId=""
 ]
-
-    [#]
     [@cfResource
         id=id
         type="AWS::ApplicationAutoScaling::ScalingPolicy"
