@@ -19,32 +19,46 @@
     [#local workGroupCreateId = formatId(workGroupId, "create")]
     [#local workGroupCreateCommand = "createWorkGroup" ]
 
+    [#-- Baseline component lookup --]
+    [#local baselineLinks = getBaselineLinks(occurrence, [ "AppData", "Encryption" ] )]
+    [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]]
+
+    [#local dataBucket = getExistingReference(baselineComponentIds["AppData"])]
+    [#local dataPrefix = getAppDataFilePrefix(occurrence) ]
+
+    [#local kmsKeyId = baselineComponentIds["Encryption"] ]
+    
+    [#local outputLocation = formatRelativePath( "s3:/", dataBucket, dataPrefix, "/" )]
+
     [#if deploymentSubsetRequired("cli", false) ]
 
         [@addCliToDefaultJsonOutput
             id=workGroupCreateId
             command=workGroupCreateCommand
             content={
-                "Name": "",
+                "Name" : workGroupName,
+                "Tags": getCfTemplateCoreTags(workGroupName, core.Tier, core.Component)
                 "Configuration": {
-                    "ResultConfiguration": {
-                        "OutputLocation": "",
-                        "EncryptionConfiguration": {
-                            "EncryptionOption": "SSE_S3",
-                            "KmsKey": ""
-                        }
-                    },
                     "EnforceWorkGroupConfiguration": true,
-                    "PublishCloudWatchMetricsEnabled": true,
-                    "BytesScannedCutoffPerQuery": 0
-                },
-                "Description": "",
-                "Tags": [
-                    {
-                        "Key": "",
-                        "Value": ""
-                    }
-                ]
+                    "PublishCloudWatchMetricsEnabled": true
+                    "ResultConfiguration": {
+                        "OutputLocation": outputLocation,
+                    } + 
+                    ( solution.Encryption )?then(
+                        {
+                            "EncryptionConfiguration" : {
+                                "EncryptionOption" : "SSE_KMS",
+                                "KmsKey" : getExistingReference(kmsKeyId, ARN_ATTRIBUTE_TYPE)
+                            }
+                        },
+                        {}
+                    )
+                } + 
+                attributeIfTrue(
+                    "BytesScannedCutoffPerQuery",
+                    solution.ScanLimitSize > 0,
+                    solution.ScanLimitSize
+                )
             }
         /]
     [/#if]
