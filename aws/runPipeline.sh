@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
-trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
+trap '. ${GENERATION_DIR}/cleanupContext.sh' EXIT SIGHUP SIGINT SIGTERM
 . "${GENERATION_DIR}/common.sh"
 
 # Defaults
-DEFAULT_PIPELINE_STATUS="false"
+DEFAULT_PIPELINE_STATUS_ONLY="false"
 DEFAULT_PIPELINE_ALLOW_CONCURRENT="false"
 
 function usage() {
@@ -22,14 +22,14 @@ where
 (m) -t TIER                         is the name of the tier in the solution where the task is defined
 (o) -x INSTANCE                     is the instance of the task to be run
 (o) -y VERSION                      is the version of the task to be run
-(o) -s PIPELINE_STATUS              check the running status of a pipelie
+(o) -s PIPELINE_STATUS_ONLY              check the running status of a pipelie
 (o) -c PIPELINE_ALLOW_CONCURRENT    activate the pipeline if another one is running
 
 (m) mandatory, (o) optional, (d) deprecated
 
 DEFAULTS:
 
-PIPELINE_STATUS=${DEFAULT_PIPELINE_STATUS}
+PIPELINE_STATUS_ONLY=${DEFAULT_PIPELINE_STATUS_ONLY}
 PIPELINE_ALLOW_CONCURRENT=${DEFAULT_PIPELINE_ALLOW_CONCURRENT}
 
 NOTES:
@@ -43,11 +43,9 @@ EOF
 
 function options() { 
     # Parse options
-    while getopts ":c:s:p:hi:t:x:y:" opt; do
+    while getopts ":chi:st:x:y:" opt; do
         case $opt in
-            s)
-                PIPELINE_STATUS="true"
-                ;;
+
             c)
                 PIPELINE_ALLOW_CONCURRENT="true"
                 ;;
@@ -56,6 +54,9 @@ function options() {
                 ;;
             i)
                 COMPONENT="${OPTARG}"
+                ;;
+            s)
+                PIPELINE_STATUS_ONLY="true"
                 ;;
             t)
                 TIER="${OPTARG}"
@@ -82,7 +83,7 @@ function main() {
     options "$@" || return $?
 
     #Set Defaults
-    PIPELINE_STATUS="${PIPELINE_STATUS:-${DEFAULT_PIPELINE_STATUS}}"
+    PIPELINE_STATUS_ONLY="${PIPELINE_STATUS_ONLY:-${DEFAULT_PIPELINE_STATUS_ONLY}}"
     PIPELINE_ALLOW_CONCURRENT="${PIPELINE_ALLOW_CONCURRENT:-${DEFAULT_PIPELINE_ALLOW_CONCURRENT}}"
 
     # Ensure mandatory arguments have been provided
@@ -118,7 +119,7 @@ function main() {
         PIPELINE_STATE="$(aws --region ${REGION} datapipeline list-runs --pipeline-id "${PIPELINE_ID}" --start-interval "$(date --utc +%FT%TZ --date="1 day ago"),$(date --utc +%FT%TZ)" --query "reverse(sort_by(@, &'@actualStartTime'))" --output json || return $?)"
         ACTIVE_JOBS="$(echo "${PIPELINE_STATE}" | jq -r '[ .[] | select( ."@status" == "RUNNING" or ."@status" == "ACTIVATING" or ."@status" == "DEACTIVATING" or ."@status" == "PENDING" or ."@status" == "SCHEDULED" or ."@status" == "SHUTTING_DOWN" or ."@status" == "WAITING_FOR_RUNNER" or ."@status" == "WAITING_ON_DEPENDENCIES" or ."@status" ==  "VALIDATING" )]')"
 
-        if [[ "${PIPELINE_STATUS}" == "false" && ( "${PIPELINE_ALLOW_CONCURRENT}" == "true" && "$( echo "${ACTIVE_JOBS}" | jq -r '. | length' )" == "0" ) ]]; then 
+        if [[ "${PIPELINE_STATUS_ONLY}" == "false" && ( "${PIPELINE_ALLOW_CONCURRENT}" == "true" && "$( echo "${ACTIVE_JOBS}" | jq -r '. | length' )" == "0" ) ]]; then 
             info "Activating pipeline ${PIPELINE_NAME} - ${PIPELINE_ID}"
             aws --region ${REGION} datapipeline activate-pipeline --pipeline-id "${PIPELINE_ID}" || return $?
         fi
