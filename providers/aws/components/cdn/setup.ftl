@@ -360,6 +360,41 @@
             [/#list]
         [/#if]
 
+        [#local errorResponses = []]
+        [#if solution.Pages.NotFound?has_content || solution.Pages.Error?has_content ]
+            [#local errorResponses += 
+                getErrorResponse(
+                        404,
+                        200,
+                        (solution.Pages.NotFound)?has_content?then(
+                            solution.Pages.NotFound,
+                            solution.Pages.Error
+                        ))
+            ]
+        [/#if]
+
+        [#if solution.Pages.Denied?has_content || solution.Pages.Error?has_content ]
+            [#local errorResponses += 
+                getErrorResponse(
+                        403,
+                        200,
+                        (solution.Pages.Denied)?has_content?then(
+                            solution.Pages.Denied,
+                            solution.Pages.Error
+                        ))
+            ]
+        [/#if]
+
+        [#list solution.ErrorResponseOverrides as key,errorResponseOverride ]
+            [#local errorResponses += 
+                getErrorResponse(
+                        errorResponseOverride.ErrorCode,
+                        errorResponseOverride.ResponseCode,
+                        errorResponseOverride.ResponsePagePath
+                )
+            ]
+        [/#list] 
+
         [@createCFDistribution
             id=cfId
             aliases=
@@ -376,21 +411,7 @@
                     isPresent(solution.Certificate)
                 )
             comment=cfName
-            customErrorResponses=
-                getErrorResponse(
-                        404,
-                        200,
-                        (solution.Pages.NotFound)?has_content?then(
-                            solution.Pages.NotFound,
-                            solution.Pages.Error
-                        )) +
-                getErrorResponse(
-                        403,
-                        200,
-                        (solution.Pages.Denied)?has_content?then(
-                            solution.Pages.Denied,
-                            solution.Pages.Error
-                        ))
+            customErrorResponses=errorResponses
             defaultCacheBehaviour=defaultCacheBehaviour
             defaultRootObject=solution.Pages.Root
             logging=valueIfTrue(
