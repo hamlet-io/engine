@@ -119,7 +119,7 @@
                             )]
                         [#break]
 
-                    [#case RDS_COMPONENT_TYPE ]
+                    [#case DB_COMPONENT_TYPE ]
                         [#break]
 
                     [#default]
