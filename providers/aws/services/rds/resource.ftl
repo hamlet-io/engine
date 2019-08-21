@@ -57,6 +57,7 @@
     component=""
     dependencies=""
     outputId=""
+    allowMajorVersionUpgrade=true
     autoMinorVersionUpgrade=true
     deleteAutomatedBackups=true
     deletionPolicy="Snapshot"
@@ -74,6 +75,7 @@
             "DBInstanceClass" : processor,
             "AllocatedStorage": size,
             "AutoMinorVersionUpgrade": autoMinorVersionUpgrade,
+            "AllowMajorVersionUpgrade" : allowMajorVersionUpgrade,
             "DeleteAutomatedBackups" : deleteAutomatedBackups,
             "StorageType" : "gp2",
             "Port" : port,

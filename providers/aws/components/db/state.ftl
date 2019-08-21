@@ -7,6 +7,19 @@
     [#local id = formatResourceId(AWS_RDS_RESOURCE_TYPE, core.Id) ]
 
     [#local engine = occurrence.Configuration.Solution.Engine]
+    [#local engineVersion = occurrence.Configuration.Solution.EngineVersion]
+
+    [#switch engine]
+        [#case "mysql"]
+            [#local family = "mysql" + engineVersion]
+            [#break]
+        [#case "postgres" ]
+            [#local family = "postgres" + engineVersion]
+            [#break]
+        [#default]
+            [#local family = engine + engineVersion]
+    [/#switch]
+
     [#local fqdn = getExistingReference(id, DNS_ATTRIBUTE_TYPE)]
     [#local port = getExistingReference(id, PORT_ATTRIBUTE_TYPE)]
     [#local name = getExistingReference(id, DATABASENAME_ATTRIBUTE_TYPE)]
@@ -40,12 +53,18 @@
                     "Type" : AWS_RDS_SUBNET_GROUP_RESOURCE_TYPE
                 },
                 "parameterGroup" : {
-                    "Id" : formatResourceId(AWS_RDS_PARAMETER_GROUP_RESOURCE_TYPE, core.Id),
+                    "Id" : formatResourceId(AWS_RDS_PARAMETER_GROUP_RESOURCE_TYPE, core.Id, replaceAlphaNumericOnly(family, "X") ),
+                    "Family" : family,
                     "Type" : AWS_RDS_PARAMETER_GROUP_RESOURCE_TYPE
                 },
                 "optionGroup" : {
-                    "Id" : formatResourceId(AWS_RDS_OPTION_GROUP_RESOURCE_TYPE, core.Id),
+                    "Id" : formatResourceId(AWS_RDS_OPTION_GROUP_RESOURCE_TYPE, core.Id, replaceAlphaNumericOnly(family, "X")),
                     "Type" : AWS_RDS_OPTION_GROUP_RESOURCE_TYPE
+                },
+                "securityGroup" : {
+                    "Id" : formatDependentComponentSecurityGroupId(core.Tier, core.Component, id),
+                    "Name" : core.FullName,
+                    "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
                 }
             },
             "Attributes" : {
