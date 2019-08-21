@@ -116,12 +116,15 @@ function main() {
     PIPELINE_ID="$(aws --region ${REGION} datapipeline list-pipelines --query "pipelineIdList[?name==\`${PIPELINE_NAME}\`].id" --output text || return $?)"
 
     if [[ -n "${PIPELINE_ID}" ]]; then 
+
+        info "Pipeline found Id: ${PIPELINE_ID}"
         PIPELINE_STATE="$(aws --region ${REGION} datapipeline list-runs --pipeline-id "${PIPELINE_ID}" --start-interval "$(date --utc +%FT%TZ --date="1 day ago"),$(date --utc +%FT%TZ)" --query "reverse(sort_by(@, &'@actualStartTime'))" --output json || return $?)"
         ACTIVE_JOBS="$(echo "${PIPELINE_STATE}" | jq -r '[ .[] | select( ."@status" == "RUNNING" or ."@status" == "ACTIVATING" or ."@status" == "DEACTIVATING" or ."@status" == "PENDING" or ."@status" == "SCHEDULED" or ."@status" == "SHUTTING_DOWN" or ."@status" == "WAITING_FOR_RUNNER" or ."@status" == "WAITING_ON_DEPENDENCIES" or ."@status" ==  "VALIDATING" )]')"
 
-        if [[ "${PIPELINE_STATUS_ONLY}" == "false" && ( "${PIPELINE_ALLOW_CONCURRENT}" == "true" && "$( echo "${ACTIVE_JOBS}" | jq -r '. | length' )" == "0" ) ]]; then 
+        if [[ "${PIPELINE_STATUS_ONLY}" == "false" && ( "${PIPELINE_ALLOW_CONCURRENT}" == "true" || "$( echo "${ACTIVE_JOBS}" | jq -r '. | length' )" == "0" ) ]]; then 
             info "Activating pipeline ${PIPELINE_NAME} - ${PIPELINE_ID}"
             aws --region ${REGION} datapipeline activate-pipeline --pipeline-id "${PIPELINE_ID}" || return $?
+            sleep 30
         fi
 
         PIPELINE_STATE="$(aws --region ${REGION} datapipeline list-runs --pipeline-id "${PIPELINE_ID}" --start-interval "$(date --utc +%FT%TZ --date="1 day ago"),$(date --utc +%FT%TZ)" --query "reverse(sort_by(@, &'@actualStartTime'))" --output json || return $?)"
