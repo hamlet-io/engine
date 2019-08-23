@@ -34,6 +34,18 @@
                 "Description" : "Invalidate all CDNs that host this content",
                 "Type" : BOOLEAN_TYPE,
                 "Default" : true
+            },
+            {
+                "Names" : "ConfigPathPattern",
+                "Description" : "The CDN pattern used to access the config",
+                "Type" : STRING_TYPE,
+                "Default" : "config/*"
+            },
+            {
+                "Names" : "ConfigPath",
+                "Description" : "The path appended to files that will be used for config",
+                "Type" : STRING_TYPE,
+                "Default" : "config"
             }
         ]
 /]

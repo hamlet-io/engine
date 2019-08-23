@@ -237,6 +237,8 @@
                 [#local originBucket = getExistingReference(spaBaselineComponentIds["OpsData"]!"") ]
                 [#local cfAccess = getExistingReference(spaBaselineComponentIds["CDNOriginKey"]!"")]
 
+                [#local configPathPattern = originLinkTargetAttributes["CONFIG_PATH_PATTERN"]]
+
                 [#local spaOrigin =
                     getCFS3Origin(
                         originId,
@@ -270,7 +272,7 @@
 
                 [#local configCacheBehaviour = getCFSPACacheBehaviour(
                     configOrigin,
-                    formatAbsolutePath( behaviourPattern, "config/*"),
+                    formatAbsolutePath( behaviourPattern, configPathPattern),
                     { "Default" : 60 },
                     subSolution.Compress,
                     eventHandlers,
@@ -324,17 +326,18 @@
         [/#switch]
 
         [#list routeBehaviours as behaviour ]
-            [#if (behaviour.PathPattern!"")?has_content && originDefaultPath ]
+            [@debug message="behaviour check" context={ "Behaviour" : behaviour, "defaultPath" : originDefaultPath } enabled=true /]
+            [#if (behaviour.PathPattern!"")?has_content  ]
                 [#local cacheBehaviours += [ behaviour ] ]
             [#else]
-                [#if ! defaultCacheBehaviour?has_content ]
+                [#if ! defaultCacheBehaviour?has_content && originDefaultPath ]
                     [#local defaultCacheBehaviour = behaviour ]
                 [#else]
                     [@fatal
-                        message="Multiple default routes have been defined"
+                        message="Default route couldnt not be determined"
                         context=solution
-                        defailt="Check your routes to make sure PathPattern is different"
-                        enabled=true
+                        detail="Check your routes to make sure PathPattern is different and that one has been defined"
+                        enabled=false
                     /]
                 [/#if]
             [/#if]

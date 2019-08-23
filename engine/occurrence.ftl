@@ -294,7 +294,7 @@
                         alias :
                           resource +
                           {
-                              "Deployed" : getExistingReference(resource.Id)?has_content
+                              "Deployed" : resource.Deployed!(getExistingReference(resource.Id)?has_content)
                           }
                     } ]
             [#else]

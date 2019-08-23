@@ -25,6 +25,7 @@
                 {}
             ),
             "Attributes" : {
+                "CONFIG_PATH_PATTERN" : solution.ConfigPathPattern
             },
             "Roles" : {
                 "Inbound" : {},
