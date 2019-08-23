@@ -85,7 +85,7 @@
                         [#if linkDirection == "inbound" ]  
                             [#local distributions += [ { 
                                 "DistributionId" : subLinkAttributes["DISTRIBUTION_ID"],
-                                "PathPattern" :     subLinkResources["origin"].PathPattern
+                                "PathPattern" : subLinkResources["origin"].PathPattern
                             }]]   
                         [/#if]
                     [/#if]      
@@ -140,7 +140,7 @@
                     operationsBucket,
                     formatRelativePath(
                         getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX"),
-                        "config"
+                        solution.ConfigPath
                     )
                 ) /] 
     [/#if]
