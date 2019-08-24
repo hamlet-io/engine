@@ -77,27 +77,20 @@
         [#local linkDirection = linkTarget.Direction ]
 
         [#switch linkTargetCore.Type]
-            [#case CDN_COMPONENT_TYPE ]
-                [#list linkTarget.Occurrences as subLinkTarget ]
-                    [#local subLinkAttributes = subLinkTarget.State.Attributes ]
-                    [#local subLinkResources = subLinkTarget.State.Resources]
-                    [#if subLinkTarget.Core.Type == CDN_ROUTE_COMPONENT_TYPE]
-                        [#if linkDirection == "inbound" ]  
-                            [#local distributions += [ { 
-                                "DistributionId" : subLinkAttributes["DISTRIBUTION_ID"],
-                                "PathPattern" : subLinkResources["origin"].PathPattern
-                            }]]   
-                        [/#if]
-                    [/#if]      
-                [/#list]
+            [#case CDN_ROUTE_COMPONENT_TYPE ]
+                [#if linkDirection == "inbound" ]  
+                    [#local distributions += [ { 
+                        "DistributionId" : linkTargetAttributes["DISTRIBUTION_ID"],
+                        "PathPattern" : linkTargetResources["origin"].PathPattern
+                    }]]   
+                [/#if]
                 [#break]
         [/#switch]
     [/#list]
 
     [#if ! distributions?has_content ]
         [@fatal 
-            message="An SPA must have at least 1 CDN component link"
-            detail="Please add an inbound CDN link to your SPA"
+            message="An SPA must have at least 1 CDN Route component link - Add an inbound CDN Route link to the SPA"
             context=solution
             enabled=true
         /]
