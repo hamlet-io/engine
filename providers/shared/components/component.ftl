@@ -739,3 +739,78 @@
         ]
     }
 ] ]
+
+[#assign coreSettingsNamespacesConfiguration = [
+    {
+        "Names" : [ "SettingNamespaces" ],
+        "Description" : "Additional namespaces to use during settings lookups",
+        "Subobjects" : true,
+        "Children" : [
+            {
+                "Names" : "Match",
+                "Description" : "How to match the namespace with available settings",
+                "Type" : STRING_TYPE,
+                "Values" : [ "exact", "partial" ],
+                "Default" : "exact"
+            },
+            {
+                "Names" : "Order",
+                "Type" : ARRAY_OF_STRING_TYPE,
+                "Default" : [ 
+                    "Tier", 
+                    "Component",
+                    "Type", 
+                    "SubComponent", 
+                    "Instance", 
+                    "Version",
+                    "Name" 
+                ]
+            },
+            {
+                "Names" : "IncludeInNamespace",
+                "Children" : [
+                    {
+                        "Names" : "Tier",
+                        "Type" : BOOLEAN_TYPE,
+                        "Default" : true
+                    },
+                    {
+                        "Names" : "Component",
+                        "Type" : BOOLEAN_TYPE,
+                        "Default" : true
+                    },
+                    {
+                        "Names" : "Type",
+                        "Type"  : BOOLEAN_TYPE,
+                        "Default" : false
+                    }
+                    {
+                        "Names" : "SubComponent",
+                        "Type" : BOOLEAN_TYPE,
+                        "Default" : false
+                    },
+                    {
+                        "Names" : "Instance",
+                        "Type" : BOOLEAN_TYPE,
+                        "Default" : true
+                    },
+                    {
+                        "Names" : "Version",
+                        "Type" : BOOLEAN_TYPE,
+                        "Default" : true
+                    },
+                    {
+                        "Names" : "Name",
+                        "Type" : BOOLEAN_TYPE,
+                        "Default" : false
+                    }
+                ]
+            },
+            {
+                "Names" : "Name",
+                "Type" : STRING_TYPE,
+                "Default" : ""
+            }
+        ]
+    }
+]]
