@@ -83,6 +83,7 @@
         (resourceGroup == DEFAULT_RESOURCE_GROUP) ]
         [#local extendedAttributes = [] ]
         [#local profileAttribute = coreProfileChildConfiguration[0] ]
+        [#local settingsNamespacesAttribute = coreSettingsNamespacesConfiguration[0]]
         [#list attributes as attribute ]
             [#if asArray(attribute.Names!attribute.Name)?seq_contains("Profiles")]
                 [#local profileAttribute +=
@@ -96,7 +97,7 @@
                 [#local extendedAttributes += [attribute] ]
             [/#if]
         [/#list]
-        [#local extendedAttributes += [profileAttribute] ]
+        [#local extendedAttributes += [profileAttribute, settingsNamespacesAttribute] ]
     [/#if]
     [@internalMergeComponentConfiguration
         type=type

@@ -280,6 +280,53 @@
         ) ]
 [/#function]
 
+[#function getSettingNamespaces occurrence namespaceObjects ]
+
+    [#local core = occurrence.Core ]
+    [#local namespaces = []]
+
+    [#list namespaceObjects as id,namespaceObject ]
+        [#local includes = namespaceObject.IncludeInNamespace!{} ]
+        [#local parts = []]
+        [#local order = namespaceObject.Order ]
+
+        [#list order as part]
+            [#if includes[part]!true]
+                [#switch part]
+                    [#case "Tier"]
+                        [#local parts += [core.Tier.Name!""] ]
+                        [#break]
+                    [#case "Component"]
+                        [#local parts += [ core.Component.Name!"" ] ]
+                        [#break]
+                    [#case "SubComponent"]
+                        [#local parts += [ core.SubComponent.Name!""] ]
+                        [#break]
+                    [#case "Instance"]
+                        [#local parts += [core.Instance.Name!""] ]
+                        [#break]
+                    [#case "Version"]
+                        [#local parts += [core.Version.Name!""] ]
+                        [#break]
+                    [#case "Name"]
+                        [#local parts += [namespaceObject.Name!""] ]
+                        [#break]
+                [/#switch]
+            [/#if]
+        [/#list]
+
+        [#local namespaces += 
+            [
+                { 
+                    "Key" : formatName(parts),
+                    "Match" : namespaceObject.Match
+                }
+            ]
+        ]
+    [/#list]
+    [#return namespaces]
+[/#function]
+
 [#--------------------------------------------------------
 -- Internal support functions for occurrence processing --
 ----------------------------------------------------------]
@@ -397,8 +444,13 @@
 
 [#function internalConstructOccurrenceBuildSettings occurrence]
     [#local deploymentUnit = (occurrence.Configuration.Solution.DeploymentUnits[0])!"" ]
+    [#local settingNamespaces = (occurrence.Configuration.Solution.SettingNamespaces)!{}]
 
     [#local alternatives =
+        settingNamespaces?has_content?then(
+            getSettingNamespaces(occurrence, settingNamespaces),
+            []
+        ) +
         [
             {"Key" : deploymentUnit, "Match" : "exact"},
             {"Key" : occurrence.Core.Name, "Match" : "partial"},
@@ -477,8 +529,13 @@
 
 [#function internalConstructOccurrenceProductSettings occurrence ]
     [#local deploymentUnit = (occurrence.Configuration.Solution.DeploymentUnits[0])!"" ]
+    [#local settingNamespaces = (occurrence.Configuration.Solution.SettingNamespaces)!{}]
 
     [#local alternatives =
+        settingNamespaces?has_content?then(
+            getSettingNamespaces(occurrence, settingNamespaces),
+            []
+        ) +
         [
             {"Key" : deploymentUnit, "Match" : "exact"},
             {"Key" : occurrence.Core.Name, "Match" : "partial"},
@@ -497,8 +554,13 @@
 
 [#function internalConstructOccurrenceSensitiveSettings occurrence]
     [#local deploymentUnit = (occurrence.Configuration.Solution.DeploymentUnits[0])!"" ]
+    [#local settingNamespaces = (occurrence.Configuration.Solution.SettingNamespaces)!{}]
 
     [#local alternatives =
+        settingNamespaces?has_content?then(
+            getSettingNamespaces(occurrence, settingNamespaces),
+            []
+        ) +
         [
             {"Key" : deploymentUnit, "Match" : "exact"},
             {"Key" : occurrence.Core.Name, "Match" : "partial"},
