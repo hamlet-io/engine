@@ -1,18 +1,23 @@
 [#ftl]
 
+[#function formatAthenaWorkGroupArn workgroupName ]
+    [#return 
+        formatRegionalArn(
+            "athena",
+            formatRelativePath(
+                "athena",
+                workgroupName
+            )
+        )]
+[/#function]
+
 [#function getAthenaStatement actions workgroupName="*" principals="" conditions={}]
     [#return
         [
             getPolicyStatement(
                 actions,
                 ( workgroupName != "*")?then(
-                    formatRegionalArn(
-                        "athena",
-                        formatRelativePath(
-                            "athena",
-                            workgroupName
-                        )
-                    ),
+                    formatAthenaWorkGroupArn(workgroupName),
                     workgroupName
                 ),
                 principals,

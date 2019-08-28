@@ -29,7 +29,9 @@
                 "Inbound" : {},
                 "Outbound" : {
                     "default" : "consume",
-                    "consume" : athenaConsumePermission(workGroupId)
+                    "consume" : 
+                        athenaConsumePermission(workGroupId) + 
+                        s3AllPermission(baselineComponentIds["AppData"], getAppDataFilePrefix(occurrence))
                }
             }
         }

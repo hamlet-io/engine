@@ -33,23 +33,24 @@
     
     [#local outputLocation = formatRelativePath( "s3://", dataBucket, dataPrefix, "/" )]
 
+    [#local resultConfiguration = {
+        "OutputLocation": outputLocation
+    } + 
+    ( solution.Encrypted )?then(
+        {
+            "EncryptionConfiguration" : {
+                "EncryptionOption" : "SSE_KMS",
+                "KmsKey" : getExistingReference(kmsKeyId, ARN_ATTRIBUTE_TYPE)
+            }
+        },
+        {}
+    )]
+
     [#local workGroupConfig = 
         {
             "EnforceWorkGroupConfiguration": true,
-            "PublishCloudWatchMetricsEnabled": true,
-            "ResultConfiguration": {
-                "OutputLocation": outputLocation
-            }
-        } + 
-        ( solution.Encrypted )?then(
-            {
-                "EncryptionConfiguration" : {
-                    "EncryptionOption" : "SSE_KMS",
-                    "KmsKey" : getExistingReference(kmsKeyId, ARN_ATTRIBUTE_TYPE)
-                }
-            },
-            {}
-        ) + 
+            "PublishCloudWatchMetricsEnabled": true
+        } +
         attributeIfTrue(
             "BytesScannedCutoffPerQuery",
             solution.ScanLimitSize > 0,
@@ -64,7 +65,13 @@
             command=workGroupCreateCommand
             content={
                 "Name" : workGroupName,
-                "Configuration" : workGroupConfig
+                "Configuration" : 
+                    mergeObjects( 
+                        workGroupConfig, 
+                        {
+                            "ResultConfiguration" : resultConfiguration
+                        }
+                    )
             }
         /]
 
@@ -72,8 +79,14 @@
             id=workGroupUpdateId
             command=workGroupUpdateCommand
             content={
-                "Name" : workGroupName,
-                "ConfigurationUpdates" : workGroupConfig
+                "WorkGroup" : workGroupName,
+                "ConfigurationUpdates" : 
+                        mergeObjects(
+                            workGroupConfig,
+                            {
+                                "ResultConfigurationUpdates" : resultConfiguration
+                            }
+                        )
             }
         /]
     [/#if]
@@ -82,42 +95,38 @@
         [@addToDefaultBashScriptOutput
             content=
                 [
+                    "workgroup_deployed=\"$(aws --region " + region + " athena list-work-groups --query 'WorkGroups[?Name==`" + workGroupName + "`].Name' --output text)\"",
                     "case $\{STACK_OPERATION} in",
                     "  create|update)"
                     "       # Get cli config file",
-                    "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?"
+                    "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?",
+                    "       info \"Setting up athena workgroup " + workGroupName + "\"",
+                    "       if [[ -z \"$\{workgroup_deployed}\" ]]; then ",
+                    "           info \"Creating Athena workgroup\"",
+                    "           aws --region " + region + 
+                    "           athena create-work-group --cli-input-json \"file://$\{tmpdir}/cli-" +
+                                        workGroupCreateId + "-" + workGroupCreateCommand + ".json\" || exit $?",
+                    "       else",
+                    "           info \"Updating Athena workgroup" + workGroupName + "\"",
+                    "           aws --region " + region + 
+                    "           athena update-work-group --cli-input-json \"file://$\{tmpdir}/cli-" +
+                                    workGroupUpdateId + "-" + workGroupUpdateCommand + ".json\" || exit $?",
+                    "        fi"
                 ] + 
-                getExistingReference(workGroupId, NAME_ATTRIBUTE_TYPE )?has_content?then(
-                    [
-                        "info \"Updating Athena workgroup\"",
-                        "aws --region " + region + 
-                        " athena update-work-group --cli-input-json \"file://$\{tmpdir}/cli-" +
-                            workGroupUpdateId + "-" + workGroupUpdateCommand + ".json\" || exit $?",
-                        " ;;"
-                    ],
-                    [
-                        "info \"Creating Athena workgroup\"",
-                        "aws --region " + region + 
-                        " athena create-work-group --cli-input-json \"file://$\{tmpdir}/cli-" +
-                            workGroupCreateId + "-" + workGroupCreateCommand + ".json\" || exit $?"
-                    ] + 
                     pseudoStackOutputScript(
                         "Athena WorkGroup",
                         {
                             formatId( workGroupId, NAME_ATTRIBUTE_TYPE ) : workGroupName
                         }
                     ) + 
-                    [
-                        " ;;"
-                    ]
-                ) + 
                 [
+                    "       ;;",
                     "  delete)",
-                    "info \"Deleting Athena workgroup\"",
-                    "aws --region " + region + " athena delete-work-group --work-group \"" + workGroupName + "\" --recursive-delete-option || exit $?", 
-                    " ;;"
-                ] + 
-                [
+                    "       if [[ -n \"$\{workgroup_deployed}\" ]]; then ",
+                    "           info \"Deleting Athena workgroup" + workGroupName + "\"",
+                    "           aws --region " + region + " athena delete-work-group --work-group \"" + workGroupName + "\" --recursive-delete-option || exit $?", 
+                    "       fi",
+                    " ;;",
                     "esac"
                 ]
         /]
