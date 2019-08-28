@@ -1,19 +1,19 @@
 [#ftl]
 
-[#function getAthenaStatement actions workgroup="*" principals="" conditions={}]
+[#function getAthenaStatement actions workgroupName="*" principals="" conditions={}]
     [#return
         [
             getPolicyStatement(
                 actions,
-                ( workgroup != "*")?then(
+                ( workgroupName != "*")?then(
                     formatRegionalArn(
                         "athena",
                         formatRelativePath(
-                            athena,
-                            getExistingReference(workgroup)
+                            "athena",
+                            workgroupName
                         )
                     ),
-                    workgroup
+                    workgroupName
                 ),
                 principals,
                 conditions)
@@ -21,7 +21,7 @@
     ]
 [/#function]
 
-[#function athenaConsumePermission workgroup conditions={}]
+[#function athenaConsumePermission workgroupName conditions={}]
     [#return
         getAthenaStatement(
             [
@@ -54,7 +54,7 @@
                 "athena:BatchGetQueryExecution", 
                 "athena:GetWorkGroup" 
             ],
-            workgroup,
+            workgroupName,
             principals,
             conditions
         )

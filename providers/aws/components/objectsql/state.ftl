@@ -4,6 +4,7 @@
     [#local core = occurrence.Core]
 
     [#local workGroupId = formatResourceId(AWS_ATHENA_WORKGROUP_RESOURCE_TYPE, core.Id)]
+    [#local workGroupName = core.FullName]
 
     [#-- Baseline component lookup --]
     [#local baselineLinks = getBaselineLinks(occurrence, [ "AppData" ] )]
@@ -15,19 +16,19 @@
             "Resources" : {
                 "workgroup" : {
                     "Id" : workGroupId,
-                    "Name" : core.Name,
+                    "Name" : core.FullName,
                     "Type" : AWS_ATHENA_WORKGROUP_RESOURCE_TYPE
                 }
             },
             "Attributes" : {
-                "WORKGROUP" : getExistingReference(id, NAME_ATTRIBUTE_TYPE),
+                "WORKGROUP" : getExistingReference(workGroupId, NAME_ATTRIBUTE_TYPE),
                 "QUERY_BUCKET" : dataBucket,
                 "QUERY_PREFIX" : getAppDataFilePrefix(occurrence)
             },
             "Roles" : {
-                "Inbound" : {}
+                "Inbound" : {},
                 "Outbound" : {
-                    "default" : "consume"
+                    "default" : "consume",
                     "consume" : athenaConsumePermission(workGroupId)
                }
             }
