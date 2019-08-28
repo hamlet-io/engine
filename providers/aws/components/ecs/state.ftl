@@ -28,6 +28,8 @@
     [#local lgId = formatLogGroupId(core.Id) ]
     [#local lgName = core.FullAbsolutePath ]
 
+    [#local autoScaleGroupId = formatEC2AutoScaleGroupId(core.Tier, core.Component)]
+
     [#local lgInstanceLogId = formatLogGroupId(core.Id, "instancelog") ]
     [#local lgInstanceLogName = formatAbsolutePath( core.FullAbsolutePath, "instancelog") ]
 
@@ -52,6 +54,34 @@
             }
         }]
     [/#list]
+
+    [#local autoScaling = {}]
+    [#if solution.ScalingPolicies?has_content ]
+        [#list solution.ScalingPolicies as name, scalingPolicy ]
+
+            [#if scalingPolicy.Type == "scheduled" ]
+                [#local autoScaling += 
+                    {
+                        "scalingPolicy" + name : {
+                            "Id" : formatDependentAutoScalingEc2ScheduleId(autoScaleGroupId, name),
+                            "Name" : formatName(core.FullName, name),
+                            "Type" : AWS_AUTOSCALING_EC2_SCHEDULE_RESOURCE_TYPE
+                        } 
+                    }
+                ]
+            [#else]
+                [#local autoScaling += 
+                    {
+                        "scalingPolicy" + name : {
+                            "Id" : formatDependentAutoScalingEc2PolicyId(autoScaleGroupId, name),
+                            "Name" : formatName(core.FullName, name),
+                            "Type" : AWS_AUTOSCALING_EC2_POLICY_RESOURCE_TYPE
+                        } 
+                    }
+                ]
+            [/#if]
+        [/#list]        
+    [/#if]
 
     [#-- TODO(mfl): Use formatDependentRoleId() for roles --]
     [#assign componentState =
@@ -82,7 +112,7 @@
                     "Type" : AWS_EC2_INSTANCE_PROFILE_RESOURCE_TYPE
                 },
                 "autoScaleGroup" : {
-                    "Id" : formatEC2AutoScaleGroupId(core.Tier, core.Component),
+                    "Id" : autoScaleGroupId,
                     "Type" : AWS_EC2_AUTO_SCALE_GROUP_RESOURCE_TYPE
                 },
                 "launchConfig" : {
@@ -105,7 +135,8 @@
                     "IncludeInDeploymentState" : false
                 }
             } +
-            attributeIfContent("logMetrics", logMetrics),
+            attributeIfContent("logMetrics", logMetrics) +
+            autoScaling,
             "Attributes" : {
             },
             "Roles" : {
@@ -162,7 +193,7 @@
                     "scalingPolicy" + name : {
                         "Id" : formatDependentAutoScalingAppPolicyId(serviceId, name),
                         "Name" : formatName(core.FullName, name),
-                        "Type" : AWS_APP_AUTOSCALING_POLICY_RESOURCE_TYPE
+                        "Type" : AWS_AUTOSCALING_APP_POLICY_RESOURCE_TYPE
                     } 
                 }
             ]

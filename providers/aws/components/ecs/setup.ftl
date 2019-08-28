@@ -294,38 +294,6 @@
         [/#if]
 
         [#if solution.ScalingPolicies?has_content ]
-            [#local scalingTargetId = resources["scalingTarget"].Id ]
-            [#local scalingRoleId = resources["scalingRole"].Id ]
-
-            [#local serviceResourceType = resources["service"].Type ]
-
-            [#if deploymentSubsetRequired("iam", true ) && isPartOfCurrentDeploymentUnit(scalingRoleId) ]
-                [@createRole
-                    id=scalingRoleId
-                    trustedServices=[
-                        "application-autoscaling.amazonaws.com"
-                    ]
-                    policies=[
-                        getPolicyDocument(
-                            [
-                                getPolicyStatement(
-                                    [
-                                        "ecs:UpdateService",
-                                        "ecs:DescribeService"
-                                    ],
-                                    getArn(serviceId)),
-                                getPolicyStatement(
-                                    [
-                                        "cloudwatch:DescribeAlarms",
-                                        "cloudwatch:PutMetricAlarm"
-                                    ]
-                                )
-                            ],
-                            "autoscaling")
-                    ]
-                /]
-            [/#if]
-
             [#list solution.ScalingPolicies as name, scalingPolicy ]
                 [#local scalingPolicyId = resources["scalingPolicy" + name].Id ]
 
@@ -350,7 +318,7 @@
                             [#local scalingTargetResources = scalingPolicyLinkTarget.State.Resources ]
                         [#else]
                             [#local scalingTargetCore = core]
-                            [#local scalingTargetResources = resources + { "cluster" : parentResources["cluster"] }]
+                            [#local scalingTargetResources = resources ]
                         [/#if]
 
                         [#local monitoredResources = getMonitoredResources(scalingTargetResources, scalingMetricTrigger.Resource)]
@@ -411,8 +379,8 @@
 
                             [#local scalingAction = []]
                             [#list scalingPolicy.Stepped.Adjustments?values as adjustment ]
-                                    [#local stepAdjustments +=
-                                                    getEc2AutoScalingStepAdjustment(
+                                    [#local scalingAction +=
+                                                    getAutoScalingStepAdjustment(
                                                             adjustment.AdjustmentValue,
                                                             adjustment.LowerBound,
                                                             adjustment.UpperBound
@@ -432,7 +400,7 @@
                                 [#continue]
                             [/#if]
 
-                            [#local metricSpecification = getEc2AutoScalingTrackMetric(
+                            [#local metricSpecification = getAutoScalingTrackMetric(
                                                             getResourceMetricDimensions(monitoredResource, scalingTargetResources ),
                                                             getMetricName(scalingMetricTrigger.Metric, monitoredResource.Type, scalingTargetCore.ShortFullName),
                                                             getResourceMetricNamespace(monitoredResource.Type),
@@ -441,6 +409,8 @@
 
                             [#local scalingAction = getEc2AutoScalingTrackPolicy(
                                                         scalingPolicy.Tracked.ScaleInEnabled,
+                                                        scalingPolicy.Cooldown.ScaleIn,
+                                                        scalingPolicy.Cooldown.ScaleOut,
                                                         scalingPolicy.Tracked.TargetValue,
                                                         metricSpecification
                                                     )]
@@ -453,7 +423,8 @@
                                 policyType=scalingPolicy.Type
                                 metricAggregationType=scalingPolicy.Stepped.MetricAggregation
                                 adjustmentType=scalingPolicy.Stepped.CapacityAdjustment
-                        ]
+                                minAdjustment=scalingPolicy.Stepped.MinAdjustment
+                        /]
                         [#break]
                     
                     [#case "scheduled"]
@@ -467,20 +438,16 @@
                         [/#if]
 
                         [#local scheduleProcessor = getProcessor(
-                                                        subOccurrence, 
+                                                        occurrence, 
                                                         "ECS", 
                                                         scalingPolicy.Scheduled.ProcessorProfile)]
                         [#local scheduleProcessorCounts = getProcessorCounts(scheduleProcessor, multiAZ ) ]
-                        [#local scheduledActions += [
-                            {
-                                "ScalableTargetAction" : {
-                                    "MaxCapacity" : scheduleProcessorCounts.MaxCount,
-                                    "MinCapacity" : scheduleProcessorCounts.MinCount
-                                },
-                                "Schedule" : scalingPolicy.Scheduled.Schedule,
-                                "ScheduledActionName" : scalingPolicyName
-                            }
-                        ]]
+                        [@createEc2AutoScalingSchedule 
+                            id=scalingPolicyId
+                            autoScaleGroupId=ecsAutoScaleGroupId
+                            schedule=scalingPolicy.Scheduled.Schedule
+                            processorCount=scheduleProcessorCounts
+                        /]
                         [#break]
                 [/#switch]
             [/#list]
@@ -952,7 +919,7 @@
                                     [#local stepAdjustments = []]
                                     [#list scalingPolicy.Stepped.Adjustments?values as adjustment ]
                                             [#local stepAdjustments +=
-                                                         getAutoScalingAppStepAdjustment(
+                                                         getAutoScalingStepAdjustment(
                                                                     adjustment.AdjustmentValue,
                                                                     adjustment.LowerBound,
                                                                     adjustment.UpperBound
@@ -980,7 +947,7 @@
                                         [#continue]
                                     [/#if]
 
-                                    [#local metricSpecification = getAutoScalingAppTrackMetric(
+                                    [#local metricSpecification = getAutoScalingTrackMetric(
                                                                     getResourceMetricDimensions(monitoredResource, scalingTargetResources ),
                                                                     getMetricName(scalingMetricTrigger.Metric, monitoredResource.Type, scalingTargetCore.ShortFullName),
                                                                     getResourceMetricNamespace(monitoredResource.Type),

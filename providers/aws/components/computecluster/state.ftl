@@ -5,6 +5,36 @@
     [#local solution = occurrence.Configuration.Solution ]
     [#local buildReference = getOccurrenceBuildReference(occurrence) ]
 
+    [#local autoScaleGroupId = formatResourceId( AWS_EC2_AUTO_SCALE_GROUP_RESOURCE_TYPE, core.Id )]
+
+    [#local autoScaling = {}]
+    [#if solution.ScalingPolicies?has_content ]
+        [#list solution.ScalingPolicies as name, scalingPolicy ]
+
+            [#if scalingPolicy.Type == "scheduled" ]
+                [#local autoScaling += 
+                    {
+                        "scalingPolicy" + name : {
+                            "Id" : formatDependentAutoScalingEc2ScheduleId(autoScaleGroupId, name),
+                            "Name" : formatName(core.FullName, name),
+                            "Type" : AWS_AUTOSCALING_EC2_SCHEDULE_RESOURCE_TYPE
+                        } 
+                    }
+                ]
+            [#else]
+                [#local autoScaling += 
+                    {
+                        "scalingPolicy" + name : {
+                            "Id" : formatDependentAutoScalingEc2PolicyId(autoScaleGroupId, name),
+                            "Name" : formatName(core.FullName, name),
+                            "Type" : AWS_AUTOSCALING_EC2_POLICY_RESOURCE_TYPE
+                        } 
+                    }
+                ]
+            [/#if]
+        [/#list]        
+    [/#if]
+
     [#assign componentState =
         {
             "Resources" : {
@@ -23,7 +53,7 @@
                     "Type" : AWS_EC2_INSTANCE_PROFILE_RESOURCE_TYPE
                 },
                 "autoScaleGroup" : {
-                    "Id" : formatResourceId( AWS_EC2_AUTO_SCALE_GROUP_RESOURCE_TYPE, core.Id ),
+                    "Id" : autoScaleGroupId,
                     "Name" : core.FullName,
                     "Type" : AWS_EC2_AUTO_SCALE_GROUP_RESOURCE_TYPE
                 },
@@ -51,7 +81,8 @@
                     ),
                     "Type" : AWS_EC2_LAUNCH_CONFIG_RESOURCE_TYPE
                 }
-            },
+            } + 
+            autoScaling,
             "Attributes" : {
             },
             "Roles" : {

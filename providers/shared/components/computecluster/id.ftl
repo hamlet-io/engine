@@ -50,6 +50,11 @@
                 "Children" : autoScalingChildConfiguration
             },
             {
+                "Names" : "ScalingPolicies",
+                "Subobjects" : true,
+                "Children" : scalingPolicyChildrenConfiguration
+            },
+            {
                 "Names" : "DockerHost",
                 "Type" : BOOLEAN_TYPE,
                 "Default" : false

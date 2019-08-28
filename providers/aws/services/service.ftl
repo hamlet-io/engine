@@ -28,8 +28,7 @@
 [#assign AWS_SYSTEMS_MANAGER_SERVICE = "ssm"]
 [#assign AWS_VIRTUAL_PRIVATE_CLOUD_SERVICE = "vpc"]
 [#assign AWS_WEB_APPLICATION_FIREWALL_SERVICE = "waf"]
-[#assign AWS_AUTOSCALING_APP_SERVICE="autoscalingapp"]
-[#ass9gn AWS_AUTOSCALING_EC2_SERVICE="autoscalingec2"]
+[#assign AWS_AUTOSCALING_SERVICE="autoscaling"]
 
 [#-- Pseudo services --]
 [#assign AWS_BASELINE_PSEUDO_SERVICE = "baseline"]
