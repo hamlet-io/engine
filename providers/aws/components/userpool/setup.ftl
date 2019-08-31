@@ -285,39 +285,109 @@
             [#local authProviderId = subResources["authprovider"].Id ]
             [#local authProviderName = subResources["authprovider"].Name ]
             [#local authProviderEngine = subSolution.Engine]
+            [#local settingsPrefix = subSolution.SettingsPrefix?upper_case?ensure_ends_with("_") ]
+
+            [#local linkTargets = getLinkTargets(subOccurrence) ]
+            [#local baselineLinks = getBaselineLinks(subOccurrence, [] )]
+            [#local environment = defaultEnvironment( occurrence, linkTargets,  baselineLinks )]
 
             [#local authProviders += [ authProviderName ]]
 
-            [#if deploymentSubsetRequired("cli", false)]
+            [#local attributeMappings = {} ]
+            [#list subSolution.AttributeMappings as id, attributeMapping ]
+                [#local localAttribute = attributeMapping.UserPoolAttribute?has_content?then(
+                                            attributeMapping.UserPoolAttribute,
+                                            id
+                )]
 
-                [#local attributeMappings = {} ]
-                [#list subSolution.AttributeMappings as id, attributeMapping ]
-                    [#local localAttribute = attributeMapping.UserPoolAttribute?has_content?then(
-                                                attributeMapping.UserPoolAttribute,
-                                                id
-                    )]
+                [#local attributeMappings += {
+                    localAttribute : attributeMapping.ProviderAttribute
+                }]
+            [/#list]
 
-                    [#local attributeMappings += {
-                        localAttribute : attributeMapping.ProviderAttribute
+            [#switch authProviderEngine ]
+                [#case "SAML" ]
+                    [#local samlMetdataUrl = subSolution.SAML.MetadataUrl?has_content?then(
+                                                subSolution.SAML.MetadataUrl,
+                                                (environment[ settingsPrefix + "SAML_METADATA_URL"])!"COTFatal: MetadataUrl not defined"
+                                            )]
+                    [#local samlIDPSignout = (environment[settingsPrefix + "SAML_IDP_SIGNOUT"])?has_content?then(
+                                                    (environment[settingsPrefix + "SAML_IDP_SIGNOUT"]),
+                                                    subSolution.SAML.EnableIDPSignOut?c 
+                                            )]
+
+                    [#local providerDetails = {
+                        "MetadataURL" : samlMetdataUrl,
+                        "IDPSignout" : samlIDPSignout
                     }]
-                [/#list]
+                    [#break]
+                [#case "OIDC" ]
 
-                [#switch authProviderEngine ]
-                    [#case "SAML" ]
-                        [#local providerDetails = {
-                            "MetadataURL" : subSolution.SAML.MetadataUrl,
-                            "IDPSignout" : subSolution.SAML.EnableIDPSignOut?c
-                        }]
-                        [#break]
-                [/#switch]
+                    [#local oidcClientId = subSolution.OIDC.ClientId?has_content?then(
+                                                subSolution.OIDC.ClientId,
+                                                (environment[ settingsPrefix + "OIDC_CLIENT_ID"])!"COTFatal: ClientId not defined"
+                                            )]
+                    [#local oidcClientSecret = subSolution.OIDC.ClientSecret?has_content?then(
+                                                subSolution.OIDC.ClientSecret,
+                                                (environment[settingsPrefix + "OIDC_CLIENT_SECRET"])!"COTFatal: ClientSecret not defined"
+                                            )]
 
-                [#local updateUserPoolAuthProvider =  {
-                        "AttributeMapping" : attributeMappings,
-                        "ProviderDetails" : providerDetails,
-                        "IdpIdentifiers" : subSolution.IDPIdentifiers
-                    }
-                ]
+                    [#local oidcScopes = subSolution.OIDC.Scopes?has_content?then(
+                                                subSolution.OIDC.Scopes?join(","),
+                                                (environment[settingsPrefix + "OIDC_SCOPES"])!"COTFatal: Scopes not defined"
+                                            )]
+                    
+                    [#local oidcAttributesMethod = subSolution.OIDC.AttributesHttpMethod?has_content?then(
+                                                subSolution.OIDC.AttributesHttpMethod,
+                                                (environment[settingsPrefix + "OIDC_ATTRIBUTES_HTTP_METHOD"])!"COTFatal: AttributesHttpMethod not defined"
+                                            )]
 
+                    [#local oidcIssuer = subSolution.OIDC.Issuer?has_content?then(
+                                                subSolution.OIDC.Issuer,
+                                                (environment[settingsPrefix + "OIDC_ISSUER"])!"COTFatal: Issuer not defined"
+                                            )]
+                    
+                    [#local oidcAuthorizeUrl = subSolution.OIDC.AuthorizeUrl?has_content?then(
+                                                subSolution.OIDC.AuthorizeUrl,
+                                                (environment[settingsPrefix + "OIDC_AUTHORIZE_URL"])!"COTFatal: AuthorizeUrl not defined"
+                                            )]
+
+                    [#local oidcTokenUrl = subSolution.OIDC.TokenUrl?has_content?then(
+                                                subSolution.OIDC.TokenUrl,
+                                                (environment[settingsPrefix + "OIDC_TOKEN_URL"])!"COTFatal: TokenUrl not defined"
+                                            )]
+                    
+                    [#local oidcAttributesUrl = subSolution.OIDC.AttributesUrl?has_content?then(
+                                                subSolution.OIDC.AttributesUrl,
+                                                (environment[settingsPrefix + "OIDC_ATTRIBUTES_URL"])!"COTFatal: AttributesUrl not defined"
+                                            )]
+
+                    [#local oidcJwksUrl = subSolution.OIDC.JwksUrl?has_content?then(
+                                                subSolution.OIDC.JwksUrl,
+                                                (environment[settingsPrefix + "OIDC_JWKS_URL"])!"COTFatal: JwksUrl not defined"
+                                            )]
+
+                    [#local providerDetails = {
+                        "client_id" : oidcClientId,
+                        "authorize_scopes" : oidcScopes,
+                        "attributes_request_method" : oidcAttributesMethod,
+                        "oidc_issuer" : oidcIssuer,
+                        "authorize_url"  : oidcAuthorizeUrl,
+                        "token_url" : oidcTokenUrl,
+                        "attributes_url" : oidcAttributesUrl,
+                        "jwks_uri" : oidcJwksUrl
+                    }]
+                    [#break]
+            [/#switch]
+
+            [#local updateUserPoolAuthProvider =  {
+                    "AttributeMapping" : attributeMappings,
+                    "ProviderDetails" : providerDetails,
+                    "IdpIdentifiers" : subSolution.IDPIdentifiers
+                }
+            ]
+
+            [#if deploymentSubsetRequired("cli", false)]
                 [@addCliToDefaultJsonOutput
                     id=authProviderId
                     command=userPoolAuthProviderUpdateCommand
@@ -336,7 +406,11 @@
                         "       \"" + region + "\" " +
                         "       \"$\{userPoolId}\" " +
                         "       \"" + authProviderName + "\" " +
-                        "       \"" + authProviderEngine + "\" " +
+                        "       \"" + authProviderEngine + "\" " + 
+                        (authProviderEngine == "OIDC" )?then(
+                            "       \"" + subSolution.EncryptionScheme + "\" \"" + (oidcClientSecret!"") + "\" ",
+                            "       \"\" \"\" "
+                        ) +
                         "       \"$\{tmpdir}/cli-" +
                             authProviderId + "-" + userPoolAuthProviderUpdateCommand + ".json\" || return $?",
                         "       ;;",
