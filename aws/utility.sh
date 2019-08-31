@@ -928,7 +928,23 @@ function update_cognito_userpool_authprovider() {
   local userpoolid="$1"; shift
   local authprovidername="$1"; shift
   local authprovidertype="$1"; shift
+  local encryption_scheme="$1"; shift
+  local oidc_client_secret="$1"; shift
   local configfile="$1"; shift
+  
+  if [[ "${authprovidertype}" == "OIDC" ]]; then 
+    if [[ "${oidc_client_secret}" == "${encryption_scheme}"* ]]; then
+        decrypted_oidc_client_secret="$( decrypt_kms_string "${region}" "${oidc_client_secret#${encryption_scheme}}" || return $? )"
+    else
+        decrypted_oidc_client_secret="${oidc_client_secret}"
+    fi
+
+    jq --arg client_secret "${decrypted_oidc_client_secret}" -r '.ProviderDetails.client_secret=$client_secret' < "${configfile}" > "${configfile}_clientsecret" || return $?
+
+    if [[ -f "${configfile}_clientsecret" ]]; then 
+      mv "${configfile}_clientsecret" "${configfile}"
+    fi
+  fi
 
   current_provider_type="$(aws --region "${region}" cognito-idp describe-identity-provider --user-pool-id "${userpoolid}" --provider-name "${authprovidername}" --query "IdentityProvider.ProviderType" --output text 2>/dev/null || true )" 
 

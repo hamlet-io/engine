@@ -232,6 +232,17 @@
                 "Mandatory" : true
             },
             {
+                "Names" : "SettingsPrefix",
+                "Description" : "A prefix to use for this providers settings lookup",
+                "Type": STRING_TYPE,
+                "Default" : ""
+            },
+            {
+                "Names" : "EncryptionScheme",
+                "Type" : STRING_TYPE,
+                "Default" : "base64:"
+            },
+            {
                 "Names" : "AttributeMappings",
                 "Subobjects" : true,
                 "Children" : [
@@ -269,6 +280,57 @@
                         "Description" : "Enable the IDP Signout Flow",
                         "Type" : BOOLEAN_TYPE,
                         "Default" : true
+                    }
+                ]
+            },
+            {
+                "Names" : "OIDC",
+                "Children" : [
+                    {
+                        "Names" : "ClientId",
+                        "Type" : STRING_TYPE,
+                        "Default" : "" 
+                    },
+                    {
+                        "Names" : "ClientSecret",
+                        "Type" : STRING_TYPE,
+                        "Default" : "" 
+                    },
+                    {
+                        "Names" : "Scopes",
+                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Default" : [ "openid", "email" ]
+                    },
+                    {
+                        "Names" : "AttributesHttpMethod",
+                        "Type" : STRING_TYPE,
+                        "Values" : [ "GET", "POST" ],
+                        "Default" : "GET" 
+                    },
+                    {
+                        "Names" : "Issuer",
+                        "Type" : STRING_TYPE,
+                        "Default" : "" 
+                    },
+                    {
+                        "Names" : "AuthorizeUrl",
+                        "Type" : STRING_TYPE,
+                        "Default" : "" 
+                    },
+                    {
+                        "Names" : "TokenUrl",
+                        "Type" : STRING_TYPE,
+                        "Default" : "" 
+                    },
+                    {
+                        "Names" : "AttributesUrl",
+                        "Type" : STRING_TYPE,
+                        "Default" : "" 
+                    },
+                    {
+                        "Names" : "JwksUrl",
+                        "Type" : STRING_TYPE,
+                        "Default" : "" 
                     }
                 ]
             }
