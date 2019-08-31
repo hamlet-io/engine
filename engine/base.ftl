@@ -303,7 +303,7 @@ are added.
 [#assign APPEND_COMBINE_BEHAVIOUR = "append"]
 [#assign UNIQUE_COMBINE_BEHAVIOUR = "unique"]
 
-[#function combineEntities left right behaviour=MERGE_COMBINE_BEHAVIOUR]
+[#function combineEntities left right behaviour=MERGE_COMBINE_BEHAVIOUR arrayBehaviour=UNIQUE_COMBINE_BEHAVIOUR]
 
     [#-- Handle replace first --]
     [#if behaviour == REPLACE_COMBINE_BEHAVIOUR]
@@ -315,14 +315,14 @@ are added.
 
     [#if left?is_sequence || right?is_sequence]
         [#-- Handle arrays --]
-        [#switch behaviour]
+        [#switch arrayBehaviour]
             [#case MERGE_COMBINE_BEHAVIOUR]
                 [#local result = asArray(right) ]
                 [#break]
             [#case ADD_COMBINE_BEHAVIOUR]
+            [#case APPEND_COMBINE_BEHAVIOUR]
                 [#local result = asArray(left) + asArray(right) ]
                 [#break]
-            [#case APPEND_COMBINE_BEHAVIOUR]
             [#case UNIQUE_COMBINE_BEHAVIOUR]
                 [#local result = getUniqueArrayElements(left, right) ]
                 [#break]
