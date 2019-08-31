@@ -8,6 +8,7 @@
         [
             AWS_ELASTIC_COMPUTE_SERVICE,
             AWS_IDENTITY_SERVICE,
-            AWS_SYSTEMS_MANAGER_SERVICE
+            AWS_SYSTEMS_MANAGER_SERVICE,
+            AWS_LAMBDA_SERVICE
         ]
 /]
