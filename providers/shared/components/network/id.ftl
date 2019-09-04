@@ -130,7 +130,7 @@
                         "Names" : "Priority",
                         "Type" : NUMBER_TYPE,
                         "Required" : true
-                    }
+                    },
                     {
                         "Names" : "Action",
                         "Type" : STRING_TYPE,
