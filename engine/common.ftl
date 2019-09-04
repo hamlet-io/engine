@@ -680,7 +680,7 @@ behaviour.
     [/#if]
 
     [#if fixedDesiredCount?has_content ]
-        [#local desiredCount = fixedDesirecCount ]
+        [#local desiredCount = fixedDesiredCount ]
     [#elseif processorProfile.DesiredPerZone?has_content ]
         [#local desiredCount = (processorProfile.DesiredPerZone)!1 ]
         [#if multiAZ]
