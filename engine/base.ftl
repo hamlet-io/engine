@@ -295,6 +295,7 @@ the righthand value converted to an array.
 "unique" behaves the same as append, except that only unique righthand values
 are added.
 
+The behaviour of an array in the entity is specified independently from how the entity is combined. 
 --]
 
 [#assign REPLACE_COMBINE_BEHAVIOUR = "replace"]
