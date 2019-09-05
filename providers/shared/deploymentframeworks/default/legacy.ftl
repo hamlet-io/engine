@@ -461,11 +461,14 @@
 [/#function]
 
 [#function internalCreateOccurrenceFromExternalLink occurrence link]
+
+    [#local type = link.Type!"external" ]
+
     [#local targetOccurrence =
         {
             "Core" : {
                 "External" : true,
-                "Type" : link.Type!"external",
+                "Type" : type,
                 "Tier" : {
                     "Id" : link.Tier,
                     "Name" : link.Tier
@@ -492,10 +495,49 @@
             }
         }
     ]
-    [#return
-        targetOccurrence +
+
+    [#-- Determine the occurrence deployment and placement profiles based on normal cmdb hierarchy --]
+    [#local profiles =
+        getCompositeObject(
+            coreProfileChildConfiguration).Profiles ]
+
+    [#-- Determine placement profile --]
+    [#local placementProfile = getPlacementProfile(profiles.Placement, segmentQualifiers) ]
+
+    [#-- Add state attributes for basestate lookup --]
+    [#local targetOccurrence +=
         {
             "State" : constructOccurrenceState(targetOccurrence, {})
-        }
-    ]
+
+        } ]
+
+    [#-- Add resource group placements to the occurrence --]
+    [#list getComponentResourceGroups(type)?keys as key]
+        [#local targetOccurrence =
+            mergeObjects(
+                targetOccurrence,
+                {
+                    "State" : {
+                        "ResourceGroups" : {
+                            key : {
+                                "Placement" : getResourceGroupPlacement(key, placementProfile)
+                            }
+                        }
+                    }
+                }
+            ) ]
+    [/#list]
+
+    [#local targetOccurrence +=
+        {
+            "State" : constructOccurrenceState(targetOccurrence, {})
+
+        } ]
+
+    [#-- Ensure we have loaded the component configuration --]
+    [@includeComponentConfiguration
+        component=type
+        placements=targetOccurrence.State.ResourceGroups /]
+
+    [#return targetOccurrence ]
 [/#function]
