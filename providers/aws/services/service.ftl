@@ -2,6 +2,7 @@
 
 [#-- Services --]
 [#assign AWS_APIGATEWAY_SERVICE = "apigateway"]
+[#assign AWS_ATHENA_SERVICE = "athena"]
 [#assign AWS_CERTIFICATE_MANAGER_SERVICE = "acm"]
 [#assign AWS_CLOUDFRONT_SERVICE = "cf"]
 [#assign AWS_CLOUDMAP_SERVICE = "cloudmap"]

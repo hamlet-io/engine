@@ -69,6 +69,8 @@
 [#assign NETWORK_GATEWAY_DESTINATION_COMPONENT_TYPE = "gatewaydestination"]
 [#assign NETWORK_ROUTE_TABLE_COMPONENT_TYPE = "networkroute"]
 
+[#assign OBJECTSQL_COMPONENT_TYPE = "objectsql"]
+
 [#assign S3_COMPONENT_TYPE = "s3" ]
 
 [#assign SERVICE_REGISTRY_COMPONENT_TYPE = "serviceregistry" ]
