@@ -233,11 +233,13 @@
                 }
             ]
         [#else]
-            [@fatal
-                message="Incomplete Cognito integration"
-                context=component
-                detail="You must provide a link to both a federated role and a userpool to enabled authentication"
-            /]
+            [#if deploymentSubsetRequired("cli", false)]
+                [@fatal
+                    message="Incomplete Cognito integration"
+                    context=component
+                    detail="You must provide a link to both a federated role and a userpool to enabled authentication"
+                /]
+            [/#if]
         [/#if]
 
     [/#if]
