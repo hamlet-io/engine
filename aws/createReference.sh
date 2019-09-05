@@ -46,6 +46,9 @@ function options() {
       esac
   done
 
+  # Set up the context
+  . "${GENERATION_DIR}/setContext.sh"
+
   # Defaults
   REFERENCE_OUTPUT_DIR="${REFERENCE_OUTPUT_DIR:-${REFERENCE_OUTPUT_DIR_DEFAULT}}"
 
@@ -64,67 +67,6 @@ function process_template() {
   local CACHE_DIR="${GENERATION_BASE_DIR}/cache"
   mkdir -p "${CACHE_DIR}"
 
-  export COMPOSITE_BLUEPRINT="${CACHE_DIR}/composite_blueprint.json"
-  debug "BLUEPRINT=${blueprint_array[*]}"
-  if [[ ! $(arrayIsEmpty "blueprint_array") ]]; then
-      addToArrayHead "blueprint_array" "${GENERATION_MASTER_DATA_DIR:-${GENERATION_DIR}/data}"/masterData.json
-      ${GENERATION_DIR}/manageJSON.sh -d -o "${COMPOSITE_BLUEPRINT}" "${blueprint_array[@]}"
-  else
-      echo "{}" > "${COMPOSITE_BLUEPRINT}"
-  fi
-
-  TEMPLATE_COMPOSITES=( "id" "name" "policy" "resource" )
-  for composite in "${TEMPLATE_COMPOSITES[@]}"; do
-      # Define the composite
-      declare -gx COMPOSITE_${composite^^}="${CACHE_DIR}/composite_${composite}.ftl"
-
-      if [[ (("${GENERATION_USE_CACHE}" != "true")  &&
-              ("${GENERATION_USE_FRAGMENTS_CACHE}" != "true")) ||
-            (! -f "${CACHE_DIR}/composite_id.ftl") ]]; then
-          # define the array holding the list of composite fragment filenames
-          declare -ga "${composite}_array"
-
-          # Check for composite start fragment
-          addToArray "${composite}_array" "${GENERATION_DIR}"/templates/"${composite}"/start*.ftl
-
-          # If no composite specific start fragment, use a generic one
-          $(inArray "${composite}_array" "start.ftl") ||
-              addToArray "${composite}_array" "${GENERATION_DIR}"/templates/start.ftl
-      fi
-  done
-
-  # Add default composite fragments including end fragment
-  if [[ (("${GENERATION_USE_CACHE}" != "true")  &&
-          ("${GENERATION_USE_FRAGMENTS_CACHE}" != "true")) ||
-        (! -f "${CACHE_DIR}/composite_id.ftl") ]]; then
-
-      for composite in "${TEMPLATE_COMPOSITES[@]}"; do
-          for fragment in ${GENERATION_DIR}/templates/${composite}/${composite}_*.ftl; do
-                  $(inArray "${composite}_array" $(fileName "${fragment}")) ||
-                      addToArray "${composite}_array" "${fragment}"
-          done
-          for fragment in ${GENERATION_DIR}/templates/${composite}/*end.ftl; do
-              addToArray "${composite}_array" "${fragment}"
-          done
-      done
-
-      info "Composite Array = ${id_array}"
-
-
-      # create the template composites
-      for composite in "${TEMPLATE_COMPOSITES[@]}"; do
-
-        info "Cache DIR ${CACHE_DIR}"
-
-          namedef_supported &&
-            declare -n composite_array="${composite}_array" ||
-            eval "declare composite_array=(\"\${${composite}_array[@]}\")"
-          debug "${composite^^}=${composite_array[*]}"
-          cat "${composite_array[@]}" > "${CACHE_DIR}/composite_${composite}.ftl"
-
-      done
-  fi
-
   # Filename parts
   local type_prefix="${type}-"
 
@@ -132,7 +74,7 @@ function process_template() {
   local template_dir="${GENERATION_DIR}/templates"
   local template="create${type^}Reference.ftl"
   [[ ! -f "${template_dir}/${template}" ]] && template="create${type^}.ftl"
-  local template_composites=("POLICY" "ID" "NAME" "RESOURCE")
+  local template_composites=()
 
   case "${type}" in
     component)
@@ -149,16 +91,38 @@ function process_template() {
       ;;
   esac
 
+  # Args common across all passes
+  local args=()
+  [[ -n "${provider}" ]]               && args+=("-v" "provider=${provider}")
+  [[ -n "${deployment_framework}" ]]   && args+=("-v" "deploymentFramework=${deployment_framework}")
+  [[ -n "${GENERATION_MODEL}" ]]       && args+=("-v" "deploymentFrameworkModel=${GENERATION_MODEL}")
+  [[ -n "${output_type}" ]]            && args+=("-v" "outputType=${output_type}")
+  [[ -n "${output_format}" ]]          && args+=("-v" "outputFormat=${output_format}")
+  [[ -n "${deployment_unit}" ]]        && args+=("-v" "deploymentUnit=${deployment_unit}")
+  [[ -n "${build_deployment_unit}" ]]  && args+=("-v" "buildDeploymentUnit=${build_deployment_unit}")
+  [[ -n "${build_reference}" ]]        && args+=("-v" "buildReference=${build_reference}")
+  [[ -n "${GENERATION_LOG_LEVEL}" ]]   && args+=("-v" "logLevel=${GENERATION_LOG_LEVEL}")
+
   # Include the template composites
   # Removal of drive letter (/?/) is specifically for MINGW
   # It shouldn't affect other platforms as it won't be matched
   for composite in "${template_composites[@]}"; do
     composite_var="COMPOSITE_${composite^^}"
     args+=("-r" "${composite,,}List=${!composite_var#/?/}")
-    info "${composite_var}"
   done
 
+  args+=("-v" "region=${region}")
+  args+=("-v" "productRegion=${product_region}")
+  args+=("-v" "accountRegion=${account_region}")
   args+=("-v" "blueprint=${COMPOSITE_BLUEPRINT}")
+  args+=("-v" "settings=${COMPOSITE_SETTINGS}")
+  args+=("-v" "definitions=${COMPOSITE_DEFINITIONS}")
+  args+=("-v" "stackOutputs=${COMPOSITE_STACK_OUTPUTS}")
+  args+=("-v" "requestReference=${request_reference}")
+  args+=("-v" "configurationReference=${configuration_reference}")
+  args+=("-v" "deploymentMode=${DEPLOYMENT_MODE}")
+  args+=("-v" "runId=${run_id}")
+
   args+=("-v" "settings={}")
   args+=("-v" "region=ap-southeast-2")
 
@@ -181,7 +145,14 @@ function process_template() {
     pass_args=("${args[@]}")
 
     ${GENERATION_DIR}/freemarker.sh \
-      -d "${template_dir}" -t "${template}" -o "${template_result_file}" "${pass_args[@]}" || return $?
+      -d "${template_dir}"\
+      ${GENERATION_PRE_PLUGIN_DIRS:+ -d "${GENERATION_PRE_PLUGIN_DIRS}"} \
+      -d "${GENERATION_BASE_DIR}/engine" \
+      -d "${GENERATION_BASE_DIR}/providers" \
+      ${GENERATION_PLUGIN_DIRS:+ -d "${GENERATION_PLUGIN_DIRS}"} \
+      -t "${template}" \
+      -o "${template_result_file}" \
+      "${pass_args[@]}" || return $?
 
     # Ignore whitespace only files
     if [[ $(tr -d " \t\n\r\f" < "${template_result_file}" | wc -m) -eq 0 ]]; then

@@ -8,6 +8,7 @@
         [
             AWS_ELASTICSEARCH_SERVICE,
             AWS_IDENTITY_SERVICE,
-            AWS_KINESIS_SERVICE
+            AWS_KINESIS_SERVICE,
+            AWS_CLOUDWATCH_SERVICE
         ]
 /]
