@@ -5,7 +5,21 @@
 
     [#if core.External!false]
         [#local id = baseState.Attributes["USERPOOL_ARN"]!"COTFatal: External Userpool ARN Not configured" ]
-        [#local FQDN = ((baseState.Attributes["USERPOOL_BASE_URL"])!"")?remove_beginning("https://")?remove_ending("/")]
+
+        [#local attrUserPoolId = baseState.Attributes["USERPOOL_ID"]!"" ]
+        [#local attrUserPoolArn = baseState.Attributes["USERPOOL_ARN"]!"" ]
+        [#local attrUserPoolName = baseState.Attributes["USERPOOL_NAME"]!"" ]
+        [#local attrUserPoolRegion = baseState.Attributes["USERPOL_REGION"]!region ]
+
+        [#local attrClientId = baseState.Attributes["USERPOOL_CLIENTID"]!"" ]
+
+        [#local attrUIBaseURL = baseState.Attributes["USERPOOL_BASE_URL"]!"" ]        
+        [#local attrUIFQDN = attrUIBaseURL?remove_beginning("https://")?remove_ending("/")]
+        [#local attrUIInternalBaseUrl = attrUIBaseURL ]
+        [#local attrUIInternalFQDN = attrUIFQDN ]
+
+        [#local attrLbAuthHeader =  baseState.Attributes["USERPOOL_AUTHORIZATION_HEADER"]!"Authorization"]
+    
         [#assign componentState =
             baseState +
             {
@@ -18,21 +32,6 @@
                     },
                     "Outbound" : {
                     }
-                },
-                "Attributes" : {
-                    "USER_POOL_ARN" : baseState.Attributes["USERPOOL_ARN"],
-                    "USER_POOL_NAME" : baseState.Attributes["USERPOOL_NAME"],
-                    "CLIENT" : baseState.Attributes["USERPOOL_CLIENTID" ]!"",
-                    "USER_POOL" : baseState.Attributes["USERPOOL_ID"]!"",
-                    "IDENTITY_POOL" : baseState.Attributes["USERPOOL_IDENTITYPOOL_ID"]!"",
-                    "REGION" : baseState.Attributes["USERPOOL_REGION"]!region,
-                    "UI_INTERNAL_BASE_URL" : baseState.Attributes["USERPOOL_BASE_URL"]!"",
-                    "UI_INTERNAL_FQDN" : FQDN,
-                    "UI_BASE_URL" : baseState.Attributes["USERPOOL_BASE_URL"]!"",
-                    "UI_FQDN" : FQDN,
-                    "API_AUTHORIZATION_HEADER" : baseState.Attributes["USERPOOL_AUTHORIZATION_HEADER"]!"Authorization",
-                    "LB_OAUTH_SCOPE" : baseState.Attributes["USERPOOL_OAUTH_SCOPE"]!"",
-                    "AUTH_USERROLE_ARN" : baseState.Attributes["USERPOOL_USERROLE_ARN"]!""
                 }
             }
         ]
@@ -66,6 +65,22 @@
             [#local certificateId = formatDomainCertificateId(certificateObject, userPoolDomainName)]
             [#local certificateArn = getExistingReference(certificateId, ARN_ATTRIBUTE_TYPE, "us-east-1")]
         [/#if]
+
+        [#local attrUserPoolId = getExistingReference(userPoolId) ]
+        [#local attrUserPoolArn = getExistingReference(userPoolId, ARN_ATTRIBUTE_TYPE) ]
+        [#local attrUserPoolName = getExistingReference(userPoolId, NAME_ATTRIBUTE_TYPE) ]
+        [#local attrUserPoolRegion = region]
+
+        [#local attrClientId = defaultUserPoolClientRequired?then(
+                                    getExistingReference(defaultUserPoolClientId),
+                                    "")]
+
+        [#local attrUIBaseURL = userPoolCustomBaseUrl!userPoolBaseUrl ]        
+        [#local attrUIFQDN = userPoolCustomDomainName!userPoolFQDN ]
+        [#local attrUIInternalBaseUrl = userPoolBaseUrl ]
+        [#local attrUIInternalFQDN = userPoolFQDN ]
+
+        [#local attrLbAuthHeader =  occurrence.Configuration.Solution.AuthorizationHeader ]
 
         [#assign componentState =
             {
@@ -107,23 +122,6 @@
                     },
                     {}
                 ),
-                "Attributes" : {
-                    "API_AUTHORIZATION_HEADER" : occurrence.Configuration.Solution.AuthorizationHeader,
-                    "USER_POOL" : getExistingReference(userPoolId),
-                    "USER_POOL_NAME" : getExistingReference(userPoolId, NAME_ATTRIBUTE_TYPE),
-                    "USER_POOL_ARN" : getExistingReference(userPoolId, ARN_ATTRIBUTE_TYPE),
-                    "REGION" : region,
-                    "UI_INTERNAL_BASE_URL" : userPoolBaseUrl,
-                    "UI_INTERNAL_FQDN" : userPoolFQDN,
-                    "UI_BASE_URL" : userPoolCustomBaseUrl!userPoolBaseUrl,
-                    "UI_FQDN" : userPoolCustomDomainName!userPoolFQDN
-                } +
-                defaultUserPoolClientRequired?then(
-                    {
-                        "CLIENT" : getExistingReference(defaultUserPoolClientId)
-                    },
-                    {}
-                ),
                 "Roles" : {
                     "Inbound" : {
                         "invoke" : {
@@ -136,6 +134,26 @@
             }
         ]
     [/#if]
+
+    [#assign componentState += 
+        {
+            "Attributes" : {
+                "USER_POOL" : attrUserPoolId,
+                "USER_POOL_NAME" : attrUserPoolName,
+                "USER_POOL_ARN" : attrUserPoolArn,
+                "REGION" : attrUserPoolRegion,
+                "UI_INTERNAL_BASE_URL" : attrUIInternalBaseUrl,
+                "UI_INTERNAL_FQDN" : attrUIInternalFQDN,
+                "UI_BASE_URL" : attrUIBaseURL,
+                "UI_FQDN" : attrUIFQDN,
+                "API_AUTHORIZATION_HEADER" : attrLbAuthHeader
+            } + 
+            attributeIfContent(
+                "CLIENT",
+                attrClientId
+            )
+        }
+    ]
 [/#macro]
 
 [#macro aws_userpoolclient_cf_state occurrence parent={} baseState={}  ]
