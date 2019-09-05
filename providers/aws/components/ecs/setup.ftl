@@ -221,7 +221,7 @@
 
                 [#switch alert.Comparison ]
                     [#case "Threshold" ]
-                        [@createCountAlarm
+                        [@createAlarm
                             id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
                             severity=alert.Severity
                             resourceName=core.FullName
@@ -236,6 +236,7 @@
                             period=alert.Time
                             operator=alert.Operator
                             reportOK=alert.ReportOk
+                            unit=alert.Unit
                             missingData=alert.MissingData
                             dimensions=getResourceMetricDimensions(monitoredResource, resources)
                             dependencies=monitoredResource.Id
@@ -286,6 +287,166 @@
                 getInitConfigEIPAllocation(allocationIds)]
         [/#if]
 
+        [#if solution.ScalingPolicies?has_content ]
+            [#list solution.ScalingPolicies as name, scalingPolicy ]
+                [#local scalingPolicyId = resources["scalingPolicy" + name].Id ]
+
+                [#local scalingMetricTrigger = scalingPolicy.TrackingResource.MetricTrigger ]
+
+                [#switch scalingPolicy.Type?lower_case ]
+                    [#case "stepped"]
+                    [#case "tracked"]
+
+                        [#if isPresent(scalingPolicy.TrackingResource.Link) ]
+
+                            [#local scalingPolicyLink = scalingPolicy.TrackingResource.Link ]
+                            [#local scalingPolicyLinkTarget = getLinkTarget(subOccurrence, scalingPolicyLink, false) ]
+
+                            [@debug message="Scaling Link Target" context=scalingPolicyLinkTarget enabled=false /]
+
+                            [#if !scalingPolicyLinkTarget?has_content]
+                                [#continue]
+                            [/#if]
+
+                            [#local scalingTargetCore = scalingPolicyLinkTarget.Core ]
+                            [#local scalingTargetResources = scalingPolicyLinkTarget.State.Resources ]
+                        [#else]
+                            [#local scalingTargetCore = core]
+                            [#local scalingTargetResources = resources ]
+                        [/#if]
+
+                        [#local monitoredResources = getMonitoredResources(scalingTargetResources, scalingMetricTrigger.Resource)]
+
+                        [#if monitoredResources?keys?size > 1 ] 
+                            [@fatal 
+                                message="A scaling policy can only track one metric"
+                                context={ "trackingPolicy" : name, "monitoredResources" : monitoredResources }
+                                detail="Please add an extra resource filter to the metric policy"
+                            /]
+                            [#continue]
+                        [/#if]
+
+                        [#if ! monitoredResources?has_content ]
+                            [@fatal
+                                message="Could not find monitoring resources"
+                                context={ "scalingPolicy" : scalingPolicy }
+                                detail="Please make sure you have a resource which can be monitored with CloudWatch"    
+                            /]
+                            [#continue]
+                        [/#if]
+
+                        [#local monitoredResource = monitoredResources[ (monitoredResources?keys)[0]] ]
+
+                        [#local metricDimensions = getResourceMetricDimensions(monitoredResource, scalingTargetResources )]
+                        [#local metricName = getMetricName(scalingMetricTrigger.Metric, monitoredResource.Type, scalingTargetCore.ShortFullName)]
+                        [#local metricNamespace = getResourceMetricNamespace(monitoredResource.Type)]
+
+                        [#if scalingPolicy.Type?lower_case == "stepped" ]
+                            [#if ! isPresent( scalingPolicy.Stepped )]
+                                [@fatal 
+                                    message="Stepped Scaling policy not found"
+                                    context=scalingPolicy
+                                    enabled=true
+                                /]
+                                [#continue]
+                            [/#if]
+
+                            [@createAlarm
+                                id=formatDependentAlarmId(scalingPolicyId, monitoredResource.Id )
+                                severity="Scaling"
+                                resourceName=scalingTargetCore.FullName
+                                alertName=scalingMetricTrigger.Name
+                                actions=getReference( scalingPolicyId )
+                                reportOK=false
+                                metric=metricName
+                                namespace=metricNamespace
+                                description=scalingMetricTrigger.Name
+                                threshold=scalingMetricTrigger.Threshold
+                                statistic=scalingMetricTrigger.Statistic
+                                evaluationPeriods=scalingMetricTrigger.Periods
+                                period=scalingMetricTrigger.Time
+                                operator=scalingMetricTrigger.Operator
+                                missingData=scalingMetricTrigger.MissingData
+                                unit=scalingMetricTrigger.Unit
+                                dimensions=metricDimensions
+                            /]
+
+                            [#local scalingAction = []]
+                            [#list scalingPolicy.Stepped.Adjustments?values as adjustment ]
+                                    [#local scalingAction +=
+                                                    getAutoScalingStepAdjustment(
+                                                            adjustment.AdjustmentValue,
+                                                            adjustment.LowerBound,
+                                                            adjustment.UpperBound
+                                                )]
+                            [/#list]
+
+                        [/#if]
+
+                        [#if scalingPolicy.Type?lower_case == "tracked" ]
+
+                            [#if ! isPresent( scalingPolicy.Tracked )]
+                                [@fatal 
+                                    message="Tracked Scaling policy not found"
+                                    context=scalingPolicy
+                                    enabled=true
+                                /]
+                                [#continue]
+                            [/#if]
+
+                            [#local metricSpecification = getAutoScalingTrackMetric(
+                                                            getResourceMetricDimensions(monitoredResource, scalingTargetResources ),
+                                                            getMetricName(scalingMetricTrigger.Metric, monitoredResource.Type, scalingTargetCore.ShortFullName),
+                                                            getResourceMetricNamespace(monitoredResource.Type),
+                                                            scalingMetricTrigger.Statistic 
+                                                        )]
+
+                            [#local scalingAction = getEc2AutoScalingTrackPolicy(
+                                                        scalingPolicy.Tracked.ScaleInEnabled,
+                                                        scalingPolicy.Cooldown.ScaleIn,
+                                                        scalingPolicy.Cooldown.ScaleOut,
+                                                        scalingPolicy.Tracked.TargetValue,
+                                                        metricSpecification
+                                                    )]
+                        [/#if]
+
+                        [@createEc2AutoScalingPolicy
+                                id=scalingPolicyId
+                                autoScaleGroupId=ecsAutoScaleGroupId
+                                scalingAction=scalingAction
+                                policyType=scalingPolicy.Type
+                                metricAggregationType=scalingPolicy.Stepped.MetricAggregation
+                                adjustmentType=scalingPolicy.Stepped.CapacityAdjustment
+                                minAdjustment=scalingPolicy.Stepped.MinAdjustment
+                        /]
+                        [#break]
+                    
+                    [#case "scheduled"]
+                        [#if ! isPresent( scalingPolicy.Scheduled )]
+                            [@fatal 
+                                message="Scheduled Scaling policy not found"
+                                context=scalingPolicy
+                                enabled=true
+                            /]
+                            [#continue]
+                        [/#if]
+
+                        [#local scheduleProcessor = getProcessor(
+                                                        occurrence, 
+                                                        "ECS", 
+                                                        scalingPolicy.Scheduled.ProcessorProfile)]
+                        [#local scheduleProcessorCounts = getProcessorCounts(scheduleProcessor, multiAZ ) ]
+                        [@createEc2AutoScalingSchedule 
+                            id=scalingPolicyId
+                            autoScaleGroupId=ecsAutoScaleGroupId
+                            schedule=scalingPolicy.Scheduled.Schedule
+                            processorCount=scheduleProcessorCounts
+                        /]
+                        [#break]
+                [/#switch]
+            [/#list]
+        [/#if]
+
         [@createEc2AutoScaleGroup
             id=ecsAutoScaleGroupId
             tier=core.Tier
@@ -329,6 +490,7 @@
     [#local parentSolution = occurrence.Configuration.Solution ]
 
     [#local ecsId = parentResources["cluster"].Id ]
+    [#local ecsClusterName = parentResources["cluster"].Name ]
     [#local ecsSecurityGroupId = parentResources["securityGroup"].Id ]
 
     [#-- Baseline component lookup --]
@@ -626,15 +788,231 @@
                     [/#if]
                 [/#list]
 
-                [#local desiredCount = (solution.DesiredCount >= 0)?then(
-                            solution.DesiredCount,
-                            multiAZ?then(zones?size,1)
-                        ) ]
 
+                [#local processorProfile = getProcessor(subOccurrence, ECS_SERVICE_COMPONENT_TYPE )]
+                [#local processorCounts = getProcessorCounts(processorProfile, multiAZ, (solution.DesiredCount)!"" ) ]
+
+                [#local desiredCount = processorCounts.DesiredCount ]
                 [#if hibernate ]
                     [#local desiredCount = 0 ]
                 [/#if]
 
+                [#if solution.ScalingPolicies?has_content ]
+                    [#local scalingTargetId = resources["scalingTarget"].Id ]
+                    [#local scalingRoleId = resources["scalingRole"].Id ]
+
+                    [#local serviceResourceType = resources["service"].Type ]
+
+                    [#if deploymentSubsetRequired("iam", true ) && isPartOfCurrentDeploymentUnit(scalingRoleId) ]
+                        [@createRole
+                            id=scalingRoleId
+                            trustedServices=[
+                                "application-autoscaling.amazonaws.com"
+                            ]
+                            policies=[
+                                getPolicyDocument(
+                                    [
+                                        getPolicyStatement(
+                                            [
+                                                "ecs:UpdateService",
+                                                "ecs:DescribeService"
+                                            ],
+                                            getArn(serviceId)),
+                                        getPolicyStatement(
+                                            [
+                                                "cloudwatch:DescribeAlarms",
+                                                "cloudwatch:PutMetricAlarm"
+                                            ]
+                                        )
+                                    ],
+                                    "autoscaling")
+                            ]
+                        /]
+                    [/#if]
+
+                    [#local scheduledActions = []]
+                    [#list solution.ScalingPolicies as name, scalingPolicy ]
+                        [#local scalingPolicyId = resources["scalingPolicy" + name].Id ]
+                        [#local scalingPolicyName = resources["scalingPolicy" + name].Name ]
+
+                        [#local scalingMetricTrigger = scalingPolicy.TrackingResource.MetricTrigger ]
+
+                        [#switch scalingPolicy.Type?lower_case ]
+                            [#case "stepped"]
+                            [#case "tracked"]
+
+                                [#if isPresent(scalingPolicy.TrackingResource.Link) ]
+
+                                    [#local scalingPolicyLink = scalingPolicy.TrackingResource.Link ]
+                                    [#local scalingPolicyLinkTarget = getLinkTarget(subOccurrence, scalingPolicyLink, false) ]
+
+                                    [@debug message="Scaling Link Target" context=scalingPolicyLinkTarget enabled=false /]
+
+                                    [#if !scalingPolicyLinkTarget?has_content]
+                                        [#continue]
+                                    [/#if]
+
+                                    [#local scalingTargetCore = scalingPolicyLinkTarget.Core ]
+                                    [#local scalingTargetResources = scalingPolicyLinkTarget.State.Resources ]
+                                [#else]
+                                    [#local scalingTargetCore = core]
+                                    [#local scalingTargetResources = resources + { "cluster" : parentResources["cluster"] }]
+                                [/#if]
+
+                                [#local monitoredResources = getMonitoredResources(scalingTargetResources, scalingMetricTrigger.Resource)]
+
+                                [#if monitoredResources?keys?size > 1 ] 
+                                    [@fatal 
+                                        message="A scaling policy can only track one metric"
+                                        context={ "trackingPolicy" : name, "monitoredResources" : monitoredResources }
+                                        detail="Please add an extra resource filter to the metric policy"
+                                    /]
+                                    [#continue]
+                                [/#if]
+
+                                [#if ! monitoredResources?has_content ]
+                                    [@fatal
+                                        message="Could not find monitoring resources"
+                                        context={ "scalingPolicy" : scalingPolicy }
+                                        detail="Please make sure you have a resource which can be monitored with CloudWatch"    
+                                    /]
+                                    [#continue]
+                                [/#if]
+
+                                [#local monitoredResource = monitoredResources[ (monitoredResources?keys)[0]] ]
+
+                                [#local metricDimensions = getResourceMetricDimensions(monitoredResource, scalingTargetResources )]
+                                [#local metricName = getMetricName(scalingMetricTrigger.Metric, monitoredResource.Type, scalingTargetCore.ShortFullName)]
+                                [#local metricNamespace = getResourceMetricNamespace(monitoredResource.Type)]
+
+                                [#if scalingPolicy.Type?lower_case == "stepped" ]
+                                    [#if ! isPresent( scalingPolicy.Stepped )]
+                                        [@fatal 
+                                            message="Stepped Scaling policy not found"
+                                            context=scalingPolicy
+                                            enabled=true
+                                        /]
+                                        [#continue]
+                                    [/#if]
+
+                                    [@createAlarm
+                                        id=formatDependentAlarmId(scalingPolicyId, monitoredResource.Id )
+                                        severity="Scaling"
+                                        resourceName=scalingTargetCore.FullName
+                                        alertName=scalingMetricTrigger.Name
+                                        actions=getReference( scalingPolicyId )
+                                        reportOK=false
+                                        metric=metricName
+                                        namespace=metricNamespace
+                                        description=scalingMetricTrigger.Name
+                                        threshold=scalingMetricTrigger.Threshold
+                                        statistic=scalingMetricTrigger.Statistic
+                                        evaluationPeriods=scalingMetricTrigger.Periods
+                                        period=scalingMetricTrigger.Time
+                                        operator=scalingMetricTrigger.Operator
+                                        missingData=scalingMetricTrigger.MissingData
+                                        unit=scalingMetricTrigger.Unit
+                                        dimensions=metricDimensions
+                                    /]
+
+                                    [#local stepAdjustments = []]
+                                    [#list scalingPolicy.Stepped.Adjustments?values as adjustment ]
+                                            [#local stepAdjustments +=
+                                                         getAutoScalingStepAdjustment(
+                                                                    adjustment.AdjustmentValue,
+                                                                    adjustment.LowerBound,
+                                                                    adjustment.UpperBound
+                                                        )]
+                                    [/#list]
+
+                                    [#local scalingAction = getAutoScalingAppStepPolicy(
+                                                            scalingPolicy.Stepped.CapacityAdjustment,
+                                                            scalingPolicy.Cooldown.ScaleIn,
+                                                            scalingPolicy.Stepped.MetricAggregation,
+                                                            scalingPolicy.Stepped.MinAdjustment,
+                                                            stepAdjustments
+                                    )]
+
+                                [/#if]
+
+                                [#if scalingPolicy.Type?lower_case == "tracked" ]
+
+                                    [#if ! isPresent( scalingPolicy.Tracked )]
+                                        [@fatal 
+                                            message="Tracked Scaling policy not found"
+                                            context=scalingPolicy
+                                            enabled=true
+                                        /]
+                                        [#continue]
+                                    [/#if]
+
+                                    [#local metricSpecification = getAutoScalingTrackMetric(
+                                                                    getResourceMetricDimensions(monitoredResource, scalingTargetResources ),
+                                                                    getMetricName(scalingMetricTrigger.Metric, monitoredResource.Type, scalingTargetCore.ShortFullName),
+                                                                    getResourceMetricNamespace(monitoredResource.Type),
+                                                                    scalingMetricTrigger.Statistic 
+                                                                )]
+
+                                    [#local scalingAction = getAutoScalingAppTrackPolicy(
+                                                                scalingPolicy.Tracked.ScaleInEnabled,
+                                                                scalingPolicy.Cooldown.ScaleIn,
+                                                                scalingPolicy.Cooldown.ScaleOut,
+                                                                scalingPolicy.Tracked.TargetValue,
+                                                                metricSpecification
+                                                            )]
+                                [/#if]
+
+                                [@createAutoScalingAppPolicy
+                                    id=scalingPolicyId
+                                    name=scalingPolicyName
+                                    policyType=scalingPolicy.Type
+                                    scalingAction=scalingAction
+                                    scalingTargetId=scalingTargetId
+                                /]
+                                [#break]
+                            
+                            [#case "scheduled"]
+                                [#if ! isPresent( scalingPolicy.Scheduled )]
+                                    [@fatal 
+                                        message="Tracked Scaling policy not found"
+                                        context=scalingPolicy
+                                        enabled=true
+                                    /]
+                                    [#continue]
+                                [/#if]
+
+                                [#local scheduleProcessor = getProcessor(
+                                                                subOccurrence, 
+                                                                ECS_SERVICE_COMPONENT_TYPE, 
+                                                                scalingPolicy.Scheduled.ProcessorProfile)]
+                                [#local scheduleProcessorCounts = getProcessorCounts(scheduleProcessor, multiAZ ) ]
+                                [#local scheduledActions += [
+                                    {
+                                        "ScalableTargetAction" : {
+                                            "MaxCapacity" : scheduleProcessorCounts.MaxCount,
+                                            "MinCapacity" : scheduleProcessorCounts.MinCount
+                                        },
+                                        "Schedule" : scalingPolicy.Scheduled.Schedule,
+                                        "ScheduledActionName" : scalingPolicyName
+                                    }
+                                ]]
+                                [#break]
+                        [/#switch]
+                    [/#list]
+                    
+
+                    [@createAutoScalingAppTarget 
+                        id=scalingTargetId
+                        minCount=processorCounts.MinCount
+                        maxCount=processorCounts.MaxCount
+                        scalingResourceId=getAutoScalingAppEcsResourceId(ecsId, serviceId)
+                        scalableDimension="ecs:service:DesiredCount"
+                        resourceType=serviceResourceType
+                        scheduledActions=scheduledActions
+                        roleId=scalingRoleId
+                    /]
+
+                [/#if]
                 [@createECSService
                     id=serviceId
                     ecsId=ecsId
@@ -954,7 +1332,7 @@
 
                     [#switch alert.Comparison ]
                         [#case "Threshold" ]
-                            [@createCountAlarm
+                            [@createAlarm
                                 id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
                                 severity=alert.Severity
                                 resourceName=core.FullName
@@ -969,6 +1347,7 @@
                                 period=alert.Time
                                 operator=alert.Operator
                                 reportOK=alert.ReportOk
+                                unit=alert.Unit
                                 missingData=alert.MissingData
                                 dimensions=getResourceMetricDimensions(monitoredResource, ( resources + { "cluster" : parentResources["cluster"] } ) )
                                 dependencies=monitoredResource.Id

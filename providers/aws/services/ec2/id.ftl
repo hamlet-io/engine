@@ -4,6 +4,7 @@
 [#assign AWS_EC2_INSTANCE_RESOURCE_TYPE = "ec2Instance" ]
 [#assign AWS_EC2_INSTANCE_PROFILE_RESOURCE_TYPE = "instanceProfile" ]
 [#assign AWS_EC2_AUTO_SCALE_GROUP_RESOURCE_TYPE = "asg" ]
+
 [#assign AWS_EC2_LAUNCH_CONFIG_RESOURCE_TYPE = "launchConfig" ]
 [#assign AWS_EC2_NETWORK_INTERFACE_RESOURCE_TYPE = "eni" ]
 [#assign AWS_EC2_KEYPAIR_RESOURCE_TYPE = "keypair" ]

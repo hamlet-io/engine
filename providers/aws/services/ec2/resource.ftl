@@ -624,7 +624,6 @@
     ]
 [/#function]
 
-
 [#function getBlockDevices storageProfile]
     [#if (storageProfile.Volumes)?has_content]
         [#local ebsVolumes = [] ]

@@ -607,11 +607,14 @@ behaviour.
 [/#function]
 
 [#-- Get processor settings --]
-[#function getProcessor occurrence type ]
+[#function getProcessor occurrence type proccessorProfileName="" ]
 
     [#local tc = formatComponentShortName( occurrence.Core.Tier.Id, occurrence.Core.Component.Id)]
 
-    [#local processorProfile = occurrence.Configuration.Solution.Profiles.Processor ]
+    [#local processorProfile = (proccessorProfileName?has_content)?then(
+                                    proccessorProfileName,
+                                    occurrence.Configuration.Solution.Profiles.Processor
+                                )]
 
     [#if (component[type].Processor)??]
         [#return component[type].Processor]
@@ -629,6 +632,74 @@ behaviour.
         [#return processors[processorProfile][type]]
     [/#if]
     [#return {}]
+[/#function]
+
+[#function getProcessorCounts processorProfile multiAz desiredCount="" minCount="" maxCount="" ]
+
+    [#local fixedMaxCount = maxCount?has_content?then(
+                                maxCount,
+                                (proccessorProfile.MaxCount)!""
+                            )]
+    
+    [#local fixedMinCount = minCount?has_content?then(
+                                minCount,
+                                (processorProfile.MinCount)!""
+                            )]
+
+    [#local fixedDesiredCount = desiredCount?has_content?then(
+                                    desiredCount,
+                                    (processorProfile.DesiredCount)!""
+                                )]
+
+    [#if fixedMaxCount?has_content ]
+        [#local maxCount = fixedMaxCount ]
+    [#elseif processorProfile.MaxPerZone?has_content ]
+        [#local maxCount = processorProfile.MaxPerZone ]
+        [#if multiAZ]
+            [#local maxCount = maxCount * zones?size]
+        [/#if]
+    [#else]
+        [@fatal
+            message="Processor profile does not have a MaxCount"
+            context=processorProfile
+        /]
+    [/#if]
+
+    [#if fixedMinCount?has_content ]
+        [#local minCount = fixedMinCount ]
+    [#elseif processorProfile.MinPerZone?has_content ]
+        [#local minCount = (processorProfile.MinPerZone)!1]
+        [#if multiAZ]
+            [#local minCount = minCount * zones?size]
+        [/#if]
+    [#else]
+        [@fatal
+            message="Processor profile does not have a MinCount"
+            context=processorProfile
+        /]
+    [/#if]
+
+    [#if fixedDesiredCount?has_content ]
+        [#local desiredCount = fixedDesiredCount ]
+    [#elseif processorProfile.DesiredPerZone?has_content ]
+        [#local desiredCount = (processorProfile.DesiredPerZone)!1 ]
+        [#if multiAZ]
+            [#local desiredCount = desiredCount * zones?size]
+        [/#if]
+    [#else]
+        [@fatal
+            message="Processor profile does not have a DesiredCount"
+            context=processorProfile
+        /]
+    [/#if]
+
+    [#return 
+        {
+            "MaxCount"      : maxCount!0,
+            "MinCount"      : minCount!0,
+            "DesiredCount"  : desiredCount!0
+        }
+    ]
 [/#function]
 
 [#function getLogFileProfile occurrence type extensions... ]

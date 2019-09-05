@@ -248,12 +248,12 @@
     ]
 ]
 
-[#assign alertChildrenConfiguration = [
-        "Description",
+[#assign alertChildrenConfiguration =  
+    [
         {
-            "Names" : "Name",
+            "Names" : "Namespace",
             "Type" : STRING_TYPE,
-            "Mandatory" : true
+            "Default" : ""
         },
         {
             "Names" : "Resource",
@@ -274,6 +274,20 @@
             "Mandatory" : true
         },
         {
+            "Names" : "Statistic",
+            "Type" : STRING_TYPE,
+            "Default" : "Sum"
+        },
+        {
+            "Names" : "Description",
+            "Type" : STRING_TYPE
+        },
+        {
+            "Names" : "Name",
+            "Type" : STRING_TYPE,
+            "Mandatory" : true
+        },
+        {
             "Names" : "Threshold",
             "Type" : NUMBER_TYPE,
             "Default" : 1
@@ -283,11 +297,6 @@
             "Type" : STRING_TYPE,
             "Values" : [ "debug", "info", "warn", "error", "fatal"],
             "Default" : "info"
-        },
-        {
-            "Names" : "Namespace",
-            "Type" : STRING_TYPE,
-            "Default" : ""
         },
         {
             "Names" : "Comparison",
@@ -310,11 +319,6 @@
             "Default" : 1
         },
         {
-            "Names" : "Statistic",
-            "Type" : STRING_TYPE,
-            "Default" : "Sum"
-        },
-        {
             "Names" : "ReportOk",
             "Type" : BOOLEAN_TYPE,
             "Default" : false
@@ -323,6 +327,128 @@
             "Names" : "MissingData",
             "Type" : STRING_TYPE,
             "Default" : "notBreaching"
+        },
+        {
+            "Names" : "Unit",
+            "Type" : STRING_TYPE,
+            "Default" : "Count"
+        }
+    ]
+]
+
+[#assign scalingPolicyChildrenConfiguration = 
+    [
+        {
+            "Names" : "Type",
+            "Type" : STRING_TYPE,
+            "Values" : [ "Stepped", "Tracked", "Scheduled" ],
+            "Default" : "Step"
+        },
+        {
+            "Names" : "Cooldown",
+            "Description" : "Cooldown time ( seconds ) after a scaling event has occurred before another event can be triggered",
+            "Children" : [
+                {
+                    "Names" : "ScaleIn",
+                    "Type" : NUMBER_TYPE,
+                    "Default" : 300
+                },
+                {
+                    "Names" : "ScaleOut",
+                    "Type" : "NUMBER_TYPE",
+                    "Default" : 600
+                }
+            ]
+        },
+        {
+            "Names" : "TrackingResource",
+            "Description" : "The resource metric used to trigger scaling",
+            "Children" : [
+                {
+                    "Names" : "Link",
+                    "Children" : linkChildrenConfiguration
+                },
+                {
+                    "Names" : "MetricTrigger",
+                    "Children" : alertChildrenConfiguration
+                }
+            ]
+        },
+        {
+            "Names" : "Stepped",
+            "Children" : [
+                {
+                    "Names" : "MetricAggregation",
+                    "Description" : "The method used to agregate the cloudwatch metric",
+                    "Type" : STRING_TYPE,
+                    "Values" : [ "Average", "Minimum", "Maximum" ],
+                    "Default" : "Average"
+                },
+                {
+                    "Names" : "CapacityAdjustment",
+                    "Description" : "How to scale when the policy is triggered",
+                    "Type" : STRING_TYPE,
+                    "Values" : [ "Change", "Exact", "Percentage" ],
+                    "Default" : "Change"
+                },
+                {
+                    "Names" : "MinAdjustment",
+                    "Description" : "When minimum scale adjustment value to apply when triggered",
+                    "Type" : NUMBER_TYPE,
+                    "Default" : -1
+                },
+                {
+                    "Names" : "Adjustments",
+                    "Description" : "The adjustments to apply at each step",
+                    "Subobjects" : true,
+                    "Children" : [
+                        {
+                            "Names" : "LowerBound",
+                            "Description" : "The lower bound for the difference between the alarm threshold and the metric",
+                            "Type" : NUMBER_TYPE
+                        },
+                        {
+                            "Names" : "UpperBound",
+                            "Description" : "The upper bound for the difference between the alarm threshold and the metric",
+                            "Type" : NUMBER_TYPE
+                        },
+                        {
+                            "Names" : "AdjustmentValue",
+                            "Description" : "The value to apply when the adjustment step is triggered",
+                            "Type" : NUMBER_TYPE,
+                            "Default" : 1
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Names" : "Tracked",
+            "Children" : [
+                {
+                    "Names" : "TargetValue",
+                    "Type" : NUMBER_TYPE
+                },
+                {
+                    "Names" : "ScaleInEnabled",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : true
+                }
+            ]
+        },
+        {
+            "Names" : "Scheduled",
+            "Children" : [
+                {
+                    "Names" : "ProcessorProfile",
+                    "Type" : STRING_TYPE,
+                    "Default" : "default"
+                },
+                {
+                    "Names" : "Schedule",
+                    "Type" : STRING_TYPE
+                }
+            ]
         }
     ]
 ]

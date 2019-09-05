@@ -30,6 +30,8 @@
     [#local lgId = formatLogGroupId(core.Id) ]
     [#local lgName = core.FullAbsolutePath ]
 
+    [#local autoScaleGroupId = formatEC2AutoScaleGroupId(core.Tier, core.Component)]
+
     [#local lgInstanceLogId = formatLogGroupId(core.Id, "instancelog") ]
     [#local lgInstanceLogName = formatAbsolutePath( core.FullAbsolutePath, "instancelog") ]
 
@@ -55,6 +57,34 @@
         }]
     [/#list]
 
+    [#local autoScaling = {}]
+    [#if solution.ScalingPolicies?has_content ]
+        [#list solution.ScalingPolicies as name, scalingPolicy ]
+
+            [#if scalingPolicy.Type == "scheduled" ]
+                [#local autoScaling += 
+                    {
+                        "scalingPolicy" + name : {
+                            "Id" : formatDependentAutoScalingEc2ScheduleId(autoScaleGroupId, name),
+                            "Name" : formatName(core.FullName, name),
+                            "Type" : AWS_AUTOSCALING_EC2_SCHEDULE_RESOURCE_TYPE
+                        } 
+                    }
+                ]
+            [#else]
+                [#local autoScaling += 
+                    {
+                        "scalingPolicy" + name : {
+                            "Id" : formatDependentAutoScalingEc2PolicyId(autoScaleGroupId, name),
+                            "Name" : formatName(core.FullName, name),
+                            "Type" : AWS_AUTOSCALING_EC2_POLICY_RESOURCE_TYPE
+                        } 
+                    }
+                ]
+            [/#if]
+        [/#list]        
+    [/#if]
+
     [#-- TODO(mfl): Use formatDependentRoleId() for roles --]
     [#assign componentState =
         {
@@ -79,7 +109,7 @@
                     "Type" : AWS_EC2_INSTANCE_PROFILE_RESOURCE_TYPE
                 },
                 "autoScaleGroup" : {
-                    "Id" : formatEC2AutoScaleGroupId(core.Tier, core.Component),
+                    "Id" : autoScaleGroupId,
                     "Type" : AWS_EC2_AUTO_SCALE_GROUP_RESOURCE_TYPE
                 },
                 "launchConfig" : {
@@ -102,7 +132,8 @@
                     "IncludeInDeploymentState" : false
                 }
             } +
-            attributeIfContent("logMetrics", logMetrics),
+            attributeIfContent("logMetrics", logMetrics) +
+            autoScaling,
             "Attributes" : {
                 "ARN" : getExistingReference(clusterId, ARN_ATTRIBUTE_TYPE)
             },
@@ -118,6 +149,7 @@
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
 
+    [#local serviceId = formatResourceId(AWS_ECS_SERVICE_RESOURCE_TYPE, core.Id)]
     [#local taskId = formatResourceId(AWS_ECS_TASK_RESOURCE_TYPE, core.Id) ]
     [#local taskName = core.Name]
 
@@ -138,11 +170,39 @@
         }]
     [/#list]
 
+    [#local autoScaling = {}]
+    [#if solution.ScalingPolicies?has_content ]
+        [#local autoScaling += 
+            {
+                "scalingTarget" : {
+                    "Id" : formatResourceId(AWS_AUTOSCALING_APP_TARGET_RESOURCE_TYPE, core.Id),
+                    "Type" : AWS_AUTOSCALING_APP_TARGET_RESOURCE_TYPE
+                },
+                "scalingRole" :  {
+                    "Id" : formatDependentRoleId(serviceId, "scalingRole"),
+                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE,
+                    "IncludeInDeploymentState" : false
+                }
+            }
+        ]
+        [#list solution.ScalingPolicies as name, scalingPolicy ]
+            [#local autoScaling += 
+                {
+                    "scalingPolicy" + name : {
+                        "Id" : formatDependentAutoScalingAppPolicyId(serviceId, name),
+                        "Name" : formatName(core.FullName, name),
+                        "Type" : AWS_AUTOSCALING_APP_POLICY_RESOURCE_TYPE
+                    } 
+                }
+            ]
+        [/#list]        
+    [/#if]
+
     [#assign componentState =
         {
             "Resources" : {
                 "service" : {
-                    "Id" : formatResourceId(AWS_ECS_SERVICE_RESOURCE_TYPE, core.Id),
+                    "Id" : serviceId,
                     "Type" : AWS_ECS_SERVICE_RESOURCE_TYPE,
                     "Monitored" : true
                 },
@@ -188,7 +248,8 @@
                     "Type" : AWS_IAM_ROLE_RESOURCE_TYPE,
                     "IncludeInDeploymentState" : false
                 }
-            ),
+            ) + 
+            autoScaling,
             "Attributes" : {
                 "Name" : core.Name
             },

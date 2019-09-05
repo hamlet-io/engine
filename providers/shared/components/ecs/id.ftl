@@ -179,6 +179,11 @@
                 "Children" : autoScalingChildConfiguration
             },
             {
+                "Names" : "ScalingPolicies",
+                "Subobjects" : true,
+                "Children" : scalingPolicyChildrenConfiguration
+            },
+            {
                 "Names" : "DockerUsers",
                 "Subobjects" : true,
                 "Children" : [
@@ -259,8 +264,12 @@
             },
             {
                 "Names" : "DesiredCount",
-                "Type" : NUMBER_TYPE,
-                "Default" : -1
+                "Type" : NUMBER_TYPE
+            },
+            {
+                "Names" : "ScalingPolicies",
+                "Subobjects" : true,
+                "Children" : scalingPolicyChildrenConfiguration
             },
             {
                 "Names" : "UseTaskRole",
@@ -336,6 +345,11 @@
                     [                    
                         {
                             "Names" : "Alert",
+                            "Type" : STRING_TYPE,
+                            "Default" : "default"
+                        },
+                        {
+                            "Names" : "Processor",
                             "Type" : STRING_TYPE,
                             "Default" : "default"
                         }
