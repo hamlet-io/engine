@@ -528,16 +528,16 @@
             ) ]
     [/#list]
 
+    [#-- Ensure we have loaded the component configuration --]
+    [@includeComponentConfiguration
+        component=type
+        placements=targetOccurrence.State.ResourceGroups /]
+
     [#local targetOccurrence +=
         {
             "State" : constructOccurrenceState(targetOccurrence, {})
 
         } ]
-
-    [#-- Ensure we have loaded the component configuration --]
-    [@includeComponentConfiguration
-        component=type
-        placements=targetOccurrence.State.ResourceGroups /]
 
     [#return targetOccurrence ]
 [/#function]

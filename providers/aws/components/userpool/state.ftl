@@ -4,21 +4,19 @@
     [#local core = occurrence.Core]
 
     [#if core.External!false]
-        [#local id = baseState.Attributes["USERPOOL_ARN"]!"COTFatal: External Userpool ARN Not configured" ]
+        [#local attrUserPoolId = occurrence.State.Attributes["USERPOOL_ID"]!"" ]
+        [#local attrUserPoolArn = occurrence.State.Attributes["USERPOOL_ARN"]!"COTFatal: External Userpool ARN Not configured"]
+        [#local attrUserPoolName = occurrence.State.Attributes["USERPOOL_NAME"]!"" ]
+        [#local attrUserPoolRegion = occurrence.State.Attributes["USERPOL_REGION"]!region ]
 
-        [#local attrUserPoolId = baseState.Attributes["USERPOOL_ID"]!"" ]
-        [#local attrUserPoolArn = baseState.Attributes["USERPOOL_ARN"]!"" ]
-        [#local attrUserPoolName = baseState.Attributes["USERPOOL_NAME"]!"" ]
-        [#local attrUserPoolRegion = baseState.Attributes["USERPOL_REGION"]!region ]
+        [#local attrClientId = occurrence.State.Attributes["USERPOOL_CLIENTID"]!"" ]
 
-        [#local attrClientId = baseState.Attributes["USERPOOL_CLIENTID"]!"" ]
-
-        [#local attrUIBaseURL = baseState.Attributes["USERPOOL_BASE_URL"]!"" ]        
+        [#local attrUIBaseURL = occurrence.State.Attributes["USERPOOL_BASE_URL"]!"" ]        
         [#local attrUIFQDN = attrUIBaseURL?remove_beginning("https://")?remove_ending("/")]
         [#local attrUIInternalBaseUrl = attrUIBaseURL ]
         [#local attrUIInternalFQDN = attrUIFQDN ]
 
-        [#local attrLbAuthHeader =  baseState.Attributes["USERPOOL_AUTHORIZATION_HEADER"]!"Authorization"]
+        [#local attrLbAuthHeader =  occurrence.State.Attributes["USERPOOL_AUTHORIZATION_HEADER"]!"Authorization"]
     
         [#assign componentState =
             baseState +
@@ -27,7 +25,7 @@
                     "Inbound" : {
                         "invoke" : {
                             "Principal" : "cognito-idp.amazonaws.com",
-                            "SourceArn" : id
+                            "SourceArn" : attrUserPoolArn
                         }
                     },
                     "Outbound" : {
