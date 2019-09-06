@@ -223,7 +223,7 @@
             {
                 "UserPoolName" : name,
                 "UserPoolTags" : tagMap,
-                "MfaConfiguration" : mfa?then("ON","OFF"),
+                "MfaConfiguration" : mfa,
                 "AdminCreateUserConfig" : getUserPoolAdminCreateUserConfig(
                                                 adminCreatesUser,
                                                 unusedTimeout,
