@@ -49,7 +49,7 @@
         ) ]
 [/#macro]
 
-[#macro addOutputContent name content section="default" treatAsContent=true]
+[#macro addOutputContent name content section="default" treatAsContent=true behaviour=ADD_COMBINE_BEHAVIOUR]
     [#if content?has_content]
         [#assign outputs =
             combineEntities(
@@ -64,7 +64,7 @@
                     } +
                     attributeIfTrue("ContentAdded", treatAsContent, true)
                 },
-                APPEND_COMBINE_BEHAVIOUR
+                behaviour
             ) ]
     [/#if]
 [/#macro]
@@ -228,16 +228,18 @@
         section=section
         content=content
         treatAsContent=treatAsContent
+        behaviour=MERGE_COMBINE_BEHAVIOUR
     /]
 [/#macro]
 
 [#macro addToJsonOutput name content={} section="default" treatAsContent=true]
-    [@mergeWithJsonOutput
+    [@addOutputContent
         name=name
         section=section
-        content=((outputs[name].Sections[section].Content)!{}) + content
+        content=content
         treatAsContent=treatAsContent
     /]
+
 [/#macro]
 
 [#macro addMessagesToJsonOutput name messages=[] section="zzzfooter" ]
