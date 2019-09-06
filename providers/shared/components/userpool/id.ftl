@@ -31,7 +31,8 @@
         [
             {
                 "Names" : "MFA",
-                "Type" : BOOLEAN_TYPE,
+                "Type" : [ BOOLEAN_TYPE, STRING_TYPE],
+                "Values" : [ "true", true, "false", false, "optional" ],
                 "Default" : false
             },
             {

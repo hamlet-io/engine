@@ -47,6 +47,35 @@
         [#local defaultUserPoolClientId = resources["client"].Id]
     [/#if]
 
+    [#local mfaRequired = false ]
+
+    [#if solution.MFA?is_string ]
+        [#switch solution.MFA ]
+            [#case "true" ]
+            [#case "optional" ]
+                [#local mfaRequired = true ]
+                [#break]
+        [/#switch]
+
+        [#switch solution.MFA ]
+            [#case "true"]
+                [#local mfaConfig="ON"]
+                [#break]
+            [#case "false"]
+                [#local mfaConfig="OFF"]
+                [#break]
+            [#case "optional" ]
+                [#local mfaConfig="OPTIONAL"]
+                [#break]
+            [#default]
+                [#local mfaConfig="COTFatal: Unkown MFA config option" ]
+        [/#switch]
+
+    [#else ]
+        [#local mfaRequired = solution.MFA]
+        [#local mfaConfig = mfaRequired?then("ON", "OFF") ]
+    [/#if]
+
     [#local userPoolUpdateCommand = "updateUserPool" ]
     [#local userPoolClientUpdateCommand = "updateUserPoolClient" ]
     [#local userPoolDomainCommand = "setDomainUserPool" ]
@@ -83,7 +112,7 @@
         )]
     [/#list]
 
-    [#if ((solution.MFA) || ( solution.VerifyPhone))]
+    [#if ((mfaRequired) || ( solution.VerifyPhone))]
         [#if ! (solution.Schema["phone_number"]!"")?has_content ]
             [@fatal
                 message="Schema Attribute required: phone_number - Add Schema listed in detail"
@@ -249,7 +278,7 @@
         /]
     [/#if]
 
-    [#if ((solution.MFA) || ( solution.VerifyPhone))]
+    [#if ((mfaRequired) || ( solution.VerifyPhone))]
         [#if (deploymentSubsetRequired("iam", true) || deploymentSubsetRequired("userpool", true)) &&
             isPartOfCurrentDeploymentUnit(userPoolRoleId)]
 
@@ -577,7 +606,7 @@
             id=userPoolId
             name=userPoolName
             tags=getOccurrenceCoreTags(occurrence, userPoolName)
-            mfa=solution.MFA
+            mfa=mfaConfig
             adminCreatesUser=solution.AdminCreatesUser
             unusedTimeout=solution.UnusedAccountTimeout
             schema=schema
@@ -643,7 +672,7 @@
                     solution.PasswordPolicy.Uppsercase,
                     solution.PasswordPolicy.Numbers,
                     solution.PasswordPolicy.SpecialCharacters),
-            "MfaConfiguration": solution.MFA?then("ON","OFF"),
+            "MfaConfiguration": mfaConfig,
             "UserPoolTags": getOccurrenceCoreTags(
                                 occurrence,
                                 userPoolName,
