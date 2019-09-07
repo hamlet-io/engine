@@ -51,6 +51,14 @@
 
 [#macro addOutputContent name content section="default" treatAsContent=true behaviour=ADD_COMBINE_BEHAVIOUR]
     [#if content?has_content]
+        [#local newContent = content]
+        [#if isOutputSection(name, section)]
+            [#local newContent =
+                combineEntities(
+                    outputs[name].Sections[section].Content,
+                    content,
+                    behaviour)]
+        [/#if]
         [#assign outputs =
             combineEntities(
                 outputs,
@@ -58,13 +66,12 @@
                     name : {
                         "Sections" : {
                             section : {
-                                "Content" : content
+                                "Content" : newContent
                             }
                         }
                     } +
                     attributeIfTrue("ContentAdded", treatAsContent, true)
-                },
-                behaviour
+                }
             ) ]
     [/#if]
 [/#macro]
