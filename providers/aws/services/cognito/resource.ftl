@@ -121,7 +121,7 @@
     [#return
         {
             "AllowAdminCreateUserOnly" : enabled,
-            "UnusedAccountValidityDays" : unusedTimeout
+            "TemporaryPasswordValidityDays" : unusedTimeout
         }   +
             attributeIfContent(
                 "InviteMessageTemplate",
