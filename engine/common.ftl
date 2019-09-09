@@ -607,12 +607,12 @@ behaviour.
 [/#function]
 
 [#-- Get processor settings --]
-[#function getProcessor occurrence type proccessorProfileName="" ]
+[#function getProcessor occurrence type processorProfileName="" ]
 
     [#local tc = formatComponentShortName( occurrence.Core.Tier.Id, occurrence.Core.Component.Id)]
 
-    [#local processorProfile = (proccessorProfileName?has_content)?then(
-                                    proccessorProfileName,
+    [#local processorProfile = (processorProfileName?has_content)?then(
+                                    processorProfileName,
                                     occurrence.Configuration.Solution.Profiles.Processor
                                 )]
 
@@ -638,7 +638,7 @@ behaviour.
 
     [#local fixedMaxCount = maxCount?has_content?then(
                                 maxCount,
-                                (proccessorProfile.MaxCount)!""
+                                (processorProfile.MaxCount)!""
                             )]
     
     [#local fixedMinCount = minCount?has_content?then(
