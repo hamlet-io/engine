@@ -608,7 +608,6 @@
             tags=getOccurrenceCoreTags(occurrence, userPoolName)
             mfa=mfaConfig
             adminCreatesUser=solution.AdminCreatesUser
-            unusedTimeout=solution.UnusedAccountTimeout
             schema=schema
             emailVerificationMessage=emailVerificationMessage
             emailVerificationSubject=emailVerificationSubject
@@ -628,7 +627,8 @@
                     solution.PasswordPolicy.Lowercase,
                     solution.PasswordPolicy.Uppsercase,
                     solution.PasswordPolicy.Numbers,
-                    solution.PasswordPolicy.SpecialCharacters)
+                    solution.PasswordPolicy.SpecialCharacters,
+                    solution.UnusedAccountTimeout)
             smsConfiguration=smsConfig
         /]
 
@@ -671,7 +671,8 @@
                     solution.PasswordPolicy.Lowercase,
                     solution.PasswordPolicy.Uppsercase,
                     solution.PasswordPolicy.Numbers,
-                    solution.PasswordPolicy.SpecialCharacters),
+                    solution.PasswordPolicy.SpecialCharacters,
+                    solution.UnusedAccountTimeout),
             "MfaConfiguration": mfaConfig,
             "UserPoolTags": getOccurrenceCoreTags(
                                 occurrence,
@@ -681,7 +682,6 @@
                                 true),
             "AdminCreateUserConfig": getUserPoolAdminCreateUserConfig(
                                             solution.AdminCreatesUser,
-                                            solution.UnusedAccountTimeout,
                                             getUserPoolInviteMessageTemplate(
                                                 emailInviteMessage,
                                                 emailInviteSubject,
