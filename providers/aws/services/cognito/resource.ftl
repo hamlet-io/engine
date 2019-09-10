@@ -47,7 +47,7 @@
     }
 ]
 
-[#function getUserPoolPasswordPolicy length="8" lowercase=true uppercase=true numbers=true symbols=true]
+[#function getUserPoolPasswordPolicy length="8" lowercase=true uppercase=true numbers=true symbols=true tempPasswordValidity=30 ]
     [#return
         {
             "PasswordPolicy" : {
@@ -55,7 +55,8 @@
                 "RequireLowercase"  : lowercase,
                 "RequireUppercase"  : uppercase,
                 "RequireNumbers"    : numbers,
-                "RequireSymbols"    : symbols
+                "RequireSymbols"    : symbols,
+                "TemporaryPasswordValidityDays" : tempPasswordValidity
             }
         }
     ]
@@ -117,11 +118,10 @@
     ]
 [/#function]
 
-[#function getUserPoolAdminCreateUserConfig enabled unusedTimeout inviteMessageTemplate={} ]
+[#function getUserPoolAdminCreateUserConfig enabled inviteMessageTemplate={} ]
     [#return
         {
-            "AllowAdminCreateUserOnly" : enabled,
-            "TemporaryPasswordValidityDays" : unusedTimeout
+            "AllowAdminCreateUserOnly" : enabled
         }   +
             attributeIfContent(
                 "InviteMessageTemplate",
@@ -187,7 +187,6 @@
 [#macro createUserPool id name
     mfa
     adminCreatesUser
-    unusedTimeout
     tags
     smsVerificationMessage=""
     emailVerificationMessage=""
@@ -226,7 +225,6 @@
                 "MfaConfiguration" : mfa,
                 "AdminCreateUserConfig" : getUserPoolAdminCreateUserConfig(
                                                 adminCreatesUser,
-                                                unusedTimeout,
                                                 getUserPoolInviteMessageTemplate(
                                                     emailInviteMessage,
                                                     emailInviteSubject,
