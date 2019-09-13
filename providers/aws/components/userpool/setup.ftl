@@ -475,7 +475,7 @@
                                                 },
                                                 false
                                             )]
-                    [#if linkTarget?has_content ]
+                    [#if linkTarget?has_content && linkTarget.Configuration.Solution.Enabled  ]]
                         [#local identityProviders += [ linkTarget.State.Attributes["PROVIDER_NAME"] ]]
                     [/#if]
                 [/#if]
@@ -514,7 +514,9 @@
                         [#break]
 
                     [#case USERPOOL_AUTHPROVIDER_COMPONENT_TYPE ]
-                        [#local identityProviders += [ linkTargetAttributes["PROVIDER_NAME"] ] ]
+                        [#if linkTargetConfiguration.Solution.Enabled  ]
+                            [#local identityProviders += [ linkTargetAttributes["PROVIDER_NAME"] ] ]
+                        [/#if]
                         [#break]
                 [/#switch]
             [/#list]
