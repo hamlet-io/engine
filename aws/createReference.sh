@@ -46,9 +46,6 @@ function options() {
       esac
   done
 
-  # Set up the context
-  . "${GENERATION_DIR}/setContext.sh"
-
   # Defaults
   REFERENCE_OUTPUT_DIR="${REFERENCE_OUTPUT_DIR:-${REFERENCE_OUTPUT_DIR_DEFAULT}}"
 
@@ -96,8 +93,8 @@ function process_template() {
   [[ -n "${provider}" ]]               && args+=("-v" "provider=${provider}")
   [[ -n "${deployment_framework}" ]]   && args+=("-v" "deploymentFramework=${deployment_framework}")
   [[ -n "${GENERATION_MODEL}" ]]       && args+=("-v" "deploymentFrameworkModel=${GENERATION_MODEL}")
-  [[ -n "${output_type}" ]]            && args+=("-v" "outputType=${output_type}")
-  [[ -n "${output_format}" ]]          && args+=("-v" "outputFormat=${output_format}")
+  [[ -n "${output_type}" ]]            && args+=("-v" "outputType=json")
+  [[ -n "${output_format}" ]]          && args+=("-v" "outputFormat=")
   [[ -n "${deployment_unit}" ]]        && args+=("-v" "deploymentUnit=${deployment_unit}")
   [[ -n "${build_deployment_unit}" ]]  && args+=("-v" "buildDeploymentUnit=${build_deployment_unit}")
   [[ -n "${build_reference}" ]]        && args+=("-v" "buildReference=${build_reference}")
@@ -111,16 +108,18 @@ function process_template() {
     args+=("-r" "${composite,,}List=${!composite_var#/?/}")
   done
 
-  args+=("-v" "region=${region}")
-  args+=("-v" "productRegion=${product_region}")
-  args+=("-v" "accountRegion=${account_region}")
-  args+=("-v" "blueprint=${COMPOSITE_BLUEPRINT}")
-  args+=("-v" "settings=${COMPOSITE_SETTINGS}")
+  args+=("-v" "region=ap-southeast-2")
+  args+=("-v" "productRegion=ap-southeast-2")
+  args+=("-v" "accountRegion=ap-southeast-2")
+  args+=("-v" "blueprint={}")
+  args+=("-v" "settings=[]")
   args+=("-v" "definitions=${COMPOSITE_DEFINITIONS}")
-  args+=("-v" "stackOutputs=${COMPOSITE_STACK_OUTPUTS}")
+  args+=("-v" "stackOutputs=[]")
   args+=("-v" "requestReference=${request_reference}")
   args+=("-v" "configurationReference=${configuration_reference}")
   args+=("-v" "deploymentMode=${DEPLOYMENT_MODE}")
+  args+=("-v" "deploymentFramework=cf")
+  args+=("-v" "provider=aws")
   args+=("-v" "runId=${run_id}")
 
   args+=("-v" "settings={}")
