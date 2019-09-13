@@ -355,7 +355,7 @@
                 },
                 {
                     "Names" : "ScaleOut",
-                    "Type" : "NUMBER_TYPE",
+                    "Type" : NUMBER_TYPE,
                     "Default" : 600
                 }
             ]

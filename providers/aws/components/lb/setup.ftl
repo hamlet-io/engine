@@ -462,7 +462,7 @@
                     )]
 
                 [#if firstMappingForPort ]
-                    [#if getExistingReference(listenerId)?has_content ]
+                    [#if getExistingReference(listenerId)?has_content && ! getExistingReference(listenerRuleId)?has_content ]
                         [#local ruleCleanupScript += [
                                 "cleanup_elbv2_rules" +
                                 "       \"" + region + "\" " +
