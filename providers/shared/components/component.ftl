@@ -61,7 +61,7 @@
 [#assign MOBILEAPP_COMPONENT_TYPE = "mobileapp"]
 
 [#assign MOBILENOTIFIER_COMPONENT_TYPE = "mobilenotifier" ]
-[#assign MOBILENOTIFIER_PLATFORM_COMPONENT_TYPE = "mobilenotiferplatform" ]
+[#assign MOBILENOTIFIER_PLATFORM_COMPONENT_TYPE = "mobilenotifierplatform" ]
 
 [#assign NETWORK_ACL_COMPONENT_TYPE = "networkacl"]
 [#assign NETWORK_COMPONENT_TYPE = "network" ]
