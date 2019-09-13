@@ -149,7 +149,7 @@
 
 [#function getAutoScalingAppTrackPolicy 
     scaleIn
-    scaleInCoolDown
+    scaleInCooldown
     scaleOutCooldown
     targetValue
     metricSpecification
@@ -162,8 +162,8 @@
         } + 
         attributeIfTrue(
             "ScaleInCooldown",
-            scaleInCoolDown > 0,
-            scaleInCoolDown
+            scaleInCooldown > 0,
+            scaleInCooldown
         ) + 
         attributeIfTrue(
             "ScaleOutCooldown",
@@ -266,8 +266,6 @@
 [#-- Ec2 AutoScaling functions --]
 [#function getEc2AutoScalingTrackPolicy 
     scaleIn
-    scaleInCoolDown
-    scaleOutCooldown
     targetValue
     metricSpecification
     ]

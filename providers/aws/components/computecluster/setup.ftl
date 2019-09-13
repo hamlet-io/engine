@@ -414,8 +414,6 @@
 
                             [#local scalingAction = getEc2AutoScalingTrackPolicy(
                                                         scalingPolicy.Tracked.ScaleInEnabled,
-                                                        scalingPolicy.Cooldown.ScaleIn,
-                                                        scalingPolicy.Cooldown.ScaleOut,
                                                         scalingPolicy.Tracked.TargetValue,
                                                         metricSpecification
                                                     )]
