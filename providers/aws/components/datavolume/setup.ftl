@@ -114,7 +114,7 @@
         [/#if]
     [/#list]
 
-    [#if deploymentSubsetRequired(DATAVOLUME_COMPONENT_TYPE, true)]
+    [#if deploymentSubsetRequired(DATAVOLUME_COMPONENT_TYPE, true) && backupEnabled ]
         [#local maintenanceWindowTags = getOccurrenceCoreTags(
                                             occurrence,
                                             maintenanceWindowName,
