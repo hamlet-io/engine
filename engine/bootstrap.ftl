@@ -1,5 +1,53 @@
 [#ftl]
 
+[#-- Pull in the provided command line options --]
+[#assign commandLineOptions =
+    {
+        "Deployment" : {
+            "Provider" : provider!"",
+            "Framework" : {
+                "Name" : deploymentFramework!"",
+                "Model" : deploymentFrameworkModel!"legacy"
+            },
+            "Output" : {
+                "Type" : outputType!"",
+                "Format" : outputFormat!""
+            },
+            "Unit" : {
+                "Name" : deploymentUnit!"",
+                "Subset" : deploymentUnitSubset!"",
+                "Alternative" : alternative!""
+            },
+            "ResourceGroup" : resourceGroup!"",
+            "Mode" : deploymentMode!""
+        },
+        "Logging" : {
+            "Level" : logLevel!""
+        },
+        "Run" : {
+            "Id" : runId!""
+        },
+        "Build" : {
+            "DeploymentUnit" : buildDeploymentUnit!""
+        },
+        "Regions" : {
+            "Segment" : region!"",
+            "Product" : ProductRegion!"",
+            "Account" : AccountRegion!""
+        },
+        "References" : {
+            "Build" : buildReference!"",
+            "Request" : requestReference!"",
+            "Configuration" : configurationReference!""
+        },
+        "Composites" : {
+            "Blueprint" : (blueprint!"{}")?eval,
+            "Settings" : (settings!"{}")?eval,
+            "Definitions" : (definitions!"{}")?eval,
+            "StackOutputs" : (stackOutputs!"[]")?eval
+        }
+    } ]
+
 [#if !deploymentFrameworkModel??]
     [#assign deploymentFrameworkModel = "legacy"]
 [/#if]
@@ -27,19 +75,27 @@
 [#-- Include the shared provider --]
 [@includeProviderConfiguration provider=SHARED_PROVIDER /]
 
-[#-- Include the default deployment framework --]
+[#-- Always include the default deployment framework --]
 [@includeDeploymentFrameworkConfiguration
     provider=SHARED_PROVIDER
     deploymentFramework=DEFAULT_DEPLOYMENT_FRAMEWORK
 /]
 
-[#-- Include the provider deployment framework if defined --]
-[#if provider?? ]
-    [@includeProviderConfiguration provider=provider /]
-    [#if deploymentFramework??]
+[#-- Include any shared (multi-provider) deployment framework --]
+[#if commandLineOptions.Deployment.Framework.Name?has_content]
+    [@includeDeploymentFrameworkConfiguration
+        provider=SHARED_PROVIDER
+        deploymentFramework=commandLineOptions.Deployment.Framework.Name
+    /]
+[/#if]
+
+[#-- Include any command line provider/deployment framework --]
+[#if commandLineOptions.Deployment.Provider?has_content ]
+    [@includeProviderConfiguration provider=commandLineOptions.Deployment.Provider /]
+    [#if commandLineOptions.Deployment.Framework.Name?has_content]
         [@includeDeploymentFrameworkConfiguration
-            provider=provider
-            deploymentFramework=deploymentFramework
+            provider=commandLineOptions.Deployment.Provider
+            deploymentFramework=commandLineOptions.Deployment.Framework.Name
         /]
     [/#if]
 [/#if]
@@ -49,8 +105,8 @@
     invokeFunction(
         getFirstDefinedDirective(
             [
-                [deploymentFramework, "model", deploymentFrameworkModel!""],
-                [DEFAULT_DEPLOYMENT_FRAMEWORK, "model", deploymentFrameworkModel!""]
+                [commandLineOptions.Deployment.Framework.Name, "model", commandLineOptions.Deployment.Framework.Model],
+                [DEFAULT_DEPLOYMENT_FRAMEWORK, "model", commandLineOptions.Deployment.Framework.Model]
             ]
         )
     ) ]

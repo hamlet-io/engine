@@ -21,17 +21,17 @@
 [#assign cmdbProductLookupPrefixes = [] ]
 [#assign segmentQualifiers = [] ]
 
-[#-- Standard inputs --]
-[#assign settingsObject = settings?eval ]
-
-[#assign stackOutputsList =
-    stackOutputs?has_content?then(stackOutputs?eval, []) ]
-
-[#assign definitionsObject =
-    definitions?has_content?then(definitions?eval, {}) ]
+[#-- Composites --]
+[#assign settingsObject    = commandLineOptions.Composites.Settings ]
+[#assign stackOutputsList  = commandLineOptions.Composites.StackOutputs ]
+[#assign definitionsObject = commandLineOptions.Composites.Definitions ]
+[#assign blueprintObject =
+    mergeObjects(
+        getMasterData(AWS_PROVIDER),
+        commandLineOptions.Composites.Blueprint
+    ) ]
 
 [#-- Reference data --]
-[#assign blueprintObject = mergeObjects(getMasterData(AWS_PROVIDER), blueprint?eval) ]
 [#assign regions = blueprintObject.Regions ]
 [#assign environments = blueprintObject.Environments]
 [#assign categories = blueprintObject.Categories]
@@ -52,16 +52,16 @@
 [#assign networkEndpointGroups = blueprintObject.NetworkEndpointGroups ]
 
 [#-- Regions --]
-[#if region?has_content]
-    [#assign regionId = region]
+[#if commandLineOptions.Regions.Segment?has_content]
+    [#assign regionId = commandLineOptions.Regions.Segment]
     [#assign regionObject = regions[regionId] ]
 [/#if]
-[#if accountRegion?has_content]
-    [#assign accountRegionId = accountRegion]
+[#if commandLineOptions.Regions.Account?has_content]
+    [#assign accountRegionId = commandLineOptions.Regions.Account]
     [#assign accountRegionObject = regions[accountRegionId] ]
 [/#if]
-[#if productRegion?has_content]
-    [#assign productRegionId = productRegion]
+[#if commandLineOptions.Regions.Product?has_content]
+    [#assign productRegionId = commandLineOptions.Regions.Product]
     [#assign productRegionObject = regions[productRegionId] ]
 [/#if]
 
