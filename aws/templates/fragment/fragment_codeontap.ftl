@@ -6,10 +6,7 @@
     [#assign dockerStageDir = settings["DOCKER_STAGE_DIR"]!"/tmp/docker-build" ]
     [#assign dockerHostDaemon = settings["DOCKER_HOST_DAEMON"]!"/var/run/docker.sock"]
     [#assign jenkinsAgentImage = settings["DOCKER_AGENT_IMAGE"]!"gen3"]
-    [#assign agentWorkDir = settings["AGENT_WORK_DIR"]!"/home/jenkins" ]
-    [#assign persistWorkDir = settings["AGENT_WORK_DIR_PERSIST"]!false ]
-    [#assign agentTmpVolume = settings["AGENT_TMP_VOLUME"]!"/tmp" ]
-    
+
     [@Attributes image=jenkinsAgentImage /]
     
     [@DefaultLinkVariables enabled=false /]
@@ -31,20 +28,6 @@
         containerPath=dockerStageDir 
         hostPath=dockerStageDir 
     /]
-    
-    [#-- Attach volumes to Jenkins Agent home dir to increase performance  --]
-    [@Volume 
-        name="agentWorkDir"
-        containerPath=agentWorkDir
-        persist=persistWorkDir
-        /]
-    
-    [#if agentTmpVolume?has_content ]
-        [@Volume
-            name="agentTmpDir"
-            containerPath=agentTmpVolume
-        /]
-    [/#if]
 
     [#-- Validate that the appropriate settings have been provided for the container to work --]
     [#if settings["CODEONTAPVOLUME"]?has_content ]
