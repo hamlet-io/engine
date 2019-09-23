@@ -432,6 +432,7 @@
     [#local serialisationConfig = environmentSettings.Json!{}]
 
     [#local operationsBucket = context.BaselineLinks["OpsData"].State.Attributes["BUCKET"]!"COTFatal: asFile configured but could not find opsBucket"  ]
+    [#local runId = commandLineOptions.Run.Id]
     [#return
         {
             "Environment" :

@@ -62,27 +62,27 @@
         [#list solution.ScalingPolicies as name, scalingPolicy ]
 
             [#if scalingPolicy.Type == "scheduled" ]
-                [#local autoScaling += 
+                [#local autoScaling +=
                     {
                         "scalingPolicy" + name : {
                             "Id" : formatDependentAutoScalingEc2ScheduleId(autoScaleGroupId, name),
                             "Name" : formatName(core.FullName, name),
                             "Type" : AWS_AUTOSCALING_EC2_SCHEDULE_RESOURCE_TYPE
-                        } 
+                        }
                     }
                 ]
             [#else]
-                [#local autoScaling += 
+                [#local autoScaling +=
                     {
                         "scalingPolicy" + name : {
                             "Id" : formatDependentAutoScalingEc2PolicyId(autoScaleGroupId, name),
                             "Name" : formatName(core.FullName, name),
                             "Type" : AWS_AUTOSCALING_EC2_POLICY_RESOURCE_TYPE
-                        } 
+                        }
                     }
                 ]
             [/#if]
-        [/#list]        
+        [/#list]
     [/#if]
 
     [#-- TODO(mfl): Use formatDependentRoleId() for roles --]
@@ -114,7 +114,7 @@
                 },
                 "launchConfig" : {
                     "Id" : solution.AutoScaling.AlwaysReplaceOnUpdate?then(
-                            formatEC2LaunchConfigId(core.Tier, core.Component, runId),
+                            formatEC2LaunchConfigId(core.Tier, core.Component, commandLineOptions.Run.Id),
                             formatEC2LaunchConfigId(core.Tier, core.Component)
                     ),
                     "Type" : AWS_EC2_LAUNCH_CONFIG_RESOURCE_TYPE
@@ -172,7 +172,7 @@
 
     [#local autoScaling = {}]
     [#if solution.ScalingPolicies?has_content ]
-        [#local autoScaling += 
+        [#local autoScaling +=
             {
                 "scalingTarget" : {
                     "Id" : formatResourceId(AWS_AUTOSCALING_APP_TARGET_RESOURCE_TYPE, core.Id),
@@ -186,16 +186,16 @@
             }
         ]
         [#list solution.ScalingPolicies as name, scalingPolicy ]
-            [#local autoScaling += 
+            [#local autoScaling +=
                 {
                     "scalingPolicy" + name : {
                         "Id" : formatDependentAutoScalingAppPolicyId(serviceId, name),
                         "Name" : formatName(core.FullName, name),
                         "Type" : AWS_AUTOSCALING_APP_POLICY_RESOURCE_TYPE
-                    } 
+                    }
                 }
             ]
-        [/#list]        
+        [/#list]
     [/#if]
 
     [#assign componentState =
@@ -248,7 +248,7 @@
                     "Type" : AWS_IAM_ROLE_RESOURCE_TYPE,
                     "IncludeInDeploymentState" : false
                 }
-            ) + 
+            ) +
             autoScaling,
             "Attributes" : {
                 "Name" : core.Name

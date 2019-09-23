@@ -5,41 +5,61 @@
 [/#if]
 [#include "/bootstrap.ftl" ]
 
+[#assign outputType = commandLineOptions.Deployment.Output.Type]
+
 [#-- Special processing --]
-[#switch deploymentUnit]
+[#switch commandLineOptions.Deployment.Unit.Name]
     [#case "iam"]
-        [#if deploymentUnitSubset?has_content &&
-            (deploymentUnitSubset == "pregeneration") ]
+        [#if commandLineOptions.Deployment.Unit.Subset?has_content &&
+            (commandLineOptions.Deployment.Unit.Subset == "pregeneration") ]
             [#assign allDeploymentUnits = true]
             [#assign ignoreDeploymentUnitSubsetInOutputs = true]
             [#break]
         [/#if]
         [#-- Fall through to lg processing --]
     [#case "lg"]
-        [#if (deploymentUnitSubset!"") == "genplan"]
-            [@initialiseDefaultScriptOutput format=outputFormat /]
+        [#if (commandLineOptions.Deployment.Unit.Subset!"") == "genplan"]
+            [@initialiseDefaultScriptOutput format=commandLineOptions.Deployment.Output.Format /]
             [@addDefaultGenerationPlan subsets="template" /]
         [#else]
-            [#if !(deploymentUnitSubset?has_content)]
+            [#if !(commandLineOptions.Deployment.Unit.Subset?has_content)]
                 [#assign allDeploymentUnits = true]
-                [#assign deploymentUnitSubset = deploymentUnit]
+                [#assign commandLineOptions =
+                    mergeObjects(
+                        commandLineOptions,
+                        {
+                            "Deployment" : {
+                                "Unit" : {
+                                    "Subset" : commandLineOptions.Deployment.Unit.Name
+                                }
+                            }
+                        }
+                    ) ]
                 [#assign ignoreDeploymentUnitSubsetInOutputs = true]
             [/#if]
         [/#if]
         [#break]
     [#case "model"]
-        [#if (deploymentUnitSubset!"") == "genplan"]
-            [@initialiseDefaultScriptOutput format=outputFormat /]
+        [#if (commandLineOptions.Deployment.Unit.Subset!"") == "genplan"]
+            [@initialiseDefaultScriptOutput format=commandLineOptions.Deployment.Output.Format /]
             [@addDefaultGenerationPlan subsets="config" /]
         [#else]
-            [#assign outputType = "model"]
+            [#assign commandLineOptions =
+                mergeObjects(
+                    commandLineOptions,
+                    {
+                        "Output" : {
+                            "Type" : "model"
+                        }
+                    }
+                ) ]
         [/#if]
 
 [/#switch]
 
 [@generateOutput
-    deploymentFramework=deploymentFramework
-    type=outputType
-    format=outputFormat
+    deploymentFramework=commandLineOptions.Deployment.Framework.Name
+    type=commandLineOptions.Deployment.Output.Type
+    format=commandLineOptions.Deployment.Output.Format
     level="application"
 /]

@@ -56,8 +56,8 @@
                                 "",
                                 [
                                     "#!/bin/bash\n",
-                                    "echo \"cot:request="       + requestReference        + "\"\n",
-                                    "echo \"cot:configuration=" + configurationReference  + "\"\n",
+                                    "echo \"cot:request="       + commandLineOptions.References.Request + "\"\n",
+                                    "echo \"cot:configuration=" + commandLineOptions.References.Configuration + "\"\n",
                                     "echo \"cot:accountRegion=" + accountRegionId         + "\"\n",
                                     "echo \"cot:tenant="        + tenantId                + "\"\n",
                                     "echo \"cot:account="       + accountId               + "\"\n",

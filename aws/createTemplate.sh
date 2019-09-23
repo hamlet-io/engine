@@ -14,11 +14,10 @@ function usage() {
 
 Create a CloudFormation (CF) template
 
-Usage: $(basename $0) -l LEVEL -u DEPLOYMENT_UNIT -b BUILD_DEPLOYMENT_UNIT -c CONFIGURATION_REFERENCE -q REQUEST_REFERENCE -r REGION
+Usage: $(basename $0) -l LEVEL -u DEPLOYMENT_UNIT -c CONFIGURATION_REFERENCE -q REQUEST_REFERENCE -r REGION
 
 where
 
-(m) -b BUILD_DEPLOYMENT_UNIT   is the deployment unit defining the build reference
 (m) -c CONFIGURATION_REFERENCE is the identifier of the configuration used to generate this template
     -h                         shows this text
 (m) -l LEVEL                   is the template level - "blueprint", "account", "product", "segment", "solution", "application" or "multiple"
@@ -53,9 +52,8 @@ EOF
 function options() {
 
   # Parse options
-  while getopts ":b:c:d:hl:q:r:s:t:u:z:" option; do
+  while getopts ":c:d:hl:q:r:s:t:u:z:" option; do
       case "${option}" in
-          b) BUILD_DEPLOYMENT_UNIT="${OPTARG}" ;;
           c) CONFIGURATION_REFERENCE="${OPTARG}" ;;
           d) DEPLOYMENT_MODE="${OPTARG}" ;;
           h) usage; return 1 ;;
@@ -167,8 +165,6 @@ function process_template_pass() {
   local account_region="${1,,}"; shift
   local product_region="${1,,}"; shift
   local region="${1,,}"; shift
-  local build_deployment_unit="${1,,}"; shift
-  local build_reference="${1}"; shift
   local request_reference="${1}"; shift
   local configuration_reference="${1}"; shift
   local deployment_mode="${1}"; shift
@@ -341,8 +337,6 @@ function process_template_pass() {
   [[ -n "${output_type}" ]]            && args+=("-v" "outputType=${output_type}")
   [[ -n "${output_format}" ]]          && args+=("-v" "outputFormat=${output_format}")
   [[ -n "${deployment_unit}" ]]        && args+=("-v" "deploymentUnit=${deployment_unit}")
-  [[ -n "${build_deployment_unit}" ]]  && args+=("-v" "buildDeploymentUnit=${build_deployment_unit}")
-  [[ -n "${build_reference}" ]]        && args+=("-v" "buildReference=${build_reference}")
   [[ -n "${GENERATION_LOG_LEVEL}" ]]   && args+=("-v" "logLevel=${GENERATION_LOG_LEVEL}")
 
   # Include the template composites
@@ -559,8 +553,6 @@ function process_template() {
   local account_region="${1,,}"; shift
   local product_region="${1,,}"; shift
   local region="${1,,}"; shift
-  local build_deployment_unit="${1,,}"; shift
-  local build_reference="${1}"; shift
   local request_reference="${1}"; shift
   local configuration_reference="${1}"; shift
   local deployment_mode="${1}"; shift
@@ -638,8 +630,6 @@ function process_template() {
       "${account_region}" \
       "${product_region}" \
       "${region}" \
-      "${build_deployment_unit}" \
-      "${build_reference}" \
       "${request_reference}" \
       "${configuration_reference}" \
       "${deployment_mode}" \
@@ -673,8 +663,6 @@ function process_template() {
       "${account_region}" \
       "${product_region}" \
       "${region}" \
-      "${build_deployment_unit}" \
-      "${build_reference}" \
       "${request_reference}" \
       "${configuration_reference}" \
       "${deployment_mode}" \
@@ -731,7 +719,6 @@ function main() {
         "" "${ACCOUNT_REGION}" \
         "${PRODUCT_REGION}" \
         "" \
-        "${BUILD_DEPLOYMENT_UNIT}" "${BUILD_REFERENCE}" \
         "${REQUEST_REFERENCE}" \
         "${CONFIGURATION_REFERENCE}" \
         "${DEPLOYMENT_MODE}"
@@ -744,7 +731,6 @@ function main() {
         "${ACCOUNT}" "${ACCOUNT_REGION}" \
         "${PRODUCT_REGION}" \
         "${REGION}" \
-        "${BUILD_DEPLOYMENT_UNIT}" "${BUILD_REFERENCE}" \
         "${REQUEST_REFERENCE}" \
         "${CONFIGURATION_REFERENCE}" \
         "${DEPLOYMENT_MODE}"

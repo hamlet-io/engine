@@ -32,7 +32,7 @@
             message="SPA Cloudfront distributions have been deprecated"
             detail="Please delete the solution SPA stack and add a CDN inbound link on the SPA"
             context=resources["legacyCF"]
-        /] 
+        /]
     [/#if]
 
     [#local fragment = getOccurrenceFragmentBase(occurrence) ]
@@ -78,18 +78,18 @@
 
         [#switch linkTargetCore.Type]
             [#case CDN_ROUTE_COMPONENT_TYPE ]
-                [#if linkDirection == "inbound" ]  
-                    [#local distributions += [ { 
+                [#if linkDirection == "inbound" ]
+                    [#local distributions += [ {
                         "DistributionId" : linkTargetAttributes["DISTRIBUTION_ID"],
                         "PathPattern" : linkTargetResources["origin"].PathPattern
-                    }]]   
+                    }]]
                 [/#if]
                 [#break]
         [/#switch]
     [/#list]
 
     [#if ! distributions?has_content ]
-        [@fatal 
+        [@fatal
             message="An SPA must have at least 1 CDN Route component link - Add an inbound CDN Route link to the SPA"
             context=solution
             enabled=true
@@ -98,7 +98,7 @@
 
     [#if deploymentSubsetRequired("config", false)]
         [@addToDefaultJsonOutput
-            content={ "RUN_ID" : runId } + _context.Environment
+            content={ "RUN_ID" : commandLineOptions.Run.Id } + _context.Environment
         /]
     [/#if]
     [#if deploymentSubsetRequired("prologue", false)]
@@ -135,7 +135,7 @@
                         getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX"),
                         solution.ConfigPath
                     )
-                ) /] 
+                ) /]
     [/#if]
 
     [#if solution.InvalidateOnUpdate && distributions?has_content ]
@@ -159,7 +159,7 @@
                 [
                     "case $\{STACK_OPERATION} in",
                     "  create|update)"
-                ] + 
+                ] +
                 invalidationScript +
                 [
                     " ;;",

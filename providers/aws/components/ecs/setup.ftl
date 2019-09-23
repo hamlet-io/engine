@@ -180,7 +180,7 @@
             [#local linkTargetAttributes = linkTarget.State.Attributes ]
 
             [#switch linkTargetCore.Type]
-                
+
                 [#case EFS_MOUNT_COMPONENT_TYPE]
                     [#local configSets +=
                         getInitConfigEFSMount(
@@ -317,8 +317,8 @@
 
                         [#local monitoredResources = getMonitoredResources(scalingTargetResources, scalingMetricTrigger.Resource)]
 
-                        [#if monitoredResources?keys?size > 1 ] 
-                            [@fatal 
+                        [#if monitoredResources?keys?size > 1 ]
+                            [@fatal
                                 message="A scaling policy can only track one metric"
                                 context={ "trackingPolicy" : name, "monitoredResources" : monitoredResources }
                                 detail="Please add an extra resource filter to the metric policy"
@@ -330,7 +330,7 @@
                             [@fatal
                                 message="Could not find monitoring resources"
                                 context={ "scalingPolicy" : scalingPolicy }
-                                detail="Please make sure you have a resource which can be monitored with CloudWatch"    
+                                detail="Please make sure you have a resource which can be monitored with CloudWatch"
                             /]
                             [#continue]
                         [/#if]
@@ -343,7 +343,7 @@
 
                         [#if scalingPolicy.Type?lower_case == "stepped" ]
                             [#if ! isPresent( scalingPolicy.Stepped )]
-                                [@fatal 
+                                [@fatal
                                     message="Stepped Scaling policy not found"
                                     context=scalingPolicy
                                     enabled=true
@@ -386,7 +386,7 @@
                         [#if scalingPolicy.Type?lower_case == "tracked" ]
 
                             [#if ! isPresent( scalingPolicy.Tracked )]
-                                [@fatal 
+                                [@fatal
                                     message="Tracked Scaling policy not found"
                                     context=scalingPolicy
                                     enabled=true
@@ -398,7 +398,7 @@
                                                             getResourceMetricDimensions(monitoredResource, scalingTargetResources ),
                                                             getMetricName(scalingMetricTrigger.Metric, monitoredResource.Type, scalingTargetCore.ShortFullName),
                                                             getResourceMetricNamespace(monitoredResource.Type),
-                                                            scalingMetricTrigger.Statistic 
+                                                            scalingMetricTrigger.Statistic
                                                         )]
 
                             [#local scalingAction = getEc2AutoScalingTrackPolicy(
@@ -418,10 +418,10 @@
                                 minAdjustment=scalingPolicy.Stepped.MinAdjustment
                         /]
                         [#break]
-                    
+
                     [#case "scheduled"]
                         [#if ! isPresent( scalingPolicy.Scheduled )]
-                            [@fatal 
+                            [@fatal
                                 message="Scheduled Scaling policy not found"
                                 context=scalingPolicy
                                 enabled=true
@@ -430,11 +430,11 @@
                         [/#if]
 
                         [#local scheduleProcessor = getProcessor(
-                                                        occurrence, 
-                                                        "ECS", 
+                                                        occurrence,
+                                                        "ECS",
                                                         scalingPolicy.Scheduled.ProcessorProfile)]
                         [#local scheduleProcessorCounts = getProcessorCounts(scheduleProcessor, multiAZ ) ]
-                        [@createEc2AutoScalingSchedule 
+                        [@createEc2AutoScalingSchedule
                             id=scalingPolicyId
                             autoScaleGroupId=ecsAutoScaleGroupId
                             schedule=scalingPolicy.Scheduled.Schedule
@@ -518,7 +518,7 @@
 
     [#list requiredOccurrences(
             occurrence.Occurrences![],
-            deploymentUnit) as subOccurrence]
+            commandLineOptions.Deployment.Unit.Name) as subOccurrence]
 
         [@debug message="Suboccurrence" context=subOccurrence enabled=false /]
 
@@ -859,8 +859,8 @@
 
                                 [#local monitoredResources = getMonitoredResources(scalingTargetResources, scalingMetricTrigger.Resource)]
 
-                                [#if monitoredResources?keys?size > 1 ] 
-                                    [@fatal 
+                                [#if monitoredResources?keys?size > 1 ]
+                                    [@fatal
                                         message="A scaling policy can only track one metric"
                                         context={ "trackingPolicy" : name, "monitoredResources" : monitoredResources }
                                         detail="Please add an extra resource filter to the metric policy"
@@ -872,7 +872,7 @@
                                     [@fatal
                                         message="Could not find monitoring resources"
                                         context={ "scalingPolicy" : scalingPolicy }
-                                        detail="Please make sure you have a resource which can be monitored with CloudWatch"    
+                                        detail="Please make sure you have a resource which can be monitored with CloudWatch"
                                     /]
                                     [#continue]
                                 [/#if]
@@ -885,7 +885,7 @@
 
                                 [#if scalingPolicy.Type?lower_case == "stepped" ]
                                     [#if ! isPresent( scalingPolicy.Stepped )]
-                                        [@fatal 
+                                        [@fatal
                                             message="Stepped Scaling policy not found"
                                             context=scalingPolicy
                                             enabled=true
@@ -936,7 +936,7 @@
                                 [#if scalingPolicy.Type?lower_case == "tracked" ]
 
                                     [#if ! isPresent( scalingPolicy.Tracked )]
-                                        [@fatal 
+                                        [@fatal
                                             message="Tracked Scaling policy not found"
                                             context=scalingPolicy
                                             enabled=true
@@ -948,7 +948,7 @@
                                                                     getResourceMetricDimensions(monitoredResource, scalingTargetResources ),
                                                                     getMetricName(scalingMetricTrigger.Metric, monitoredResource.Type, scalingTargetCore.ShortFullName),
                                                                     getResourceMetricNamespace(monitoredResource.Type),
-                                                                    scalingMetricTrigger.Statistic 
+                                                                    scalingMetricTrigger.Statistic
                                                                 )]
 
                                     [#local scalingAction = getAutoScalingAppTrackPolicy(
@@ -968,10 +968,10 @@
                                     scalingTargetId=scalingTargetId
                                 /]
                                 [#break]
-                            
+
                             [#case "scheduled"]
                                 [#if ! isPresent( scalingPolicy.Scheduled )]
-                                    [@fatal 
+                                    [@fatal
                                         message="Tracked Scaling policy not found"
                                         context=scalingPolicy
                                         enabled=true
@@ -980,8 +980,8 @@
                                 [/#if]
 
                                 [#local scheduleProcessor = getProcessor(
-                                                                subOccurrence, 
-                                                                ECS_SERVICE_COMPONENT_TYPE, 
+                                                                subOccurrence,
+                                                                ECS_SERVICE_COMPONENT_TYPE,
                                                                 scalingPolicy.Scheduled.ProcessorProfile)]
                                 [#local scheduleProcessorCounts = getProcessorCounts(scheduleProcessor, multiAZ ) ]
                                 [#local scheduledActions += [
@@ -997,9 +997,9 @@
                                 [#break]
                         [/#switch]
                     [/#list]
-                    
 
-                    [@createAutoScalingAppTarget 
+
+                    [@createAutoScalingAppTarget
                         id=scalingTargetId
                         minCount=processorCounts.MinCount
                         maxCount=processorCounts.MaxCount

@@ -315,9 +315,9 @@
             [/#if]
         [/#list]
 
-        [#local namespaces += 
+        [#local namespaces +=
             [
-                { 
+                {
                     "Key" : formatName(parts),
                     "Match" : namespaceObject.Match
                 }
@@ -416,8 +416,8 @@
                 "COMPONENT" : core.Component.Name,
                 "COMPONENT_INSTANCE" : core.Instance.Name,
                 "COMPONENT_VERSION" : core.Version.Name,
-                "REQUEST_REFERENCE" : requestReference,
-                "CONFIGURATION_REFERENCE" : configurationReference,
+                "REQUEST_REFERENCE" : commandLineOptions.References.Request,
+                "CONFIGURATION_REFERENCE" : commandLineOptions.References.Configuration,
                 "APPDATA_PREFIX" : getAppDataFilePrefix(occurrence),
                 "APPSETTINGS_PREFIX" : getSettingsFilePrefix(occurrence),
                 "CREDENTIALS_PREFIX" : getSettingsFilePrefix(occurrence),

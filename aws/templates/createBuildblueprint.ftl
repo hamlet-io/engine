@@ -16,7 +16,7 @@
         [#if component?is_hash]
             [#list requiredOccurrences(
                 getOccurrences(tier, component),
-                deploymentUnit) as occurrence]
+                commandLineOptions.Deployment.Unit.Name) as occurrence]
 
                 [#local componentType = getComponentType(component)]
 
@@ -26,9 +26,9 @@
                     "Metadata" :
                         {
                             "Prepared" : .now?iso_utc,
-                            "RequestReference" : requestReference,
-                            "ConfigurationReference" : configurationReference,
-                            "RunId" : runId
+                            "RequestReference" : commandLineOptions.References.Request,
+                            "ConfigurationReference" : commandLineOptions.References.Configuration,
+                            "RunId" : commandLineOptions.Run.Id
                         } +
                         attributeIfContent("CostCentre", accountObject.CostCentre!""),
                     "Occurrence" : occurrence
@@ -43,18 +43,18 @@
 
 [#-- Redefine the core processing macro --]
 [#macro processComponents level]
-  [#if (deploymentUnitSubset!"") == "config" ]
+  [#if (commandLineOptions.Deployment.Unit.Subset!"") == "config" ]
     [@addToDefaultJsonOutput content=getComponentBuildBlueprint() /]
   [/#if]
 [/#macro]
 
-[#if (deploymentUnitSubset!"") == "genplan" ]
-  [@initialiseDefaultScriptOutput format=outputFormat /]
+[#if (commandLineOptions.Deployment.Unit.Subset!"") == "genplan" ]
+  [@initialiseDefaultScriptOutput format=commandLineOptions.Deployment.Output.Format /]
   [@addDefaultGenerationPlan subsets="config" /]
 [/#if]
 
 [@generateOutput
-  deploymentFramework=deploymentFramework
-  type=outputType
-  format=outputFormat
+  deploymentFramework=commandLineOptions.Deployment.Framework.Name
+  type=commandLineOptions.Deployment.Output.Type
+  format=commandLineOptions.Deployment.Output.Format
 /]

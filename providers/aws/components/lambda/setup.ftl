@@ -456,7 +456,7 @@
                     getLocalFileScript(
                         "configFiles",
                         "$\{CONFIG}",
-                        "config_" + runId + ".json"
+                        "config_" + commandLineOptions.Run.Id + ".json"
                     ) +
                     syncFilesToBucketScript(
                         "configFiles",

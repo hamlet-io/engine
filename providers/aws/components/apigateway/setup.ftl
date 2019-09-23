@@ -27,7 +27,7 @@
 
     [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
-    [#local swaggerFileName ="swagger_" + runId + ".json"  ]
+    [#local swaggerFileName ="swagger_" + commandLineOptions.Run.Id + ".json"  ]
     [#local swaggerFileLocation = formatRelativePath(
                                                 getSettingsFilePrefix(occurrence),
                                                 "config",
@@ -739,7 +739,7 @@
                 getLocalFileScript(
                     "configFiles",
                     "$\{CONFIG}",
-                    "swagger_" + runId + ".json"
+                    "swagger_" + commandLineOptions.Run.Id + ".json"
                 ) +
                 syncFilesToBucketScript(
                     "configFiles",
