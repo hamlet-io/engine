@@ -53,7 +53,7 @@
                     }
                 },
                 "Attributes" : {
-                    "REGION" : regionId,
+                    "REGION" : getExistingReference(esId, REGION_ATTRIBUTE_TYPE)!regionId,
                     "AUTH" : solution.Authentication,
                     "FQDN" : esHostName,
                     "URL" : "https://" + esHostName,

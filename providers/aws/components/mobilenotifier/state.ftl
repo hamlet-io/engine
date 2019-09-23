@@ -47,6 +47,8 @@
     [#local lgFailureId = formatMobileNotifierLogGroupId(engine, name, true) ]
     [#local lgFailureName = formatMobileNotifierLogGroupName(engine, name, true)]
 
+    [#local region = getExistingReference(id, REGION_ATTRIBUTE_TYPE)!regionId ]
+
     [#local logMetrics = {} ]
     [#list solution.LogMetrics as name,logMetric ]
         [#local logMetrics += {
@@ -98,7 +100,7 @@
                             formatArn(
                                 regionObject.Partition,
                                 "sns",
-                                regionId,
+                                region,
                                 accountObject.AWSId,
                                 "smsPlaceHolder"
                             ),
@@ -110,7 +112,7 @@
             "Roles" : {
                 "Inbound" : {
                     "logwatch" : {
-                        "Principal" : "logs." + regionId + ".amazonaws.com",
+                        "Principal" : "logs." + region + ".amazonaws.com",
                         "LogGroupIds" : [ lgId, lgFailureId ]
                     }
                 },

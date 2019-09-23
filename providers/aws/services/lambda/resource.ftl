@@ -7,6 +7,9 @@
         },
         ARN_ATTRIBUTE_TYPE : {
             "Attribute" : "Arn"
+        },
+        REGION_ATTRIBUTE_TYPE: {
+            "Value" : { "Ref" : "AWS::Region" }
         }
     }
 ]

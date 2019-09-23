@@ -7,6 +7,9 @@
         },
         ROOT_ATTRIBUTE_TYPE : {
             "Attribute" : "RootResourceId"
+        },
+        REGION_ATTRIBUTE_TYPE: {
+            "Value" : { "Ref" : "AWS::Region" }
         }
     }
 ]

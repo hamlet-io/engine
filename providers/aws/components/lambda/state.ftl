@@ -12,9 +12,7 @@
                     "Type" : AWS_LAMBDA_RESOURCE_TYPE
                 }
             },
-            "Attributes" : {
-                "REGION" : regionId
-            },
+            "Attributes" : {},
             "Roles" : {
                 "Inbound" : {},
                 "Outbound" : {}
@@ -29,6 +27,8 @@
 
     [#local id = formatResourceId(AWS_LAMBDA_FUNCTION_RESOURCE_TYPE, core.Id)]
     [#local versionId = formatResourceId(AWS_LAMBDA_VERSION_RESOURCE_TYPE, core.Id )]
+
+    [#local region = getExistingReference(id, REGION_ATTRIBUTE_TYPE)!regionId]
 
     [#local lgId = formatLogGroupId(core.Id)]
     [#local lgName = formatAbsolutePath("aws", "lambda", core.FullName)]
@@ -75,14 +75,14 @@
                 }
             ),
             "Attributes" : {
-                "REGION" : regionId,
+                "REGION" : region,
                 "ARN" : valueIfTrue(
                             getExistingReference( versionId ),
                             fixedCodeVersion
                             formatArn(
                                 regionObject.Partition,
                                 "lambda",
-                                regionId,
+                                region,
                                 accountObject.AWSId,
                                 "function:" + core.FullName,
                                 true)
@@ -93,7 +93,7 @@
             "Roles" : {
                 "Inbound" : {
                     "logwatch" : {
-                        "Principal" : "logs." + regionId + ".amazonaws.com",
+                        "Principal" : "logs." + region + ".amazonaws.com",
                         "LogGroupIds" : [ lgId ]
                     }
                 },

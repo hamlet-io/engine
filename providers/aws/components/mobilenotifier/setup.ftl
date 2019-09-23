@@ -220,7 +220,8 @@
                             "SNS Platform App",
                             {
                                 formatId(platformAppId, "arn") : "$\{platform_app_arn}",
-                                platformAppId : core.Name
+                                platformAppId : core.Name,
+                                formatId(platformAppId, "region) : regionId 
                             },
                             core.SubComponent.Id
                         ) +

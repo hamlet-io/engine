@@ -10,6 +10,9 @@
         },
         NAME_ATTRIBUTE_TYPE : {
             "Attribute" : "Name"
+        },
+        REGION_ATTRIBUTE_TYPE: {
+            "Value" : { "Ref" : "AWS::Region" }
         }
     }
 ]
@@ -21,6 +24,9 @@
         },
         ARN_ATTRIBUTE_TYPE : {
             "UseRef" : true
+        },
+        REGION_ATTRIBUTE_TYPE: {
+            "Value" : { "Ref" : "AWS::Region" }
         }
     }
 ]
