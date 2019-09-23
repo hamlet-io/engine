@@ -23,8 +23,6 @@ where
 (m) -l LEVEL                   is the template level - "blueprint", "account", "product", "segment", "solution", "application" or "multiple"
 (m) -q REQUEST_REFERENCE       is an opaque value to link this template to a triggering request management system
 (o) -r REGION                  is the AWS region identifier
-(d) -s DEPLOYMENT_UNIT         same as -u
-(d) -t LEVEL                   same as -l
 (o) -u DEPLOYMENT_UNIT         is the deployment unit to be included in the template
 (o) -z DEPLOYMENT_UNIT_SUBSET  is the subset of the deployment unit required
 (o) -d DEPLOYMENT_MODE         is the deployment mode the template will be generated for
@@ -52,7 +50,7 @@ EOF
 function options() {
 
   # Parse options
-  while getopts ":c:d:hl:q:r:s:t:u:z:" option; do
+  while getopts ":c:d:hl:q:r:u:z:" option; do
       case "${option}" in
           c) CONFIGURATION_REFERENCE="${OPTARG}" ;;
           d) DEPLOYMENT_MODE="${OPTARG}" ;;
@@ -60,8 +58,6 @@ function options() {
           l) LEVEL="${OPTARG}" ;;
           q) REQUEST_REFERENCE="${OPTARG}" ;;
           r) REGION="${OPTARG}" ;;
-          s) DEPLOYMENT_UNIT="${OPTARG}" ;;
-          t) LEVEL="${OPTARG}" ;;
           u) DEPLOYMENT_UNIT="${OPTARG}" ;;
           z) DEPLOYMENT_UNIT_SUBSET="${OPTARG}" ;;
           \?) fatalOption; return 1 ;;
