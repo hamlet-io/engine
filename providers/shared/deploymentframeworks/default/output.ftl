@@ -200,7 +200,7 @@
                 [#-- Unknown subset --]
                 [#return {} ]
         [/#switch]
-        [#local step_name = [subset, alternative, provider, deploymentFramework]?join("-") ]
+        [#local step_name = [subset, alternative, commandLineOptions.Deployment.Provider.Name, commandLineOptions.Deployment.Framework.Name]?join("-") ]
         [#local steps =
             mergeObjects(
                 steps,
@@ -208,7 +208,7 @@
                     subset : {
                         alternative : {
                             provider : {
-                                deploymentFramework : {
+                                commandLineOptions.Deployment.Framework.Name : {
                                     "Name" : step_name
                                 } + step
                             }

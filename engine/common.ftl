@@ -47,8 +47,8 @@
 
 [#function deploymentSubsetRequired subset default=false]
     [#return
-        deploymentUnitSubset?has_content?then(
-            deploymentUnitSubset?lower_case?contains(subset),
+        commandLineOptions.Deployment.Unit.Subset?has_content?then(
+            commandLineOptions.Deployment.Unit.Subset?lower_case?contains(subset),
             default
         )]
 [/#function]
@@ -640,7 +640,7 @@ behaviour.
                                 maxCount,
                                 (processorProfile.MaxCount)!""
                             )]
-    
+
     [#local fixedMinCount = minCount?has_content?then(
                                 minCount,
                                 (processorProfile.MinCount)!""
@@ -693,7 +693,7 @@ behaviour.
         /]
     [/#if]
 
-    [#return 
+    [#return
         {
             "MaxCount"      : maxCount!0,
             "MinCount"      : minCount!0,

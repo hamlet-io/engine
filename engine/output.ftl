@@ -196,9 +196,9 @@
             formatCommentsForTextOutput(
                 name,
                 [
-                    "--COT-RequestReference=${requestReference}",
-                    "--COT-ConfigurationReference=${configurationReference}",
-                    "--COT-RunId=${runId}"
+                    "--COT-RequestReference=${commandLineOptions.References.Request}",
+                    "--COT-ConfigurationReference=${commandLineOptions.References.Configuration}",
+                    "--COT-RunId=${commandLineOptions.Run.Id}"
                 ]
             )
         treatAsContent=false

@@ -151,10 +151,10 @@
     [#return
         isPartOfDeploymentUnit(
             resourceId,
-            deploymentUnit,
+            commandLineOptions.Deployment.Unit.Name,
             (ignoreDeploymentUnitSubsetInOutputs!false)?then(
                 "",
-                deploymentUnitSubset!""
+                commandLineOptions.Deployment.Unit.Subset!""
             )
         )]
 [/#function]

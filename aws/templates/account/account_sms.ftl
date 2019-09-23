@@ -1,5 +1,5 @@
 [#-- SMS --]
-[#if deploymentUnit?contains("sms") || (allDeploymentUnits!false) ]
+[#if commandLineOptions.Deployment.Unit.Name?contains("sms") || (allDeploymentUnits!false) ]
     [#assign cloudWatchRoleId = formatAccountRoleId("sms","cloudwatch")]
     [#if deploymentSubsetRequired("genplan", false)]
         [@addDefaultGenerationPlan subsets=["epilogue", "cli"] /]

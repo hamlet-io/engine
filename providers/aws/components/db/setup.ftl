@@ -132,7 +132,7 @@
 
     [#local rdsPreDeploySnapshotId = formatName(
                                         rdsFullName,
-                                        runId,
+                                        commandLineOptions.Run.Id,
                                         "pre-deploy")]
 
     [#local rdsTags = getOccurrenceCoreTags(occurrence, rdsFullName)]
@@ -299,7 +299,7 @@
             outputs={}
         /]
 
-        [#switch alternative!"" ]
+        [#switch commandLineOptions.Deployment.Unit.Alternative!"" ]
             [#case "replace1" ]
                 [#local multiAZ = false]
                 [#local deletionPolicy = "Delete" ]

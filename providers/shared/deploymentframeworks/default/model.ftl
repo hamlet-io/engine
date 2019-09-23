@@ -294,7 +294,7 @@
                 true,
                 MINIMAL_FILTER_BEHAVIOUR
             ),
-            deploymentUnit
+            commandLineOptions.Deployment.Unit.Name
         ) ]
 
     [@debug
@@ -642,7 +642,7 @@
                         attributes,
                         [
                             content,
-                            (getDeploymentProfile(profiles.Deployment, deploymentMode)[type])!{}
+                            (getDeploymentProfile(profiles.Deployment, commandLineOptions.Deployment.Mode)[type])!{}
                         ])
             }
         }
@@ -674,6 +674,6 @@
     [#return {} ]
 [/#function]
 
-[#if (deploymentFrameworkModel!"")?lower_case == "legacy"]
+[#if (commandLineOptions.Deployment.Framework.Model!"")?lower_case == "legacy"]
     [#include "legacy.ftl" ]
 [/#if]

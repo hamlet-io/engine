@@ -2,7 +2,7 @@
 
 [#assign AWS_OUTPUT_RESOURCE_TYPE = "resource" ]
 
-[#function getCFTemplateCoreOutputs region={ "Ref" : "AWS::Region" } account={ "Ref" : "AWS::AccountId" } deploymentUnit=deploymentUnit deploymentMode=deploymentMode ]
+[#function getCFTemplateCoreOutputs region={ "Ref" : "AWS::Region" } account={ "Ref" : "AWS::AccountId" } deploymentUnit=commandLineOptions.Deployment.Unit.Name deploymentMode=commandLineOptions.Deployment.Mode ]
     [#return {
         "Account" :{ "Value" : account },
         "Region" : {"Value" : region },
@@ -11,9 +11,9 @@
                 deploymentUnit +
                 (
                     (!(ignoreDeploymentUnitSubsetInOutputs!false)) &&
-                    (deploymentUnitSubset?has_content)
+                    (commandLineOptions.Deployment.Unit.Subset?has_content)
                 )?then(
-                    "-" + deploymentUnitSubset?lower_case,
+                    "-" + commandLineOptions.Deployment.Unit.Subset?lower_case,
                     ""
                 )
         },
@@ -24,7 +24,7 @@
 [#function getCfTemplateCoreTags name="" tier="" component="" zone="" propagate=false flatten=false maxTagCount=-1]
     [#local result =
         [
-            { "Key" : "cot:request", "Value" : requestReference }
+            { "Key" : "cot:request", "Value" : commandLineOptions.References.Request }
         ] +
         accountObject.CostCentre?has_content?then(
             [
@@ -33,7 +33,7 @@
             []
         ) +
         [
-            { "Key" : "cot:configuration", "Value" : configurationReference },
+            { "Key" : "cot:configuration", "Value" : commandLineOptions.References.Configuration },
             { "Key" : "cot:tenant", "Value" : tenantName },
             { "Key" : "cot:account", "Value" : accountName }
         ] +
@@ -226,9 +226,9 @@
                 "Metadata" :
                     {
                         "Prepared" : .now?iso_utc,
-                        "RequestReference" : requestReference,
-                        "ConfigurationReference" : configurationReference,
-                        "RunId" : runId
+                        "RequestReference" : commandLineOptions.References.Request,
+                        "ConfigurationReference" : commandLineOptions.References.Configuration,
+                        "RunId" : commandLineOptions.Run.Id
                     } +
                     attributeIfContent("CostCentre", accountObject.CostCentre!""),
                 "Resources" : getOutputContent("resources"),

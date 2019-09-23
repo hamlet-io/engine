@@ -23,9 +23,9 @@
   {
     "Metadata" : {
       "Prepared" : .now?iso_utc,
-      "RequestReference" : requestReference,
-      "ConfigurationReference" : configurationReference,
-      "RunId" : runId
+      "RequestReference" : commandLineOptions.References.Request,
+      "ConfigurationReference" : commandLineOptions.References.Configuration,
+      "RunId" : commandLineOptions.Run.Id
     },
     "Tenants" : [
       {
@@ -128,21 +128,31 @@
 
 [#-- Redefine the core processing macro --]
 [#macro processComponents level]
-  [#if (deploymentUnitSubset!"") == "config" ]
+  [#if (commandLineOptions.Deployment.Unit.Subset!"") == "config" ]
     [@addToDefaultJsonOutput content=getTenantBlueprint() /]
   [/#if]
 [/#macro]
 
-[#if (deploymentUnitSubset!"") == "genplan" ]
-  [@initialiseDefaultScriptOutput format=outputFormat /]
+[#if (commandLineOptions.Deployment.Unit.Subset!"") == "genplan" ]
+  [@initialiseDefaultScriptOutput format=commandLineOptions.Deployment.Output.Format /]
   [@addDefaultGenerationPlan subsets="config" /]
 [#else]
   [#assign allDeploymentUnits = true]
-  [#assign deploymentUnit = ""]
+  [#assign commandLineOptions =
+      mergeObjects(
+          commandLineOptions,
+          {
+              "Deployment" : {
+                  "Unit" : {
+                      "Name" : ""
+                  }
+              }
+          }
+      ) ]
 [/#if]
 
 [@generateOutput
-  deploymentFramework=deploymentFramework
-  type=outputType
-  format=outputFormat
+  deploymentFramework=commandLineOptions.Deployment.Framework.Name
+  type=commandLineOptions.Deployment.Output.Type
+  format=commandLineOptions.Deployment.Output.Format
 /]

@@ -320,7 +320,7 @@ created in either case.
                     "Monitored" : true
                 },
                 "apideploy" : {
-                    "Id" : formatResourceId(AWS_APIGATEWAY_DEPLOY_RESOURCE_TYPE, core.Id, runId),
+                    "Id" : formatResourceId(AWS_APIGATEWAY_DEPLOY_RESOURCE_TYPE, core.Id, commandLineOptions.Run.Id),
                     "Type" : AWS_APIGATEWAY_DEPLOY_RESOURCE_TYPE
                 },
                 "apistage" : {

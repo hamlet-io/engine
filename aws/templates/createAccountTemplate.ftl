@@ -5,7 +5,7 @@
 [@includeServicesConfiguration
     provider=AWS_PROVIDER
     services=[AWS_IDENTITY_SERVICE, AWS_WEB_APPLICATION_FIREWALL_SERVICE]
-    deploymentFramework=deploymentFramework
+    deploymentFramework=commandLineOptions.Deployment.Framework.Name
 /]
 
 [@includeProviderComponentDefinitionConfiguration
@@ -26,16 +26,26 @@
 [#assign categoryId = "account"]
 
 [#-- Special processing --]
-[#switch deploymentUnit]
+[#switch commandLineOptions.Deployment.Unit.Name]
     [#case "iam"]
     [#case "lg"]
-        [#if (deploymentUnitSubset!"") == "genplan"]
-            [@initialiseDefaultScriptOutput format=outputFormat /]
+        [#if (commandLineOptions.Deployment.Unit.Subset!"") == "genplan"]
+            [@initialiseDefaultScriptOutput format=commandLineOptions.Deployment.Output.Format /]
             [@addDefaultGenerationPlan subsets="template" /]
         [#else]
-            [#if !(deploymentUnitSubset?has_content)]
+            [#if !(commandLineOptions.Deployment.Unit.Subset?has_content)]
                 [#assign allDeploymentUnits = true]
-                [#assign deploymentUnitSubset = deploymentUnit]
+                [#assign commandLineOptions =
+                    mergeObjects(
+                        commandLineOptions,
+                        {
+                            "Deployment" : {
+                                "Unit" : {
+                                    "Subset" : commandLineOptions.Deployment.Unit.Name
+                                }
+                            }
+                        }
+                    ) ]
                 [#assign ignoreDeploymentUnitSubsetInOutputs = true]
             [/#if]
         [/#if]
@@ -43,8 +53,8 @@
 [/#switch]
 
 [@generateOutput
-    deploymentFramework=deploymentFramework
-    type=outputType
-    format=outputFormat
+    deploymentFramework=commandLineOptions.Deployment.Framework.Name
+    type=commandLineOptions.Deployment.Output.Type
+    format=commandLineOptions.Deployment.Output.Format
     include=accountList
 /]

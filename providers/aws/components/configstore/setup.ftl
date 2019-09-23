@@ -34,7 +34,7 @@
     [/#if]
 
     [#local runIdAttributeName = "runId" ]
-    [#local runIdAttribute = getDynamoDbTableItem( ":run_id", runId)]
+    [#local runIdAttribute = getDynamoDbTableItem( ":run_id", commandLineOptions.Run.Id)]
 
     [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 

@@ -22,12 +22,12 @@
                     "Id" : key,
                     "Name" : key
                 } + value ]
-            [#if deploymentRequired(component, deploymentUnit)]
+            [#if deploymentRequired(component, commandLineOptions.Deployment.Unit.Name)]
                 [#assign multiAZ = component.MultiAZ!solnMultiAZ]
                 [#local occurrenceStart = .now]
                 [#list requiredOccurrences(
                     getOccurrences(tier, component),
-                    deploymentUnit,
+                    commandLineOptions.Deployment.Unit.Name,
                     true) as occurrence]
                     [#local occurrenceEnd = .now]
                     [@timing
@@ -374,7 +374,7 @@
                     [#-- Apply deployment profile overrides --]
                     [#local occurrenceContexts +=
                         [
-                            (getDeploymentProfile(profiles.Deployment, deploymentMode)[type])!{}
+                            (getDeploymentProfile(profiles.Deployment, commandLineOptions.Deployment.Mode)[type])!{}
                         ]
                     ]
 

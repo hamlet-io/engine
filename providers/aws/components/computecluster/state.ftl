@@ -12,27 +12,27 @@
         [#list solution.ScalingPolicies as name, scalingPolicy ]
 
             [#if scalingPolicy.Type == "scheduled" ]
-                [#local autoScaling += 
+                [#local autoScaling +=
                     {
                         "scalingPolicy" + name : {
                             "Id" : formatDependentAutoScalingEc2ScheduleId(autoScaleGroupId, name),
                             "Name" : formatName(core.FullName, name),
                             "Type" : AWS_AUTOSCALING_EC2_SCHEDULE_RESOURCE_TYPE
-                        } 
+                        }
                     }
                 ]
             [#else]
-                [#local autoScaling += 
+                [#local autoScaling +=
                     {
                         "scalingPolicy" + name : {
                             "Id" : formatDependentAutoScalingEc2PolicyId(autoScaleGroupId, name),
                             "Name" : formatName(core.FullName, name),
                             "Type" : AWS_AUTOSCALING_EC2_POLICY_RESOURCE_TYPE
-                        } 
+                        }
                     }
                 ]
             [/#if]
-        [/#list]        
+        [/#list]
     [/#if]
 
     [#assign componentState =
@@ -71,7 +71,7 @@
                                 [#-- changing the launch config logical Id forces a replacement of the autoscale group instances --]
                                 [#-- we only want this to happen when the build reference changes --]
                                 replaceAlphaNumericOnly(buildReference),
-                                runId),
+                                commandLineOptions.Run.Id),
                             formatResourceId(
                                 AWS_EC2_LAUNCH_CONFIG_RESOURCE_TYPE,
                                 core.Id,
@@ -81,7 +81,7 @@
                     ),
                     "Type" : AWS_EC2_LAUNCH_CONFIG_RESOURCE_TYPE
                 }
-            } + 
+            } +
             autoScaling,
             "Attributes" : {
             },

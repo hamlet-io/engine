@@ -4,7 +4,9 @@
 [#assign commandLineOptions =
     {
         "Deployment" : {
-            "Provider" : provider!"",
+            "Provider" : {
+                "Name" : provider!""
+            },
             "Framework" : {
                 "Name" : deploymentFramework!"",
                 "Model" : deploymentFrameworkModel!"legacy"
@@ -18,7 +20,9 @@
                 "Subset" : deploymentUnitSubset!"",
                 "Alternative" : alternative!""
             },
-            "ResourceGroup" : resourceGroup!"",
+            "ResourceGroup" : {
+                "Name" : resourceGroup!""
+            },
             "Mode" : deploymentMode!""
         },
         "Logging" : {
@@ -27,16 +31,12 @@
         "Run" : {
             "Id" : runId!""
         },
-        "Build" : {
-            "DeploymentUnit" : buildDeploymentUnit!""
-        },
         "Regions" : {
             "Segment" : region!"",
             "Product" : ProductRegion!"",
             "Account" : AccountRegion!""
         },
         "References" : {
-            "Build" : buildReference!"",
             "Request" : requestReference!"",
             "Configuration" : configurationReference!""
         },
@@ -90,11 +90,11 @@
 [/#if]
 
 [#-- Include any command line provider/deployment framework --]
-[#if commandLineOptions.Deployment.Provider?has_content ]
-    [@includeProviderConfiguration provider=commandLineOptions.Deployment.Provider /]
+[#if commandLineOptions.Deployment.Provider.Name?has_content ]
+    [@includeProviderConfiguration provider=commandLineOptions.Deployment.Provider.Name /]
     [#if commandLineOptions.Deployment.Framework.Name?has_content]
         [@includeDeploymentFrameworkConfiguration
-            provider=commandLineOptions.Deployment.Provider
+            provider=commandLineOptions.Deployment.Provider.Name
             deploymentFramework=commandLineOptions.Deployment.Framework.Name
         /]
     [/#if]
