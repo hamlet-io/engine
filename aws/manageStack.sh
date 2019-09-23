@@ -26,12 +26,10 @@ where
 (o) -m (STACK_INITIATE=false)   monitors but does not initiate the stack operation
 (o) -n STACK_NAME               to override standard stack naming
 (o) -r REGION                   is the AWS region identifier for the region in which the stack should be managed
-(d) -s DEPLOYMENT_UNIT          same as -u
-(d) -t LEVEL                    same as -l
 (m) -u DEPLOYMENT_UNIT          is the deployment unit used to determine the stack template
 (o) -w STACK_WAIT               is the interval between checking the progress of the stack operation
 (o) -y (DRYRUN=--dryrun)        for a dryrun - show what will happen without actually updating the stack
-(o) -z DEPLOYMENT_UNIT_SUBSET  is the subset of the deployment unit required 
+(o) -z DEPLOYMENT_UNIT_SUBSET  is the subset of the deployment unit required
 
 (m) mandatory, (o) optional, (d) deprecated
 
@@ -57,7 +55,7 @@ EOF
 
 function options() {
   # Parse options
-  while getopts ":dhil:mn:r:s:t:u:w:yz:" option; do
+  while getopts ":dhil:mn:r:u:w:yz:" option; do
     case "${option}" in
       d) STACK_OPERATION=delete ;;
       h) usage; return 1 ;;
@@ -66,8 +64,6 @@ function options() {
       m) STACK_INITIATE=false ;;
       n) STACK_NAME="${OPTARG}" ;;
       r) REGION="${OPTARG}" ;;
-      s) DEPLOYMENT_UNIT="${OPTARG}" ;;
-      t) LEVEL="${OPTARG}" ;;
       u) DEPLOYMENT_UNIT="${OPTARG}" ;;
       w) STACK_WAIT="${OPTARG}" ;;
       y) DRYRUN="--dryrun" ;;
@@ -76,13 +72,13 @@ function options() {
       :) fatalOptionArgument; return 1  ;;
     esac
   done
-  
+
   # Apply defaults
   STACK_OPERATION=${STACK_OPERATION:-${STACK_OPERATION_DEFAULT}}
   STACK_WAIT=${STACK_WAIT:-${STACK_WAIT_DEFAULT}}
   STACK_INITIATE=${STACK_INITIATE:-${STACK_INITIATE_DEFAULT}}
   STACK_MONITOR=${STACK_MONITOR:-${STACK_MONITOR_DEFAULT}}
- 
+
   # Set up the context
   info "Preparing the context..."
   . "${GENERATION_DIR}/setStackContext.sh"
@@ -90,15 +86,15 @@ function options() {
   return 0
 }
 
-function wait_for_stack_execution() { 
-  
+function wait_for_stack_execution() {
+
   info "Watching stack execution..."
 
   local stack_status_file="${tmp_dir}/stack_status"
 
   while true; do
 
-    case ${STACK_OPERATION} in 
+    case ${STACK_OPERATION} in
       update)
         status_attribute="StackStatus"
         operation_to_check="UPDATE"
@@ -113,7 +109,7 @@ function wait_for_stack_execution() {
         exit_status=$?
       ;;
 
-      delete) 
+      delete)
         status_attribute="StackStatus"
         operation_to_check="DELETE"
         aws --region ${REGION} cloudformation describe-stacks --stack-name "${STACK_NAME}" > "${STACK}" 2>/dev/null
@@ -128,16 +124,16 @@ function wait_for_stack_execution() {
     [[ ("${STACK_OPERATION}" == "delete") && ("${exit_status}" -eq 255) ]] &&
       { exit_status=0; break; }
 
-    if [[ "${STACK_MONITOR}" = "true" ]]; then 
+    if [[ "${STACK_MONITOR}" = "true" ]]; then
 
       # Check the latest status
       grep "${status_attribute}" "${STACK}" > "${stack_status_file}"
       cat "${stack_status_file}"
 
-      # Watch for roll backs 
+      # Watch for roll backs
       egrep "*ROLLBACK_COMPLETE\"" "${stack_status_file}" >/dev/null 2>&1 && \
         { warning "Stack ${STACK_NAME} could not complete and a rollback was performed"; exit_status=1; break;}
-        
+
       # Watch for failures
       egrep "*FAILED\"" "${stack_status_file}" >/dev/null 2>&1 && \
         { fatal "Stack ${STACK_NAME} failed, fix stack before retrying"; exit_status=255; break;}
@@ -152,7 +148,7 @@ function wait_for_stack_execution() {
 
       # All good, wait a while longer
       sleep ${STACK_WAIT}
-    else 
+    else
       break
     fi
 
@@ -164,7 +160,7 @@ function wait_for_stack_execution() {
           warning "No updates needed for stack ${STACK_NAME}. Treating as successful.\n"; break ||
           { cat "${stack_status_file}"; return ${exit_status}; }
       ;;
-      *) 
+      *)
       return ${exit_status} ;;
     esac
 
@@ -176,7 +172,7 @@ function process_stack() {
   local stripped_template_file="${tmp_dir}/stripped_template"
 
   local exit_status=0
-  
+
   if [[ "${STACK_INITIATE}" = "true" ]]; then
     case ${STACK_OPERATION} in
       delete)
@@ -189,7 +185,7 @@ function process_stack() {
 
         wait_for_stack_execution
         ;;
-  
+
       update)
         # Compress the template to minimise the impact of aws cli size limitations
         jq -c '.' < ${TEMPLATE} > "${stripped_template_file}"
@@ -199,11 +195,11 @@ function process_stack() {
         aws --region ${REGION} cloudformation describe-stacks \
             --stack-name $STACK_NAME > $STACK 2>/dev/null ||
           STACK_OPERATION="create"
-  
+
         [[ (-n "${DRYRUN}") && ("${STACK_OPERATION}" == "create") ]] &&
             fatal "Dryrun not applicable when creating a stack" && return 1
 
-        if [[ "${STACK_OPERATION}" == "update" ]]; then 
+        if [[ "${STACK_OPERATION}" == "update" ]]; then
 
           info "Update operation - submitting change set to determine update action..."
           INITIAL_CHANGE_SET_NAME="initial-$(date +'%s')"
@@ -212,11 +208,11 @@ function process_stack() {
               --template-body "file://${stripped_template_file}" \
               --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM > /dev/null || return $?
 
-          #Wait for change set to be processed 
+          #Wait for change set to be processed
           aws --region ${REGION} cloudformation wait change-set-create-complete \
-              --stack-name "${STACK_NAME}" --change-set-name "${INITIAL_CHANGE_SET_NAME}" &>/dev/null            
-        
-          if [[ -n "${DRYRUN}" ]]; then 
+              --stack-name "${STACK_NAME}" --change-set-name "${INITIAL_CHANGE_SET_NAME}" &>/dev/null
+
+          if [[ -n "${DRYRUN}" ]]; then
 
             info "Dry run results"
 
@@ -226,17 +222,17 @@ function process_stack() {
 
           else
 
-            # Check ChangeSet for results 
+            # Check ChangeSet for results
             aws --region ${REGION} cloudformation describe-change-set \
                 --stack-name "${STACK_NAME}" --change-set-name "${INITIAL_CHANGE_SET_NAME}" > "${potential_change_file}" 2>/dev/null || return $?
-            
+
             if [[ $( jq  -r '.Status == "FAILED"' < "${potential_change_file}" ) == "true" ]]; then
 
               cat "${potential_change_file}" | jq -r '.StatusReason' | grep -q "The submitted information didn't contain changes." &&
                 warning "No updates needed for stack ${STACK_NAME}. Treating as successful.\n" ||
-                cat "${potential_change_file}"; return ${exit_status}; 
+                cat "${potential_change_file}"; return ${exit_status};
 
-            else 
+            else
 
               replacement=$( cat "${potential_change_file}" | jq '[.Changes[].ResourceChange.Replacement] | contains(["True"])' )
               REPLACE_TEMPLATES=$( for i in ${ALTERNATIVE_TEMPLATES} ; do echo $i | awk '/-replace[0-9]-template\.json$/'  ; done  | sort  )
@@ -245,7 +241,7 @@ function process_stack() {
 
                   info "Replacement update - Using replacement templates"
 
-                  for REPLACE_TEMPLATE in ${REPLACE_TEMPLATES}; do 
+                  for REPLACE_TEMPLATE in ${REPLACE_TEMPLATES}; do
                     info "Executing replace template : $(fileBase "${REPLACE_TEMPLATE}")..."
 
                     jq -c '.' < ${REPLACE_TEMPLATE} > "${stripped_template_file}"
@@ -256,35 +252,35 @@ function process_stack() {
                         --template-body "file://${stripped_template_file}" \
                         --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM  || return $?
 
-                    #Wait for change set to be processed 
+                    #Wait for change set to be processed
                     aws --region ${REGION} cloudformation wait change-set-create-complete \
-                        --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" &>/dev/null  
+                        --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" &>/dev/null
 
-                    # Check ChangeSet for results 
+                    # Check ChangeSet for results
                     aws --region ${REGION} cloudformation describe-change-set \
                         --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}"  > "${potential_change_file}" 2>/dev/null || return $?
-                    
+
                     if [[ $( jq  -r '.Status == "FAILED"' < "${potential_change_file}" ) == "true" ]]; then
 
                       cat "${potential_change_file}" | jq -r '.StatusReason' | grep -q "The submitted information didn't contain changes." &&
                         warning "No further updates needed for stack ${STACK_NAME}. Treating as successful.\n" ||
-                        cat "${potential_change_file}"; return ${exit_status}; 
-                    
+                        cat "${potential_change_file}"; return ${exit_status};
+
                     else
 
-                      # Running 
+                      # Running
                       aws --region ${REGION} cloudformation execute-change-set \
                           --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" > /dev/null || return $?
 
                       wait_for_stack_execution
-                    
+
                     fi
                   done
-              
+
               else
 
                 info "Standard update - executing change set..."
-                # Execute a normal change 
+                # Execute a normal change
                 CHANGE_SET_NAME="${INITIAL_CHANGE_SET_NAME}"
                 aws --region ${REGION} cloudformation execute-change-set \
                       --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" > /dev/null || return $?
@@ -295,9 +291,9 @@ function process_stack() {
             fi
           fi
 
-        else 
+        else
 
-            # Create Action 
+            # Create Action
             info "Creating the "${STACK_NAME}" stack..."
             aws --region ${REGION} cloudformation create-stack --stack-name "${STACK_NAME}" --template-body "file://${stripped_template_file}" --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM > /dev/null || return $?
 
@@ -305,13 +301,13 @@ function process_stack() {
 
         fi
         ;;
-  
+
       *)
         fatal "\"${STACK_OPERATION}\" is not one of the known stack operations."; return 1
         ;;
     esac
   fi
-  
+
 
   # Clean up the stack if required
   if [[ "${STACK_OPERATION}" == "delete" ]]; then
@@ -344,21 +340,21 @@ function main() {
 
   process_stack_status=0
   # Process the stack
-  if [[ -f "${TEMPLATE}" ]]; then 
+  if [[ -f "${TEMPLATE}" ]]; then
      process_stack || process_stack_status=$?
   fi
 
   # Check to see if the work has already been completed
   case ${process_stack_status} in
-    0) 
+    0)
       info "${STACK_OPERATION} completed for ${STACK_NAME}"
     ;;
-    *) 
+    *)
       fatal "Change set for ${STACK_NAME} did not complete"
-      return ${process_stack_status} 
+      return ${process_stack_status}
     ;;
   esac
-  
+
   # Run the epilogue script if present
   # Refresh the stack outputs in case something from the just created stack is needed
   # by the epilogue script
