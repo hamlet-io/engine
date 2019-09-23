@@ -156,6 +156,8 @@
     [#local lgId = formatDependentLogGroupId(taskId) ]
     [#local lgName = core.FullAbsolutePath ]
 
+    [#local region = getExistingReference(serviceId, REGION_ATTRIBUTE_TYPE )!regionId ]
+
     [#local logMetrics = {} ]
     [#list solution.LogMetrics as name,logMetric ]
         [#local logMetrics += {
@@ -256,7 +258,7 @@
             "Roles" : {
                 "Inbound" : {
                     "logwatch" : {
-                        "Principal" : "logs." + regionId + ".amazonaws.com",
+                        "Principal" : "logs." + region + ".amazonaws.com",
                         "LogGroupIds" : [ lgId ]
                     }
                 },
@@ -279,6 +281,8 @@
 
     [#local lgId = formatDependentLogGroupId(taskId) ]
     [#local lgName = core.FullAbsolutePath ]
+
+    [#local region = getExistingReference(taskId, REGION_ATTRIBUTE_TYPE )]
 
     [#local logMetrics = {} ]
     [#list solution.LogMetrics as name,logMetric ]
@@ -360,7 +364,7 @@
             "Roles" : {
                 "Inbound" : {
                     "logwatch" : {
-                        "Principal" : "logs." + regionId + ".amazonaws.com",
+                        "Principal" : "logs." + region + ".amazonaws.com",
                         "LogGroupIds" : [ lgId ]
                     }
                 },
