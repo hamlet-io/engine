@@ -39,6 +39,11 @@
         [#local templates += [[provider, "components", level]] ]
     [/#list]
 
+    [#-- aws/references/reference.ftl --]
+    [#list ["reference" ] as level ]
+        [#local templates += [[provider, "references", level]] ]
+    [/#list]
+
     [#-- aws/resourcegroups/resourcegroup.ftl --]
     [#list ["resourcegroup", "id", "name"] as level]
         [#local templates += [[provider, "resourcegroups", level]] ]
@@ -260,6 +265,25 @@
             /]
         [/#if]
     [/#list]
+[/#macro]
+
+[#macro includeProviderReferenceDefinitionConfiguration provider referenceType ]
+
+    [#local templates = [] ]
+
+    [#-- Check component not already seen --]
+    [#if !isConfigurationIncluded([provider, "r", referenceType, "id"])]
+        [#list ["id", "name"] as level]
+            [#-- aws/references/logFile/id.ftl --]
+            [#local templates += [[provider, "references", referenceType, level]] ]
+        [/#list]
+    [/#if]
+
+    [@includeTemplates templates=templates /]
+[/#macro]
+
+[#macro includeSharedReferenceConfiguration referenceType ]
+    [@includeProviderReferenceDefinitionConfiguration SHARED_PROVIDER referenceType /]
 [/#macro]
 
 [#-- Master data --]
