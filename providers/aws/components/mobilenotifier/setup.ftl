@@ -219,9 +219,9 @@
                         pseudoStackOutputScript(
                             "SNS Platform App",
                             {
-                                formatId(platformAppId, "arn") : "$\{platform_app_arn}",
                                 platformAppId : core.Name,
-                                formatId(platformAppId, "region") : regionId 
+                                formatId(platformAppId, ARN_ATTRIBUTE_TYPE) : "$\{platform_app_arn}",
+                                formatId(platformAppId, REGION_ATTRIBUTE_TYPE) : regionId 
                             },
                             core.SubComponent.Id
                         ) +
