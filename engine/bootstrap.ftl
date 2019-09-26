@@ -59,6 +59,7 @@
 [#include "base.ftl" ]
 
 [#-- Component handling --]
+[#include "reference.ftl" ]
 [#include "component.ftl" ]
 [#include "setting.ftl" ]
 

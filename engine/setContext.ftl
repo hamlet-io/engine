@@ -31,25 +31,95 @@
         commandLineOptions.Composites.Blueprint
     ) ]
 
-[#-- Reference data --]
-[#assign regions = blueprintObject.Regions ]
-[#assign environments = blueprintObject.Environments]
-[#assign categories = blueprintObject.Categories]
-[#assign storage = blueprintObject.Storage]
-[#assign processors = blueprintObject.Processors]
-[#assign ports = blueprintObject.Ports]
-[#assign portMappings = blueprintObject.PortMappings]
-[#assign logFiles = blueprintObject.LogFiles ]
-[#assign logFileGroups = blueprintObject.LogFileGroups]
-[#assign logFileProfiles = blueprintObject.LogFileProfiles ]
-[#assign CORSProfiles = blueprintObject.CORSProfiles ]
-[#assign scriptStores = blueprintObject.ScriptStores ]
-[#assign bootstraps = blueprintObject.Bootstraps ]
-[#assign bootstrapProfiles = blueprintObject.BootstrapProfiles]
-[#assign securityProfiles = blueprintObject.SecurityProfiles ]
-[#assign baselineProfiles = blueprintObject.BaselineProfiles ]
-[#assign logFilters = blueprintObject.LogFilters]
-[#assign networkEndpointGroups = blueprintObject.NetworkEndpointGroups ]
+[#-- Regions --]
+[@includeSharedReferenceConfiguration referenceType=REGION_REFERENCE_TYPE /]
+[@addReferenceData type=REGION_REFERENCE_TYPE data=blueprintObject.Regions /]
+[#assign regions = referenceData.Regions ]
+
+[#-- Categories --]
+[@includeSharedReferenceConfiguration referenceType=CATEGORY_REFERENCE_TYPE /]
+[@addReferenceData type=CATEGORY_REFERENCE_TYPE data=blueprintObject.Categories /]
+[#assign categories = referenceData.Categories]
+
+[#-- Environments --]
+[@includeSharedReferenceConfiguration referenceType=ENVIRONMENT_REFERENCE_TYPE /]
+[@addReferenceData type=ENVIRONMENT_REFERENCE_TYPE data=blueprintObject.Environments /]
+[#assign environments = referenceData.Environments]
+
+[#-- Storage Profiles --]
+[@includeSharedReferenceConfiguration referenceType=STORAGE_REFERENCE_TYPE /]
+[@addReferenceData type=STORAGE_REFERENCE_TYPE data=blueprintObject.Storage /]
+[#assign storage = referenceData.Storage]
+
+[#-- Processor Profiles --]
+[@includeSharedReferenceConfiguration referenceType=PROCESSOR_REFERENCE_TYPE /]
+[@addReferenceData type=PROCESSOR_REFERENCE_TYPE data=blueprintObject.Processors /]
+[#assign processors = referenceData.Processors]
+
+[#-- Ports --]
+[@includeSharedReferenceConfiguration referenceType=PORT_REFERENCE_TYPE /]
+[@addReferenceData type=PORT_REFERENCE_TYPE data=blueprintObject.Ports /]
+[#assign ports = referenceData.Ports]
+
+[#-- PortMappings --]
+[@includeSharedReferenceConfiguration referenceType=PORTMAPPING_REFERENCE_TYPE /]
+[@addReferenceData type=PORTMAPPING_REFERENCE_TYPE data=blueprintObject.PortMappings /]
+[#assign portMappings = referenceData.PortMappings]
+
+[#-- Log Files --]
+[@includeSharedReferenceConfiguration referenceType=LOGFILE_REFERENCE_TYPE /]
+[@addReferenceData type=LOGFILE_REFERENCE_TYPE data=blueprintObject.LogFiles /]
+[#assign logFiles = referenceData.LogFiles ]
+
+[#-- Log File Groups --]
+[@includeSharedReferenceConfiguration referenceType=LOGFILEGROUP_REFERENCE_TYPE /]
+[@addReferenceData type=LOGFILEGROUP_REFERENCE_TYPE data=blueprintObject.LogFileGroups /]
+[#assign logFileGroups = referenceData.LogFileGroups]
+
+[#-- Log File Profiles --]
+[@includeSharedReferenceConfiguration referenceType=LOGFILEPROFILE_REFERENCE_TYPE /]
+[@addReferenceData type=LOGFILEPROFILE_REFERENCE_TYPE data=blueprintObject.LogFileProfiles /]
+[#assign logFileProfiles = referenceData.LogFileProfiles ]
+
+[#-- CORS Profiles --]
+[@includeSharedReferenceConfiguration referenceType=CORSPROFILE_REFERENCE_TYPE /]
+[@addReferenceData type=CORSPROFILE_REFERENCE_TYPE data=blueprintObject.CORSProfiles /]
+[#assign CORSProfiles = referenceData.CORSProfiles ]
+
+[#-- Script Stores --]
+[@includeSharedReferenceConfiguration referenceType=SCRIPTSTORE_REFERENCE_TYPE /]
+[@addReferenceData type=SCRIPTSTORE_REFERENCE_TYPE data=blueprintObject.ScriptStores /]
+[#assign scriptStores = referenceData.ScriptStores ]
+
+[#-- Bootstraps --]
+[@includeSharedReferenceConfiguration referenceType=BOOTSTRAP_REFERENCE_TYPE /]
+[@addReferenceData type=BOOTSTRAP_REFERENCE_TYPE data=blueprintObject.Bootstraps /]
+[#assign bootstraps = (referenceData.Bootstraps)!{} ]
+
+[#-- Bootstrap Profiles--]
+[@includeSharedReferenceConfiguration referenceType=BOOTSTRAPPROFILE_REFERENCE_TYPE /]
+[@addReferenceData type=BOOTSTRAPPROFILE_REFERENCE_TYPE data=blueprintObject.BootstrapProfiles /]
+[#assign bootstrapProfiles = (referenceData.BootstrapProfiles)!{} ]
+
+[#-- Security Profiles --]
+[@includeSharedReferenceConfiguration referenceType=SECURITYPROFILE_REFERENCE_TYPE /]
+[@addReferenceData type=SECURITYPROFILE_REFERENCE_TYPE data=blueprintObject.SecurityProfiles /]
+[#assign securityProfiles = referenceData.SecurityProfiles ]
+
+[#-- Baseline Profiles --]
+[@includeSharedReferenceConfiguration referenceType=BASELINEPROFILE_REFERENCE_TYPE /]
+[@addReferenceData type=BASELINEPROFILE_REFERENCE_TYPE data=blueprintObject.BaselineProfiles /]
+[#assign baselineProfiles = referenceData.BaselineProfiles ]
+
+[#-- Log Filters --]
+[@includeSharedReferenceConfiguration referenceType=LOGFILTER_REFERENCE_TYPE /]
+[@addReferenceData type=LOGFILTER_REFERENCE_TYPE data=blueprintObject.LogFilters /]
+[#assign logFilters = referenceData.LogFilters]
+
+[#-- Network Endpoint Groups --]
+[@includeSharedReferenceConfiguration referenceType=NETWORKENDPOINTGROUP_REFERENCE_TYPE /]
+[@addReferenceData type=NETWORKENDPOINTGROUP_REFERENCE_TYPE data=blueprintObject.NetworkEndpointGroups /]
+[#assign networkEndpointGroups = referenceData.NetworkEndpointGroups ]
 
 [#-- Regions --]
 [#if commandLineOptions.Regions.Segment?has_content]
@@ -199,9 +269,6 @@
     [#assign segmentQualifiers += [productName, productId] ]
 
 [/#if]
-
-[#-- Country Groups --]
-[#assign countryGroups = (blueprintObject.CountryGroups)!{} ]
 
 [#-- Segments --]
 [#assign segments = (blueprintObject.Segments)!{} ]
@@ -443,9 +510,16 @@
     [#return result ]
 [/#function]
 
+[#-- Country Groups --]
+[@includeSharedReferenceConfiguration referenceType=COUNTRYGROUP_REFERENCE_TYPE /]
+[@addReferenceData type=COUNTRYGROUP_REFERENCE_TYPE data=blueprintObject.CountryGroups!{} /]
+[#assign countryGroups = (referenceData.CountryGroups)!{} ]
+
 [#-- IP Address Groups - "global" is default --]
-[#assign ipAddressGroups =
-    getEffectiveIPAddressGroups(blueprintObject.IPAddressGroups!{} ) ]
+[@includeSharedReferenceConfiguration referenceType=COUNTRYGROUP_REFERENCE_TYPE /]
+[@addReferenceData type=COUNTRYGROUP_REFERENCE_TYPE data=blueprintObject.IPAddressGroups /]
+[#assign ipAddressGroups = getEffectiveIPAddressGroups(referenceData.IPAddressGroups!{}) ]
+
 
 [#function getIPAddressGroup group occurrence={}]
     [#local groupId = group?is_hash?then(group.Id, group) ]
