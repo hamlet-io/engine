@@ -179,7 +179,7 @@
                 "Children" : autoScalingChildConfiguration
             },
             {
-                "Names" : "ScalingPolicies",
+                "Names" : "HostScalingPolicies",
                 "Subobjects" : true,
                 "Children" : scalingPolicyChildrenConfiguration
             },
