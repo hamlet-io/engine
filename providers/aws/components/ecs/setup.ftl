@@ -287,8 +287,8 @@
                 getInitConfigEIPAllocation(allocationIds)]
         [/#if]
 
-        [#if solution.ScalingPolicies?has_content ]
-            [#list solution.ScalingPolicies as name, scalingPolicy ]
+        [#if solution.HostScalingPolicies?has_content ]
+            [#list solution.HostScalingPolicies as name, scalingPolicy ]
                 [#local scalingPolicyId = resources["scalingPolicy" + name].Id ]
 
                 [#local scalingMetricTrigger = scalingPolicy.TrackingResource.MetricTrigger ]
