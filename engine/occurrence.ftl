@@ -139,11 +139,11 @@
             {
                 "Configuration" : {
                     "Settings" : {
-                        "Build" : internalConstructOccurrenceBuildSettings(occurrence),
-                        "Account" : internalConstructAccountSettings(),
+                        "Build" : internalCreateOccurrenceBuildSettings(occurrence),
+                        "Account" : internalCreateAccountSettings(),
                         "Product" :
-                            internalConstructOccurrenceProductSettings(occurrence) +
-                            internalConstructOccurrenceSensitiveSettings(occurrence)
+                            internalCreateOccurrenceProductSettings(occurrence) +
+                            internalCreateOccurrenceSensitiveSettings(occurrence)
                     }
                 }
             }
@@ -157,7 +157,7 @@
             {
                 "Configuration" : {
                     "Settings" : {
-                        "Core" : internalConstructOccurrenceCoreSettings(occurrence)
+                        "Core" : internalCreateOccurrenceCoreSettings(occurrence)
                     }
                 }
             }
@@ -356,7 +356,7 @@
 [/#function]
 
 
-[#function internalConstructOccurrenceSettings possibilities root prefixes alternatives]
+[#function internalCreateOccurrenceSettings possibilities root prefixes alternatives]
     [#local contexts = [] ]
 
     [#-- Order possibilities in increasing priority --]
@@ -403,7 +403,7 @@
     ]
 [/#function]
 
-[#function internalConstructOccurrenceCoreSettings occurrence]
+[#function internalCreateOccurrenceCoreSettings occurrence]
     [#local core = occurrence.Core ]
     [#return
         asFlattenedSettings(
@@ -430,19 +430,19 @@
     ]
 [/#function]
 
-[#function internalConstructAccountSettings ]
+[#function internalCreateAccountSettings ]
     [#local alternatives = [{"Key" : "shared", "Match" : "exact"}] ]
 
     [#-- Fudge prefixes for accounts --]
     [#return
-        internalConstructOccurrenceSettings(
+        internalCreateOccurrenceSettings(
             (settingsObject.Settings.Accounts)!{},
             accountName,
             [""],
             alternatives) ]
 [/#function]
 
-[#function internalConstructOccurrenceBuildSettings occurrence]
+[#function internalCreateOccurrenceBuildSettings occurrence]
     [#local deploymentUnit = (occurrence.Configuration.Solution.DeploymentUnits[0])!"" ]
     [#local settingNamespaces = (occurrence.Configuration.Solution.SettingNamespaces)!{}]
 
@@ -460,7 +460,7 @@
         ] ]
 
     [#local occurrenceBuild =
-        internalConstructOccurrenceSettings(
+        internalCreateOccurrenceSettings(
             (settingsObject.Builds.Products)!{},
             productName,
             cmdbProductLookupPrefixes,
@@ -485,7 +485,7 @@
             [#local buildLookupPrefixes = cmdbProductLookupPrefixes]
         [/#if]
         [#local occurrenceBuild +=
-            internalConstructOccurrenceSettings(
+            internalCreateOccurrenceSettings(
                 (settingsObject.Builds.Products)!{},
                 productName,
                 buildLookupPrefixes,
@@ -527,7 +527,7 @@
     ]
 [/#function]
 
-[#function internalConstructOccurrenceProductSettings occurrence ]
+[#function internalCreateOccurrenceProductSettings occurrence ]
     [#local deploymentUnit = (occurrence.Configuration.Solution.DeploymentUnits[0])!"" ]
     [#local settingNamespaces = (occurrence.Configuration.Solution.SettingNamespaces)!{}]
 
@@ -545,14 +545,14 @@
         ] ]
 
     [#return
-        internalConstructOccurrenceSettings(
+        internalCreateOccurrenceSettings(
             (settingsObject.Settings.Products)!{},
             productName,
             cmdbProductLookupPrefixes,
             alternatives) ]
 [/#function]
 
-[#function internalConstructOccurrenceSensitiveSettings occurrence]
+[#function internalCreateOccurrenceSensitiveSettings occurrence]
     [#local deploymentUnit = (occurrence.Configuration.Solution.DeploymentUnits[0])!"" ]
     [#local settingNamespaces = (occurrence.Configuration.Solution.SettingNamespaces)!{}]
 
@@ -571,7 +571,7 @@
 
     [#return
         markAsSensitiveSettings(
-            internalConstructOccurrenceSettings(
+            internalCreateOccurrenceSettings(
                 (settingsObject.Sensitive.Products)!{},
                 productName,
                 cmdbProductLookupPrefixes,

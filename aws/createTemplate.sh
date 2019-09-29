@@ -19,8 +19,9 @@ Usage: $(basename $0) -l LEVEL -u DEPLOYMENT_UNIT -c CONFIGURATION_REFERENCE -q 
 where
 
 (m) -c CONFIGURATION_REFERENCE is the identifier of the configuration used to generate this template
+(o) -g RESOURCE_GROUP          is the deployment unit resource group
     -h                         shows this text
-(m) -l LEVEL                   is the template level - "blueprint", "account", "product", "segment", "solution", "application" or "multiple"
+(m) -l LEVEL                   is the template level - "blueprint", "account", "product", "segment", "solution" or "application"
 (m) -q REQUEST_REFERENCE       is an opaque value to link this template to a triggering request management system
 (o) -r REGION                  is the AWS region identifier
 (o) -u DEPLOYMENT_UNIT         is the deployment unit to be included in the template
@@ -50,10 +51,11 @@ EOF
 function options() {
 
   # Parse options
-  while getopts ":c:d:hl:q:r:u:z:" option; do
+  while getopts ":c:d:g:hl:q:r:u:z:" option; do
       case "${option}" in
           c) CONFIGURATION_REFERENCE="${OPTARG}" ;;
           d) DEPLOYMENT_MODE="${OPTARG}" ;;
+          g) RESOURCE_GROUP="${OPTARG}" ;;
           h) usage; return 1 ;;
           l) LEVEL="${OPTARG}" ;;
           q) REQUEST_REFERENCE="${OPTARG}" ;;
@@ -86,7 +88,7 @@ function options() {
       [[ ! ("${LEVEL}" =~ ${LOCATION}) ]] &&
         fatalLocation "Current directory doesn't match requested level \"${LEVEL}\"." && return 1
       ;;
-    solution|segment|application|multiple|blueprint)
+    solution|segment|application|blueprint)
       [[ ! ("segment" =~ ${LOCATION}) ]] &&
         fatalLocation "Current directory doesn't match requested level \"${LEVEL}\"." && return 1
       ;;
@@ -156,6 +158,7 @@ function process_template_pass() {
   local output_format="${1,,}"; shift
   local level="${1,,}"; shift
   local deployment_unit="${1,,}"; shift
+  local resource_group="${1,,}"; shift
   local deployment_unit_subset="${1,,}"; shift
   local account="$1"; shift
   local account_region="${1,,}"; shift
@@ -315,11 +318,6 @@ function process_template_pass() {
       template_composites+=("FRAGMENT" )
       ;;
 
-    multiple)
-      for p in "${pass_list[@]}"; do pass_level_prefix["${p}"]="multi-"; done
-      template_composites+=("FRAGMENT")
-      ;;
-
     *)
       fatalCantProceed "\"${LEVEL}\" is not one of the known stack levels." && return 1
       ;;
@@ -333,6 +331,7 @@ function process_template_pass() {
   [[ -n "${output_type}" ]]            && args+=("-v" "outputType=${output_type}")
   [[ -n "${output_format}" ]]          && args+=("-v" "outputFormat=${output_format}")
   [[ -n "${deployment_unit}" ]]        && args+=("-v" "deploymentUnit=${deployment_unit}")
+  [[ -n "${resource_group}" ]]         && args+=("-v" "resourceGroup=${resource_group}")
   [[ -n "${GENERATION_LOG_LEVEL}" ]]   && args+=("-v" "logLevel=${GENERATION_LOG_LEVEL}")
 
   # Include the template composites
@@ -544,6 +543,7 @@ function process_template_pass() {
 function process_template() {
   local level="${1,,}"; shift
   local deployment_unit="${1,,}"; shift
+  local resource_group="${1,,}"; shift
   local deployment_unit_subset="${1,,}"; shift
   local account="$1"; shift
   local account_region="${1,,}"; shift
@@ -585,9 +585,6 @@ function process_template() {
     application)
       ;;
 
-    multiple)
-      ;;
-
     *)
       fatalCantProceed "\"${LEVEL}\" is not one of the known stack levels." && return 1
       ;;
@@ -621,6 +618,7 @@ function process_template() {
       "bash" \
       "${level}" \
       "${deployment_unit}" \
+      "${resource_group}" \
       "${deployment_unit_subset}" \
       "${account}" \
       "${account_region}" \
@@ -654,6 +652,7 @@ function process_template() {
       "${plan_output_formats[${step}]}" \
       "${level}" \
       "${deployment_unit}" \
+      "${resource_group}" \
       "${deployment_unit_subset}" \
       "${account}" \
       "${account_region}" \
@@ -711,7 +710,7 @@ function main() {
     blueprint-disabled)
       process_template \
         "${LEVEL}" \
-        "${DEPLOYMENT_UNIT}" "${DEPLOYMENT_UNIT_SUBSET}" \
+        "${DEPLOYMENT_UNIT}" "${RESOURCE_GROUP}" "${DEPLOYMENT_UNIT_SUBSET}" \
         "" "${ACCOUNT_REGION}" \
         "${PRODUCT_REGION}" \
         "" \
@@ -723,7 +722,7 @@ function main() {
     *)
       process_template \
         "${LEVEL}" \
-        "${DEPLOYMENT_UNIT}" "${DEPLOYMENT_UNIT_SUBSET}" \
+        "${DEPLOYMENT_UNIT}" "${RESOURCE_GROUP}" "${DEPLOYMENT_UNIT_SUBSET}" \
         "${ACCOUNT}" "${ACCOUNT_REGION}" \
         "${PRODUCT_REGION}" \
         "${REGION}" \
