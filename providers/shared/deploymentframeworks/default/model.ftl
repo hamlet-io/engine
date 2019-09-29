@@ -434,7 +434,7 @@
         [#if context.Type != COMPONENT_CONTEXT_TYPE]
             [#continue]
         [/#if]
-        [#local result = internalConstructContextOccurrence(result, contextList[0..context?index])]
+        [#local result = internalCreateContextOccurrence(result, contextList[0..context?index])]
     [/#list]
 
     [#return result]
@@ -445,7 +445,7 @@
 [/#function]
 
 [#-- Construct occurrence --]
-[#function internalConstructContextOccurrence parentOccurrence contextList ]
+[#function internalCreateContextOccurrence parentOccurrence contextList ]
 
     [#-- Get the leaf context  --]
     [#local leaf = getLastContext(contextList) ]
