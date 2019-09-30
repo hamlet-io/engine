@@ -34,7 +34,7 @@
         "Regions" : {
             "Segment" : region!"",
             "Product" : ProductRegion!"",
-            "Account" : AccountRegion!""
+            "Account" : accountRegion!""
         },
         "References" : {
             "Request" : requestReference!"",
