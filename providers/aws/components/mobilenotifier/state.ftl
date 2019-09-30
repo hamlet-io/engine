@@ -80,7 +80,12 @@
                     "Engine" : engine,
                     "Type" : AWS_SNS_PLATFORMAPPLICATION_RESOURCE_TYPE,
                     "Monitored" : true
-                },
+                } + 
+                attributeIfTrue(
+                    "Deployed",
+                    ( engine == MOBILENOTIFIER_SMS_ENGINE),
+                    true
+                ),
                 "lg" : {
                     "Id" : lgId,
                     "Name" : lgName,
