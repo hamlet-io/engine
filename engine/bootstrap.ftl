@@ -33,7 +33,7 @@
         },
         "Regions" : {
             "Segment" : region!"",
-            "Product" : ProductRegion!"",
+            "Product" : productRegion!"",
             "Account" : accountRegion!""
         },
         "References" : {
