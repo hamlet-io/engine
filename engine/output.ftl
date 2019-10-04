@@ -161,10 +161,10 @@
             [#local severity = "[" + message.Severity?right_pad(6) + "]" ]
             [#local comments += [[timestamp, severity, getJSON(message.Message)]?join(" ")] ]
             [#if message.Context?has_content]
-                [#local comments += [" ...." + getJSON(message.Context)] ]
+                [#local comments += [" .... " + severity + " " + getJSON(message.Context)] ]
             [/#if]
             [#if message.Detail?has_content]
-                [#local comments += [" ...." + getJSON(message.Detail)] ]
+                [#local comments += [" .... " + severity + " " + getJSON(message.Detail)] ]
             [/#if]
         [/#list]
         [@addOutputContent
