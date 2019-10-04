@@ -4,8 +4,6 @@
 -- Public functions for stack output processing --
 -----------------------------------------------------]
 
-[#assign DEFAULT_STACKOUTPUT_MOCK_VALUE = "##MockOutput##" ]
-
 [#assign stackOutputsList = []]
 
 [#assign stackOutputConfiguration = {
