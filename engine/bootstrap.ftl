@@ -45,6 +45,9 @@
             "Settings" : (settings!"{}")?eval,
             "Definitions" : (definitions!"{}")?eval,
             "StackOutputs" : (stackOutputs!"[]")?eval
+        },
+        "Input" : {
+            "Source" : inputSource!"composite"
         }
     } ]
 
@@ -68,6 +71,28 @@
 
 [#-- Output handling --]
 [#include "output.ftl" ]
+
+[#-- Input handling --]
+[#include "stackOutput.ftl" ]
+
+[#-- Include any shared input sources --]
+[#if commandLineOptions.Input.Source?has_content]
+    [@includeInputSourceConfiguration
+        provider=SHARED_PROVIDER
+        inputSource=commandLineOptions.Input.Source
+    /]
+[/#if]
+
+[#-- Include any command line provider/input source --]
+[#if commandLineOptions.Deployment.Provider.Name?has_content ]
+    [@includeProviderConfiguration provider=commandLineOptions.Deployment.Provider.Name /]
+    [#if commandLineOptions.Input.Source?has_content]
+        [@includeInputSourceConfiguration
+            provider=commandLineOptions.Deployment.Provider.Name
+            inputSource=commandLineOptions.Input.Source
+        /]
+    [/#if]
+[/#if]
 
 [#-- Set the context for templates processing --]
 [#include "setContext.ftl" ]
