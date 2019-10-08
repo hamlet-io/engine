@@ -22,8 +22,6 @@
 [#assign segmentQualifiers = [] ]
 
 [#-- Composites --]
-[#assign settingsObject    = commandLineOptions.Composites.Settings ]
-
 [#assign definitionsObject = commandLineOptions.Composites.Definitions ]
 [#assign blueprintObject =
     mergeObjects(

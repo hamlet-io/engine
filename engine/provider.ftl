@@ -81,10 +81,28 @@
     [/#if]
 
     [#local templates = [] ]
-    [#-- aws/deploymentframeworks/cf/output.ftl --]
-    [#list [ "stackoutput" ] as level]
+    [#-- aws/inputsources/composite/setting.ftl --]
+    [#list [ "stackoutput", "setting" ] as level]
         [#local templates += [[provider, "inputsources", inputSource, level]] ]
     [/#list]
+
+    [#-- Add default input data --]
+    [#local settingMacroOptions = 
+        [
+            [ provider, "input", commandLineOptions.Input.Source, "setting", "default" ],
+            [ SHARED_PROVIDER, "input", commandLineOptions.Input.Source, "setting", "default" ]
+        ]]
+    
+    [#local settingMacro = getFirstDefinedDirective(settingMacroOptions)]
+    [#if settingMacro?has_content ]
+        [@(.vars[settingMacro]) /]
+    [#else]
+        [@debug
+            message="Unable to invoke any of the output macro options"
+            context=settingMacroOptions
+            enabled=false
+        /]
+    [/#if]
 
     [@includeTemplates templates=templates /]
 [/#macro]

@@ -4,6 +4,17 @@
 -- Public functions for setting processing --
 ---------------------------------------------]
 
+[#assign settingsObject = {} ]
+
+[#macro addSettings type scope namespace="*" settings={} ]
+    [@interalMergeSettings
+        type=type
+        scope=scope
+        namespace=namespace
+        settings=settings
+    /]
+[/#macro]
+
 [#function formatSettingName parts...]
     [#return concatenate(parts, "_")?upper_case?replace("-", "_")]
 [/#function]
@@ -139,3 +150,46 @@
 -- Internal support functions for setting processing --
 -------------------------------------------------------]
 
+[#macro interalMergeSettings type scope namespace="*" settings={} ]
+    [#local types=[ "Settings", "Builds", "Sensitive" ]]
+    [#local scopes=[ "Accounts", "Products" ]]
+
+    [#if settings?has_content ]
+        [#if ! types?seq_contains(type) && ! scopes?seq_contains(scope)  ]
+            [@fatal
+                message="Invalid Settings" 
+                context={ "Type" : type, "Scope" : scope, "Namespace" : namespace }
+                detail={
+                    "PossibleTypes" : types,
+                    "PossibleScopes" : scopes
+                }
+            /]
+        [/#if]
+
+        [#if !(namespace == "*") ]
+            [#assign settingsObject =
+                mergeObjects(
+                    settingsObject,
+                    {
+                        type : {
+                            scope : settings
+                        }
+                    }
+                )
+            
+            ] 
+        [#else]
+            [#assign settingsObject = 
+                mergeObjects(
+                    settingsObject,
+                    {
+                        type : {
+                            scope : {
+                                namespace : settings
+                            }
+                        }
+                    }
+                )]
+        [/#if]
+    [/#if]
+[/#macro]
