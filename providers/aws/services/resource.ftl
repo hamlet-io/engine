@@ -84,56 +84,9 @@
     ]
 [/#function]
 
-[#-- Get stack output --]
-[#function getStackOutputObject id deploymentUnit="" region="" account=(accountObject.AWSId)!""]
-    [#list stackOutputsList as stackOutputs]
-        [#local outputId = stackOutputs[id]?has_content?then(
-                id,
-                formatId(id, stackOutputs.Region?replace("-", "X"))
-            )
-        ]
-
-        [#if
-            ((!account?has_content)||(account == stackOutputs.Account)) &&
-            ((!region?has_content)||(region == stackOutputs.Region)) &&
-            ((!deploymentUnit?has_content)||(deploymentUnit == stackOutputs.DeploymentUnit)) &&
-            (stackOutputs[outputId]?has_content)
-        ]
-            [#return
-                {
-                    "Account" : stackOutputs.Account,
-                    "Region" : stackOutputs.Region,
-                    "Level" : stackOutputs.Level,
-                    "DeploymentUnit" : stackOutputs.DeploymentUnit,
-                    "Id" : id,
-                    "Value" : stackOutputs[outputId]
-                }
-            ]
-        [/#if]
-    [/#list]
-    [#return {}]
-[/#function]
-
-[#function getStackOutput id deploymentUnit="" region="" account=(accountObject.AWSId)!""]
-    [#local result =
-        getStackOutputObject(
-            id,
-            deploymentUnit,
-            region,
-            account
-        )
-    ]
-    [#return
-        result?has_content?then(
-            result.Value,
-            ""
-        )
-    ]
-[/#function]
-
 [#-- Is a resource part of a deployment unit --]
 [#function isPartOfDeploymentUnit resourceId deploymentUnit deploymentUnitSubset]
-    [#local resourceObject = getStackOutputObject(resourceId)]
+    [#local resourceObject = getStackOutputObject(AWS_PROVIDER, resourceId)]
     [#local
         currentDeploymentUnit =
             deploymentUnit +
@@ -173,7 +126,7 @@
                                 "",
                                 attributeType
     )]
-    [#return getStackOutput(formatAttributeId(resourceId, attributeType), inDeploymentUnit, inRegion, inAccount) ]
+    [#return getStackOutput( AWS_PROVIDER, formatAttributeId(resourceId, attributeType), inDeploymentUnit, inRegion, inAccount) ]
 [/#function]
 
 [#function migrateToResourceId resourceId legacyIds=[] inRegion="" inDeploymentUnit="" inAccount=(accountObject.AWSId)!""]

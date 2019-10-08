@@ -69,6 +69,21 @@
     [@includeTemplates templates=templates /]
 [/#macro]
 
+[#macro includeInputSourceConfiguration provider inputSource ]
+    [#-- Check inputsource configuration not already seen --]
+    [#if isConfigurationIncluded([provider, inputSource]) ]
+        [#return]
+    [/#if]
+
+    [#local templates = [] ]
+    [#-- aws/deploymentframeworks/cf/output.ftl --]
+    [#list [ "stackoutput" ] as level]
+        [#local templates += [[provider, "inputsources", inputSource, level]] ]
+    [/#list]
+
+    [@includeTemplates templates=templates /]
+[/#macro]
+
 [#macro includeServicesConfiguration provider services deploymentFramework]
     [#local templates = [] ]
 

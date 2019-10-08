@@ -23,7 +23,7 @@
 
 [#-- Composites --]
 [#assign settingsObject    = commandLineOptions.Composites.Settings ]
-[#assign stackOutputsList  = commandLineOptions.Composites.StackOutputs ]
+
 [#assign definitionsObject = commandLineOptions.Composites.Definitions ]
 [#assign blueprintObject =
     mergeObjects(
