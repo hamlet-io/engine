@@ -86,25 +86,24 @@
         [#local templates += [[provider, "inputsources", inputSource, level]] ]
     [/#list]
 
-    [#-- Add default input data --]
-    [#local settingMacroOptions = 
+    [@includeTemplates templates=templates /]
+
+    [#-- seed in data provided at the inputsources level for provider and inputSource --]
+    [#local settingSeedMacroOptions = 
         [
-            [ provider, "input", commandLineOptions.Input.Source, "setting", "default" ],
-            [ SHARED_PROVIDER, "input", commandLineOptions.Input.Source, "setting", "default" ]
+            [ provider, "input", commandLineOptions.Input.Source, "setting", "seed" ]
         ]]
     
-    [#local settingMacro = getFirstDefinedDirective(settingMacroOptions)]
-    [#if settingMacro?has_content ]
-        [@(.vars[settingMacro]) /]
+    [#local settingSeedMacro = getFirstDefinedDirective(settingSeedMacroOptions)]
+    [#if settingSeedMacro?has_content ]
+        [@(.vars[settingSeedMacro]) /]
     [#else]
         [@debug
-            message="Unable to invoke any of the output macro options"
-            context=settingMacroOptions
+            message="Unable to invoke any of the setting seed macro options"
+            context=settingSeedMacroOptions
             enabled=false
         /]
-    [/#if]
-
-    [@includeTemplates templates=templates /]
+    [/#if]    
 [/#macro]
 
 [#macro includeServicesConfiguration provider services deploymentFramework]

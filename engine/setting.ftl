@@ -6,7 +6,7 @@
 
 [#assign settingsObject = {} ]
 
-[#macro addSettings type scope namespace="*" settings={} ]
+[#macro addSettings type scope namespace="" settings={} ]
     [@interalMergeSettings
         type=type
         scope=scope
@@ -150,7 +150,7 @@
 -- Internal support functions for setting processing --
 -------------------------------------------------------]
 
-[#macro interalMergeSettings type scope namespace="*" settings={} ]
+[#macro interalMergeSettings type scope namespace="" settings={} ]
     [#local types=[ "Settings", "Builds", "Sensitive" ]]
     [#local scopes=[ "Accounts", "Products" ]]
 
@@ -166,19 +166,7 @@
             /]
         [/#if]
 
-        [#if !(namespace == "*") ]
-            [#assign settingsObject =
-                mergeObjects(
-                    settingsObject,
-                    {
-                        type : {
-                            scope : settings
-                        }
-                    }
-                )
-            
-            ] 
-        [#else]
+        [#if namspace?has_content ]
             [#assign settingsObject = 
                 mergeObjects(
                     settingsObject,
@@ -190,6 +178,17 @@
                         }
                     }
                 )]
+        [#else]
+            [#assign settingsObject =
+                mergeObjects(
+                    settingsObject,
+                    {
+                        type : {
+                            scope : settings
+                        }
+                    }
+                )
+            ] 
         [/#if]
     [/#if]
 [/#macro]

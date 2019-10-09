@@ -1,7 +1,7 @@
 [#ftl]
 
-[#-- Get stack output --]
-[#macro shared_input_composite_setting_default ]
+[#-- Intial seeding of settings data based on input data --]
+[#macro shared_input_composite_setting_seed ]
     [@addSettings 
         type="Settings" 
         scope="Accounts" 
@@ -23,6 +23,6 @@
     [@addSettings
         type="Sensitive"
         scope="Products"
-        settings=(commandLineOptions.Composites.Settings.Sensitve.Products)!{}
+        settings=(commandLineOptions.Composites.Settings.Sensitive.Products)!{}
     /]
 [/#macro]
