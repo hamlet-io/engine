@@ -25,6 +25,6 @@
         {
             "Names" : "Description",
             "Type" : STRING_TYPE
-        },
+        }
     ]
 /]

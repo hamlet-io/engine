@@ -11,8 +11,14 @@
         ]
     attributes=[
         {
-            "Names" : "LogFileGroups",
-            "Type" : ARRAY_OF_STRING_TYPE
+            "Names" : "*",
+            "Description" : "The component type the profile applies to",
+            "Children" : [
+                {
+                    "Names" : "LogFileGroups",
+                    "Type" : ARRAY_OF_STRING_TYPE
+                }
+            ]
         }
     ]
 /]
