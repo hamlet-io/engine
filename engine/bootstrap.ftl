@@ -59,6 +59,8 @@
 [#include "base.ftl" ]
 
 [#-- Component handling --]
+[#include "masterdata.ftl" ]
+[#include "blueprint.ftl" ]
 [#include "reference.ftl" ]
 [#include "component.ftl" ]
 [#include "setting.ftl" ]
@@ -76,6 +78,23 @@
 [#-- Input handling --]
 [#include "stackOutput.ftl" ]
 
+[#-- Include the shared provider --]
+[@includeProviderConfiguration provider=SHARED_PROVIDER /]
+
+[#-- Include any command line provider/input source --]
+[#if commandLineOptions.Deployment.Provider.Name?has_content ]
+    [@includeProviderConfiguration provider=commandLineOptions.Deployment.Provider.Name /]
+    [@addBlueprint blueprint=getMasterData(commandLineOptions.Deployment.Provider.Name) /]
+[/#if]
+
+[#-- Build the base state of the blueprint using the seeded master data --]
+[@addBlueprint blueprint=getMasterData(SHARED_PROVIDER) /]
+
+[#-- Include any command line provider/input source --]
+[#if commandLineOptions.Deployment.Provider.Name?has_content ]
+    [@addBlueprint blueprint=getMasterData(commandLineOptions.Deployment.Provider.Name) /]
+[/#if]
+
 [#-- Include any shared input sources --]
 [#if commandLineOptions.Input.Source?has_content]
     [@includeInputSourceConfiguration
@@ -86,7 +105,6 @@
 
 [#-- Include any command line provider/input source --]
 [#if commandLineOptions.Deployment.Provider.Name?has_content ]
-    [@includeProviderConfiguration provider=commandLineOptions.Deployment.Provider.Name /]
     [#if commandLineOptions.Input.Source?has_content]
         [@includeInputSourceConfiguration
             provider=commandLineOptions.Deployment.Provider.Name
@@ -97,9 +115,6 @@
 
 [#-- Set the context for templates processing --]
 [#include "setContext.ftl" ]
-
-[#-- Include the shared provider --]
-[@includeProviderConfiguration provider=SHARED_PROVIDER /]
 
 [#-- Always include the default deployment framework --]
 [@includeDeploymentFrameworkConfiguration

@@ -23,11 +23,6 @@
 
 [#-- Composites --]
 [#assign definitionsObject = commandLineOptions.Composites.Definitions ]
-[#assign blueprintObject =
-    mergeObjects(
-        getMasterData(AWS_PROVIDER),
-        commandLineOptions.Composites.Blueprint
-    ) ]
 
 [#-- Regions --]
 [@includeSharedReferenceConfiguration referenceType=REGION_REFERENCE_TYPE /]
