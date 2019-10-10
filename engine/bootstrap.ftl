@@ -58,12 +58,16 @@
 [#-- Core helper routines --]
 [#include "base.ftl" ]
 
+[#-- Input data handling --]
+[#include "inputdata/masterdata.ftl" ]
+[#include "inputdata/blueprint.ftl" ]
+[#include "inputdata/reference.ftl" ]
+[#include "inputdata/setting.ftl" ]
+[#include "inputdata/stackOutput.ftl" ]
+[#include "inputdata/definition.ftl" ]
+
 [#-- Component handling --]
-[#include "masterdata.ftl" ]
-[#include "blueprint.ftl" ]
-[#include "reference.ftl" ]
 [#include "component.ftl" ]
-[#include "setting.ftl" ]
 
 [#--Occurrence handling --]
 [#include "occurrence.ftl"]
@@ -74,9 +78,6 @@
 
 [#-- Output handling --]
 [#include "output.ftl" ]
-
-[#-- Input handling --]
-[#include "stackOutput.ftl" ]
 
 [#-- Include the shared provider --]
 [@includeProviderConfiguration provider=SHARED_PROVIDER /]

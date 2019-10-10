@@ -82,14 +82,14 @@
 
     [#local templates = [] ]
     [#-- aws/inputsources/composite/setting.ftl --]
-    [#list [ "blueprint", "stackoutput", "setting" ] as level]
+    [#list [ "blueprint", "stackoutput", "setting", "definition" ] as level]
         [#local templates += [[provider, "inputsources", inputSource, level]] ]
     [/#list]
 
     [@includeTemplates templates=templates /]
 
     [#-- seed in data provided at the inputsources level for provider and inputSource --]
-    [#list [ "setting", "blueprint"] as level ]
+    [#list [ "setting", "blueprint", "definition" ] as level ]
         [#local seedMacroOptions = 
             [
                 [ provider, "input", commandLineOptions.Input.Source, level, "seed" ]
@@ -102,7 +102,7 @@
             [@debug
                 message="Unable to invoke any of the setting seed macro options"
                 context=seedMacroOptions
-                enabled=true
+                enabled=false
             /]
         [/#if]    
     [/#list]
