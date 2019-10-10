@@ -1,7 +1,7 @@
 [#ftl]
 
 [@addReference 
-    type=BOOTSTRAP_REFERENCE_TYPE
+    type=BOOTSTRAPPROFILE_REFERENCE_TYPE
     pluralType="BootstrapProfiles"
     properties=[
             {
@@ -11,9 +11,15 @@
         ]
     attributes=[
         {
-            "Names" : "Bootstraps",
-            "Type" : ARRAY_OF_STRING_TYPE,
-            "Mandatory" : true
+            "Names" : "*",
+            "Description" : "The component type the profile applies to",
+            "Children" : [
+                {
+                    "Names" : "Bootstraps",
+                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Mandatory" : true
+                }
+            ]
         }
     ]
 /]
