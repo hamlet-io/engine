@@ -11,6 +11,22 @@
         ]
     attributes=[
         {
+            "Names" : "Id",
+            "Type" : STRING_TYPE
+        },
+        {
+            "Names" : "Name",
+            "Type" : STRING_TYPE
+        },
+        {
+            "Names" : "Title",
+            "Type" : STRING_TYPE
+        },
+        {
+            "Names" : "Description",
+            "Type" : STRING_TYPE
+        },
+        {
             "Names" : "Partition",
             "Type" : STRING_TYPE
         },

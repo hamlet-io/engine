@@ -26,14 +26,14 @@
                                         -1),
 
                     "FromPort": ports[port]?has_content?then(
-                                        ports[port].PortRange?has_content?then(
+                                        ports[port].PortRange.Configured?then(
                                                 ports[port].PortRange.From,
                                                 ports[port].Port
                                         ),
                                         1),
 
                     "ToPort": ports[port]?has_content?then(
-                                        ports[port].PortRange?has_content?then(
+                                        ports[port].PortRange.Configured?then(
                                             ports[port].PortRange.To,
                                             ports[port].Port
                                         ),

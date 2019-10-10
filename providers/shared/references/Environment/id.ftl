@@ -11,14 +11,20 @@
         ]
     attributes=[
         {
+            "Names" : "Id",
+            "Type" : STRING_TYPE
+        },
+        {
+            "Names" : "Name",
+            "Type" : STRING_TYPE
+        },
+        {
             "Names" : "Title",
-            "Type" : STRING_TYPE,
-            "Mandatory" : true
+            "Type" : STRING_TYPE
         },
         {
             "Names" : "Description",
-            "Type" : STRING_TYPE,
-            "Mandatory" : true
+            "Type" : STRING_TYPE
         },
         {
             "Names" : "Category",
