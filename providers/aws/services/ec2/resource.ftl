@@ -792,10 +792,12 @@
                     processorProfile.DesiredPerZone
     )]
 
+    [#assign autoscalingMinUpdateInstances = autoScalingConfig.MinUpdateInstances ]
     [#if hibernate ]
         [#assign minSize = 0 ]
         [#assign desiredCapacity = 0 ]
         [#assign maxSize = 1]
+        [#assign autoscalingMinUpdateInstances = 0 ]
     [/#if]
 
     [@cfResource
@@ -854,7 +856,7 @@
             {
                 "AutoScalingRollingUpdate" : {
                     "WaitOnResourceSignals" : autoScalingConfig.WaitForSignal,
-                    "MinInstancesInService" : autoScalingConfig.MinUpdateInstances,
+                    "MinInstancesInService" : autoscalingMinUpdateInstances,
                     "PauseTime" : "PT" + autoScalingConfig.UpdatePauseTime
                 }
             }
