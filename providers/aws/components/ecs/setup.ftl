@@ -28,6 +28,9 @@
     [#local hibernate = solution.Hibernate.Enabled && isOccurrenceDeployed(occurrence)]
 
     [#local processorProfile = getProcessor(occurrence, "ECS")]
+
+    [@debug message="ecsProcessorProfile" context=processorProfile enabled=true /]
+
     [#local storageProfile = getStorage(occurrence, "ECS")]
     [#local logFileProfile = getLogFileProfile(occurrence, "ECS")]
     [#local bootstrapProfile = getBootstrapProfile(occurrence, "ECS")]
@@ -38,7 +41,7 @@
 
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
     [#local dataBucket = getExistingReference(baselineComponentIds["AppData"])]
-    [#local sshKeyPairId = baselineComponentIds["SSHKey"] ]
+    [#local sshKeyPairId = baselineComponentIds["SSHKey"]!"COTFatal: sshKeyPairId not found" ]
 
     [#local occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
     [#local networkLink = occurrenceNetwork.Link!{} ]

@@ -35,7 +35,8 @@
         "Products" : getProductBlueprint()
       }
     ]
-  }]
+  } +
+  attributeIfContent("COTMessages", logMessages)]
 [#return result]
 [/#function]
 

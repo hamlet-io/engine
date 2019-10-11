@@ -34,7 +34,7 @@
     [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
     [#local dataBucket = getExistingReference(baselineComponentIds["AppData"])]
-    [#local sshKeyPairId = baselineComponentIds["SSHKey"]]
+    [#local sshKeyPairId = baselineComponentIds["SSHKey"]!"COTFatal: sshKeyPairId not found" ]
 
     [#switch bastionOS ]
         [#case "linux" ]
