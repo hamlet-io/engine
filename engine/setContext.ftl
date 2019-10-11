@@ -516,10 +516,11 @@
 [#assign countryGroups = (referenceData.CountryGroups)!{} ]
 
 [#-- IP Address Groups - "global" is default --]
-[@includeSharedReferenceConfiguration referenceType=COUNTRYGROUP_REFERENCE_TYPE /]
-[@addReferenceData type=COUNTRYGROUP_REFERENCE_TYPE data=blueprintObject.IPAddressGroups /]
-[#assign ipAddressGroups = getEffectiveIPAddressGroups(referenceData.IPAddressGroups!{}) ]
-
+[@includeSharedReferenceConfiguration referenceType=IPADDRESSGROUP_REFERENCE_TYPE /]
+[@addReferenceData type=IPADDRESSGROUP_REFERENCE_TYPE 
+    data=getEffectiveIPAddressGroups(blueprintObject.IPAddressGroups) 
+/]
+[#assign ipAddressGroups = referenceData.IPAddressGroups!{} ]
 
 [#function getIPAddressGroup group occurrence={}]
     [#local groupId = group?is_hash?then(group.Id, group) ]
