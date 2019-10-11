@@ -28,9 +28,6 @@
     [#local hibernate = solution.Hibernate.Enabled && isOccurrenceDeployed(occurrence)]
 
     [#local processorProfile = getProcessor(occurrence, "ECS")]
-
-    [@debug message="ecsProcessorProfile" context=processorProfile enabled=true /]
-
     [#local storageProfile = getStorage(occurrence, "ECS")]
     [#local logFileProfile = getLogFileProfile(occurrence, "ECS")]
     [#local bootstrapProfile = getBootstrapProfile(occurrence, "ECS")]
