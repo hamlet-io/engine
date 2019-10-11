@@ -795,7 +795,7 @@
     [#if hibernate ]
         [#assign minSize = 0 ]
         [#assign desiredCapacity = 0 ]
-        [#assign maxSize = 0]
+        [#assign maxSize = 1]
     [/#if]
 
     [@cfResource
