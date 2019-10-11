@@ -26,7 +26,7 @@
             "Product": {
                 "Id": "mockedup",
                 "Region": "ap-mock-1",
-                "Domain": "mockdomain",
+                "Domain": "mockedup",
                 "Profiles": {
                     "Placement": "default"
                 }
@@ -51,7 +51,7 @@
                 }
             },
             "Certificates": {
-                "mockdomain": {
+                "mockedup": {
                     "Domain": "mockdomain"
                 }
             },
