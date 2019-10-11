@@ -47,7 +47,8 @@
             "StackOutputs" : (stackOutputs!"[]")?eval
         },
         "Input" : {
-            "Source" : inputSource!"composite"
+            "Source" : inputSource!"composite",
+            "Scenarios" : (scenarios?split(","))![]
         }
     } ]
 
@@ -65,6 +66,9 @@
 [#include "inputdata/setting.ftl" ]
 [#include "inputdata/stackOutput.ftl" ]
 [#include "inputdata/definition.ftl" ]
+
+[#-- Scenerio Loading --]
+[#include "scenario.ftl" ]
 
 [#-- Component handling --]
 [#include "component.ftl" ]
@@ -85,7 +89,6 @@
 [#-- Include any command line provider/input source --]
 [#if commandLineOptions.Deployment.Provider.Name?has_content ]
     [@includeProviderConfiguration provider=commandLineOptions.Deployment.Provider.Name /]
-    [@addBlueprint blueprint=getMasterData(commandLineOptions.Deployment.Provider.Name) /]
 [/#if]
 
 [#-- Build the base state of the blueprint using the seeded master data --]
@@ -94,6 +97,18 @@
 [#-- Include any command line provider/input source --]
 [#if commandLineOptions.Deployment.Provider.Name?has_content ]
     [@addBlueprint blueprint=getMasterData(commandLineOptions.Deployment.Provider.Name) /]
+[/#if]
+
+[#-- Load Scenarios --]
+[#if commandLineOptions.Input.Scenarios?has_content ]
+    [@includeScenarioConfiguration provider=SHARED_PROVIDER scenarios=commandLineOptions.Input.Scenarios /]
+
+    [#if commandLineOptions.Deployment.Provider.Name?has_content ]
+        [@includeScenarioConfiguration 
+            provider=commandLineOptions.Deployment.Provider.Name
+            scenarios=commandLineOptions.Input.Scenarios 
+        /]
+    [/#if]
 [/#if]
 
 [#-- Include any shared input sources --]

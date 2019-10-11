@@ -74,6 +74,42 @@
     [@includeTemplates templates=templates /]
 [/#macro]
 
+[#macro includeScenarioConfiguration provider scenarios ]
+    [#list scenarios as scenario ]
+        [#if isConfigurationIncluded([provider, scenario]) ]
+            [#return]
+        [/#if]
+
+        [#local templates = []]
+        [#list ["scenario"] as level ]
+            [#-- aws/scenarios/lb-https.ftl --]
+            [#local templates+= [[ provider, "scenarios", scenario]] ]
+        [/#list]
+
+        [@includeTemplates templates=templates /]
+
+        [#-- load in the scenarios --]
+        [#list [ "scenario" ] as level ]
+            [#local scenarioMacroOptions = 
+                [
+                    [ provider, "scneario", scenario ]
+                ]]
+            
+            [#local scenarioMacro = getFirstDefinedDirective(scenarioMacroOptions)]
+            [#if scenarioMacro?has_content ]
+                [@(.vars[scenarioMacro]) /]
+            [#else]
+                [@debug
+                    message="Unable to invoke any of the setting scenario macro options"
+                    context=scenarioMacroOptions
+                    enabled=false
+                /]
+            [/#if]    
+        [/#list]
+
+    [/#list]
+[/#macro]
+
 [#macro includeInputSourceConfiguration provider inputSource ]
     [#-- Check inputsource configuration not already seen --]
     [#if isConfigurationIncluded([provider, inputSource]) ]

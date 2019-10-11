@@ -334,6 +334,7 @@ function process_template_pass() {
   [[ -n "${resource_group}" ]]          && args+=("-v" "resourceGroup=${resource_group}")
   [[ -n "${GENERATION_LOG_LEVEL}" ]]    && args+=("-v" "logLevel=${GENERATION_LOG_LEVEL}")
   [[ -n "${GENERATION_INPUT_SOURCE}" ]] && args+=("-v" "inputSource=${GENERATION_INPUT_SOURCE}")
+  [[ -n "${GENERATION_SCENARIOS}" ]]    && args+=("-v" "scenarios=${GENERATION_SCENARIOS}")
 
   # Include the template composites
   # Removal of drive letter (/?/) is specifically for MINGW
