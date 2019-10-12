@@ -83,7 +83,7 @@
             [#break]
 
         [#default]
-            @fatal
+            [@fatal
                 message="Unknown Engine Type"
                 context=occurrence.Configuration.Solution
             /]
