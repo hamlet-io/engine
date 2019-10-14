@@ -160,66 +160,6 @@
 [#-- to order steps and ensure steps aren't repeated.                        --]
 [#-- Genplan sections have their own converter to convert the JSON to text   --]
 
-[#function getGenerationPlanSteps subset alternatives]
-
-    [#-- Determine the script format --]
-    [#local outputFormat = getOutputFormat(SCRIPT_DEFAULT_OUTPUT_TYPE) ]
-
-    [#local steps = {} ]
-
-    [#-- Determine the steps required --]
-    [#list asArray(alternatives) as alternative]
-        [#switch subset]
-            [#case "genplan"]
-            [#case "depplan"]
-            [#case "pregeneration"]
-            [#case "prologue"]
-            [#case "epilogue"]
-                [#local step =
-                    {
-                        "OutputType" : SCRIPT_DEFAULT_OUTPUT_TYPE,
-                        "OutputFormat" : outputFormat
-                    }]
-                [#break]
-            [#case "template"]
-                [#local step =
-                    {
-                        "OutputType" : AWS_OUTPUT_RESOURCE_TYPE,
-                        "OutputFormat" : ""
-                    }]
-                [#break]
-            [#case "cli"]
-            [#case "config"]
-                [#local step =
-                    {
-                        "OutputType" : JSON_DEFAULT_OUTPUT_TYPE,
-                        "OutputFormat" : ""
-                    }]
-                [#break]
-            [#default]
-                [#-- Unknown subset --]
-                [#return {} ]
-        [/#switch]
-        [#local step_name = [subset, alternative, commandLineOptions.Deployment.Provider.Name, commandLineOptions.Deployment.Framework.Name]?join("-") ]
-        [#local steps =
-            mergeObjects(
-                steps,
-                {
-                    subset : {
-                        alternative : {
-                            provider : {
-                                commandLineOptions.Deployment.Framework.Name : {
-                                    "Name" : step_name
-                                } + step
-                            }
-                        }
-                    }
-                }
-            ) ]
-    [/#list]
-    [#return steps]
-[/#function]
-
 [#-- Genplan header - named to come after script header but before genplan content --]
 [#assign HEADER_GENPLAN_DEFAULT_OUTPUT_SECTION="100header"]
 
@@ -335,6 +275,29 @@
     [#if !isOutput(SCRIPT_DEFAULT_OUTPUT_TYPE) ]
         [@initialiseDefaultScriptOutput format=format /]
     [/#if]
+
+    [@addGenPlanStepOutputMapping 
+        provider=SHARED_PROVIDER
+        subsets=[
+            "genplan",
+            "depplan",
+            "pregeneration",
+            "prologue",
+            "epilogue"
+        ]
+        outputType=SCRIPT_DEFAULT_OUTPUT_TYPE
+        outputFormat=getOutputFormat(SCRIPT_DEFAULT_OUTPUT_TYPE)
+    /]
+
+    [@addGenPlanStepOutputMapping
+        provider=SHARED_PROVIDER
+        subsets=[
+            "cli",
+            "config"
+        ]
+        outputType=JSON_DEFAULT_OUTPUT_TYPE
+        outputFormat=""
+    /]
 
     [#if include?has_content]
         [#include include?ensure_starts_with("/")]

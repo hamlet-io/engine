@@ -337,6 +337,75 @@
     [/#if]
 [/#macro]
 
+[#-- GENPLAN --]
+
+[#-- Genplans leverage the general script output but add JSON based sections --]
+[#-- to order steps and ensure steps aren't repeated.                        --]
+[#-- Genplan sections have their own converter to convert the JSON to text   --]
+
+[#assign genPlanStepOutputMappings = {} ]
+
+[#macro addGenPlanStepOutputMapping provider subsets outputType outputFormat]
+    [#list subsets as subset ]
+        [#assign genPlanStepOutputMappings = mergeObjects(
+                    genPlanStepOutputMappings,
+                    {
+                        provider : {
+                            subset : { 
+                                "OutputType" : outputType,
+                                "OutputFormat" : outputFormat
+                            }
+                        }
+                    }
+            )]
+    [/#list]
+[/#macro]
+
+[#function getGenPlanStepOutputMapping provider subset ]
+    [#if ((genPlanStepOutputMappings[provider][subset])!{})?has_content ]
+        [#return genPlanStepOutputMappings[provider][subset]]
+    [/#if]
+
+    [#if ((genPlanStepOutputMappings[SHARED_PROVIDER][subset])!{})?has_content ]
+        [#return genPlanStepOutputMappings[SHARED_PROVIDER][subset]]
+    [/#if]
+
+    [#return {}]
+[/#function]
+
+[#function getGenerationPlanSteps subset alternatives]
+
+    [#-- Determine the script format --]
+    [#local outputFormat = getOutputFormat(SCRIPT_DEFAULT_OUTPUT_TYPE) ]
+
+    [#local steps = {} ]
+
+    [#-- Determine the steps required --]
+    [#list asArray(alternatives) as alternative]
+        [#local step = getGenPlanStepOutputMapping( commandLineOptions.Deployment.Provider.Name, subset) ]
+        [#if ! step?has_content ]
+            [#return {}]
+        [/#if]
+        [#local step_name = [subset, alternative, commandLineOptions.Deployment.Provider.Name, commandLineOptions.Deployment.Framework.Name]?join("-") ]
+        [#local steps =
+            mergeObjects(
+                steps,
+                {
+                    subset : {
+                        alternative : {
+                            commandLineOptions.Deployment.Provider.Name : {
+                                commandLineOptions.Deployment.Framework.Name : {
+                                    "Name" : step_name
+                                } + step
+                            }
+                        }
+                    }
+                }
+            ) ]
+    [/#list]
+    [#return steps]
+[/#function]
+
 [#----------------------------------------------------
 -- Internal support functions for output generation --
 ------------------------------------------------------]
