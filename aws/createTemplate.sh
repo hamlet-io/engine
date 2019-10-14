@@ -23,7 +23,7 @@ where
 (m) -c CONFIGURATION_REFERENCE is the identifier of the configuration used to generate this template
 (o) -g RESOURCE_GROUP          is the deployment unit resource group
     -h                         shows this text
-(m) -l LEVEL                   is the template level - "blueprint", "account", "segment", "solution" or "application"
+(m) -l LEVEL                   is the template level - "blueprint", "account", "product", "segment", "solution" or "application"
 (m) -q REQUEST_REFERENCE       is an opaque value to link this template to a triggering request management system
 (o) -r REGION                  is the AWS region identifier
 (o) -u DEPLOYMENT_UNIT         is the deployment unit to be included in the template
@@ -45,7 +45,9 @@ GENERATION_FRAMEWORK    = "${GENERATION_FRAMEWORK_DEFAULT}"
 NOTES:
 
 1. You must be in the directory specific to the level
+2. REGION is only relevant for the "product" level
 3. DEPLOYMENT_UNIT must be one of "s3", "cert", "roles", "apigateway" or "waf" for the "account" level
+4. DEPLOYMENT_UNIT must be one of "cmk", "cert", "sns" or "shared" for the "product" level
 5. For the "segment" level the "baseline" unit must be deployed before any other unit
 6. When deploying network level components in the "segment" level you must deploy vpc before igw, nat, or vpcendpoint
 
@@ -92,7 +94,7 @@ function options() {
 
   # Ensure we are in the right place
   case "${LEVEL}" in
-    account)
+    account|product)
       [[ ! ("${LEVEL}" =~ ${LOCATION}) ]] &&
         fatalLocation "Current directory doesn't match requested level \"${LEVEL}\"." && return 1
       ;;
@@ -266,6 +268,15 @@ function process_template_pass() {
 
       # LEGACY: Support stacks created before deployment units added to account level
       [[ ("${DEPLOYMENT_UNIT}" =~ s3) &&
+        (-f "${cf_dir}/${level_prefix}${region_prefix}template.json") ]] && \
+          for p in "${pass_list[@]}"; do pass_deployment_unit_prefix["${p}"]=""; done
+      ;;
+
+    product)
+      template_composites+=("PRODUCT")
+
+      # LEGACY: Support stacks created before deployment units added to product
+      [[ ("${DEPLOYMENT_UNIT}" =~ cmk) &&
         (-f "${cf_dir}/${level_prefix}${region_prefix}template.json") ]] && \
           for p in "${pass_list[@]}"; do pass_deployment_unit_prefix["${p}"]=""; done
       ;;
@@ -570,6 +581,10 @@ function process_template() {
 
     account)
       cf_dir="${ACCOUNT_INFRASTRUCTURE_DIR}/cf/shared"
+      ;;
+
+    product)
+      cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/cf/shared"
       ;;
 
     solution)
