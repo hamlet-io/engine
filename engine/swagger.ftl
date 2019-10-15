@@ -1,5 +1,7 @@
 [#ftl]
 
+[#assign knownHttpVerbs = ["get", "put", "post", "delete", "options", "head", "patch", "trace", "x-amazon-apigateway-any-method"] ]
+
 [#assign defaultGatewayErrorMap =
     {
         "ACCESS_DENIED": {
@@ -181,7 +183,7 @@
 [#function getSwaggerDeploymentDetails definitionVersion context description version ]
     [#local version = formatName(version, context["BuildReference"])]
     [#if definitionVersion gte 3 ]
-        [#return 
+        [#return
             {
                 "servers" : [
                     {
@@ -195,7 +197,7 @@
             }
         ]
     [#else]
-        [#return 
+        [#return
             {
                 "basePath" : formatAbsolutePath(context["BasePath"]),
                 "schemes" : [ context["Scheme"] ],
@@ -358,7 +360,7 @@
     ]
 [/#function]
 
-[#function getSwaggerMethodEntry context 
+[#function getSwaggerMethodEntry context
     path verb type apiVariable
     validationLevel sig4Required apiKeyRequired
     userPoolRequired cognitoPoolName
@@ -473,7 +475,7 @@
                 {
                     "x-amazon-apigateway-integration" : {
                         "type": "mock"
-                    } + 
+                    } +
                     attributeIfContent(
                         "contentHandling",
                         contentHandling
@@ -556,14 +558,14 @@
 
     [#-- merge configuration which might replace required feilds --]
     [#local globalConfiguration = mergeObjects(
-                                        globalConfiguration, 
+                                        globalConfiguration,
                                         getSwaggerGlobalSecurity(definitionMajorVersion, context) )]
-    
+
     [#local globalConfiguration = mergeObjects(
                                         globalConfiguration,
                                         getSwaggerDeploymentDetails(
-                                            definitionMajorVersion, 
-                                            context, 
+                                            definitionMajorVersion,
+                                            context,
                                             (definition.info.description)!"",
                                             definition.info.version
                                         )
@@ -577,6 +579,16 @@
         [#local optionsApiKey = false]
 
         [#list pathObject as verb, verbObject]
+            [#if !knownHttpVerbs?seq_contains(verb)]
+                [#-- Only interested in verb fields --]
+                [#if merge]
+                    [#local verbs +=
+                        {
+                            verb : verbObject
+                        } ]
+                [/#if]
+                [#continue]
+            [/#if]
             [#local extendedVerb = {} ]
             [#list integrations.Patterns![] as pattern]
                 [#if path?matches(pattern.Path ! defaultPathPattern) &&
@@ -689,6 +701,10 @@
 
     [#list definition.paths!{} as path, pathObject]
         [#list pathObject as verb, verbObject]
+            [#if !knownHttpVerbs?seq_contains(verb)]
+                [#-- Only interested in verb fields --]
+                [#continue]
+            [/#if]
             [#local type = ""]
             [#list integrations.Patterns![] as pattern]
                 [#if path?matches(pattern.Path ! defaultPathPattern) &&
