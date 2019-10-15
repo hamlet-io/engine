@@ -99,7 +99,9 @@
 [/#function]
 
 [#function getOutputFormat name]
-    [#return outputs[name].Format ]
+    [#if outputs[name]?? ]
+        [#return outputs[name].Format ]
+    [/#if]
 [/#function]
 
 [#function getOutputContent name section="default"]

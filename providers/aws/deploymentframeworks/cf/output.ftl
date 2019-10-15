@@ -1,7 +1,5 @@
 [#ftl]
 
-[#assign AWS_OUTPUT_RESOURCE_TYPE = "resource" ]
-
 [#function getCFTemplateCoreOutputs region={ "Ref" : "AWS::Region" } account={ "Ref" : "AWS::AccountId" } deploymentUnit=commandLineOptions.Deployment.Unit.Name deploymentMode=commandLineOptions.Deployment.Mode ]
     [#return {
         "Account" :{ "Value" : account },
@@ -207,20 +205,6 @@
 [/#macro]
 
 [#macro cf_output_resource level="" include=""]
-
-    [#-- Initialise outputs --]
-    [@initialiseJsonOutput name="resources" /]
-    [@initialiseJsonOutput name="outputs" /]
-
-    [@addGenPlanStepOutputMapping 
-        provider=AWS_PROVIDER
-        subsets=[
-            "template"
-        ]
-        outputType=AWS_OUTPUT_RESOURCE_TYPE
-        outputFormat=""
-    /]
-
     [#-- Resources --]
     [#if include?has_content]
         [#include include?ensure_starts_with("/")]
@@ -249,3 +233,19 @@
         /]
     [/#if]
 [/#macro]
+
+
+[#-- Initialise the possible outputs to make sure they are available to all steps --]
+[@initialiseJsonOutput name="resources" /]
+[@initialiseJsonOutput name="outputs" /]
+
+[#assign AWS_OUTPUT_RESOURCE_TYPE = "resource" ]
+
+[@addGenPlanStepOutputMapping 
+    provider=AWS_PROVIDER
+    subsets=[
+        "template"
+    ]
+    outputType=AWS_OUTPUT_RESOURCE_TYPE
+    outputFormat=""
+/]

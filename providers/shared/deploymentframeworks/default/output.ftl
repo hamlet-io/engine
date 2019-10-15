@@ -105,8 +105,6 @@
 [#-- JSON_DEFAULT_OUTPUT_TYPE --]
 
 [#macro default_output_json level include]
-    [@initialiseJsonOutput name=JSON_DEFAULT_OUTPUT_TYPE /]
-
     [#if include?has_content]
         [#include include?ensure_starts_with("/")]
     [#else]
@@ -264,6 +262,35 @@
     [#return result]
 [/#function]
 
+
+[#-- Initialise the possible outputs to make sure they are available to all steps --]
+[@initialiseDefaultScriptOutput format=BASH_DEFAULT_OUTPUT_FORMAT /]
+[@initialiseJsonOutput name=JSON_DEFAULT_OUTPUT_TYPE /]
+
+[@addGenPlanStepOutputMapping 
+    provider=SHARED_PROVIDER
+    subsets=[
+        "genplan",
+        "depplan",
+        "pregeneration",
+        "prologue",
+        "epilogue"
+    ]
+    outputType=SCRIPT_DEFAULT_OUTPUT_TYPE
+    outputFormat=getOutputFormat(SCRIPT_DEFAULT_OUTPUT_TYPE)
+/]
+
+[@addGenPlanStepOutputMapping
+    provider=SHARED_PROVIDER
+    subsets=[
+        "cli",
+        "config"
+    ]
+    outputType=JSON_DEFAULT_OUTPUT_TYPE
+    outputFormat=""
+/]
+
+
 [#------------------------------------------------------------
 -- internal support functions for default output processing --
 --------------------------------------------------------------]
@@ -275,29 +302,6 @@
     [#if !isOutput(SCRIPT_DEFAULT_OUTPUT_TYPE) ]
         [@initialiseDefaultScriptOutput format=format /]
     [/#if]
-
-    [@addGenPlanStepOutputMapping 
-        provider=SHARED_PROVIDER
-        subsets=[
-            "genplan",
-            "depplan",
-            "pregeneration",
-            "prologue",
-            "epilogue"
-        ]
-        outputType=SCRIPT_DEFAULT_OUTPUT_TYPE
-        outputFormat=getOutputFormat(SCRIPT_DEFAULT_OUTPUT_TYPE)
-    /]
-
-    [@addGenPlanStepOutputMapping
-        provider=SHARED_PROVIDER
-        subsets=[
-            "cli",
-            "config"
-        ]
-        outputType=JSON_DEFAULT_OUTPUT_TYPE
-        outputFormat=""
-    /]
 
     [#if include?has_content]
         [#include include?ensure_starts_with("/")]
