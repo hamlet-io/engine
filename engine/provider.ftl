@@ -74,6 +74,42 @@
     [@includeTemplates templates=templates /]
 [/#macro]
 
+[#macro includeScenarioConfiguration provider scenarios ]
+    [#list scenarios as scenario ]
+        [#if isConfigurationIncluded([provider, scenario]) ]
+            [#return]
+        [/#if]
+
+        [#local templates = []]
+        [#list ["scenario"] as level ]
+            [#-- aws/scenarios/lb-https.ftl --]
+            [#local templates+= [[ provider, "scenarios", scenario]] ]
+        [/#list]
+
+        [@includeTemplates templates=templates /]
+
+        [#-- load in the scenarios --]
+        [#list [ "scenario" ] as level ]
+            [#local scenarioMacroOptions = 
+                [
+                    [ provider, "scneario", scenario ]
+                ]]
+            
+            [#local scenarioMacro = getFirstDefinedDirective(scenarioMacroOptions)]
+            [#if scenarioMacro?has_content ]
+                [@(.vars[scenarioMacro]) /]
+            [#else]
+                [@debug
+                    message="Unable to invoke any of the setting scenario macro options"
+                    context=scenarioMacroOptions
+                    enabled=false
+                /]
+            [/#if]    
+        [/#list]
+
+    [/#list]
+[/#macro]
+
 [#macro includeInputSourceConfiguration provider inputSource ]
     [#-- Check inputsource configuration not already seen --]
     [#if isConfigurationIncluded([provider, inputSource]) ]
@@ -81,12 +117,31 @@
     [/#if]
 
     [#local templates = [] ]
-    [#-- aws/deploymentframeworks/cf/output.ftl --]
-    [#list [ "stackoutput" ] as level]
+    [#-- aws/inputsources/composite/setting.ftl --]
+    [#list [ "blueprint", "stackoutput", "setting", "definition" ] as level]
         [#local templates += [[provider, "inputsources", inputSource, level]] ]
     [/#list]
 
     [@includeTemplates templates=templates /]
+
+    [#-- seed in data provided at the inputsources level for provider and inputSource --]
+    [#list [ "setting", "blueprint", "definition" ] as level ]
+        [#local seedMacroOptions = 
+            [
+                [ provider, "input", commandLineOptions.Input.Source, level, "seed" ]
+            ]]
+        
+        [#local seedMacro = getFirstDefinedDirective(seedMacroOptions)]
+        [#if seedMacro?has_content ]
+            [@(.vars[seedMacro]) /]
+        [#else]
+            [@debug
+                message="Unable to invoke any of the setting seed macro options"
+                context=seedMacroOptions
+                enabled=false
+            /]
+        [/#if]    
+    [/#list]
 [/#macro]
 
 [#macro includeServicesConfiguration provider services deploymentFramework]
@@ -300,31 +355,3 @@
 [#macro includeSharedReferenceConfiguration referenceType ]
     [@includeProviderReferenceDefinitionConfiguration SHARED_PROVIDER referenceType /]
 [/#macro]
-
-[#-- Master data --]
-[#-- This is temporary until we can natively load the data as a json file --]
-[#assign masterData = {} ]
-[#assign masterDataCache = {} ]
-
-[#macro addMasterData provider data={} ]
-    [#assign masterData +=
-        {
-            provider : data
-        } ]
-[/#macro]
-
-[#function getMasterData provider]
-    [#local index = provider]
-    [#if masterDataCache[index]??]
-        [#return masterDataCache[index]]
-    [/#if]
-    [#local data =
-        mergeObjects(
-            masterData[SHARED_PROVIDER]!{},
-            masterData[provider]!{}) ]
-    [#assign masterDataCache +=
-        {
-            index : data
-        } ]
-    [#return data]
-[/#function]

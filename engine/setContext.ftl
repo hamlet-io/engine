@@ -4,9 +4,7 @@
 [#include "swagger.ftl"]
 
 [#-- Temporary AWS stuff --]
-[#-- TODO(mfl) Remove as part of refactoring setContext --]
-[@includeProviderConfiguration provider=SHARED_PROVIDER /]
-[@includeProviderConfiguration provider="aws" /]
+[@includeProviderConfiguration provider=AWS_PROVIDER /]
 [@includeSharedComponentConfiguration component="baseline" /]
 [@includeProviderComponentDefinitionConfiguration provider="aws" component="baseline" /]
 [@includeProviderComponentConfiguration provider="aws" component="baseline" services="baseline" /]
@@ -20,16 +18,6 @@
 [#assign fullNamePrefixes = [] ]
 [#assign cmdbProductLookupPrefixes = [] ]
 [#assign segmentQualifiers = [] ]
-
-[#-- Composites --]
-[#assign settingsObject    = commandLineOptions.Composites.Settings ]
-
-[#assign definitionsObject = commandLineOptions.Composites.Definitions ]
-[#assign blueprintObject =
-    mergeObjects(
-        getMasterData(AWS_PROVIDER),
-        commandLineOptions.Composites.Blueprint
-    ) ]
 
 [#-- Regions --]
 [@includeSharedReferenceConfiguration referenceType=REGION_REFERENCE_TYPE /]

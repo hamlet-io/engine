@@ -24,7 +24,7 @@
     /]
 [/#macro]
 
-[#macro addReferenceData type data ]
+[#macro addReferenceData type data={} ]
     [@internalMergeReferenceData
         type=type
         data=data
@@ -49,7 +49,7 @@
     [/#if]
 [/#macro]
 
-[#macro internalMergeReferenceData type data ]
+[#macro internalMergeReferenceData type data={} ]
     [#local referenceConfig = (referenceConfiguration[type])!{} ]
     [#if referenceConfig?has_content ]
         [#if data?has_content ]

@@ -47,7 +47,8 @@
             "StackOutputs" : (stackOutputs!"[]")?eval
         },
         "Input" : {
-            "Source" : inputSource!"composite"
+            "Source" : inputSource!"composite",
+            "Scenarios" : (scenarios?split(","))![]
         }
     } ]
 
@@ -58,10 +59,19 @@
 [#-- Core helper routines --]
 [#include "base.ftl" ]
 
+[#-- Input data handling --]
+[#include "inputdata/masterdata.ftl" ]
+[#include "inputdata/blueprint.ftl" ]
+[#include "inputdata/reference.ftl" ]
+[#include "inputdata/setting.ftl" ]
+[#include "inputdata/stackOutput.ftl" ]
+[#include "inputdata/definition.ftl" ]
+
+[#-- Scenerio Loading --]
+[#include "scenario.ftl" ]
+
 [#-- Component handling --]
-[#include "reference.ftl" ]
 [#include "component.ftl" ]
-[#include "setting.ftl" ]
 
 [#--Occurrence handling --]
 [#include "occurrence.ftl"]
@@ -73,8 +83,33 @@
 [#-- Output handling --]
 [#include "output.ftl" ]
 
-[#-- Input handling --]
-[#include "stackOutput.ftl" ]
+[#-- Include the shared provider --]
+[@includeProviderConfiguration provider=SHARED_PROVIDER /]
+
+[#-- Include any command line provider/input source --]
+[#if commandLineOptions.Deployment.Provider.Name?has_content ]
+    [@includeProviderConfiguration provider=commandLineOptions.Deployment.Provider.Name /]
+[/#if]
+
+[#-- Build the base state of the blueprint using the seeded master data --]
+[@addBlueprint blueprint=getMasterData(SHARED_PROVIDER) /]
+
+[#-- Include any command line provider/input source --]
+[#if commandLineOptions.Deployment.Provider.Name?has_content ]
+    [@addBlueprint blueprint=getMasterData(commandLineOptions.Deployment.Provider.Name) /]
+[/#if]
+
+[#-- Load Scenarios --]
+[#if commandLineOptions.Input.Scenarios?has_content ]
+    [@includeScenarioConfiguration provider=SHARED_PROVIDER scenarios=commandLineOptions.Input.Scenarios /]
+
+    [#if commandLineOptions.Deployment.Provider.Name?has_content ]
+        [@includeScenarioConfiguration 
+            provider=commandLineOptions.Deployment.Provider.Name
+            scenarios=commandLineOptions.Input.Scenarios 
+        /]
+    [/#if]
+[/#if]
 
 [#-- Include any shared input sources --]
 [#if commandLineOptions.Input.Source?has_content]
@@ -86,7 +121,6 @@
 
 [#-- Include any command line provider/input source --]
 [#if commandLineOptions.Deployment.Provider.Name?has_content ]
-    [@includeProviderConfiguration provider=commandLineOptions.Deployment.Provider.Name /]
     [#if commandLineOptions.Input.Source?has_content]
         [@includeInputSourceConfiguration
             provider=commandLineOptions.Deployment.Provider.Name
@@ -97,9 +131,6 @@
 
 [#-- Set the context for templates processing --]
 [#include "setContext.ftl" ]
-
-[#-- Include the shared provider --]
-[@includeProviderConfiguration provider=SHARED_PROVIDER /]
 
 [#-- Always include the default deployment framework --]
 [@includeDeploymentFrameworkConfiguration
