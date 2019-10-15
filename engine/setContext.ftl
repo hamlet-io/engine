@@ -4,15 +4,16 @@
 [#include "swagger.ftl"]
 
 [#-- Temporary AWS stuff --]
-[@includeProviderConfiguration provider=AWS_PROVIDER /]
-[@includeSharedComponentConfiguration component="baseline" /]
-[@includeProviderComponentDefinitionConfiguration provider="aws" component="baseline" /]
-[@includeProviderComponentConfiguration provider="aws" component="baseline" services="baseline" /]
-[@includeProviderComponentDefinitionConfiguration provider="aws" component="s3" /]
-[@includeProviderComponentConfiguration provider="aws" component="s3" services="s3" /]
-[@includeProviderComponentDefinitionConfiguration provider="aws" component="ec2" /]
-[@includeProviderComponentConfiguration provider="aws" component="ec2" services=["ec2", "vpc"] /]
-
+[#if commandLineOptions.Deployment.Provider.Name = "aws"]
+    [@includeProviderConfiguration provider=AWS_PROVIDER /]
+    [@includeSharedComponentConfiguration component="baseline" /]
+    [@includeProviderComponentDefinitionConfiguration provider="aws" component="baseline" /]
+    [@includeProviderComponentConfiguration provider="aws" component="baseline" services="baseline" /]
+    [@includeProviderComponentDefinitionConfiguration provider="aws" component="s3" /]
+    [@includeProviderComponentConfiguration provider="aws" component="s3" services="s3" /]
+    [@includeProviderComponentDefinitionConfiguration provider="aws" component="ec2" /]
+    [@includeProviderComponentConfiguration provider="aws" component="ec2" services=["ec2", "vpc"] /]
+[/#if]
 [#-- Name prefixes --]
 [#assign shortNamePrefixes = [] ]
 [#assign fullNamePrefixes = [] ]
@@ -164,9 +165,11 @@
                 accountObject
         } ]
 
-    [#assign credentialsBucket = getExistingReference(formatAccountS3Id("credentials")) ]
-    [#assign codeBucket = getExistingReference(formatAccountS3Id("code")) ]
-    [#assign registryBucket = getExistingReference(formatAccountS3Id("registry")) ]
+    [#if commandLineOptions.Deployment.Provider.Name = "aws"]
+        [#assign credentialsBucket = getExistingReference(formatAccountS3Id("credentials"))]
+        [#assign codeBucket = getExistingReference(formatAccountS3Id("code")) ]
+        [#assign registryBucket = getExistingReference(formatAccountS3Id("registry")) ]
+    [/#if]
 
     [#assign categoryName = "account"]
 
@@ -314,13 +317,16 @@
             (tenantObject.PlacementProfiles)!{}
         ) ]
 
+    [#if commandLineOptions.Deployment.Provider.Name = "aws"]
     [#assign segmentSeed = getExistingReference(formatSegmentSeedId()) ]
 
-    [#assign legacyVpc = getExistingReference(formatVPCId())?has_content ]
-    [#if legacyVpc ]
-        [#assign vpc = getExistingReference(formatVPCId())]
-        [#-- Make sure the baseline component has been added to existing deployments --]
-        [#assign segmentSeed = segmentSeed!"COTFatal: baseline component not deployed - Please run a deployment of the baseline component" ]
+    
+        [#assign legacyVpc = getExistingReference(formatVPCId())?has_content ]
+        [#if legacyVpc ]
+            [#assign vpc = getExistingReference(formatVPCId())]
+            [#-- Make sure the baseline component has been added to existing deployments --]
+            [#assign segmentSeed = segmentSeed!"COTFatal: baseline component not deployed - Please run a deployment of the baseline component" ]
+        [/#if]
     [/#if]
 
     [#assign network = segmentObject.Network!segmentObject ]
@@ -336,7 +342,9 @@
                             ((segmentObject.SSH.Enabled)!(segmentObject.Bastion.Enabled)!true)]
     [#assign sshActive = sshEnabled &&
                             ((segmentObject.SSH.Active)!(segmentObject.Bastion.Active)!false)]
-    [#assign sshFromProxySecurityGroup = getExistingReference(formatSSHFromProxySecurityGroupId())]
+    [#if commandLineOptions.Deployment.Provider.Name = "aws"]
+        [#assign sshFromProxySecurityGroup = getExistingReference(formatSSHFromProxySecurityGroupId())]
+    [/#if]
 
     [#assign consoleOnly = (segmentObject.ConsoleOnly)!false]
 

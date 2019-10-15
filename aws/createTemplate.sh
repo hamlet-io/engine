@@ -57,7 +57,7 @@ EOF
 function options() {
 
   # Parse options
-  while getopts ":c:d:g:hl:q:r:u:z:" option; do
+  while getopts ":c:d:g:hl:q:r:u:z:p:f:" option; do
       case "${option}" in
           c) CONFIGURATION_REFERENCE="${OPTARG}" ;;
           d) DEPLOYMENT_MODE="${OPTARG}" ;;
