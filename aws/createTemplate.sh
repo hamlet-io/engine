@@ -8,6 +8,8 @@ trap '. ${GENERATION_DIR}/cleanupContext.sh' EXIT SIGHUP SIGINT SIGTERM
 CONFIGURATION_REFERENCE_DEFAULT="unassigned"
 REQUEST_REFERENCE_DEFAULT="unassigned"
 DEPLOYMENT_MODE_DEFAULT="update"
+GENERATION_PROVIDER_DEFAULT="aws"
+GENERATION_FRAMEWORK_DEFAULT="cf"
 
 function usage() {
   cat <<EOF
@@ -27,6 +29,8 @@ where
 (o) -u DEPLOYMENT_UNIT         is the deployment unit to be included in the template
 (o) -z DEPLOYMENT_UNIT_SUBSET  is the subset of the deployment unit required
 (o) -d DEPLOYMENT_MODE         is the deployment mode the template will be generated for
+(o) -p GENERATION_PROVIDER     is the provider to for template generation 
+(o) -f GENERATION_FRAMEWORK    is the output framework to use for template generation
 
 (m) mandatory, (o) optional, (d) deprecated
 
@@ -35,6 +39,8 @@ DEFAULTS:
 CONFIGURATION_REFERENCE = "${CONFIGURATION_REFERENCE_DEFAULT}"
 REQUEST_REFERENCE       = "${REQUEST_REFERENCE_DEFAULT}"
 DEPLOYMENT_MODE         = "${DEPLOYMENT_MODE_DEFAULT}"
+GENERATION_PROVIDER     = "${GENERATION_PROVIDER_DEFAULT}"
+GENERATION_FRAMEWORK    = "${GENERATION_FRAMEWORK_DEFAULT}"
 
 NOTES:
 
@@ -62,6 +68,8 @@ function options() {
           r) REGION="${OPTARG}" ;;
           u) DEPLOYMENT_UNIT="${OPTARG}" ;;
           z) DEPLOYMENT_UNIT_SUBSET="${OPTARG}" ;;
+          p) GENERATION_PROVIDER="${OPTARG}" ;;
+          f) GENERATION_FRAMEWORK="${OPTARG}" ;;
           \?) fatalOption; return 1 ;;
           :) fatalOptionArgument; return 1 ;;
       esac
@@ -71,6 +79,8 @@ function options() {
   CONFIGURATION_REFERENCE="${CONFIGURATION_REFERENCE:-${CONFIGURATION_REFERENCE_DEFAULT}}"
   REQUEST_REFERENCE="${REQUEST_REFERENCE:-${REQUEST_REFERENCE_DEFAULT}}"
   DEPLOYMENT_MODE="${DEPLOYMENT_MODE:-${DEPLOYMENT_MODE_DEFAULT}}"
+  GENERATION_PROVIDER="${GENERATION_PROVIDER:-${GENERATION_PROVIDER_DEFAULT}}"
+  GENERATION_FRAMEWORK="${GENERATION_FRAMEWORK:-${GENERATION_FRAMEWORK_DEFAULT}}"
 
   # Check level and deployment unit
   ! isValidUnit "${LEVEL}" "${DEPLOYMENT_UNIT}" && fatal "Deployment unit/level not valid" && return 1
@@ -611,10 +621,10 @@ function process_template() {
   local results_dir="${tmp_dir}/results"
   mkdir -p "${results_dir}"
 
-  # First see if an execution plan can be generated
+  # First see if an generation plan can be generated
   process_template_pass \
-      "aws" \
-      "cf" \
+      "${GENERATION_PROVIDER}" \
+      "${GENERATION_FRAMEWORK}" \
       "script" \
       "bash" \
       "${level}" \

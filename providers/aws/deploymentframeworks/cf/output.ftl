@@ -212,6 +212,15 @@
     [@initialiseJsonOutput name="resources" /]
     [@initialiseJsonOutput name="outputs" /]
 
+    [@addGenPlanStepOutputMapping 
+        provider=AWS_PROVIDER
+        subsets=[
+            "template"
+        ]
+        outputType=AWS_OUTPUT_RESOURCE_TYPE
+        outputFormat=""
+    /]
+
     [#-- Resources --]
     [#if include?has_content]
         [#include include?ensure_starts_with("/")]
