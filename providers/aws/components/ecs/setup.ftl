@@ -1091,11 +1091,15 @@
 
                 [#local ruleCleanupScript = []]
                 [#local ruleCleanupOutput = {}]
+                [#local cliCleanUpRequired = false]
 
                 [#list solution.Schedules?values as schedule ]
 
                     [#local scheduleRuleId = resources["schedules"][schedule.Id]["schedule"].Id ]
-                    [#local cliCleanUpScheduleRuleId = getExistingReference(scheduleRuleId, "cleanup") ]
+                    [#local cliCleanUpRequired = cliCleanUpRequired?then(
+                                cliCleanUpRequired,
+                                getExistingReference(scheduleRuleId, "cleanup")?has_content
+                    )]
 
                     [#local scheduleEnabled = hibernate?then(
                                 false,
@@ -1137,21 +1141,21 @@
                         dependencies=fnId
                     /]
 
-                    [#if cliCleanUpScheduleRuleId?has_content ]
-                        [#local ruleCleanupScript += [
-                            "       delete_cloudwatch_event" +
-                            "       \"" + region + "\" " +
-                            "       \"" + cliCleanUpScheduleRuleId + "\" " +
-                            "       \"true\" || return $?"
-                            ]]
-                    [/#if]
+                    [#local ruleCleanupScript += [
+                        "       delete_cloudwatch_event" +
+                        "       \"" + region + "\" " +
+                        "       \"" + scheduleRuleId + "\" " +
+                        "       \"true\" || return $?"
+                        ]]
 
                     [#local ruleCleanupOutput += {
-                            formatId(scheduleRuleId, "cleanup") : ""
+                            formatId(scheduleRuleId, "cleanup") : true?c
                         }]
                 [/#list]
 
-                [#if deploymentSubsetRequired("epilogue", false) ]
+                [#-- running epilogue script when we first time update stack with switching --]
+                [#-- from to the cli-created to CF schedule CW rules --]
+                [#if deploymentSubsetRequired("epilogue", false) && !cliCleanUpRequired ]
                     [@addToDefaultBashScriptOutput
                     content=
                         [
