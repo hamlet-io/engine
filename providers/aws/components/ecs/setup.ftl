@@ -1089,166 +1089,92 @@
         [#if core.Type == ECS_TASK_COMPONENT_TYPE]
             [#if solution.Schedules?has_content ]
 
-                [#local scheduleTaskRoleId = resources["scheduleRole"].Id ]
-
-                [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(scheduleTaskRoleId)]
-                    [@createRole
-                        id=scheduleTaskRoleId
-                        trustedServices=["events.amazonaws.com"]
-                        policies=[
-                            getPolicyDocument(
-                                ecsTaskRunPermission(ecsId) +
-                                roleId?has_content?then(
-                                    iamPassRolePermission(
-                                        getReference(roleId, ARN_ATTRIBUTE_TYPE)
-                                    ),
-                                    []
-                                ) +
-                                executionRoleId?has_content?then(
-                                    iamPassRolePermission(
-                                        getReference(executionRoleId, ARN_ATTRIBUTE_TYPE)
-                                    ),
-                                    []
-                                ),
-                                "schedule"
-                            )
-                        ]
-                    /]
-                [/#if]
+                [#local ruleCleanupScript = []]
+                [#local ruleCleanupOutput = {}]
+                [#local cliCleanUpRequired = false]
 
                 [#list solution.Schedules?values as schedule ]
 
-                    [#local scheduleRuleId = formatEventRuleId(subOccurrence, "schedule", schedule.Id) ]
+                    [#local scheduleRuleId = resources["schedules"][schedule.Id]["schedule"].Id ]
+                    [#local cliCleanUpRequired = cliCleanUpRequired?then(
+                                cliCleanUpRequired,
+                                getExistingReference(scheduleRuleId, "cleanup")?has_content
+                    )]
+
                     [#local scheduleEnabled = hibernate?then(
                                 false,
                                 schedule.Enabled
                     )]
 
-                    [#if networkMode == "awsvpc" ]
+                    [#local scheduleTaskRoleId = resources["scheduleRole"].Id ]
 
-                        [#-- Cloudfomation support not available for awsvpc network config which means that fargate isn't supported --]
-                        [#local eventRuleCliConfig =
-                            {
-                                "ScheduleExpression" : schedule.Expression,
-                                "State" : scheduleEnabled?then("ENABLED", "DISABLED")
-                            }]
+                    [#local targetParameters = {
+                        "Arn" : getExistingReference(ecsId, ARN_ATTRIBUTE_TYPE),
+                        "Id" : taskId,
+                        "EcsParameters" : {
+                            "TaskCount" : schedule.TaskCount,
+                            "TaskDefinitionArn" : getReference(taskId, ARN_ATTRIBUTE_TYPE)
+                        },
+                        "RoleArn" : getReference(scheduleTaskRoleId, ARN_ATTRIBUTE_TYPE)
+                    } +
+                    attributeIfTrue(
+                        "NetworkConfiguration",
+                        networkMode = "awsvpc",
+                        {
+                            "awsvpcConfiguration" : {
+                                "Subnets" : subnets,
+                                "AssignPublicIp" : publicRouteTable?then("ENABLE", "DISABLED")
+                            }
+                        }
+                    ) +
+                    attributeIfTrue(
+                        "LaunchType",
+                        engine == "fargate",
+                        "FARGATE"
+                    )]
 
-                        [#local eventTargetCliConfig =
-                            {
-                                "Targets" : [
-                                    {
-                                        "Id" : formatId(scheduleRuleId, "target"),
-                                        "Arn" : getExistingReference(ecsId, ARN_ATTRIBUTE_TYPE),
-                                        "EcsParameters" : {
-                                            "TaskCount" : schedule.TaskCount
-                                        } +
-                                        attributeIfTrue(
-                                            "NetworkConfiguration",
-                                            networkMode = "awsvpc",
-                                            {
-                                                "awsvpcConfiguration" : {
-                                                    "Subnets" : subnets,
-                                                    "AssignPublicIp" : publicRouteTable?then("ENABLE", "DISABLED")
-                                                }
-                                            }
-                                        ) +
-                                        attributeIfTrue(
-                                            "LaunchType",
-                                            engine == "fargate",
-                                            "FARGATE"
-                                        )
-                                    }
-                                ]
-                            }]
+                    [@createScheduleEventRule
+                        id=scheduleRuleId
+                        enabled=scheduleEnabled
+                        scheduleExpression=schedule.Expression
+                        targetParameters=targetParameters
+                        dependencies=fnId
+                    /]
 
-                        [#local ruleCliId = formatId(taskId, "rule")]
-                        [#local ruleCommand = "updateEventRule" ]
-                        [#local targetCliId = formatId(taskId, "target")]
-                        [#local targetCommand = "updateTargetRule" ]
+                    [#local ruleCleanupScript += [
+                        "       delete_cloudwatch_event" +
+                        "       \"" + region + "\" " +
+                        "       \"" + scheduleRuleId + "\" " +
+                        "       \"true\" || return $?"
+                        ]]
 
-                        [#if deploymentSubsetRequired("cli", false) ]
-                            [@addCliToDefaultJsonOutput
-                                id=ruleCliId
-                                command=ruleCommand
-                                content=eventRuleCliConfig
-                            /]
-
-                            [@addCliToDefaultJsonOutput
-                                id=targetCliId
-                                command=targetCommand
-                                content=eventTargetCliConfig
-                            /]
-                        [/#if]
-
-                        [#if deploymentSubsetRequired("epilogue", false)]
-
-                            [@addToDefaultBashScriptOutput
-                                content=
-                                    [
-                                        " case $\{STACK_OPERATION} in",
-                                        "   create|update)",
-                                        "       # Get cli config file",
-                                        "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?",
-                                        "       # Manage Scheduled Event",
-                                        "       info \"Creating Scheduled Task...\"",
-                                        "       create_ecs_scheduled_task" +
-                                        "       \"" + region + "\" " +
-                                        "       \"" + scheduleRuleId + "\" " +
-                                        "       \"$\{tmpdir}/cli-" + ruleCliId + "-" + ruleCommand + ".json\" " +
-                                        "       \"$\{tmpdir}/cli-" + targetCliId + "-" + targetCommand + ".json\" " +
-                                        "       \"$\{STACK_NAME}\" " +
-                                        "       \"" + taskId + "\" " +
-                                        "       \"" + (getExistingReference(scheduleTaskRoleId, ARN_ATTRIBUTE_TYPE)?has_content?then(
-                                                            getExistingReference(scheduleTaskRoleId, ARN_ATTRIBUTE_TYPE),
-                                                            scheduleTaskRoleId)) + "\" " +
-                                        "       \"" + ecsSecurityGroupId + "\" " +
-                                        "       || return $?",
-                                        "       ;;",
-                                        " esac"
-                                    ]
-                            /]
-                        [/#if]
-
-                        [#if deploymentSubsetRequired("prologue", false)]
-                            [@addToDefaultBashScriptOutput
-                                content=
-                                    [
-                                        " case $\{STACK_OPERATION} in",
-                                        "   delete)",
-                                        "       # Manage Scheduled Event",
-                                        "       info \"Deleting Scheduled Task...\"",
-                                        "       delete_cloudwatch_event" +
-                                        "       \"" + region + "\" " +
-                                        "       \"" + scheduleRuleId + "\" " +
-                                        "       \"true\" || return $?",
-                                        "       ;;",
-                                        " esac"
-                                    ]
-                            /]
-                        [/#if]
-
-                    [#else]
-                        [#if deploymentSubsetRequired("ecs", true) ]
-                            [#local targetParameters = {
-                                "Arn" : getExistingReference(ecsId, ARN_ATTRIBUTE_TYPE),
-                                "Id" : taskId,
-                                "EcsParameters" : {
-                                    "TaskCount" : schedule.TaskCount,
-                                    "TaskDefinitionArn" : getReference(taskId, ARN_ATTRIBUTE_TYPE)
-                                },
-                                "RoleArn" : getReference(scheduleTaskRoleId, ARN_ATTRIBUTE_TYPE)
-                            }]
-
-                            [@createScheduleEventRule
-                                id=scheduleRuleId
-                                enabled=scheduleEnabled
-                                scheduleExpression=schedule.Expression
-                                targetParameters=targetParameters
-                                dependencies=fnId
-                            /]
-                        [/#if]
-                    [/#if]
+                    [#local ruleCleanupOutput += {
+                            formatId(scheduleRuleId, "cleanup") : true?c
+                        }]
                 [/#list]
+
+                [#-- running epilogue script when we first time update stack with switching --]
+                [#-- from to the cli-created to CF schedule CW rules --]
+                [#if deploymentSubsetRequired("epilogue", false) && !cliCleanUpRequired ]
+                    [@addToDefaultBashScriptOutput
+                    content=
+                        [
+                            " case $\{STACK_OPERATION} in",
+                            "   update|create)",
+                            "       # Manage Scheduled Event",
+                            "       info \"Removing scheduled rules created by cli...\""
+                        ] +
+                        ruleCleanupScript +
+                        pseudoStackOutputScript(
+                            "CLI Rule Cleanup",
+                            ruleCleanupOutput
+                        ) +
+                        [
+                            "       ;;",
+                            " esac"
+                        ]
+                     /]
+                [/#if]
             [/#if]
         [/#if]
 

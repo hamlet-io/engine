@@ -298,6 +298,21 @@
         }]
     [/#list]
 
+    [#local schedules = {}]
+    [#if solution.Schedules?has_content ]
+        [#list solution.Schedules?values as schedule ]
+            [#local schedules = mergeObjects(schedules, {
+                    schedule.Id : {
+                        "schedule" : {
+                            "Id" : formatEventRuleId(occurrence, "schedule", schedule.Id),
+                            "Type" : AWS_EVENT_RULE_RESOURCE_TYPE,
+                            "IncludeInDeploymentState" : false
+                        }
+                    }
+            })]
+        [/#list]
+    [/#if]
+
     [#assign componentState =
         {
             "Resources" : {
@@ -305,7 +320,8 @@
                     "Id" : taskId,
                     "Name" : taskName,
                     "Type" : AWS_ECS_TASK_RESOURCE_TYPE
-                }
+                },
+                "schedules" : schedules
             } +
             solution.TaskLogGroup?then(
                 {

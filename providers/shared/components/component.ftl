@@ -342,7 +342,7 @@
             "Names" : "Type",
             "Type" : STRING_TYPE,
             "Values" : [ "Stepped", "Tracked", "Scheduled" ],
-            "Default" : "Step"
+            "Default" : "Stepped"
         },
         {
             "Names" : "Cooldown",
