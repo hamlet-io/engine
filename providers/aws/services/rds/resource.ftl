@@ -16,11 +16,11 @@
         }
     }
 ]
-[#assign outputMappings +=
-    {
-        AWS_RDS_RESOURCE_TYPE : RDS_OUTPUT_MAPPINGS
-    }
-]
+[@addOutputMapping 
+    provider=AWS_PROVIDER
+    resourceType=AWS_RDS_RESOURCE_TYPE
+    mappings=RDS_OUTPUT_MAPPINGS
+/]
 
 [#assign metricAttributes +=
     {

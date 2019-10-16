@@ -15,12 +15,16 @@
         }
     }
 ]
-[#assign outputMappings +=
-    {
-        AWS_SSM_DOCUMENT_RESOURCE_TYPE : AWS_SSM_DOCUMENT_OUTPUT_MAPPINGS,
-        AWS_SSM_MAINTENANCE_WINDOW_RESOURCE_TYPE : AWS_SSM_MAINTENANCE_WINDOW_OUTPUT_MAPPINGS
-    }
-]
+[@addOutputMapping 
+    provider=AWS_PROVIDER
+    resourceType=AWS_SSM_DOCUMENT_RESOURCE_TYPE
+    mappings=AWS_SSM_DOCUMENT_OUTPUT_MAPPINGS
+/]
+[@addOutputMapping 
+    provider=AWS_PROVIDER
+    resourceType=AWS_SSM_MAINTENANCE_WINDOW_RESOURCE_TYPE
+    mappings=AWS_SSM_MAINTENANCE_WINDOW_OUTPUT_MAPPINGS
+/]
 
 [#macro createSSMDocument id content tags documentType="" dependencies="" ]
     [@cfResource

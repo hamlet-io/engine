@@ -16,12 +16,17 @@
     }
 ]
 
-[#assign outputMappings +=
-    {
-        AWS_EC2_AUTO_SCALE_GROUP_RESOURCE_TYPE : AWS_EC2_AUTO_SCALE_GROUP_OUTPUT_MAPPINGS,
-        AWS_EC2_EBS_RESOURCE_TYPE : AWS_EC2_EBS_VOLUME_OUTPUT_MAPPINGS
-    }
-]
+[@addOutputMapping 
+    provider=AWS_PROVIDER
+    resourceType=AWS_EC2_AUTO_SCALE_GROUP_RESOURCE_TYPE
+    mappings=AWS_EC2_AUTO_SCALE_GROUP_OUTPUT_MAPPINGS
+/]
+
+[@addOutputMapping 
+    provider=AWS_PROVIDER
+    resourceType=AWS_EC2_EBS_RESOURCE_TYPE
+    mappings=AWS_EC2_EBS_VOLUME_OUTPUT_MAPPINGS
+/]
 
 [#function getInitConfig configSetName configKeys=[] ]
     [#local configSet = [] ]

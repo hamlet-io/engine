@@ -19,11 +19,11 @@
         }
     }
 ]
-[#assign outputMappings +=
-    {
-        AWS_SQS_RESOURCE_TYPE : SQS_OUTPUT_MAPPINGS
-    }
-]
+[@addOutputMapping 
+    provider=AWS_PROVIDER
+    resourceType=AWS_SQS_RESOURCE_TYPE
+    mappings=SQS_OUTPUT_MAPPINGS
+/]
 
 [#assign metricAttributes +=
     {

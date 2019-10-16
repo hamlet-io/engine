@@ -26,11 +26,12 @@
         }
     }
 ]
-[#assign outputMappings +=
-    {
-        AWS_CACHE_RESOURCE_TYPE : REDIS_OUTPUT_MAPPINGS
-    }
-]
+
+[@addOutputMapping 
+    provider=AWS_PROVIDER
+    resourceType=AWS_CACHE_RESOURCE_TYPE
+    mappings=REDIS_OUTPUT_MAPPINGS
+/]
 
 [#assign metricAttributes +=
     {

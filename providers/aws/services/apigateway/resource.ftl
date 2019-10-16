@@ -40,12 +40,18 @@
         }
     }
 ]
-[#assign outputMappings +=
-    {
-        AWS_APIGATEWAY_RESOURCE_TYPE : APIGATEWAY_OUTPUT_MAPPINGS,
-        AWS_APIGATEWAY_APIKEY_RESOURCE_TYPE : APIGATEWAY_APIKEY_OUTPUT_MAPPINGS
-    }
-]
+
+[@addOutputMapping 
+    provider=AWS_PROVIDER
+    resourceType=AWS_APIGATEWAY_RESOURCE_TYPE
+    mappings=APIGATEWAY_OUTPUT_MAPPINGS
+/]
+
+[@addOutputMapping 
+    provider=AWS_PROVIDER
+    resourceType=AWS_APIGATEWAY_APIKEY_RESOURCE_TYPE
+    mappings=APIGATEWAY_APIKEY_OUTPUT_MAPPINGS
+/]
 
 [#function formatInvokeApiGatewayArn apiId stageName="" account={ "Ref" : "AWS::AccountId" }]
     [#return
@@ -84,11 +90,11 @@
     }
 ]
 
-[#assign outputMappings +=
-    {
-        AWS_APIGATEWAY_USAGEPLAN_RESOURCE_TYPE : APIGATEWAY_USAGEPLAN_OUTPUT_MAPPINGS
-    }
-]
+[@addOutputMapping 
+    provider=AWS_PROVIDER
+    resourceType=AWS_APIGATEWAY_USAGEPLAN_RESOURCE_TYPE
+    mappings=APIGATEWAY_USAGEPLAN_OUTPUT_MAPPINGS
+/]
 
 [#macro createAPIUsagePlan id name stages=[] dependencies="" ]
     [@cfResource

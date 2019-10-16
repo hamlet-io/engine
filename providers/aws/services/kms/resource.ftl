@@ -13,11 +13,11 @@
         }
     }
 ]
-[#assign outputMappings +=
-    {
-        AWS_CMK_RESOURCE_TYPE : CMK_OUTPUT_MAPPINGS
-    }
-]
+[@addOutputMapping 
+    provider=AWS_PROVIDER
+    resourceType=AWS_CMK_RESOURCE_TYPE
+    mappings=CMK_OUTPUT_MAPPINGS
+/]
 
 [#macro createCMK id description statements rotateKeys=true outputId=""]
     [@cfResource

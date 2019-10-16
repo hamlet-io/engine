@@ -30,13 +30,21 @@
     }
 ]
 
-[#assign outputMappings +=
+[#local mappings =
     {
         AWS_CLOUDMAP_DNS_NAMESPACE_RESOURCE_TYPE : CLOUDMAP_DNS_NAMESPACE_OUTPUT_MAPPINGS,
         AWS_CLOUDMAP_SERVICE_RESOURCE_TYPE : CLOUDMAP_SERVICE_OUTPUT_MAPPINGS,
         AWS_CLOUDMAP_INSTANCE_RESOURCE_TYPE : CLOUDMAP_INSTANCE_OUTPUT_MAPPINGS
     }
 ]
+
+[#list mappings as type, mappings]
+    [@addOutputMapping 
+        provider=AWS_PROVIDER
+        resourceType=type
+        mappings=mappings
+    /]
+[/#list]
 
 [#macro createCloudMapDNSNamespace
     id name

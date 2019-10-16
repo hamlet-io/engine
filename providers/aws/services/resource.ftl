@@ -112,9 +112,6 @@
         )]
 [/#function]
 
-[#-- Output mappings object is extended dynamically by each resource type --]
-[#assign outputMappings = {} ]
-
 [#-- Metric Dimensions are extended dynamically by each resouce type --]
 [#assign metricAttributes = {}]
 
@@ -154,15 +151,14 @@
         isPartOfCurrentDeploymentUnit(resourceId)]
         [#if attributeType?has_content]
             [#local resourceType = getResourceType(resourceId) ]
-            [#if outputMappings[resourceType]?? ]
-                [#local mapping = outputMappings[getResourceType(resourceId)][attributeType] ]
-                [#if (mapping.Attribute)?has_content]
-                    [#return
-                        {
-                            "Fn::GetAtt" : [resourceId, mapping.Attribute]
-                        }
-                    ]
-                [/#if]
+            [#local mapping = getOutputMappings(AWS_PROVIDER, resourceType, attributeType)]
+            [#if (mapping.Attribute)?has_content]
+                [#return
+                    {
+                        "Fn::GetAtt" : [resourceId, mapping.Attribute]
+                    }
+                ]
+            [/#if]
             [#else]
                 [#return
                     {

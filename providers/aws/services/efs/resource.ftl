@@ -22,12 +22,17 @@
     }
 ]
 
-[#assign outputMappings +=
-    {
-        AWS_EFS_RESOURCE_TYPE : EFS_OUTPUT_MAPPINGS,
-        AWS_EFS_MOUNTTARGET_RESOURCE_TYPE : EFS_MOUNTTARGET_MAPPINGS
-    }
-]
+[@addOutputMapping 
+    provider=AWS_PROVIDER
+    resourceType=AWS_EFS_RESOURCE_TYPE
+    mappings=EFS_OUTPUT_MAPPINGS
+/]
+
+[@addOutputMapping 
+    provider=AWS_PROVIDER
+    resourceType=AWS_EFS_MOUNTTARGET_RESOURCE_TYPE
+    mappings=EFS_MOUNTTARGET_MAPPINGS
+/]
 
 [#macro createEFS id name tier component encrypted kmsKeyId]
     [@cfResource

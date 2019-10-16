@@ -41,13 +41,21 @@
         }
     }]
 
-[#assign outputMappings +=
+[#local mappings =
     {
         AWS_ECS_RESOURCE_TYPE : ECS_OUTPUT_MAPPINGS,
         AWS_ECS_SERVICE_RESOURCE_TYPE : ECS_SERVICE_OUTPUT_MAPPINGS,
         AWS_ECS_TASK_RESOURCE_TYPE : ECS_TASK_OUTPUT_MAPPINGS
     }
 ]
+
+[#list mappings as type, mappings]
+    [@addOutputMapping 
+        provider=AWS_PROVIDER
+        resourceType=type
+        mappings=mappings
+    /]
+[/#list]
 
 [#assign metricAttributes +=
     {
