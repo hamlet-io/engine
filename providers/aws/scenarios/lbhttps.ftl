@@ -1,7 +1,7 @@
 [#ftl]
 
 [#-- Get stack output --]
-[#macro aws_scneario_lbhttps ]
+[#macro aws_scenario_lbhttps ]
     [@addScenario
         id="lbhttps"
         blueprint={

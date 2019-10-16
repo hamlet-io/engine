@@ -92,7 +92,7 @@
         [#list [ "scenario" ] as level ]
             [#local scenarioMacroOptions = 
                 [
-                    [ provider, "scneario", scenario ]
+                    [ provider, "scenario", scenario ]
                 ]]
             
             [#local scenarioMacro = getFirstDefinedDirective(scenarioMacroOptions)]
