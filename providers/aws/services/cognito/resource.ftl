@@ -39,7 +39,7 @@
     }
 ]
 
-[#local mappings =
+[#assign cogniitoMappings =
     {
         AWS_COGNITO_USERPOOL_RESOURCE_TYPE : USERPOOL_OUTPUT_MAPPINGS,
         AWS_COGNITO_USERPOOL_CLIENT_RESOURCE_TYPE : USERPOOL_CLIENT_OUTPUT_MAPPINGS,
@@ -47,7 +47,7 @@
     }
 ]
 
-[#list mappings as type, mappings]
+[#list cogniitoMappings as type, mappings]
     [@addOutputMapping 
         provider=AWS_PROVIDER
         resourceType=type

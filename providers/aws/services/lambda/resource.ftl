@@ -54,14 +54,14 @@
     }
 ]
 
-[#local mappings =
+[#assign lambdaMappings =
     {
         AWS_LAMBDA_FUNCTION_RESOURCE_TYPE : LAMBDA_FUNCTION_OUTPUT_MAPPINGS,
         AWS_LAMBDA_PERMISSION_RESOURCE_TYPE : LAMBDA_PERMISSION_OUTPUT_MAPPINGS,
         AWS_LAMBDA_EVENT_SOURCE_TYPE : LAMBDA_EVENT_SOURCE_MAPPINGS
     }
 ]
-[#list mappings as type, mappings]
+[#list lambdaMappings as type, mappings]
     [@addOutputMapping 
         provider=AWS_PROVIDER
         resourceType=type

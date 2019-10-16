@@ -53,7 +53,7 @@
     }
 ]
 
-[#local mappings =
+[#local lbMappings =
     {
         AWS_LB_RESOURCE_TYPE : LB_OUTPUT_MAPPINGS,
         AWS_ALB_RESOURCE_TYPE : LB_OUTPUT_MAPPINGS,
@@ -66,7 +66,7 @@
     }
 ]
 
-[#list mappings as type, mappings]
+[#list lbMappings as type, mappings]
     [@addOutputMapping 
         provider=AWS_PROVIDER
         resourceType=type

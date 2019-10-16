@@ -33,7 +33,7 @@
 ]
 
 
-[#local mappings =
+[#assign autoScalingMappings =
     {
         AWS_AUTOSCALING_APP_TARGET_RESOURCE_TYPE : AWS_AUTOSCALING_APP_TARGET_OUTPUT_MAPPINGS,
         AWS_AUTOSCALING_APP_POLICY_RESOURCE_TYPE : AWS_AUTOSCALING_APP_POLICY_OUTPUT_MAPPINGS,
@@ -42,7 +42,7 @@
     }
 ]
 
-[#list mappings as type, mappings]
+[#list autoScalingMappings as type, mappings]
     [@addOutputMapping 
         provider=AWS_PROVIDER
         resourceType=type

@@ -41,7 +41,7 @@
         }
     }]
 
-[#local mappings =
+[#assign ecsMappings =
     {
         AWS_ECS_RESOURCE_TYPE : ECS_OUTPUT_MAPPINGS,
         AWS_ECS_SERVICE_RESOURCE_TYPE : ECS_SERVICE_OUTPUT_MAPPINGS,
@@ -49,7 +49,7 @@
     }
 ]
 
-[#list mappings as type, mappings]
+[#list ecsMappings as type, mappings]
     [@addOutputMapping 
         provider=AWS_PROVIDER
         resourceType=type
