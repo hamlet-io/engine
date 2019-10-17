@@ -2124,6 +2124,9 @@
         "HTTPSProfile": "TLSv1",
         "WAFProfile": "OWASP2017",
         "WAFValueSet": "default"
+      },
+      "db" : {
+        "SSLCertificateAuthority" : "rds-ca-2019"
       }
     }
   },
