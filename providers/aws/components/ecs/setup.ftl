@@ -518,7 +518,7 @@
 
     [#list requiredOccurrences(
             occurrence.Occurrences![],
-            commandLineOptions.Deployment.Unit.Name) as subOccurrence]
+            getDeploymentUnit()) as subOccurrence]
 
         [@debug message="Suboccurrence" context=subOccurrence enabled=false /]
 

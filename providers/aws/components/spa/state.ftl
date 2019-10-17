@@ -15,7 +15,7 @@
                     "Type" : SPA_COMPONENT_TYPE
                 }
             } +
-            getExistingReference(cfId, "", "", commandLineOptions.Deployment.Unit.Name)?has_content?then(
+            getExistingReference(cfId, "", "", getDeploymentUnit())?has_content?then(
                 {
                     "legacyCF" : {
                         "Id" : cfId,

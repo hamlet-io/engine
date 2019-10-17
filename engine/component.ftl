@@ -4,6 +4,17 @@
 -- Public functions for component processing --
 -----------------------------------------------]
 
+[#-- DeploymentUnit --]
+[#assign deploymentUnit = ""]
+
+[#macro setDeploymentUnit deploymentUnit ]
+    [#assign deploymentUnit = deploymentUnit ]
+[/#macro]
+
+[#function getDeploymentUnit ]
+    [#return deploymentUnit ]
+[/#function]
+
 [#-- Component configuration is extended dynamically by each component type --]
 [#assign componentConfiguration = {} ]
 

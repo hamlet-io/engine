@@ -25,8 +25,14 @@
 
 [#assign categoryId = "account"]
 
+[#-- Add tests to initialised test outputs --]
+[#if commandLineOptions.Input.TestCase?has_content &&
+        (commandLineOptions.Deployment.Unit.Subset!"") == "testplan" ]
+    [@addTestPlanToDefaultJsonOutput tests=testsList /]
+[/#if]
+
 [#-- Special processing --]
-[#switch commandLineOptions.Deployment.Unit.Name]
+[#switch getDeploymentUnit() ]
     [#case "iam"]
     [#case "lg"]
         [#if (commandLineOptions.Deployment.Unit.Subset!"") == "genplan"]
@@ -41,7 +47,7 @@
                         {
                             "Deployment" : {
                                 "Unit" : {
-                                    "Subset" : commandLineOptions.Deployment.Unit.Name
+                                    "Subset" : getDeploymentUnit()
                                 }
                             }
                         }

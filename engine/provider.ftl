@@ -110,6 +110,39 @@
     [/#list]
 [/#macro]
 
+[#macro includeTestCaseConfiguration provider testCase ]
+    [#if isConfigurationIncluded([provider, testCase]) ]
+        [#return]
+    [/#if]
+
+    [#local templates = []]
+    [#list ["testcase"] as level ]
+        [#-- aws/testcases/lb-https.ftl --]
+        [#local templates+= [[ provider, "testcases", testCase]] ]
+    [/#list]
+
+    [@includeTemplates templates=templates /]
+
+    [#-- load in the testCases --]
+    [#list [ "testcase" ] as level ]
+        [#local testCaseMacroOptions = 
+            [
+                [ provider, "testcase", testCase ]
+            ]]
+        
+        [#local testCaseMacro = getFirstDefinedDirective(testCaseMacroOptions)]
+        [#if testCaseMacro?has_content ]
+            [@(.vars[testCaseMacro]) /]
+        [#else]
+            [@debug
+                message="Unable to invoke any of the setting test case macro options"
+                context=testCaseMacroOptions
+                enabled=false
+            /]
+        [/#if]    
+    [/#list]
+[/#macro]
+
 [#macro includeInputSourceConfiguration provider inputSource ]
     [#-- Check inputsource configuration not already seen --]
     [#if isConfigurationIncluded([provider, inputSource]) ]

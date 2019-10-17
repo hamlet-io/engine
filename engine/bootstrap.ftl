@@ -48,7 +48,8 @@
         },
         "Input" : {
             "Source" : inputSource!"composite",
-            "Scenarios" : (scenarios?split(","))![]
+            "Scenarios" : (scenarios?split(","))![],
+            "TestCase" : testCase!""
         }
     } ]
 
@@ -69,6 +70,7 @@
 
 [#-- Scenerio Loading --]
 [#include "scenario.ftl" ]
+[#include "testcase.ftl" ]
 
 [#-- Component handling --]
 [#include "component.ftl" ]
@@ -99,14 +101,46 @@
     [@addBlueprint blueprint=getMasterData(commandLineOptions.Deployment.Provider.Name) /]
 [/#if]
 
+[#-- Set the Deployment unit - default to the cli --]
+[@setDeploymentUnit 
+    deploymentUnit=commandLineOptions.Deployment.Unit.Name
+/]
+
+[#-- Set the scnearios provided via the CLI --]
+[@updateScenarioList 
+    scenarioIds=commandLineOptions.Input.Scenarios 
+/]
+
+[#-- Load test case if it has been specified --]
+[#if (commandLineOptions.Deployment.Unit.Subset!"") == "testplan" ]
+    [@initialiseJsonOutput name="testplan" /]
+[/#if]
+
+[#if commandLineOptions.Input.TestCase?has_content ]
+    [@includeTestCaseConfiguration 
+        provider=SHARED_PROVIDER 
+        testCase=commandLineOptions.Input.TestCase
+    /]
+
+    [#if commandLineOptions.Deployment.Provider.Name?has_content ]
+        [@includeTestCaseConfiguration 
+            provider=commandLineOptions.Deployment.Provider.Name
+            testCase=commandLineOptions.Input.TestCase
+        /]
+    [/#if]
+[/#if]
+
 [#-- Load Scenarios --]
-[#if commandLineOptions.Input.Scenarios?has_content ]
-    [@includeScenarioConfiguration provider=SHARED_PROVIDER scenarios=commandLineOptions.Input.Scenarios /]
+[#if scenarioList?has_content ]
+    [@includeScenarioConfiguration 
+        provider=SHARED_PROVIDER 
+        scenarios=scenarioList 
+    /]
 
     [#if commandLineOptions.Deployment.Provider.Name?has_content ]
         [@includeScenarioConfiguration 
             provider=commandLineOptions.Deployment.Provider.Name
-            scenarios=commandLineOptions.Input.Scenarios 
+            scenarios=scenarioList
         /]
     [/#if]
 [/#if]

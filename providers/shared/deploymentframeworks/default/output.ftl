@@ -132,6 +132,12 @@
     /]
 [/#macro]
 
+[#macro addTestPlanToDefaultJsonOutput tests ]
+    [@addToDefaultJsonOutput
+        content={ "Tests" : tests }
+    /]
+[/#macro]
+
 [#-- MODEL_DEFAULT_OUTPUT_TYPE --]
 
 [#macro default_output_model level include]
@@ -182,6 +188,10 @@
         /]
     [/#if]
 
+    [#if (commandLineOptions.Input.TestCase!"")?has_content ]
+        [#local subsets = combineEntities( subsets, [ "testplan" ], UNIQUE_COMBINE_BEHAVIOUR) ]
+    [/#if]
+
     [#list asArray(subsets) as subset]
         [#-- Each subset gets its own section --]
         [#local name = "" ]
@@ -189,7 +199,7 @@
             [#case "genplan"]
                 [#local name = section + "-100" ]
                 [#break]
-            [#case "depplan"]
+            [#case "testplan"]
                 [#local name = section + "-200"]
                 [#break]
             [#case "pregeneration"]
@@ -271,7 +281,6 @@
     provider=SHARED_PROVIDER
     subsets=[
         "genplan",
-        "depplan",
         "pregeneration",
         "prologue",
         "epilogue"
@@ -283,6 +292,7 @@
 [@addGenPlanStepOutputMapping
     provider=SHARED_PROVIDER
     subsets=[
+        "testplan",
         "cli",
         "config"
     ]

@@ -22,12 +22,12 @@
                     "Id" : key,
                     "Name" : key
                 } + value ]
-            [#if deploymentRequired(component, commandLineOptions.Deployment.Unit.Name)]
+            [#if deploymentRequired(component, getDeploymentUnit())]
                 [#assign multiAZ = component.MultiAZ!solnMultiAZ]
                 [#local occurrenceStart = .now]
                 [#list requiredOccurrences(
                     getOccurrences(tier, component),
-                    commandLineOptions.Deployment.Unit.Name,
+                    getDeploymentUnit(),
                     true) as occurrence]
                     [#local occurrenceEnd = .now]
                     [@timing

@@ -1,5 +1,5 @@
 [#-- Standard set of buckets for an account --]
-[#if commandLineOptions.Deployment.Unit.Name?contains("s3") || (allDeploymentUnits!false) ]
+[#if getDeploymentUnit()?contains("s3") || (allDeploymentUnits!false) ]
     [#if accountObject.Seed?has_content]
         [#if deploymentSubsetRequired("genplan", false)]
             [@addDefaultGenerationPlan subsets=["template", "epilogue"] /]

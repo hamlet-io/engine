@@ -1,6 +1,6 @@
 [#ftl]
 
-[#function getCFTemplateCoreOutputs region={ "Ref" : "AWS::Region" } account={ "Ref" : "AWS::AccountId" } deploymentUnit=commandLineOptions.Deployment.Unit.Name deploymentMode=commandLineOptions.Deployment.Mode ]
+[#function getCFTemplateCoreOutputs region={ "Ref" : "AWS::Region" } account={ "Ref" : "AWS::AccountId" } deploymentUnit=getDeploymentUnit() deploymentMode=commandLineOptions.Deployment.Mode ]
     [#return {
         "Account" :{ "Value" : account },
         "Region" : {"Value" : region },

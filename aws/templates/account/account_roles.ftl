@@ -1,5 +1,5 @@
 [#-- Account level roles --]
-[#if commandLineOptions.Deployment.Unit.Name?contains("roles")  || (allDeploymentUnits!false) ]
+[#if getDeploymentUnit()?contains("roles")  || (allDeploymentUnits!false) ]
     [#if deploymentSubsetRequired("genplan", false)]
         [@addDefaultGenerationPlan subsets="template" /]
     [/#if]

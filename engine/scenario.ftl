@@ -1,6 +1,11 @@
 [#ftl]
 
 [#-- Scenarios allow loading input data using the engine itself --]
+[#assign scenarioList = []]
+
+[#macro updateScenarioList scenarioIds ]
+    [#assign scenarioList = combineEntities( scenarioList, asArray(scenarioIds), UNIQUE_COMBINE_BEHAVIOUR )]
+[/#macro]
 
 [#macro addScenario
     id
