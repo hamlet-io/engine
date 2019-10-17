@@ -172,6 +172,8 @@
                                 getProcessor(occurrence, "RDS"),
                                 getProcessor(occurrence, DB_COMPONENT_TYPE )
                             )]
+    [#local securityProfile = getSecurityProfile(solution.Profiles.Security, "db" )]
+    [#local requiredRDSCA = securityProfile["SSLCertificateAuthority"]!"COTFatal: SSLCertificateAuthority not found in security profile: " + solution.Profiles.Security ]
 
     [#if deploymentSubsetRequired("prologue", false)]
         [@addToDefaultBashScriptOutput
@@ -507,12 +509,12 @@
                         "reset_master_password || return $?"
                     ],
                 []) +
-                (!rdsCA?has_content)?then(
+                (rdsCA != requiredRDSCA)?then(
                     [
                         "# Update RDS CA",
                         "function update_rds_ca() {",
                         "info \"Updating RDS CA ... \"",
-                        "rdsCAIdentifier=\"rds-ca-2019\"",
+                        "rdsCAIdentifier=\"" + requiredRDSCA + "\"",
                         "update_rds_ca_identifier" +
                         " \"" + region + "\" " +
                         " \"" + rdsFullName + "\" " +
@@ -520,7 +522,7 @@
                     ] +
                     pseudoStackOutputScript(
                             "RDS CA Identifier",
-                            { formatId(rdsId, "ca") : "$\{rdsCAIdentifier}" },
+                            { formatId(rdsId, "ca") : "$\{requiredRDSCA}" },
                             "ca"
                     ) +
                     [
