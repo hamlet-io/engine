@@ -16,11 +16,12 @@
         }
     }
 ]
-[#assign outputMappings +=
-    {
-        AWS_ES_RESOURCE_TYPE : ES_OUTPUT_MAPPINGS
-    }
-]
+
+[@addOutputMapping 
+    provider=AWS_PROVIDER
+    resourceType=AWS_ES_RESOURCE_TYPE
+    mappings=ES_OUTPUT_MAPPINGS
+/]
 
 [#assign metricAttributes +=
     {

@@ -45,11 +45,11 @@
         }
     }
 ]
-[#assign outputMappings +=
-    {
-        AWS_IAM_ROLE_RESOURCE_TYPE : ROLE_OUTPUT_MAPPINGS
-    }
-]
+[@addOutputMapping 
+    provider=AWS_PROVIDER
+    resourceType=AWS_IAM_ROLE_RESOURCE_TYPE
+    mappings=ROLE_OUTPUT_MAPPINGS
+/]
 
 [#macro createRole
             id
@@ -118,8 +118,8 @@
         }
     }
 ]
-[#assign outputMappings +=
-    {
-        AWS_IAM_USER_RESOURCE_TYPE : USER_OUTPUT_MAPPINGS
-    }
-]
+[@addOutputMapping 
+    provider=AWS_PROVIDER
+    resourceType=AWS_IAM_USER_RESOURCE_TYPE
+    mappings=USER_OUTPUT_MAPPINGS
+/]

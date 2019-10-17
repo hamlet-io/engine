@@ -53,7 +53,7 @@
     }
 ]
 
-[#assign outputMappings +=
+[#local lbMappings =
     {
         AWS_LB_RESOURCE_TYPE : LB_OUTPUT_MAPPINGS,
         AWS_ALB_RESOURCE_TYPE : LB_OUTPUT_MAPPINGS,
@@ -65,6 +65,14 @@
         AWS_ALB_TARGET_GROUP_RESOURCE_TYPE : ALB_TARGET_GROUP_OUTPUT_MAPPINGS
     }
 ]
+
+[#list lbMappings as type, mappings]
+    [@addOutputMapping 
+        provider=AWS_PROVIDER
+        resourceType=type
+        mappings=mappings
+    /]
+[/#list]
 
 [#assign metricAttributes +=
     {

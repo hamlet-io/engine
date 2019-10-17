@@ -361,6 +361,35 @@
     [/#list]
 [/#macro]
 
+[#-- Output mappings object is extended dynamically by each resource type --]
+[#assign outputMappings = {} ]
+
+[#macro addOutputMapping provider resourceType mappings]
+    [#assign outputMappings = mergeObjects(
+        outputMappings,
+        {
+            provider : {
+                resourceType : mappings
+            }
+        }
+    )]
+[/#macro]
+
+[#function getOutputMappings provider resourceType="" attributeType=""]
+    [#if resourceType?has_content]
+        [#if attributeType?has_content]
+            [#-- type and attribute provided, return specific attribute --]
+            [#return outputMappings[provider][resourceType][attributeType]!{}]
+        [#else]
+            [#-- type provided, return a specific resource type --]
+            [#return outputMappings[provider][resourceType]!{}]
+        [/#if]
+    [#else]
+        [#-- return all provder resource mappings --]
+        [#return outputMappings[provider]!{}]
+    [/#if]
+[/#function]
+
 [#function getGenPlanStepOutputMapping provider subset ]
     [#if ((genPlanStepOutputMappings[provider][subset])!{})?has_content ]
         [#return genPlanStepOutputMappings[provider][subset]]

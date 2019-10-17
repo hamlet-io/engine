@@ -13,11 +13,12 @@
         }
     }
 ]
-[#assign outputMappings +=
-    {
-        AWS_DYNAMODB_TABLE_RESOURCE_TYPE : DYNAMODB_OUTPUT_MAPPINGS
-    }
-]
+
+[@addOutputMapping 
+    provider=AWS_PROVIDER
+    resourceType=AWS_DYNAMODB_TABLE_RESOURCE_TYPE
+    mappings=DYNAMODB_OUTPUT_MAPPINGS
+/]
 
 [#assign metricAttributes +=
     {

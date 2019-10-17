@@ -13,11 +13,11 @@
         }
     }
 ]
-[#assign outputMappings +=
-    {
-        AWS_SNS_TOPIC_RESOURCE_TYPE : SNS_TOPIC_OUTPUT_MAPPINGS
-    }
-]
+[@addOutputMapping 
+    provider=AWS_PROVIDER
+    resourceType=AWS_SNS_TOPIC_RESOURCE_TYPE
+    mappings=SNS_TOPIC_OUTPUT_MAPPINGS
+/]
 
 [#assign metricAttributes +=
     {

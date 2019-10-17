@@ -22,12 +22,17 @@
     }
 ]
 
-[#assign outputMappings +=
-    {
-        AWS_CLOUDFRONT_DISTRIBUTION_RESOURCE_TYPE : CF_OUTPUT_MAPPINGS,
-        AWS_CLOUDFRONT_ACCESS_ID_RESOURCE_TYPE : CF_ACCESS_ID_OUTPUT_MAPPINGS
-    }
-]
+[@addOutputMapping 
+    provider=AWS_PROVIDER
+    resourceType=AWS_CLOUDFRONT_DISTRIBUTION_RESOURCE_TYPE
+    mappings=CF_OUTPUT_MAPPINGS
+/]
+
+[@addOutputMapping 
+    provider=AWS_PROVIDER
+    resourceType=AWS_CLOUDFRONT_ACCESS_ID_RESOURCE_TYPE
+    mappings=CF_ACCESS_ID_OUTPUT_MAPPINGS
+/]
 
 [#function getCFHTTPHeader name value]
     [#return

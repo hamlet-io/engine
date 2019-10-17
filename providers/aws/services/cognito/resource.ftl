@@ -39,13 +39,21 @@
     }
 ]
 
-[#assign outputMappings +=
+[#assign cogniitoMappings =
     {
         AWS_COGNITO_USERPOOL_RESOURCE_TYPE : USERPOOL_OUTPUT_MAPPINGS,
         AWS_COGNITO_USERPOOL_CLIENT_RESOURCE_TYPE : USERPOOL_CLIENT_OUTPUT_MAPPINGS,
         AWS_COGNITO_IDENTITYPOOL_RESOURCE_TYPE : IDENTITYPOOL_OUTPUT_MAPPINGS
     }
 ]
+
+[#list cogniitoMappings as type, mappings]
+    [@addOutputMapping 
+        provider=AWS_PROVIDER
+        resourceType=type
+        mappings=mappings
+    /]
+[/#list]
 
 [#function getUserPoolPasswordPolicy length="8" lowercase=true uppercase=true numbers=true symbols=true tempPasswordValidity=30 ]
     [#return

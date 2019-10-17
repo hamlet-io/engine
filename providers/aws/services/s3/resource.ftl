@@ -285,11 +285,11 @@
     }
 ]
 
-[#assign outputMappings +=
-    {
-        AWS_S3_RESOURCE_TYPE : S3_OUTPUT_MAPPINGS
-    }
-]
+[@addOutputMapping 
+    provider=AWS_PROVIDER
+    resourceType=AWS_S3_RESOURCE_TYPE
+    mappings=S3_OUTPUT_MAPPINGS
+/]
 
 [#macro createS3Bucket id name tier="" component=""
                         lifecycleRules=[]

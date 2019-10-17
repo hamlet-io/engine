@@ -10,11 +10,12 @@
         }
     }
 ]
-[#assign outputMappings +=
-    {
-        AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE : LOG_GROUP_OUTPUT_MAPPINGS
-    }
-]
+
+[@addOutputMapping 
+    provider=AWS_PROVIDER
+    resourceType=AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
+    mappings=LOG_GROUP_OUTPUT_MAPPINGS
+/]
 
 [#-- Dummy metricAttributes to allow for log watchers --]
 [#assign metricAttributes +=
@@ -103,11 +104,12 @@
         }
     }
 ]
-[#assign outputMappings +=
-    {
-        AWS_CLOUDWATCH_DASHBOARD_RESOURCE_TYPE : DASHBOARD_OUTPUT_MAPPINGS
-    }
-]
+
+[@addOutputMapping 
+    provider=AWS_PROVIDER
+    resourceType=AWS_CLOUDWATCH_DASHBOARD_RESOURCE_TYPE
+    mappings=DASHBOARD_OUTPUT_MAPPINGS
+/]
 
 [#macro createDashboard id name components ]
 
@@ -332,11 +334,12 @@
     }
 ]
 
-[#assign outputMappings +=
-    {
-        AWS_EVENT_RULE_RESOURCE_TYPE : EVENT_RULE_OUTPUT_MAPPINGS
-    }
-]
+[@addOutputMapping 
+    provider=AWS_PROVIDER
+    resourceType=AWS_EVENT_RULE_RESOURCE_TYPE
+    mappings=EVENT_RULE_OUTPUT_MAPPINGS
+/]
+
 [#macro createScheduleEventRule id
         enabled
         scheduleExpression
