@@ -32,6 +32,7 @@ where
 (o) -p GENERATION_PROVIDER     is the provider to for template generation 
 (o) -f GENERATION_FRAMEWORK    is the output framework to use for template generation
 (o) -t GENERATION_TESTCASE     is the test case you would like to generate a template for
+(o) -s GENERATION_SCENARIOS    is a comma seperated list of framework scenarios to load
 
 (m) mandatory, (o) optional, (d) deprecated
 
@@ -58,7 +59,7 @@ EOF
 function options() {
 
   # Parse options
-  while getopts ":c:d:f:g:hl:p:q:r:t:u:z:" option; do
+  while getopts ":c:d:f:g:hl:p:q:r:s:t:u:z:" option; do
       case "${option}" in
           c) CONFIGURATION_REFERENCE="${OPTARG}" ;;
           d) DEPLOYMENT_MODE="${OPTARG}" ;;
@@ -69,6 +70,7 @@ function options() {
           p) GENERATION_PROVIDER="${OPTARG}" ;;
           q) REQUEST_REFERENCE="${OPTARG}" ;;
           r) REGION="${OPTARG}" ;;
+          s) GENERATION_SCENARIOS="${OPTARG}" ;;
           t) GENERATION_TESTCASE="${OPTARG}" ;;
           u) DEPLOYMENT_UNIT="${OPTARG}" ;;
           z) DEPLOYMENT_UNIT_SUBSET="${OPTARG}" ;;

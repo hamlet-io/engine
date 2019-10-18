@@ -14,6 +14,7 @@
     [@includeProviderComponentDefinitionConfiguration provider="aws" component="ec2" /]
     [@includeProviderComponentConfiguration provider="aws" component="ec2" services=["ec2", "vpc"] /]
 [/#if]
+
 [#-- Name prefixes --]
 [#assign shortNamePrefixes = [] ]
 [#assign fullNamePrefixes = [] ]
@@ -509,9 +510,12 @@
 
 [#-- IP Address Groups - "global" is default --]
 [@includeSharedReferenceConfiguration referenceType=IPADDRESSGROUP_REFERENCE_TYPE /]
-[@addReferenceData type=IPADDRESSGROUP_REFERENCE_TYPE 
-    data=getEffectiveIPAddressGroups(blueprintObject.IPAddressGroups) 
-/]
+
+[#if blueprintObject.IPAddressGroups?has_content ]
+    [@addReferenceData type=IPADDRESSGROUP_REFERENCE_TYPE 
+        data=getEffectiveIPAddressGroups(blueprintObject.IPAddressGroups) 
+    /]
+[/#if]
 [#assign ipAddressGroups = referenceData.IPAddressGroups!{} ]
 
 [#function getIPAddressGroup group occurrence={}]

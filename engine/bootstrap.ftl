@@ -140,21 +140,43 @@
 [#-- Output handling --]
 [#include "output.ftl" ]
 
+[#-- Include any base level input sources --]
+[@includeBaseInputSourceConfiguration 
+    provider=SHARED_PROVIDER 
+    inputSource="shared" 
+/]
+
+[#if commandLineOptions.Input.Source?has_content]
+    [@includeBaseInputSourceConfiguration
+        provider=SHARED_PROVIDER
+        inputSource=commandLineOptions.Input.Source
+    /]
+[/#if]
+
 [#-- Include the shared provider --]
 [@includeProviderConfiguration provider=SHARED_PROVIDER /]
 
-[#-- Include any command line provider/input source --]
+[#-- Include any command line based input data source --]
+[#if commandLineOptions.Deployment.Provider.Name?has_content ]
+    [@includeBaseInputSourceConfiguration 
+        provider=commandLineOptions.Deployment.Provider.Name 
+        inputSource="shared" 
+    /]
+    [#if commandLineOptions.Input.Source?has_content]
+        [@includeBaseInputSourceConfiguration
+            provider=commandLineOptions.Deployment.Provider.Name
+            inputSource=commandLineOptions.Input.Source
+        /]
+    [/#if]
+[/#if]
+
+[#-- Include any command line provider --]
 [#if commandLineOptions.Deployment.Provider.Name?has_content ]
     [@includeProviderConfiguration provider=commandLineOptions.Deployment.Provider.Name /]
 [/#if]
 
-[#-- Build the base state of the blueprint using the seeded master data --]
-[@addBlueprint blueprint=getMasterData(SHARED_PROVIDER) /]
-
-[#-- Include any command line provider/input source --]
-[#if commandLineOptions.Deployment.Provider.Name?has_content ]
-    [@addBlueprint blueprint=getMasterData(commandLineOptions.Deployment.Provider.Name) /]
-[/#if]
+[#-- start the blueprint with the masterData --]
+[@addBlueprint blueprint=getMasterData() /]
 
 [#-- Set the scnearios provided via the CLI --]
 [@updateScenarioList 
@@ -196,6 +218,11 @@
 [/#if]
 
 [#-- Include any shared input sources --]
+[@includeInputSourceConfiguration
+    provider=SHARED_PROVIDER
+    inputSource="shared"
+/]
+
 [#if commandLineOptions.Input.Source?has_content]
     [@includeInputSourceConfiguration
         provider=SHARED_PROVIDER
@@ -205,6 +232,10 @@
 
 [#-- Include any command line provider/input source --]
 [#if commandLineOptions.Deployment.Provider.Name?has_content ]
+    [@includeInputSourceConfiguration
+        provider=commandLineOptions.Deployment.Provider.Name
+        inputSource="shared"
+    /]
     [#if commandLineOptions.Input.Source?has_content]
         [@includeInputSourceConfiguration
             provider=commandLineOptions.Deployment.Provider.Name

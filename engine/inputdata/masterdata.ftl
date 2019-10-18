@@ -5,25 +5,10 @@
 [#assign masterData = {} ]
 [#assign masterDataCache = {} ]
 
-[#macro addMasterData provider data={} ]
-    [#assign masterData +=
-        {
-            provider : data
-        } ]
+[#macro addMasterData data={} ]
+    [#assign masterData = mergeObjects(masterData, data )]
 [/#macro]
 
-[#function getMasterData provider]
-    [#local index = provider]
-    [#if masterDataCache[index]??]
-        [#return masterDataCache[index]]
-    [/#if]
-    [#local data =
-        mergeObjects(
-            masterData[SHARED_PROVIDER]!{},
-            masterData[provider]!{}) ]
-    [#assign masterDataCache +=
-        {
-            index : data
-        } ]
-    [#return data]
+[#function getMasterData ]
+    [#return masterData ]
 [/#function]
