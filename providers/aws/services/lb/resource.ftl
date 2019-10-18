@@ -53,7 +53,7 @@
     }
 ]
 
-[#local lbMappings =
+[#assign lbMappings =
     {
         AWS_LB_RESOURCE_TYPE : LB_OUTPUT_MAPPINGS,
         AWS_ALB_RESOURCE_TYPE : LB_OUTPUT_MAPPINGS,
