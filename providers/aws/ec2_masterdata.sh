@@ -66,7 +66,7 @@ fi
 
 cat << EOF > "inputsources/shared/masterdata.ftl"
 [#ftl]
-[#macro aws_input_shared_blueprint_seed ]
+[#macro aws_input_shared_masterdata_seed ]
   [@addMasterData
     data=
 EOF
