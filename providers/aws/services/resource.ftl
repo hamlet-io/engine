@@ -158,7 +158,6 @@
                         "Fn::GetAtt" : [resourceId, mapping.Attribute]
                     }
                 ]
-            [/#if]
             [#else]
                 [#return
                     {
