@@ -1,6 +1,7 @@
 [#ftl]
 
-[#-- Get stack output --]
+[#-- Override command line options for region setup --]
+[#-- This should be a valid region in the Masterdata --]
 [#macro shared_input_mock_commandlineoption_seed ]
     [@addCommandLineOption
         option={
