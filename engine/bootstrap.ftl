@@ -1,8 +1,25 @@
 [#ftl]
 
-[#-- Pull in the provided command line options --]
-[#assign commandLineOptions =
-    {
+[#-- Core helper routines --]
+[#include "base.ftl" ]
+
+[#-- Command line options are used to control the engine so make sure we load them first --]
+[#include "inputdata/commandLineOptions.ftl" ]
+
+[#-- Input data control --]
+[@addCommandLineOption
+    option={
+        "Input" : {
+            "Source" : inputSource!"composite",
+            "Scenarios" : (scenarios?split(","))![],
+            "TestCase" : testCase!""
+        }
+    }
+/]
+
+[#-- Deployment Details --]
+[@addCommandLineOption 
+    option={
         "Deployment" : {
             "Provider" : {
                 "Name" : provider!""
@@ -24,41 +41,79 @@
                 "Name" : resourceGroup!""
             },
             "Mode" : deploymentMode!""
-        },
+        }
+    }
+/]
+
+[#-- Logging Details --]
+[@addCommandLineOption 
+    option={
         "Logging" : {
             "Level" : logLevel!""
-        },
+        }
+    }
+/]
+
+[#-- RunId details --]
+[@addCommandLineOption 
+    option={
         "Run" : {
             "Id" : runId!""
-        },
-        "Regions" : {
-            "Segment" : region!"",
-            "Product" : productRegion!"",
-            "Account" : accountRegion!""
-        },
+        }
+    }
+/]
+
+[#-- Reference metadata --]
+[@addCommandLineOption
+    option={
         "References" : {
             "Request" : requestReference!"",
             "Configuration" : configurationReference!""
-        },
-        "Composites" : {
-            "Blueprint" : (blueprint!"{}")?eval,
-            "Settings" : (settings!"{}")?eval,
-            "Definitions" : (definitions!"{}")?eval,
-            "StackOutputs" : (stackOutputs!"[]")?eval
-        },
-        "Input" : {
-            "Source" : inputSource!"composite",
-            "Scenarios" : (scenarios?split(","))![],
-            "TestCase" : testCase!""
         }
-    } ]
+    }
+/]
+
+[#-- Composite Inputs --]
+[@addCommandLineOption
+    option={
+        "Composites" : {
+            "Blueprint" : (blueprint!"")?has_content?then(
+                                blueprint?eval,
+                                {}
+            ),
+            "Settings" : (settings!"")?has_content?then(
+                                settings?eval,
+                                {}
+            ),
+            "Definitions" : (definitions!"")?has_content?then(
+                                definitions?eval,
+                                {}
+            ),
+            "StackOutputs" : (stackOutputs!"")?has_content?then(
+                                stackOutputs?eval,
+                                {}
+            )
+        }
+    }
+/]
+
+[#-- Regions --]
+[@addCommandLineOption
+    option={
+        "Regions" : {
+            "Segment" : region!"",
+            "Account" : accountRegion!""
+        }
+    }
+/]
+
 
 [#if !deploymentFrameworkModel??]
     [#assign deploymentFrameworkModel = "legacy"]
 [/#if]
 
-[#-- Core helper routines --]
-[#include "base.ftl" ]
+[#-- logging --]
+[#include "logging.ftl" ]
 
 [#-- Input data handling --]
 [#include "inputdata/masterdata.ftl" ]
@@ -100,11 +155,6 @@
 [#if commandLineOptions.Deployment.Provider.Name?has_content ]
     [@addBlueprint blueprint=getMasterData(commandLineOptions.Deployment.Provider.Name) /]
 [/#if]
-
-[#-- Set the Deployment unit - default to the cli --]
-[@setDeploymentUnit 
-    deploymentUnit=commandLineOptions.Deployment.Unit.Name
-/]
 
 [#-- Set the scnearios provided via the CLI --]
 [@updateScenarioList 

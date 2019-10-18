@@ -23,7 +23,7 @@ where
 (m) -c CONFIGURATION_REFERENCE is the identifier of the configuration used to generate this template
 (o) -g RESOURCE_GROUP          is the deployment unit resource group
     -h                         shows this text
-(m) -l LEVEL                   is the template level - "blueprint", "account", "product", "segment", "solution" or "application"
+(m) -l LEVEL                   is the template level - "blueprint", "account", "segment", "solution" or "application"
 (m) -q REQUEST_REFERENCE       is an opaque value to link this template to a triggering request management system
 (o) -r REGION                  is the AWS region identifier
 (o) -u DEPLOYMENT_UNIT         is the deployment unit to be included in the template
@@ -174,7 +174,6 @@ function process_template_pass() {
   local deployment_unit_subset="${1,,}"; shift
   local account="$1"; shift
   local account_region="${1,,}"; shift
-  local product_region="${1,,}"; shift
   local region="${1,,}"; shift
   local request_reference="${1}"; shift
   local configuration_reference="${1}"; shift
@@ -360,7 +359,6 @@ function process_template_pass() {
   done
 
   args+=("-v" "region=${region}")
-  args+=("-v" "productRegion=${product_region}")
   args+=("-v" "accountRegion=${account_region}")
   args+=("-v" "blueprint=${COMPOSITE_BLUEPRINT}")
   args+=("-v" "settings=${COMPOSITE_SETTINGS}")
@@ -564,7 +562,6 @@ function process_template() {
   local deployment_unit_subset="${1,,}"; shift
   local account="$1"; shift
   local account_region="${1,,}"; shift
-  local product_region="${1,,}"; shift
   local region="${1,,}"; shift
   local request_reference="${1}"; shift
   local configuration_reference="${1}"; shift
@@ -639,7 +636,6 @@ function process_template() {
       "${deployment_unit_subset}" \
       "${account}" \
       "${account_region}" \
-      "${product_region}" \
       "${region}" \
       "${request_reference}" \
       "${configuration_reference}" \
@@ -673,7 +669,6 @@ function process_template() {
       "${deployment_unit_subset}" \
       "${account}" \
       "${account_region}" \
-      "${product_region}" \
       "${region}" \
       "${request_reference}" \
       "${configuration_reference}" \
@@ -729,7 +724,6 @@ function main() {
         "${LEVEL}" \
         "${DEPLOYMENT_UNIT}" "${RESOURCE_GROUP}" "${DEPLOYMENT_UNIT_SUBSET}" \
         "" "${ACCOUNT_REGION}" \
-        "${PRODUCT_REGION}" \
         "" \
         "${REQUEST_REFERENCE}" \
         "${CONFIGURATION_REFERENCE}" \
@@ -741,7 +735,6 @@ function main() {
         "${LEVEL}" \
         "${DEPLOYMENT_UNIT}" "${RESOURCE_GROUP}" "${DEPLOYMENT_UNIT_SUBSET}" \
         "${ACCOUNT}" "${ACCOUNT_REGION}" \
-        "${PRODUCT_REGION}" \
         "${REGION}" \
         "${REQUEST_REFERENCE}" \
         "${CONFIGURATION_REFERENCE}" \

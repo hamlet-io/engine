@@ -119,10 +119,6 @@
     [#assign accountRegionId = commandLineOptions.Regions.Account]
     [#assign accountRegionObject = regions[accountRegionId] ]
 [/#if]
-[#if commandLineOptions.Regions.Product?has_content]
-    [#assign productRegionId = commandLineOptions.Regions.Product]
-    [#assign productRegionObject = regions[productRegionId] ]
-[/#if]
 
 [#-- Tenants --]
 [#assign tenants = (blueprintObject.Tenants)!{} ]
@@ -418,8 +414,8 @@
 [#-- Required zones --]
 [#assign zones = [] ]
 [#list segmentObject.Network.Zones.Order as zoneId]
-    [#if regions[region].Zones[zoneId]?has_content]
-        [#assign zone = regions[region].Zones[zoneId] ]
+    [#if regions[commandLineOptions.Regions.Segment].Zones[zoneId]?has_content]
+        [#assign zone = regions[commandLineOptions.Regions.Segment].Zones[zoneId] ]
         [#assign zones +=
             [
                 addIdNameToObject(zone, zoneId) +

@@ -151,14 +151,14 @@
 
     [#local templates = [] ]
     [#-- aws/inputsources/composite/setting.ftl --]
-    [#list [ "blueprint", "stackoutput", "setting", "definition" ] as level]
+    [#list [ "blueprint", "stackoutput", "setting", "definition", "commandlineoption" ] as level]
         [#local templates += [[provider, "inputsources", inputSource, level]] ]
     [/#list]
 
     [@includeTemplates templates=templates /]
 
     [#-- seed in data provided at the inputsources level for provider and inputSource --]
-    [#list [ "setting", "blueprint", "definition" ] as level ]
+    [#list [ "setting", "blueprint", "definition", "commandlineoption" ] as level ]
         [#local seedMacroOptions = 
             [
                 [ provider, "input", commandLineOptions.Input.Source, level, "seed" ]

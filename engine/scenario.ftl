@@ -12,6 +12,7 @@
     blueprint={}
     settingSets=[]
     stackOutputs=[]
+    commandLineOption={}
 ]
 
     [#if blueprint?has_content ]
@@ -39,4 +40,8 @@
             ]
         /]
     [/#list]
+
+    [#if commandLineOption?has_content ]
+        [@addCommandLineOption options=commandLineOption /]
+    [/#if]
 [/#macro]
