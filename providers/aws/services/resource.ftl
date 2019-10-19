@@ -158,7 +158,7 @@
                         "Fn::GetAtt" : [resourceId, mapping.Attribute]
                     }
                 ]
-            [#else]
+            [#elseif !(mapping.UseRef)!false ]
                 [#return
                     {
                         "Mapping" : "COTFatal: Unknown Resource Type",

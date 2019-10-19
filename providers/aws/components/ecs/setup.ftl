@@ -536,6 +536,11 @@
         [#local engine = solution.Engine?lower_case ]
         [#local executionRoleId = ""]
 
+        [#local subnets = multiAZ?then(
+                getSubnets(core.Tier, networkResources),
+                getSubnets(core.Tier, networkResources)[0..0]
+            )]
+
         [#if engine == "fargate" && networkMode != "awsvpc" ]
             [@fatal
                 message="Fargate containers only support the awsvpc network mode"
@@ -554,11 +559,6 @@
 
             [#local ecsSecurityGroupId = resources["securityGroup"].Id ]
             [#local ecsSecurityGroupName = resources["securityGroup"].Name ]
-
-            [#local subnets = multiAZ?then(
-                getSubnets(core.Tier, networkResources),
-                getSubnets(core.Tier, networkResources)[0..0]
-            )]
 
             [#local aswVpcNetworkConfiguration =
                 {
@@ -1093,6 +1093,32 @@
                 [#local ruleCleanupOutput = {}]
                 [#local cliCleanUpRequired = false]
 
+                [#local scheduleTaskRoleId = resources["scheduleRole"].Id ]
+                [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(scheduleTaskRoleId)]
+                    [@createRole
+                        id=scheduleTaskRoleId
+                        trustedServices=["events.amazonaws.com"]
+                        policies=[
+                            getPolicyDocument(
+                                ecsTaskRunPermission(ecsId) +
+                                roleId?has_content?then(
+                                    iamPassRolePermission(
+                                        getReference(roleId, ARN_ATTRIBUTE_TYPE)
+                                    ),
+                                    []
+                                ) +
+                                executionRoleId?has_content?then(
+                                    iamPassRolePermission(
+                                        getReference(executionRoleId, ARN_ATTRIBUTE_TYPE)
+                                    ),
+                                    []
+                                ),
+                                "schedule"
+                            )
+                        ]
+                    /]
+                [/#if]
+
                 [#list solution.Schedules?values as schedule ]
 
                     [#local scheduleRuleId = resources["schedules"][schedule.Id]["schedule"].Id ]
@@ -1105,8 +1131,6 @@
                                 false,
                                 schedule.Enabled
                     )]
-
-                    [#local scheduleTaskRoleId = resources["scheduleRole"].Id ]
 
                     [#local targetParameters = {
                         "Arn" : getExistingReference(ecsId, ARN_ATTRIBUTE_TYPE),
@@ -1323,4 +1347,3 @@
         [/#if]
     [/#list]
 [/#macro]
-
