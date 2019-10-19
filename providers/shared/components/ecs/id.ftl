@@ -336,6 +336,12 @@
                         "Values" : [ "", "daemon"],
                         "Description" : "How to place containers on the cluster",
                         "Default" : ""
+                    },
+                    {
+                        "Names" : "DistinctInstance",
+                        "Type" : BOOLEAN_TYPE,
+                        "Description" : "Each task is running on a different container instance when true",
+                        "Default" : true
                     }
                 ]
             },
