@@ -11,7 +11,7 @@
     }
 ]
 
-[@addOutputMapping 
+[@addOutputMapping
     provider=AWS_PROVIDER
     resourceType=AWS_KINESIS_FIREHOSE_STREAM_RESOURCE_TYPE
     mappings=KINESIS_FIREHOSE_STREAM_OUTPUT_MAPPINGS
@@ -76,12 +76,16 @@
                 "RoleARN" : getReference(roleId, ARN_ATTRIBUTE_TYPE),
                 "S3BackupMode" : backupPolicy,
                 "S3Configuration" : backupS3Destination,
-                "CloudWatchLoggingOptions" : loggingConfiguration,
-                "ProcessingConfiguration" : {
+                "CloudWatchLoggingOptions" : loggingConfiguration
+            } +
+            attributeIfContent(
+                "ProcessingConfiguration",
+                lambdaProcessor,
+                {
                     "Enabled" : true,
                     "Processors" : asArray(lambdaProcessor)
                 }
-            }
+            )
         }
     ]
 [/#function]
@@ -121,7 +125,7 @@
     ]
 [/#function]
 
-[#function getFirehoseStreamS3Destination 
+[#function getFirehoseStreamS3Destination
         bucketId
         bucketPrefix
         errorPrefix
@@ -136,7 +140,7 @@
         lambdaProcessor
 ]
 
-[#return 
+[#return
  {
      "ExtendedS3DestinationConfiguration" : {
         "BucketARN" : getArn(bucketId),
@@ -147,23 +151,26 @@
         "CloudWatchLoggingOptions" : loggingConfiguration,
         "CompressionFormat" : "GZIP",
         "RoleARN" : getReference(roleId, ARN_ATTRIBUTE_TYPE),
-        "S3BackupMode" : backupEnabled?then("Enabled", "Disabled"),
-        
-        "ProcessingConfiguration" : {
+        "S3BackupMode" : backupEnabled?then("Enabled", "Disabled")
+    } +
+    attributeIfContent(
+        "ProcessingConfiguration",
+        lambdaProcessor,
+        {
             "Enabled" : true,
             "Processors" : asArray(lambdaProcessor)
         }
-    } + 
+    ) +
     attributeIfContent(
         "Prefix",
         bucketPrefix,
         bucketPrefix?ensure_ends_with("/")
-    ) + 
+    ) +
     attributeIfContent(
         "ErrorOutputPrefix",
         errorPrefix,
         errorPrefix?ensure_ends_with("/")
-    ) + 
+    ) +
     attributeIfTrue(
         "EncryptionConfiguration",
         encrypted,
@@ -173,8 +180,8 @@
             }
         }
     ) +
-    attributeIfTrue( 
-        "S3BackupConfiguration" 
+    attributeIfTrue(
+        "S3BackupConfiguration"
         backupEnabled,
         backupS3Destination
     )
