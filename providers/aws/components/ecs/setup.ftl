@@ -1132,25 +1132,27 @@
                                 schedule.Enabled
                     )]
 
-                    [#local targetParameters = {
-                        "Arn" : getExistingReference(ecsId, ARN_ATTRIBUTE_TYPE),
-                        "Id" : taskId,
-                        "EcsParameters" : {
-                            "TaskCount" : schedule.TaskCount,
-                            "TaskDefinitionArn" : getReference(taskId, ARN_ATTRIBUTE_TYPE)
-                        },
-                        "RoleArn" : getReference(scheduleTaskRoleId, ARN_ATTRIBUTE_TYPE)
-                    } +
-                    attributeIfTrue(
-                        "NetworkConfiguration",
-                        networkMode = "awsvpc",
-                        {
-                            "awsvpcConfiguration" : {
+                    [#local ecsParameters = {
+                        "TaskCount" : schedule.TaskCount,
+                        "TaskDefinitionArn" : getReference(taskId, ARN_ATTRIBUTE_TYPE)
+                     }]
+
+                    [#if networkMode == "awsvpc" ]
+                        [#local ecsParameters += {
+                        "NetworkConfiguration" : {
+                            "AwsVpcConfiguration" : {
                                 "Subnets" : subnets,
                                 "AssignPublicIp" : publicRouteTable?then("ENABLE", "DISABLED")
                             }
-                        }
-                    ) +
+                        }]
+                    [/#if]
+
+                    [#local targetParameters = {
+                        "Arn" : getExistingReference(ecsId, ARN_ATTRIBUTE_TYPE),
+                        "Id" : taskId,
+                        "EcsParameters" : ecsParameters,
+                        "RoleArn" : getReference(scheduleTaskRoleId, ARN_ATTRIBUTE_TYPE)
+                    } +
                     attributeIfTrue(
                         "LaunchType",
                         engine == "fargate",
