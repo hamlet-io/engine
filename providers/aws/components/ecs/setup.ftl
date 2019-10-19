@@ -1139,10 +1139,14 @@
 
                     [#if networkMode == "awsvpc" ]
                         [#local ecsParameters += {
-                        "NetworkConfiguration" : {
-                            "AwsVpcConfiguration" : {
-                                "Subnets" : subnets,
-                                "AssignPublicIp" : publicRouteTable?then("ENABLE", "DISABLED")
+                            "NetworkConfiguration" : {
+                                "AwsVpcConfiguration" : {
+                                    "Subnets" : subnets,
+                                    "AssignPublicIp" : publicRouteTable?then(
+                                                        "ENABLE",
+                                                        "DISABLED"
+                                                    )
+                                }
                             }
                         }]
                     [/#if]
