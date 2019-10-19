@@ -1,6 +1,6 @@
 [#ftl]
 
-[@addReference 
+[@addReference
     type=PORT_REFERENCE_TYPE
     pluralType="Ports"
     properties=[
@@ -34,7 +34,7 @@
                 },
                 {
                     "Names" : "HealthyThreshold",
-                    "Type" : [ NUMBER_TYPE, STRING_TYPE] 
+                    "Type" : [ NUMBER_TYPE, STRING_TYPE]
                 },
                 {
                     "Names" : "UnhealthyThreshold",
@@ -75,6 +75,11 @@
                     "Type" : NUMBER_TYPE
                 }
             ]
+        },
+        {
+            "Names" : "Certificate",
+            "Type" : BOOLEAN_TYPE,
+            "Default" : false
         }
     ]
 /]
