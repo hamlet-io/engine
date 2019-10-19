@@ -17,9 +17,6 @@
     [#local streamRoleId = resources["role"].Id ]
     [#local streamRolePolicyId = formatDependentPolicyId(streamRoleId, "local")]
 
-    [#local streamSubscriptionRoleId = resources["subscriptionRole"].Id!"" ]
-    [#local streamSubscriptionPolicyId = formatDependentPolicyId(streamSubscriptionRoleId, "local")]
-
     [#local streamLgId = (resources["lg"].Id)!"" ]
     [#local streamLgName = (resources["lg"].Name)!"" ]
     [#local streamLgStreamId = (resources["streamlgstream"].Id)!""]
@@ -41,6 +38,11 @@
     [#local dataBucketPrefix    = getAppDataFilePrefix(occurrence) ]
 
     [#local cmkKeyId            = baselineComponentIds["Encryption"]]
+
+    [#if solution.LogWatchers?has_content ]
+        [#local streamSubscriptionRoleId = resources["subscriptionRole"].Id!"" ]
+        [#local streamSubscriptionPolicyId = formatDependentPolicyId(streamSubscriptionRoleId, "local")]
+    [/#if]
 
     [#if logging ]
         [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(streamLgId) ]
@@ -259,7 +261,7 @@
                     dependencies=streamDependencies
                 /]
                 [#break]
-                
+
             [#case ES_COMPONENT_TYPE ]
 
                 [#local esId = destinationLink.State.Resources["es"].Id ]
