@@ -284,6 +284,15 @@
             dependencies=""
     ]
 
+    [#-- define an array of constraints --]
+    [#-- for potential support of "memberOf" type placement constraint --]
+    [#local placementConstraints = [] ]
+    [#if placement.DistinctInstance]
+        [#local placementConstraints += [{
+            "Type" : "distinctInstance"
+        }]]
+    [/#if]
+
     [@cfResource
         id=id
         type="AWS::ECS::Service"
@@ -329,6 +338,11 @@
             attributeIfContent(
                 "NetworkConfiguration",
                 networkConfiguration
+            ) +
+            attributeIfTrue(
+                "PlacementConstraints",
+                placementConstraints?size > 0,
+                placementConstraints
             )
         dependencies=dependencies
         outputs=ECS_SERVICE_OUTPUT_MAPPINGS
