@@ -1151,17 +1151,18 @@
                         }]
                     [/#if]
 
+                    [#if engine == "fargate" ]
+                        [#local ecsParameters += {
+                            "LaunchType" : "FARGATE"
+                        }]
+                    [/#if]
+
                     [#local targetParameters = {
                         "Arn" : getExistingReference(ecsId, ARN_ATTRIBUTE_TYPE),
                         "Id" : taskId,
                         "EcsParameters" : ecsParameters,
                         "RoleArn" : getReference(scheduleTaskRoleId, ARN_ATTRIBUTE_TYPE)
-                    } +
-                    attributeIfTrue(
-                        "LaunchType",
-                        engine == "fargate",
-                        "FARGATE"
-                    )]
+                    }]
 
                     [@createScheduleEventRule
                         id=scheduleRuleId
