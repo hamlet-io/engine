@@ -67,7 +67,7 @@
                     "URL" : getExistingReference(id, URL_ATTRIBUTE_TYPE),
                     "PRODUCT_URL" : getExistingReference(id, URL_ATTRIBUTE_TYPE)?replace("https://", "sqs://"),
                     "ARN" : getExistingReference(id, ARN_ATTRIBUTE_TYPE),
-                    "REGION" : getExistingReference(esId, REGION_ATTRIBUTE_TYPE)!regionId
+                    "REGION" : getExistingReference(id, REGION_ATTRIBUTE_TYPE)!regionId
                 },
                 "Roles" : {
                     "Inbound" : {},
