@@ -341,7 +341,7 @@
             ) +
             attributeIfTrue(
                 "PlacementConstraints",
-                placementConstraints?size > 0,
+                (engine != "fargate") && (placementConstraints?size > 0),
                 placementConstraints
             )
         dependencies=dependencies
