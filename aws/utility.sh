@@ -1701,6 +1701,15 @@ function get_rds_url() {
   echo "${engine}://${username}:${password}@${fqdn}:${port}/${database_name}"
 }
 
+function update_rds_ca_identifier() {
+  local region="$1"; shift
+  local db_identifier="$1"; shift
+  local ca_identifier="$1"; shift
+
+  info "Updating CA for RDS instance ${db_identifier} to ${ca_identifier}"
+  aws --region "${region}" rds modify-db-instance --db-instance-identifier ${db_identifier} --ca-certificate-identifier "${ca_identifier}" 1> /dev/null
+}
+
 # -- Git Repo Management --
 
 function in_git_repo() {

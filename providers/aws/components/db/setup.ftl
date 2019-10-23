@@ -172,6 +172,8 @@
                                 getProcessor(occurrence, "RDS"),
                                 getProcessor(occurrence, DB_COMPONENT_TYPE )
                             )]
+    [#local securityProfile = getSecurityProfile(solution.Profiles.Security, "db" )]
+    [#local requiredRDSCA = securityProfile["SSLCertificateAuthority"]!"COTFatal: SSLCertificateAuthority not found in security profile: " + solution.Profiles.Security ]
 
     [#if deploymentSubsetRequired("prologue", false)]
         [@addToDefaultBashScriptOutput
@@ -407,9 +409,11 @@
         [#if deploymentSubsetRequired("epilogue", false)]
 
             [#local rdsFQDN = getExistingReference(rdsId, DNS_ATTRIBUTE_TYPE)]
+            [#local rdsCA = getExistingReference(rdsId, "ca")]
 
             [#local passwordPseudoStackFile = "\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-password-pseudo-stack.json\"" ]
             [#local urlPseudoStackFile = "\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-url-pseudo-stack.json\""]
+            [#local caPseudoStackFile = "\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-ca-pseudo-stack.json\""]
             [@addToDefaultBashScriptOutput
                 content=
                 [
@@ -503,6 +507,27 @@
                     [
                         "}",
                         "reset_master_password || return $?"
+                    ],
+                []) +
+                (rdsCA != requiredRDSCA)?then(
+                    [
+                        "# Update RDS CA",
+                        "function update_rds_ca() {",
+                        "info \"Updating RDS CA ... \"",
+                        "rdsCAIdentifier=\"" + requiredRDSCA + "\"",
+                        "update_rds_ca_identifier" +
+                        " \"" + region + "\" " +
+                        " \"" + rdsFullName + "\" " +
+                        " \"$\{rdsCAIdentifier}\" || return $?"
+                    ] +
+                    pseudoStackOutputScript(
+                            "RDS CA Identifier",
+                            { formatId(rdsId, "ca") : "$\{requiredRDSCA}" },
+                            "ca"
+                    ) +
+                    [
+                        "}",
+                        "update_rds_ca || return $?"
                     ],
                 []) +
                 [

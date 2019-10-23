@@ -25,6 +25,11 @@
                 {
                     "Names" : "WAFValueSet",
                     "Type" : STRING_TYPE
+                },
+                {
+                    "Names" : "SSLCertificateAuthority",
+                    "Description" : "The Certificate authority to use for SSL Clients",
+                    "Type" : STRING_TYPE
                 }
             ]
         }
