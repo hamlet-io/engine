@@ -287,7 +287,7 @@
     [#-- define an array of constraints --]
     [#-- for potential support of "memberOf" type placement constraint --]
     [#local placementConstraints = [] ]
-    [#if placement.DistinctInstance]
+    [#if placement.DistinctInstance && (engine != "fargate")]
         [#local placementConstraints += [{
             "Type" : "distinctInstance"
         }]]
