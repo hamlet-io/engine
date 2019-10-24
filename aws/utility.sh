@@ -1865,7 +1865,7 @@ function release_enis() {
     local region="$1"; shift
     local requester_id="$1"; shift
 
-    eni_interfaces = "$( aws --region "${region}" ec2 describe-network-interfaces --filters Name=requester-id,Values="*${requester_id}" || return $? )"
+    eni_interfaces="$( aws --region "${region}" ec2 describe-network-interfaces --filters Name=requester-id,Values="*${requester_id}" || return $? )"
 
     if [[ -n "${eni_interfaces}" ]]; then
       for attachment_id in $( echo "${eni_interfaces}" | jq -r '.NetworkInterfaces[].Attachment.AttachmentId | select (.!=null)' ) ; do
