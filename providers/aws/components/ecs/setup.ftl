@@ -1164,13 +1164,14 @@
                         "RoleArn" : getReference(scheduleTaskRoleId, ARN_ATTRIBUTE_TYPE)
                     }]
 
-                    [@createScheduleEventRule
-                        id=scheduleRuleId
-                        enabled=scheduleEnabled
-                        scheduleExpression=schedule.Expression
-                        targetParameters=targetParameters
-                        dependencies=fnId
-                    /]
+                    [#if deploymentSubsetRequired("ecs", true) ]
+                        [@createScheduleEventRule
+                            id=scheduleRuleId
+                            enabled=scheduleEnabled
+                            scheduleExpression=schedule.Expression
+                            targetParameters=targetParameters
+                        /]
+                    [/#if]
 
                     [#local ruleCleanupScript += [
                         "       delete_cloudwatch_event" +
