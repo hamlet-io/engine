@@ -19,17 +19,25 @@
     ]
 [/#function]
 
-[#macro createPolicy id name statements roles="" users="" groups="" dependencies=[] ]
-    [@cfResource
-        id=id
-        type="AWS::IAM::Policy"
-        properties=
-            getPolicyDocument(statements, name) +
-            attributeIfContent("Users", users, getReferences(users)) +
-            attributeIfContent("Roles", roles, getReferences(roles))
-        outputs={}
-        dependencies=dependencies
-    /]
+[#macro createPolicy id name statements roles="" users="" groups="" dependencies=[] statementGrouping=6 ]
+
+    [#list statements?chunk(statementGrouping) as groupStatement ]
+
+        [#if groupStatement?index != 0 ]
+            [#local id = formatId(id, groupStatement?index) ]
+            [#local name = formatName(name, groupStatement?index) ]
+        [/#if]
+
+        [@cfResource
+            id=id
+            type="AWS::IAM::Policy"
+            properties=
+                getPolicyDocument(groupStatement, name ) +
+                attributeIfContent("Users", users, getReferences(users)) +
+                attributeIfContent("Roles", roles, getReferences(roles))
+            dependencies=dependencies
+        /]
+    [/#list]
 [/#macro]
 
 [#assign ROLE_OUTPUT_MAPPINGS =
@@ -45,7 +53,7 @@
         }
     }
 ]
-[@addOutputMapping 
+[@addOutputMapping
     provider=AWS_PROVIDER
     resourceType=AWS_IAM_ROLE_RESOURCE_TYPE
     mappings=ROLE_OUTPUT_MAPPINGS
@@ -118,7 +126,7 @@
         }
     }
 ]
-[@addOutputMapping 
+[@addOutputMapping
     provider=AWS_PROVIDER
     resourceType=AWS_IAM_USER_RESOURCE_TYPE
     mappings=USER_OUTPUT_MAPPINGS
