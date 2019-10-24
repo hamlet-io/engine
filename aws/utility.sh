@@ -1707,7 +1707,8 @@ function update_rds_ca_identifier() {
   local ca_identifier="$1"; shift
 
   info "Updating CA for RDS instance ${db_identifier} to ${ca_identifier}"
-  aws --region "${region}" rds modify-db-instance --db-instance-identifier ${db_identifier} --ca-certificate-identifier "${ca_identifier}" 1> /dev/null
+  aws --region "${region}" rds wait db-instance-available --db-instance-identifier "${db_identifier}" || return $?
+  aws --region "${region}" rds modify-db-instance --db-instance-identifier ${db_identifier} --ca-certificate-identifier "${ca_identifier}" 1> /dev/null || return $?
 }
 
 # -- Git Repo Management --
