@@ -761,7 +761,7 @@ function delete_cloudwatch_event() {
     local ruleName="$1"; shift
     local includeRule="$1"; shift
 
-    local return_status=0 
+    local return_status=0
 
     if [[ -n "$(aws --region "${region}" events list-rules --query "Rules[?Name == '$ruleName'].Name" --output text)" ]]; then
 
@@ -780,16 +780,16 @@ function delete_cloudwatch_event() {
 }
 
 function create_cloudwatch_event () {
-  local region="$1"; shift 
+  local region="$1"; shift
   local ruleName="$1"; shift
   local eventRoleId="$1"; shift
-  local ruleConfigFile="$1"; shift 
+  local ruleConfigFile="$1"; shift
   local targetConfigFile="$1"; shift
 
-  local return_status=0 
+  local return_status=0
 
   if [[ "${eventRoleId}" != arn:* ]]; then
-    eventRoleArn="$(get_cloudformation_stack_output "${region}" "${cfnStackName}" "${eventRoleId}" "arn" || return $?)" 
+    eventRoleArn="$(get_cloudformation_stack_output "${region}" "${cfnStackName}" "${eventRoleId}" "arn" || return $?)"
   else
     eventRoleArn="${eventRoleId}"
   fi
@@ -804,27 +804,27 @@ function create_cloudwatch_event () {
   return ${return_status}
 }
 
-# -- CloudFormation -- 
+# -- CloudFormation --
 function get_cloudformation_stack_output() {
   local region="$1"; shift
   local stackName="$1"; shift
-  local resourceId="$1"; shift 
-  local attributeType="$1"; shift 
+  local resourceId="$1"; shift
+  local attributeType="$1"; shift
 
-  if [[ -z "${attributeType}" || "${attributeType}" == "ref" ]]; then 
+  if [[ -z "${attributeType}" || "${attributeType}" == "ref" ]]; then
     stackOutputKey="${resourceId}"
   else
     stackOutputKey="${resourceId}X${attributeType}"
   fi
 
   stack_id="$(aws --region "${region}" cloudformation list-stacks --stack-status-filter "CREATE_COMPLETE" "UPDATE_COMPLETE" --query "StackSummaries[?StackName == '$stackName'].StackId" --output text || return $?)"
-  if [[ -n "${stack_id}" ]]; then 
+  if [[ -n "${stack_id}" ]]; then
     aws --region "${region}" cloudformation describe-stacks --stack-name "${stackName}" --query "Stacks[*].Outputs[?OutputKey == '${stackOutputKey}'].OutputValue" --output text || return $?
   fi
 }
 
 # -- Content Node --
-function copy_contentnode_file() { 
+function copy_contentnode_file() {
   local files="$1"; shift
   local engine="$1"; shift
   local path="$1"; shift
@@ -837,11 +837,11 @@ function copy_contentnode_file() {
   local contenthubdir="${tmp_dir}/contenthub"
   local hubpath="${contenthubdir}/${prefix}${nodepath}"
 
-  # Copy files into repo 
-  if [[ -f "${files}" ]]; then 
+  # Copy files into repo
+  if [[ -f "${files}" ]]; then
 
-    case ${engine} in 
-      github) 
+    case ${engine} in
+      github)
 
         # Copy files locally so we can synch with git
         for file in "${files[@]}" ; do
@@ -851,7 +851,7 @@ function copy_contentnode_file() {
                 unzip "${file}" -d "${contentnodedir}" || return $?
                 ;;
               *)
-                if [[ ! -d "${contentnodedir}" ]]; then 
+                if [[ ! -d "${contentnodedir}" ]]; then
                   mkdir -p "${contentnodedir}"
                 fi
                 cp "${file}" "${contentnodedir}" || return $?
@@ -864,22 +864,22 @@ function copy_contentnode_file() {
         local host="github.com"
         clone_git_repo "${engine}" "${host}" "${path}" "${branch}" "${contenthubdir}" || return $?
 
-        case ${STACK_OPERATION} in 
+        case ${STACK_OPERATION} in
 
-          delete) 
+          delete)
             if [[ -n "${hubpath}" ]]; then
               rm -rf "${hubpath}" || return $?
-            else 
-              fatal "Hub path not defined" 
+            else
+              fatal "Hub path not defined"
               return 1
             fi
           ;;
-          
+
           create|update)
             if [[ -n "${hubpath}" ]]; then
-              if [[ -d "${hubpath}" && "${copymode}" == "replace" ]]; then 
+              if [[ -d "${hubpath}" && "${copymode}" == "replace" ]]; then
                 rm -rf "${hubpath}" || return $?
-              fi 
+              fi
               mkdir -p "${hubpath}"
               cp -R ${contentnodedir}/* ${hubpath} || return $?
             else
@@ -896,9 +896,9 @@ function copy_contentnode_file() {
             "${GIT_USER}" "${GIT_EMAIL}" || return $?
 
       ;;
-    esac 
-  else 
-    info "No files found to copy" 
+    esac
+  else
+    info "No files found to copy"
   fi
 
   return 0
@@ -923,7 +923,7 @@ function update_cognito_userpool_client() {
   aws --region "${region}" cognito-idp update-user-pool-client --user-pool-id "${userpoolid}" --client-id "${userpoolclientid}" --cli-input-json "file://${configfile}"
 }
 
-function update_cognito_userpool_authprovider() { 
+function update_cognito_userpool_authprovider() {
   local region="$1"; shift
   local userpoolid="$1"; shift
   local authprovidername="$1"; shift
@@ -931,8 +931,8 @@ function update_cognito_userpool_authprovider() {
   local encryption_scheme="$1"; shift
   local oidc_client_secret="$1"; shift
   local configfile="$1"; shift
-  
-  if [[ "${authprovidertype}" == "OIDC" ]]; then 
+
+  if [[ "${authprovidertype}" == "OIDC" ]]; then
     if [[ "${oidc_client_secret}" == "${encryption_scheme}"* ]]; then
         decrypted_oidc_client_secret="$( decrypt_kms_string "${region}" "${oidc_client_secret#${encryption_scheme}}" || return $? )"
     else
@@ -941,24 +941,24 @@ function update_cognito_userpool_authprovider() {
 
     jq --arg client_secret "${decrypted_oidc_client_secret}" -r '.ProviderDetails.client_secret=$client_secret' < "${configfile}" > "${configfile}_clientsecret" || return $?
 
-    if [[ -f "${configfile}_clientsecret" ]]; then 
+    if [[ -f "${configfile}_clientsecret" ]]; then
       mv "${configfile}_clientsecret" "${configfile}"
     fi
   fi
 
-  current_provider_type="$(aws --region "${region}" cognito-idp describe-identity-provider --user-pool-id "${userpoolid}" --provider-name "${authprovidername}" --query "IdentityProvider.ProviderType" --output text 2>/dev/null || true )" 
+  current_provider_type="$(aws --region "${region}" cognito-idp describe-identity-provider --user-pool-id "${userpoolid}" --provider-name "${authprovidername}" --query "IdentityProvider.ProviderType" --output text 2>/dev/null || true )"
 
   if [[ -n "${current_provider_type}" && ( "${current_provider_type}" != "${authprovidertype}" ) ]]; then
     # delete the provider if the type is different
     aws --region "${region}" cognito-idp delete-identity-provider --user-pool-id "${userpoolid}" --provider-name "${authprovidername}" || return $?
-  fi 
+  fi
 
   if [[ -z "${current_provider_type}" || ( "${current_provider_type}" != "${authprovidertype}" ) ]]; then
-    # create the provider 
+    # create the provider
     aws --region "${region}" cognito-idp create-identity-provider --user-pool-id "${userpoolid}" --provider-name "${authprovidername}" --provider-type "${authprovidertype}" --cli-input-json "file://${configfile}" || return $?
   fi
 
-  if [[ "${current_provider_type}" == "${authprovidertype}" ]]; then 
+  if [[ "${current_provider_type}" == "${authprovidertype}" ]]; then
     # update the provider
     aws --region "${region}" cognito-idp update-identity-provider --user-pool-id "${userpoolid}" --provider-name "${authprovidername}" --cli-input-json "file://${configfile}" || return $?
   fi
@@ -977,14 +977,14 @@ function cleanup_cognito_userpool_authproviders() {
     arrayFromList expected_provider_list "${expectedproviders}"
     arrayFromList current_provider_list "${current_providers}"
 
-    for provider in "${current_provider_list[@]}"; do 
+    for provider in "${current_provider_list[@]}"; do
       if [[ $( ! inArray "expected_provider_list" "${provider}" ) || "${removeall}" == "true" ]]; then
         info "Removing auth provider ${provider} from ${userpoolid}"
         aws --region "${region}" cognito-idp delete-identity-provider --user-pool-id "${userpoolid}" --provider-name "${provider}" || return $?
       fi
-    done 
+    done
 
-  else  
+  else
     info "No providers found moving on.."
   fi
 }
@@ -1006,21 +1006,21 @@ function manage_cognito_userpool_domain() {
     case "${action}" in
         create)
             info "Adding domain to userpool"
-            
-            case "${domaintype}" in 
+
+            case "${domaintype}" in
               internal)
                 userpool_domain="$(aws --region ${region} cognito-idp describe-user-pool --user-pool-id "${userpoolid}" --query "UserPool.Domain" --output text)"
                 ;;
-              custom) 
+              custom)
                 userpool_domain="$(aws --region ${region} cognito-idp describe-user-pool --user-pool-id "${userpoolid}" --query "UserPool.CustomDomain" --output text)"
                 ;;
             esac
-            
+
             if [[ "${userpool_domain}" != "${domain}" && "${userpool_domain}" != "None" && -n "${userpool_domain}" ]]; then
               aws --region "${region}" cognito-idp delete-user-pool-domain --user-pool-id "${userpoolid}" --domain "${userpool_domain}" || return $?
             fi
 
-            if [[ ( "${userpool_domain}" == "None" || "${userpool_domain}" != "${domain}" ) && -n "${userpool_domain}" ]]; then  
+            if [[ ( "${userpool_domain}" == "None" || "${userpool_domain}" != "${domain}" ) && -n "${userpool_domain}" ]]; then
               aws --region "${region}" cognito-idp create-user-pool-domain --user-pool-id "${userpoolid}" --cli-input-json "file://${configfile}" || return $?
               return_status=$?
             fi
@@ -1051,7 +1051,7 @@ function manage_cognito_userpool_domain() {
 
 function get_cognito_userpool_custom_distribution() {
   local region="$1"; shift
-  local domain="${1}"; shift 
+  local domain="${1}"; shift
 
   aws --region "${region}" cognito-idp describe-user-pool-domain --domain ${domain} --query "DomainDescription.CloudFrontDistribution" --output text || return $?
 }
@@ -1081,7 +1081,7 @@ function update_data_pipeline() {
   local cfnStackName="$1"; shift
   local securityGroupId="$1"; shift
 
-  # Add resources created during stack creation 
+  # Add resources created during stack creation
   securityGroup="$(get_cloudformation_stack_output "${region}" "${cfnStackName}" "${securityGroupId}" "ref" || return $?)"
 
   arnLookupValueFile="$(filePath ${parametervaluefile})/ArnLookup-$(fileBase ${parametervaluefile})"
@@ -1101,9 +1101,9 @@ function update_data_pipeline() {
   fi
 }
 
-#-- DynamoDB -- 
+#-- DynamoDB --
 function upsert_dynamodb_item() {
-  local region="$1"; shift 
+  local region="$1"; shift
   local tableName="$1"; shift
   local configfile="$1"; shift
   local cfnStackName="$1"; shift
@@ -1113,15 +1113,15 @@ function upsert_dynamodb_item() {
   return 0
 }
 
-function scan_dynamodb_table() { 
-  local region="$1"; shift 
+function scan_dynamodb_table() {
+  local region="$1"; shift
   local tableName="$1"; shift
   local configfile="$1"; shift
   local cfnStackName="$1"; shift
 
   items="$(aws --region "${region}" dynamodb scan --table-name "${tableName}" --cli-input-json "file://${configfile}" --query "Items[*]" --output json || return $? )"
 
-  # return each item as a new line 
+  # return each item as a new line
   items="$( echo "${items}" | jq -c '.[]' )"
 
   echo "${items}"
@@ -1131,22 +1131,22 @@ function scan_dynamodb_table() {
 
 function delete_dynamodb_items() {
   local region="$1"; shift
-  local tableName="$1"; shift 
-  local itemKeys="$1"; shift 
-  local cfnStackName="$1"; shift 
+  local tableName="$1"; shift
+  local itemKeys="$1"; shift
+  local cfnStackName="$1"; shift
 
   arrayFromList items_to_delete "${itemKeys}"
 
   for item in "${items_to_delete[@]}"; do
-    aws --region "${region}" dynamodb delete-item --table-name "${tableName}" --key "${item}" || return $? 
-  done 
+    aws --region "${region}" dynamodb delete-item --table-name "${tableName}" --key "${item}" || return $?
+  done
 }
 
-#-- ECS -- 
+#-- ECS --
 function create_ecs_scheduled_task() {
-  local region="$1"; shift 
+  local region="$1"; shift
   local ruleName="$1"; shift
-  local ruleConfigFile="$1"; shift 
+  local ruleConfigFile="$1"; shift
   local targetConfigFile="$1"; shift
   local cfnStackName="$1"; shift
   local taskId="$1"; shift
@@ -1154,7 +1154,7 @@ function create_ecs_scheduled_task() {
   local securityGroupId="$1"; shift
 
   ecsTaskArn="$(get_cloudformation_stack_output "${region}" "${cfnStackName}" "${taskId}" "arn" || return $?)"
-  securityGroup="$(get_cloudformation_stack_output "${region}" "${cfnStackName}" "${securityGroupId}" "ref" || return $?)" 
+  securityGroup="$(get_cloudformation_stack_output "${region}" "${cfnStackName}" "${securityGroupId}" "ref" || return $?)"
 
   arnLookupConfigFile="$(filePath ${targetConfigFile})/ArnLookup-$(fileBase ${targetConfigFile})"
   jq --arg ecsTaskArn "${ecsTaskArn}" --arg securityGroup "$securityGroup" '.Targets[0].EcsParameters.TaskDefinitionArn = $ecsTaskArn | .Targets[0].EcsParameters.NetworkConfiguration.awsvpcConfiguration.SecurityGroups = [ $securityGroup ]' < "${targetConfigFile}" > "${arnLookupConfigFile}"
@@ -1553,11 +1553,11 @@ function create_snapshot() {
 
   if [[ -n "${db_info}" ]]; then
     aws --region "${region}" rds create-db-snapshot --db-snapshot-identifier "${db_snapshot_identifier}" --db-instance-identifier "${db_identifier}" 1> /dev/null || return $?
-    
+
   sleep 2s
   while [ "${exit_status}" != "0" ]
   do
-      SNAPSHOT_STATE="$(aws --region "${region}" rds describe-db-snapshots --db-snapshot-identifier "${db_snapshot_identifier}" --query 'DBSnapshots[0].Status' || return $? )" 
+      SNAPSHOT_STATE="$(aws --region "${region}" rds describe-db-snapshots --db-snapshot-identifier "${db_snapshot_identifier}" --query 'DBSnapshots[0].Status' || return $? )"
       SNAPSHOT_PROGRESS="$(aws --region "${region}" rds describe-db-snapshots --db-snapshot-identifier "${db_snapshot_identifier}" --query 'DBSnapshots[0].PercentProgress' || return $? )"
       info "Snapshot id ${db_snapshot_identifier} creation: state is ${SNAPSHOT_STATE}, ${SNAPSHOT_PROGRESS}%..."
 
@@ -1864,21 +1864,20 @@ function invalidate_distribution() {
 function release_enis() {
     local region="$1"; shift
     local requester_id="$1"; shift
-    local eni_list_file="$( getTempFile eni_list_XXXXXX.json)"
 
-    aws --region "${region}" ec2 describe-network-interfaces --filters Name=requester-id,Values="*${requester_id}" > "${eni_list_file}" || return $?
+    eni_interfaces = "$( aws --region "${region}" ec2 describe-network-interfaces --filters Name=requester-id,Values="*${requester_id}" || return $? )"
 
-    for attachment_id in $( jq -r '.NetworkInterfaces[].Attachment.AttachmentId' < "${eni_list_file}" ) ; do
+    if [[ -n "${eni_interfaces}" ]]; then
+      for attachment_id in $( echo "${eni_interfaces}" | jq -r '.NetworkInterfaces[].Attachment.AttachmentId | select (.!=null)' ) ; do
         if [[ -n "${attachment_id}" ]]; then
             info "Detaching ${attachment_id} ..."
-            aws --region "${region}" ec2 detach-network-interface --attachment-id "${attachment_id}" || return $?
+            aws --region "${region}" ec2 detach-network-interface --attachment-id "${attachment_id}"
         fi
-    done
-    for network_interface_id in $( jq -r '.NetworkInterfaces[].NetworkInterfaceId' < "${eni_list_file}" ) ; do
-        if [[ -n "${network_interface_id}" ]]; then
-            info "Deleting ${network_interface_id} ..."
-            aws --region "${region}" ec2 wait network-interface-available --network-interface-id "${network_interface_id}" || return $?
-            aws --region "${region}" ec2 delete-network-interface --network-interface-id "${network_interface_id}" || return $?
-        fi
-    done
+      done
+      for network_interface_id in $( echo "${eni_interfaces}" | jq -r '.NetworkInterfaces[].NetworkInterfaceId | select (.!=null)' ) ; do
+        info "Deleting ${network_interface_id} ..."
+        aws --region "${region}" ec2 wait network-interface-available --network-interface-id "${network_interface_id}"
+        aws --region "${region}" ec2 delete-network-interface --network-interface-id "${network_interface_id}"
+      done
+    fi
 }
