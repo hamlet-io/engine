@@ -19,20 +19,55 @@
     ]
 [/#function]
 
-[#macro createPolicy id name statements roles="" users="" groups="" dependencies=[] statementGrouping=5 ]
+[#macro createPolicy id name statements roles="" users="" groups="" dependencies=[] statementGrouping=4 statementLegnthLimit=800 ]
 
-    [#list statements?chunk(statementGrouping) as groupStatement ]
+    [#local policyDocuments = []]
+    [#-- IAM has a policy size limit of 2048 characters --]
+    [#-- Need to make sure we break up the polciy document to meet this limit  --]
+    [#-- It also has a limit of 10 policies per role or user so we can't break it up to all statements --]
 
-        [#if groupStatement?index != 0 ]
-            [#local id = formatId(id, groupStatement?index) ]
-            [#local name = formatName(name, groupStatement?index) ]
-        [/#if]
+    [@debug message="TopLevel size" context=getJSON(statements)?length enabled=true /]
+    [#if getJSON(statements)?length gte statementLegnthLimit ]
+        [#list statements?chunk(statementGrouping) as groupStatements ]
+            [#if getJSON(groupStatements)?length gte statementLegnthLimit ]
+                [#list groupStatements?chunk(statementGrouping / 2) as subGroupStatements ]
+                    [#local policyDocuments +=
+                            [
+                                {
+                                    "Id" : formatId( id, groupStatements?index, subGroupStatements?index),
+                                    "Name" : formatName( name, groupStatements?index, subGroupStatements?index) ,
+                                    "Statements" : subGroupStatements
+                                }
+                            ]]
+                [/#list]
+            [#else]
+                [#local policyDocuments +=
+                    [
+                        {
+                            "Id" : formatId(id, groupStatements?index),
+                            "Name" : formatName(name, groupStatements?index ),
+                            "Statements" : groupStatements
+                        }
+                    ]]
+            [/#if]
+        [/#list]
+    [#else]
+        [#local policyDocuments +=
+            [
+                {
+                    "Id" : id,
+                    "Name" : name,
+                    "Statements" : statements
+                }
+            ]]
+    [/#if]
 
+    [#list policyDocuments as policyDocument ]
         [@cfResource
-            id=id
+            id=policyDocument.Id
             type="AWS::IAM::Policy"
             properties=
-                getPolicyDocument(groupStatement, name ) +
+                getPolicyDocument(policyDocument.Statements, policyDocument.Name ) +
                 attributeIfContent("Users", users, getReferences(users)) +
                 attributeIfContent("Roles", roles, getReferences(roles))
             dependencies=dependencies
