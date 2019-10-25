@@ -89,7 +89,7 @@
 
 
     [#if _context.Policy?has_content]
-        [#local policyId = formatDependentPolicyId(userId)]
+        [#local policyId = formatDependentManagedPolicyId(userId)]
         [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(policyId)]
             [@createManagedPolicy
                 id=policyId
@@ -103,7 +103,7 @@
     [#local linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
 
     [#if linkPolicies?has_content]
-        [#local linkPolicyId = formatDependentPolicyId(userId, "links")]
+        [#local linkPolicyId = formatDependentManagedPolicyId(userId, "links")]
         [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(linkPolicyId)]
             [@createManagedPolicy
                 id=policyId
