@@ -37,9 +37,9 @@
         type="AWS::IAM::ManagedPolicy"
         properties=
             {
-                "Description" : id
+                "Description" : formatName(id, name)
             } +
-            getPolicyDocument(statements, name ) +
+            getPolicyDocument(statements ) +
             attributeIfContent("Users", users, getReferences(users)) +
             attributeIfContent("Roles", roles, getReferences(roles))
         dependencies=dependencies
