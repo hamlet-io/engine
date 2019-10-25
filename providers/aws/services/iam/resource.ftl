@@ -19,7 +19,7 @@
     ]
 [/#function]
 
-[#macro createPolicy id name statements roles="" users="" groups="" dependencies=[] statementGrouping=6 ]
+[#macro createPolicy id name statements roles="" users="" groups="" dependencies=[] statementGrouping=5 ]
 
     [#list statements?chunk(statementGrouping) as groupStatement ]
 
