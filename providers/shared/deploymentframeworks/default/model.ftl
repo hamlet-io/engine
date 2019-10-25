@@ -294,7 +294,7 @@
                 true,
                 MINIMAL_FILTER_BEHAVIOUR
             ),
-            commandLineOptions.Deployment.Unit.Name
+            getDeploymentUnit()
         ) ]
 
     [@debug

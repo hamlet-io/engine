@@ -14,6 +14,7 @@
     [@includeProviderComponentDefinitionConfiguration provider="aws" component="ec2" /]
     [@includeProviderComponentConfiguration provider="aws" component="ec2" services=["ec2", "vpc"] /]
 [/#if]
+
 [#-- Name prefixes --]
 [#assign shortNamePrefixes = [] ]
 [#assign fullNamePrefixes = [] ]
@@ -118,10 +119,6 @@
 [#if commandLineOptions.Regions.Account?has_content]
     [#assign accountRegionId = commandLineOptions.Regions.Account]
     [#assign accountRegionObject = regions[accountRegionId] ]
-[/#if]
-[#if commandLineOptions.Regions.Product?has_content]
-    [#assign productRegionId = commandLineOptions.Regions.Product]
-    [#assign productRegionObject = regions[productRegionId] ]
 [/#if]
 
 [#-- Tenants --]
@@ -418,8 +415,8 @@
 [#-- Required zones --]
 [#assign zones = [] ]
 [#list segmentObject.Network.Zones.Order as zoneId]
-    [#if regions[region].Zones[zoneId]?has_content]
-        [#assign zone = regions[region].Zones[zoneId] ]
+    [#if regions[commandLineOptions.Regions.Segment].Zones[zoneId]?has_content]
+        [#assign zone = regions[commandLineOptions.Regions.Segment].Zones[zoneId] ]
         [#assign zones +=
             [
                 addIdNameToObject(zone, zoneId) +
@@ -513,9 +510,12 @@
 
 [#-- IP Address Groups - "global" is default --]
 [@includeSharedReferenceConfiguration referenceType=IPADDRESSGROUP_REFERENCE_TYPE /]
-[@addReferenceData type=IPADDRESSGROUP_REFERENCE_TYPE 
-    data=getEffectiveIPAddressGroups(blueprintObject.IPAddressGroups) 
-/]
+
+[#if blueprintObject.IPAddressGroups?has_content ]
+    [@addReferenceData type=IPADDRESSGROUP_REFERENCE_TYPE 
+        data=getEffectiveIPAddressGroups(blueprintObject.IPAddressGroups) 
+    /]
+[/#if]
 [#assign ipAddressGroups = referenceData.IPAddressGroups!{} ]
 
 [#function getIPAddressGroup group occurrence={}]

@@ -23,7 +23,7 @@ where
 (m) -c CONFIGURATION_REFERENCE is the identifier of the configuration used to generate this template
 (o) -g RESOURCE_GROUP          is the deployment unit resource group
     -h                         shows this text
-(m) -l LEVEL                   is the template level - "blueprint", "account", "product", "segment", "solution" or "application"
+(m) -l LEVEL                   is the template level - "blueprint", "account", "segment", "solution" or "application"
 (m) -q REQUEST_REFERENCE       is an opaque value to link this template to a triggering request management system
 (o) -r REGION                  is the AWS region identifier
 (o) -u DEPLOYMENT_UNIT         is the deployment unit to be included in the template
@@ -31,6 +31,8 @@ where
 (o) -d DEPLOYMENT_MODE         is the deployment mode the template will be generated for
 (o) -p GENERATION_PROVIDER     is the provider to for template generation 
 (o) -f GENERATION_FRAMEWORK    is the output framework to use for template generation
+(o) -t GENERATION_TESTCASE     is the test case you would like to generate a template for
+(o) -s GENERATION_SCENARIOS    is a comma seperated list of framework scenarios to load
 
 (m) mandatory, (o) optional, (d) deprecated
 
@@ -57,19 +59,21 @@ EOF
 function options() {
 
   # Parse options
-  while getopts ":c:d:g:hl:q:r:u:z:p:f:" option; do
+  while getopts ":c:d:f:g:hl:p:q:r:s:t:u:z:" option; do
       case "${option}" in
           c) CONFIGURATION_REFERENCE="${OPTARG}" ;;
           d) DEPLOYMENT_MODE="${OPTARG}" ;;
+          f) GENERATION_FRAMEWORK="${OPTARG}" ;;
           g) RESOURCE_GROUP="${OPTARG}" ;;
           h) usage; return 1 ;;
           l) LEVEL="${OPTARG}" ;;
+          p) GENERATION_PROVIDER="${OPTARG}" ;;
           q) REQUEST_REFERENCE="${OPTARG}" ;;
           r) REGION="${OPTARG}" ;;
+          s) GENERATION_SCENARIOS="${OPTARG}" ;;
+          t) GENERATION_TESTCASE="${OPTARG}" ;;
           u) DEPLOYMENT_UNIT="${OPTARG}" ;;
           z) DEPLOYMENT_UNIT_SUBSET="${OPTARG}" ;;
-          p) GENERATION_PROVIDER="${OPTARG}" ;;
-          f) GENERATION_FRAMEWORK="${OPTARG}" ;;
           \?) fatalOption; return 1 ;;
           :) fatalOptionArgument; return 1 ;;
       esac
@@ -172,7 +176,6 @@ function process_template_pass() {
   local deployment_unit_subset="${1,,}"; shift
   local account="$1"; shift
   local account_region="${1,,}"; shift
-  local product_region="${1,,}"; shift
   local region="${1,,}"; shift
   local request_reference="${1}"; shift
   local configuration_reference="${1}"; shift
@@ -195,7 +198,7 @@ function process_template_pass() {
   local template_composites=()
 
   # Define the possible passes
-  local pass_list=("genplan" "depplan" "pregeneration" "prologue" "template" "epilogue" "cli" "config")
+  local pass_list=("genplan" "testplan" "pregeneration" "prologue" "template" "epilogue" "cli" "config")
 
   # Initialise the components of the pass filenames
   declare -A pass_level_prefix
@@ -226,7 +229,9 @@ function process_template_pass() {
     ["template"]="template.json"
     ["epilogue"]="epilogue.sh"
     ["cli"]="cli.json"
-    ["config"]="config.json")
+    ["config"]="config.json"
+    ["testplan"]="testplan.json"
+  )
 
   # Template pass specifics
   pass_deployment_unit_subset["template"]="${deployment_unit_subset}"
@@ -345,6 +350,7 @@ function process_template_pass() {
   [[ -n "${GENERATION_LOG_LEVEL}" ]]    && args+=("-v" "logLevel=${GENERATION_LOG_LEVEL}")
   [[ -n "${GENERATION_INPUT_SOURCE}" ]] && args+=("-v" "inputSource=${GENERATION_INPUT_SOURCE}")
   [[ -n "${GENERATION_SCENARIOS}" ]]    && args+=("-v" "scenarios=${GENERATION_SCENARIOS}")
+  [[ -n "${GENERATION_TESTCASE}" ]]     && args+=("-v" "testCase=${GENERATION_TESTCASE}")
 
   # Include the template composites
   # Removal of drive letter (/?/) is specifically for MINGW
@@ -355,7 +361,6 @@ function process_template_pass() {
   done
 
   args+=("-v" "region=${region}")
-  args+=("-v" "productRegion=${product_region}")
   args+=("-v" "accountRegion=${account_region}")
   args+=("-v" "blueprint=${COMPOSITE_BLUEPRINT}")
   args+=("-v" "settings=${COMPOSITE_SETTINGS}")
@@ -559,7 +564,6 @@ function process_template() {
   local deployment_unit_subset="${1,,}"; shift
   local account="$1"; shift
   local account_region="${1,,}"; shift
-  local product_region="${1,,}"; shift
   local region="${1,,}"; shift
   local request_reference="${1}"; shift
   local configuration_reference="${1}"; shift
@@ -634,7 +638,6 @@ function process_template() {
       "${deployment_unit_subset}" \
       "${account}" \
       "${account_region}" \
-      "${product_region}" \
       "${region}" \
       "${request_reference}" \
       "${configuration_reference}" \
@@ -668,7 +671,6 @@ function process_template() {
       "${deployment_unit_subset}" \
       "${account}" \
       "${account_region}" \
-      "${product_region}" \
       "${region}" \
       "${request_reference}" \
       "${configuration_reference}" \
@@ -724,7 +726,6 @@ function main() {
         "${LEVEL}" \
         "${DEPLOYMENT_UNIT}" "${RESOURCE_GROUP}" "${DEPLOYMENT_UNIT_SUBSET}" \
         "" "${ACCOUNT_REGION}" \
-        "${PRODUCT_REGION}" \
         "" \
         "${REQUEST_REFERENCE}" \
         "${CONFIGURATION_REFERENCE}" \
@@ -736,7 +737,6 @@ function main() {
         "${LEVEL}" \
         "${DEPLOYMENT_UNIT}" "${RESOURCE_GROUP}" "${DEPLOYMENT_UNIT_SUBSET}" \
         "${ACCOUNT}" "${ACCOUNT_REGION}" \
-        "${PRODUCT_REGION}" \
         "${REGION}" \
         "${REQUEST_REFERENCE}" \
         "${CONFIGURATION_REFERENCE}" \

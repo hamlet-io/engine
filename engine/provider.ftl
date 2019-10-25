@@ -25,7 +25,7 @@
     [#local templates = [] ]
 
     [#-- aws/aws.ftl --]
-    [#list [provider, "masterData"] as level]
+    [#list [provider] as level]
         [#local templates += [[provider, level]] ]
     [/#list]
 
@@ -76,7 +76,7 @@
 
 [#macro includeScenarioConfiguration provider scenarios ]
     [#list scenarios as scenario ]
-        [#if isConfigurationIncluded([provider, scenario]) ]
+        [#if isConfigurationIncluded([provider, "scenario", scenario]) ]
             [#return]
         [/#if]
 
@@ -110,25 +110,96 @@
     [/#list]
 [/#macro]
 
-[#macro includeInputSourceConfiguration provider inputSource ]
+[#macro includeTestCaseConfiguration provider testCase ]
+    [#if isConfigurationIncluded([provider, "testcase" testCase]) ]
+        [#return]
+    [/#if]
+
+    [#local templates = []]
+    [#list ["testcase"] as level ]
+        [#-- aws/testcases/lb-https.ftl --]
+        [#local templates+= [[ provider, "testcases", testCase]] ]
+    [/#list]
+
+    [@includeTemplates templates=templates /]
+
+    [#-- load in the testCases --]
+    [#list [ "testcase" ] as level ]
+        [#local testCaseMacroOptions = 
+            [
+                [ provider, "testcase", testCase ]
+            ]]
+        
+        [#local testCaseMacro = getFirstDefinedDirective(testCaseMacroOptions)]
+        [#if testCaseMacro?has_content ]
+            [@(.vars[testCaseMacro]) /]
+        [#else]
+            [@debug
+                message="Unable to invoke any of the setting test case macro options"
+                context=testCaseMacroOptions
+                enabled=false
+            /]
+        [/#if]    
+    [/#list]
+[/#macro]
+
+[#macro includeBaseInputSourceConfiguration provider inputSource ]
     [#-- Check inputsource configuration not already seen --]
-    [#if isConfigurationIncluded([provider, inputSource]) ]
+    [#if isConfigurationIncluded([provider, "baseinput", inputSource]) ]
         [#return]
     [/#if]
 
     [#local templates = [] ]
-    [#-- aws/inputsources/composite/setting.ftl --]
-    [#list [ "blueprint", "stackoutput", "setting", "definition" ] as level]
-        [#local templates += [[provider, "inputsources", inputSource, level]] ]
+    [#-- aws/inputsources/default/setting.ftl --]
+    [#list [ "commandlineoption", "masterdata" ] as level ]
+        [#local templates += [
+            [ provider, "inputsources", inputSource, level ]
+        ]]
     [/#list]
 
     [@includeTemplates templates=templates /]
 
     [#-- seed in data provided at the inputsources level for provider and inputSource --]
-    [#list [ "setting", "blueprint", "definition" ] as level ]
+    [#list [ "commandlineoption", "masterdata" ] as level ]
         [#local seedMacroOptions = 
             [
-                [ provider, "input", commandLineOptions.Input.Source, level, "seed" ]
+                [ provider, "input", inputSource, level, "seed" ]
+            ]]
+        
+        [#local seedMacro = getFirstDefinedDirective(seedMacroOptions)]
+        [#if seedMacro?has_content ]
+            [@(.vars[seedMacro]) /]
+        [#else]
+            [@debug
+                message="Unable to invoke any of the setting seed macro options"
+                context=seedMacroOptions
+                enabled=false
+            /]
+        [/#if]    
+    [/#list]
+[/#macro]
+
+[#macro includeInputSourceConfiguration provider inputSource ]
+    [#-- Check inputsource configuration not already seen --]
+    [#if isConfigurationIncluded([provider, "input", inputSource]) ]
+        [#return]
+    [/#if]
+
+    [#local templates = [] ]
+    [#-- aws/inputsources/shared/setting.ftl --]
+    [#list [ "blueprint", "stackoutput", "setting", "definition" ] as level ]
+        [#local templates += [
+            [ provider, "inputsources", inputSource, level ]
+        ]]
+    [/#list]
+
+    [@includeTemplates templates=templates /]
+
+    [#-- seed in data provided at the inputsources level for provider and inputSource --]
+    [#list [ "blueprint", "setting", "definition" ] as level ]
+        [#local seedMacroOptions = 
+            [
+                [ provider, "input", inputSource, level, "seed" ]
             ]]
         
         [#local seedMacro = getFirstDefinedDirective(seedMacroOptions)]

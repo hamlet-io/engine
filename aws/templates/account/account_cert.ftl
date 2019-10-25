@@ -1,5 +1,5 @@
 [#-- Generate certificate --]
-[#if commandLineOptions.Deployment.Unit.Name?contains("cert") || (allDeploymentUnits!false) ]
+[#if getDeploymentUnit()?contains("cert") || (allDeploymentUnits!false) ]
     [#if deploymentSubsetRequired("genplan", false)]
         [@addDefaultGenerationPlan subsets="template" /]
     [/#if]

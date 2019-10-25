@@ -1,5 +1,5 @@
 [#-- Auditing configuration --]
-[#if commandLineOptions.Deployment.Unit.Name?contains("audit") || (allDeploymentUnits!false) ]
+[#if getDeploymentUnit()?contains("audit") || (allDeploymentUnits!false) ]
 
     [#if accountObject.Seed?has_content]
 

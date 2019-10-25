@@ -16,7 +16,7 @@
         [#if component?is_hash]
             [#list requiredOccurrences(
                 getOccurrences(tier, component),
-                commandLineOptions.Deployment.Unit.Name) as occurrence]
+                getDeploymentUnit() ) as occurrence]
 
                 [#local componentType = getComponentType(component)]
 

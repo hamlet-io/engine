@@ -109,7 +109,6 @@ function process_template() {
   done
 
   args+=("-v" "region=ap-southeast-2")
-  args+=("-v" "productRegion=ap-southeast-2")
   args+=("-v" "accountRegion=ap-southeast-2")
   args+=("-v" "blueprint={}")
   args+=("-v" "settings=[]")

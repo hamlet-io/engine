@@ -1,5 +1,5 @@
 [#-- API Gateway --]
-[#if commandLineOptions.Deployment.Unit.Name?contains("apigateway") || (allDeploymentUnits!false) ]
+[#if getDeploymentUnit()?contains("apigateway") || (allDeploymentUnits!false) ]
     [#assign cloudWatchRoleId = formatAccountRoleId("cloudwatch")]
     [#if deploymentSubsetRequired("genplan", false)]
         [@addDefaultGenerationPlan subsets="template" /]

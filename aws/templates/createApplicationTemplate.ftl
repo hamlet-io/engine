@@ -7,8 +7,14 @@
 
 [#assign outputType = commandLineOptions.Deployment.Output.Type]
 
+[#-- Add tests to initialised test outputs --]
+[#if commandLineOptions.Input.TestCase?has_content &&
+        (commandLineOptions.Deployment.Unit.Subset!"") == "testplan" ]
+    [@addTestPlanToDefaultJsonOutput tests=testsList /]
+[/#if]
+
 [#-- Special processing --]
-[#switch commandLineOptions.Deployment.Unit.Name]
+[#switch getDeploymentUnit()]
     [#case "iam"]
         [#if commandLineOptions.Deployment.Unit.Subset?has_content &&
             (commandLineOptions.Deployment.Unit.Subset == "pregeneration") ]
@@ -30,7 +36,7 @@
                         {
                             "Deployment" : {
                                 "Unit" : {
-                                    "Subset" : commandLineOptions.Deployment.Unit.Name
+                                    "Subset" : getDeploymentUnit()
                                 }
                             }
                         }

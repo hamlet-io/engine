@@ -715,164 +715,353 @@ are added.
     [#return (end?long - start?long)]
 [/#function]
 
-[#-----------
--- Logging --
--------------]
+[#-- Formulate a composite object based on                                            --]
+[#--   * order precedence - lowest to highest, then                                   --]
+[#--   * qualifiers - less specific to more specific                                  --]
+[#-- If no attributes are provided, simply combine the qualified objects              --]
+[#-- It is also possible to define an attribute with a name of "*" which will trigger --]
+[#-- the combining of the objects in addition to any attributes already created       --]
+[#function getCompositeObject attributes=[] objects...]
 
-[#assign DEBUG_LOG_LEVEL = 0]
-[#assign TRACE_LOG_LEVEL = 1]
-[#assign INFORMATION_LOG_LEVEL = 3]
-[#assign TIMING_LOG_LEVEL = 4]
-[#assign WARNING_LOG_LEVEL = 5]
-[#assign ERROR_LOG_LEVEL = 7]
-[#assign FATAL_LOG_LEVEL = 9]
+    [#-- Ignore any candidate that is not a hash --]
+    [#local candidates = [] ]
+    [#list asFlattenedArray(objects) as element]
+        [#if element?is_hash]
+            [#local candidates += [element] ]
+        [/#if]
+    [/#list]
 
-[#assign logLevelDescriptions = [
-    "debug",
-    "trace",
-    "",
-    "info",
-    "timing",
-    "warn",
-    "",
-    "error",
-    "",
-    "fatal"
-    ] ]
-
-[#assign logMessages = [] ]
-
-[#-- Set LogLevel variable to use a different log level --]
-[#-- Can either be set as a number or as a string       --]
-[#assign currentLogLevel = FATAL_LOG_LEVEL]
-
-[#if commandLineOptions.Logging.Level?has_content]
-    [#if commandLineOptions.Logging.Level?is_number]
-        [#assign currentLogLevel = commandLineOptions.Logging.Level]
+    [#-- Normalise attributes --]
+    [#local normalisedAttributes = [] ]
+    [#local inhibitEnabled = false]
+    [#local explicitEnabled = false]
+    [#if attributes?has_content]
+        [#list asFlattenedArray(attributes) as attribute]
+            [#local normalisedAttribute =
+                {
+                    "Names" : asArray(attribute),
+                    "Types" : [ANY_TYPE],
+                    "Mandatory" : false,
+                    "DefaultBehaviour" : "ignore",
+                    "DefaultProvided" : false,
+                    "Default" : "",
+                    "Values" : [],
+                    "Children" : [],
+                    "SubObjects" : false,
+                    "PopulateMissingChildren" : true
+                } ]
+            [#if normalisedAttribute.Names?seq_contains("InhibitEnabled") ]
+                [#local inhibitEnabled = true ]
+            [/#if]
+            [#if attribute?is_hash ]
+                [#local names = attribute.Names!"COT:Missing" ]
+                [#if (names?is_string) && (names == "COT:Missing") ]
+                    [@fatal
+                        message="Attribute must have a \"Names\" attribute"
+                        context=attribute
+                    /]
+                [/#if]
+                [#local normalisedAttribute =
+                    {
+                        "Names" : asArray(names),
+                        "Types" : asArray(attribute.Types!attribute.Type!ANY_TYPE),
+                        "Mandatory" : attribute.Mandatory!false,
+                        "DefaultBehaviour" : attribute.DefaultBehaviour!"ignore",
+                        "DefaultProvided" : attribute.Default??,
+                        "Default" : attribute.Default!"",
+                        "Values" : asArray(attribute.Values![]),
+                        "Children" : asArray(attribute.Children![]),
+                        "SubObjects" : attribute.SubObjects!attribute.Subobjects!false,
+                        "PopulateMissingChildren" : attribute.PopulateMissingChildren!true
+                    } ]
+            [/#if]
+            [#local normalisedAttributes += [normalisedAttribute] ]
+            [#local explicitEnabled = explicitEnabled || normalisedAttribute.Names?seq_contains("Enabled") ]
+        [/#list]
+        [#if (!explicitEnabled) && (!inhibitEnabled) ]
+            [#-- Put "Enabled" first to ensure it is processed in case a name of "*" is used --]
+            [#local normalisedAttributes =
+                [
+                    {
+                        "Names" : ["Enabled"],
+                        "Types" : [BOOLEAN_TYPE],
+                        "Mandatory" : false,
+                        "DefaultBehaviour" : "ignore",
+                        "DefaultProvided" : true,
+                        "Default" : true,
+                        "Values" : [],
+                        "Children" : [],
+                        "SubObjects" : false,
+                        "PopulateMissingChildren" : true
+                    }
+                ] +
+                normalisedAttributes ]
+        [/#if]
     [/#if]
-    [#if commandLineOptions.Logging.Level?is_string]
-        [#list logLevelDescriptions as value]
-            [#if commandLineOptions.Logging.Level?lower_case?starts_with(value)]
-                [#assign currentLogLevel = value?index]
+
+    [#-- Determine the attribute values --]
+    [#local result = {} ]
+    [#if normalisedAttributes?has_content]
+        [#list normalisedAttributes as attribute]
+
+            [#local populateMissingChildren = attribute.PopulateMissingChildren ]
+
+            [#-- Look for the first name alternative --]
+            [#local providedName = ""]
+            [#local providedValue = ""]
+            [#local providedCandidate = {}]
+            [#list attribute.Names as attributeName]
+                [#if attributeName == "*"]
+                    [#local providedName = "*"]
+                [/#if]
+                [#if providedName?has_content]
+                    [#break]
+                [#else]
+                    [#list candidates?reverse as object]
+                        [#if object[attributeName]??]
+                            [#local providedName = attributeName ]
+                            [#local providedValue = object[attributeName] ]
+                            [#local providedCandidate = object ]
+                            [#break]
+                        [/#if]
+                    [/#list]
+                [/#if]
+            [/#list]
+
+            [#-- Name wildcard means include all candidate objects --]
+            [#if providedName == "*"]
                 [#break]
             [/#if]
+
+            [#-- Throw an exception if a mandatory attribute is missing      --]
+            [#-- If no candidates, assume we are entirely populating missing --]
+            [#-- children so ignore mandatory check                          --]
+            [#if attribute.Mandatory &&
+                    ( !(providedName?has_content) ) &&
+                    candidates?has_content ]
+                [@fatal
+                    message="Mandatory attribute missing"
+                    context=
+                        {
+                            "ExpectedNames" : attribute.Names,
+                            "CandidateObjects" : objects
+                        }
+                /]
+
+                [#-- Provide a value so hopefully generation completes successfully --]
+                [#if attribute.Children?has_content]
+                    [#local populateMissingChildren = true ]
+                [#else]
+                    [#-- providedName just needs to have content --]
+                    [#local providedName = "default" ]
+                    [#local providedValue = "Mandatory value missing" ]
+                [/#if]
+            [/#if]
+
+            [#if attribute.Children?has_content]
+                [#local childObjects = [] ]
+                [#list candidates as object]
+                    [#if object[providedName]??]
+                        [#local childObjects += [object[providedName]] ]
+                    [/#if]
+                [/#list]
+                [#if populateMissingChildren || childObjects?has_content]
+                    [#local attributeResult = {} ]
+                    [#if attribute.SubObjects ]
+                        [#local subobjectKeys = [] ]
+                        [#list childObjects as childObject]
+                            [#if childObject?is_hash]
+                              [#list childObject as key,value]
+                                  [#if value?is_hash]
+                                      [#local subobjectKeys += [key] ]
+                                  [/#if]
+                              [/#list]
+                            [#else]
+                              [@fatal
+                                message="Child content is not a hash"
+                                context=childObject /]
+                            [/#if]
+                        [/#list]
+                        [#list subobjectKeys as subobjectKey ]
+                            [#if subobjectKey == "Configuration" ]
+                                [#continue]
+                            [/#if]
+                            [#local subobjectValues = [] ]
+                            [#list childObjects as childObject ]
+                                [#local subobjectValues +=
+                                    [
+                                        childObject.Configuration!{},
+                                        childObject[subobjectKey]!{}
+                                    ]
+                                ]
+                            [/#list]
+                            [#local attributeResult +=
+                                {
+                                  subobjectKey :
+                                        getCompositeObject(
+                                            [
+                                                {
+                                                    "Names" : "Id",
+                                                    "Mandatory" : true
+                                                },
+                                                {
+                                                    "Names" : "Name",
+                                                    "Mandatory" : true
+                                                }
+                                            ] +
+                                            attribute.Children,
+                                            [
+                                                {
+                                                    "Id" : subobjectKey,
+                                                    "Name" : subobjectKey
+                                                }
+                                            ] +
+                                            subobjectValues
+                                        )
+                                }
+                            ]
+                        [/#list]
+                    [#else]
+                        [#local attributeResult =
+                            populateMissingChildren?then(
+                                {
+                                    "Configured" : providedName?has_content
+                                },
+                                {}
+                            ) +
+                            getCompositeObject(attribute.Children, childObjects)
+                        ]
+                    [/#if]
+                    [#local result += { attribute.Names[0] : attributeResult } ]
+                [/#if]
+            [#else]
+                [#-- Combine any provided and/or default values --]
+                [#if providedName?has_content ]
+                    [#-- Perform type conversion and type checking --]
+                    [#local providedValue = asType(providedValue, attribute.Types) ]
+                    [#if !isOfType(providedValue, attribute.Types) ]
+                        [@fatal
+                          message="Attribute is not of the correct type"
+                          context=
+                            {
+                                "Name" : providedName,
+                                "Value" : providedValue,
+                                "ExpectedTypes" : attribute.Types,
+                                "Candidate" : providedCandidate
+                            } /]
+                    [#else]
+                        [#if attribute.Values?has_content]
+                            [#list asArray(providedValue) as value]
+                                [#if !(attribute.Values?seq_contains(value)) ]
+                                    [@fatal
+                                      message="Attribute value is not one of the expected values"
+                                      context=
+                                        {
+                                            "Name" : providedName,
+                                            "Value" : value,
+                                            "ExpectedValues" : attribute.Values,
+                                            "Candidate" : providedCandidate
+                                        } /]
+                                [/#if]
+                            [/#list]
+                        [/#if]
+                    [/#if]
+
+                    [#if attribute.DefaultProvided ]
+                        [#switch attribute.DefaultBehaviour]
+                            [#case "prefix"]
+                                [#local providedValue = attribute.Default + providedValue ]
+                                [#break]
+                            [#case "postfix"]
+                                [#local providedValue = providedValue + attribute.Default]
+                                [#break]
+                            [#case "ignore"]
+                            [#default]
+                                [#-- Ignore default --]
+                                [#break]
+                        [/#switch]
+                    [/#if]
+                    [#local result +=
+                        {
+                            attribute.Names[0] : providedValue
+                        } ]
+                [#else]
+                    [#if attribute.DefaultProvided ]
+                        [#local result +=
+                            {
+                                attribute.Names[0] : attribute.Default
+                            }
+                        ]
+                    [/#if]
+                [/#if]
+            [/#if]
         [/#list]
+        [#if providedName != "*"]
+            [#return result ]
+        [/#if]
     [/#if]
-[/#if]
 
-[#function getLogLevel ]
-    [#return currentLogLevel]
+    [#list candidates as object]
+        [#local result += object ]
+    [/#list]
+    [#return result ]
 [/#function]
 
-[#function setLogLevel level]
-    [#assign currentLogLevel = level]
-    [#return getLogLevel()]
+[#-- Check if a configuration item with children is present --]
+[#function isPresent configuration={} ]
+    [#return (configuration.Configured!false) && (configuration.Enabled!false) ]
 [/#function]
 
-[#function willLog level ]
-    [#return currentLogLevel <= level ]
-[/#function]
+[#function getObjectLineage collection end qualifiers...]
+    [#local result = [] ]
+    [#local endingObject = "" ]
+    [#list asFlattenedArray(end) as endEntry]
+        [#if endEntry?is_hash]
+            [#local endingObject = endEntry ]
+            [#break]
+        [#else]
+            [#if endEntry?is_string]
+                [#if ((collection[endEntry])!"")?is_hash]
+                    [#local endingObject = collection[endEntry] ]
+                    [#break]
+                [/#if]
+            [/#if]
+        [/#if]
+    [/#list]
 
-[#macro logMessage severity message context={} detail={} enabled=false]
-    [#if enabled && willLog(severity)]
-        [#assign logMessages +=
-            [
-                {
-                    "Timestamp" : datetimeAsString(.now),
-                    "Severity" : logLevelDescriptions[severity]!"unknown",
-                    "Message" : message
-                } +
-                attributeIfContent("Context", context) +
-                attributeIfContent("Detail", detail)
-            ] ]
+    [#if endingObject?is_hash]
+        [#local base = getObjectAndQualifiers(endingObject, qualifiers) ]
+        [#local parentId =
+                (getCompositeObject(
+                    [
+                        {
+                            "Names" : "Parent",
+                            "Type" : STRING_TYPE
+                        }
+                    ],
+                    base
+                ).Parent)!"" ]
+        [#local parentIds =
+                (getCompositeObject(
+                    [
+                        {
+                            "Names" : "Parents",
+                            "Type" : ARRAY_OF_STRING_TYPE
+                        }
+                    ],
+                    base
+                ).Parents)!arrayIfContent(parentId, parentId) ]
+
+        [#if parentIds?has_content]
+            [#list parentIds as parentId]
+                [#local lines = getObjectLineage(collection, parentId, qualifiers) ]
+                [#list lines as line]
+                    [#local result += [ line + [base] ] ]
+                [/#list]
+            [/#list]
+        [#else]
+            [#local result += [ [base] ] ]
+        [/#if]
     [/#if]
-[/#macro]
-
-[#macro debug message context={} detail={} enabled=true]
-    [@logMessage
-        severity=DEBUG_LOG_LEVEL
-        message=message
-        context=context
-        detail=detail
-        enabled=enabled
-    /]
-[/#macro]
-
-[#macro trace message context={} detail={} enabled=true]
-    [@logMessage
-        severity=TRACE_LOG_LEVEL
-        message=message
-        context=context
-        detail=detail
-        enabled=enabled
-    /]
-[/#macro]
-
-[#macro info message context={} detail={} enabled=true]
-    [@logMessage
-        severity=INFORMATION_LOG_LEVEL
-        message=message
-        context=context
-        detail=detail
-        enabled=enabled
-    /]
-[/#macro]
-
-[#macro timing message context={} detail={} enabled=true]
-    [@logMessage
-        severity=TIMING_LOG_LEVEL
-        message=message
-        context=context
-        detail=detail
-        enabled=enabled
-    /]
-[/#macro]
-
-[#macro warn message context={} detail={} enabled=true]
-    [@logMessage
-        severity=WARNING_LOG_LEVEL
-        message=message
-        context=context
-        detail=detail
-        enabled=enabled
-    /]
-[/#macro]
-
-[#macro error message context={} detail={} enabled=true]
-    [@logMessage
-        severity=ERROR_LOG_LEVEL
-        message=message
-        context=context
-        detail=detail
-        enabled=enabled
-    /]
-[/#macro]
-
-[#macro fatal message context={} detail={} enabled=true]
-    [@logMessage
-        severity=FATAL_LOG_LEVEL
-        message=message
-        context=context
-        detail=detail
-        enabled=enabled
-    /]
-[/#macro]
-
-[#macro precondition function context={} detail={} enabled=true]
-    [@fatal
-        message="Precondition failed for " + function
-        context=context
-        detail=detail
-        enabled=enabled
-    /]
-[/#macro]
-
-[#macro postcondition function context={} detail={} enabled=true]
-    [@fatal
-        message="Postcondition failed for " + function
-        context=context
-        detail=detail
-        enabled=enabled
-    /]
-[/#macro]
-
+    [#return result ]
+[/#function]

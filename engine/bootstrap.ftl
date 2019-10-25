@@ -1,8 +1,25 @@
 [#ftl]
 
-[#-- Pull in the provided command line options --]
-[#assign commandLineOptions =
-    {
+[#-- Core helper routines --]
+[#include "base.ftl" ]
+
+[#-- Command line options are used to control the engine so make sure we load them first --]
+[#include "inputdata/commandLineOptions.ftl" ]
+
+[#-- Input data control --]
+[@addCommandLineOption
+    option={
+        "Input" : {
+            "Source" : inputSource!"composite",
+            "Scenarios" : (scenarios?split(","))![],
+            "TestCase" : testCase!""
+        }
+    }
+/]
+
+[#-- Deployment Details --]
+[@addCommandLineOption
+    option={
         "Deployment" : {
             "Provider" : {
                 "Name" : provider!""
@@ -24,40 +41,79 @@
                 "Name" : resourceGroup!""
             },
             "Mode" : deploymentMode!""
-        },
+        }
+    }
+/]
+
+[#-- Logging Details --]
+[@addCommandLineOption
+    option={
         "Logging" : {
             "Level" : logLevel!""
-        },
+        }
+    }
+/]
+
+[#-- RunId details --]
+[@addCommandLineOption
+    option={
         "Run" : {
             "Id" : runId!""
-        },
-        "Regions" : {
-            "Segment" : region!"",
-            "Product" : productRegion!"",
-            "Account" : accountRegion!""
-        },
+        }
+    }
+/]
+
+[#-- Reference metadata --]
+[@addCommandLineOption
+    option={
         "References" : {
             "Request" : requestReference!"",
             "Configuration" : configurationReference!""
-        },
-        "Composites" : {
-            "Blueprint" : (blueprint!"{}")?eval,
-            "Settings" : (settings!"{}")?eval,
-            "Definitions" : (definitions!"{}")?eval,
-            "StackOutputs" : (stackOutputs!"[]")?eval
-        },
-        "Input" : {
-            "Source" : inputSource!"composite",
-            "Scenarios" : (scenarios?split(","))![]
         }
-    } ]
+    }
+/]
+
+[#-- Composite Inputs --]
+[@addCommandLineOption
+    option={
+        "Composites" : {
+            "Blueprint" : (blueprint!"")?has_content?then(
+                                blueprint?eval,
+                                {}
+            ),
+            "Settings" : (settings!"")?has_content?then(
+                                settings?eval,
+                                {}
+            ),
+            "Definitions" : (definitions!"")?has_content?then(
+                                definitions?eval,
+                                {}
+            ),
+            "StackOutputs" : (stackOutputs!"")?has_content?then(
+                                stackOutputs?eval,
+                                []
+            )
+        }
+    }
+/]
+
+[#-- Regions --]
+[@addCommandLineOption
+    option={
+        "Regions" : {
+            "Segment" : region!"",
+            "Account" : accountRegion!""
+        }
+    }
+/]
+
 
 [#if !deploymentFrameworkModel??]
     [#assign deploymentFrameworkModel = "legacy"]
 [/#if]
 
-[#-- Core helper routines --]
-[#include "base.ftl" ]
+[#-- logging --]
+[#include "logging.ftl" ]
 
 [#-- Input data handling --]
 [#include "inputdata/masterdata.ftl" ]
@@ -69,6 +125,7 @@
 
 [#-- Scenerio Loading --]
 [#include "scenario.ftl" ]
+[#include "testcase.ftl" ]
 
 [#-- Component handling --]
 [#include "component.ftl" ]
@@ -83,35 +140,89 @@
 [#-- Output handling --]
 [#include "output.ftl" ]
 
+[#-- Include any base level input sources --]
+[@includeBaseInputSourceConfiguration
+    provider=SHARED_PROVIDER
+    inputSource="shared"
+/]
+
+[#if commandLineOptions.Input.Source?has_content]
+    [@includeBaseInputSourceConfiguration
+        provider=SHARED_PROVIDER
+        inputSource=commandLineOptions.Input.Source
+    /]
+[/#if]
+
 [#-- Include the shared provider --]
 [@includeProviderConfiguration provider=SHARED_PROVIDER /]
 
-[#-- Include any command line provider/input source --]
+[#-- Include any command line based input data source --]
+[#if commandLineOptions.Deployment.Provider.Name?has_content ]
+    [@includeBaseInputSourceConfiguration
+        provider=commandLineOptions.Deployment.Provider.Name
+        inputSource="shared"
+    /]
+    [#if commandLineOptions.Input.Source?has_content]
+        [@includeBaseInputSourceConfiguration
+            provider=commandLineOptions.Deployment.Provider.Name
+            inputSource=commandLineOptions.Input.Source
+        /]
+    [/#if]
+[/#if]
+
+[#-- Include any command line provider --]
 [#if commandLineOptions.Deployment.Provider.Name?has_content ]
     [@includeProviderConfiguration provider=commandLineOptions.Deployment.Provider.Name /]
 [/#if]
 
-[#-- Build the base state of the blueprint using the seeded master data --]
-[@addBlueprint blueprint=getMasterData(SHARED_PROVIDER) /]
+[#-- start the blueprint with the masterData --]
+[@addBlueprint blueprint=getMasterData() /]
 
-[#-- Include any command line provider/input source --]
-[#if commandLineOptions.Deployment.Provider.Name?has_content ]
-    [@addBlueprint blueprint=getMasterData(commandLineOptions.Deployment.Provider.Name) /]
+[#-- Set the scenarios provided via the CLI --]
+[@updateScenarioList
+    scenarioIds=commandLineOptions.Input.Scenarios
+/]
+
+[#-- Load test case if it has been specified --]
+[#if (commandLineOptions.Deployment.Unit.Subset!"") == "testplan" ]
+    [@initialiseJsonOutput name="testplan" /]
+[/#if]
+
+[#if commandLineOptions.Input.TestCase?has_content ]
+    [@includeTestCaseConfiguration
+        provider=SHARED_PROVIDER
+        testCase=commandLineOptions.Input.TestCase
+    /]
+
+    [#if commandLineOptions.Deployment.Provider.Name?has_content ]
+        [@includeTestCaseConfiguration
+            provider=commandLineOptions.Deployment.Provider.Name
+            testCase=commandLineOptions.Input.TestCase
+        /]
+    [/#if]
 [/#if]
 
 [#-- Load Scenarios --]
-[#if commandLineOptions.Input.Scenarios?has_content ]
-    [@includeScenarioConfiguration provider=SHARED_PROVIDER scenarios=commandLineOptions.Input.Scenarios /]
+[#if scenarioList?has_content ]
+    [@includeScenarioConfiguration
+        provider=SHARED_PROVIDER
+        scenarios=scenarioList
+    /]
 
     [#if commandLineOptions.Deployment.Provider.Name?has_content ]
-        [@includeScenarioConfiguration 
+        [@includeScenarioConfiguration
             provider=commandLineOptions.Deployment.Provider.Name
-            scenarios=commandLineOptions.Input.Scenarios 
+            scenarios=scenarioList
         /]
     [/#if]
 [/#if]
 
 [#-- Include any shared input sources --]
+[@includeInputSourceConfiguration
+    provider=SHARED_PROVIDER
+    inputSource="shared"
+/]
+
 [#if commandLineOptions.Input.Source?has_content]
     [@includeInputSourceConfiguration
         provider=SHARED_PROVIDER
@@ -121,6 +232,10 @@
 
 [#-- Include any command line provider/input source --]
 [#if commandLineOptions.Deployment.Provider.Name?has_content ]
+    [@includeInputSourceConfiguration
+        provider=commandLineOptions.Deployment.Provider.Name
+        inputSource="shared"
+    /]
     [#if commandLineOptions.Input.Source?has_content]
         [@includeInputSourceConfiguration
             provider=commandLineOptions.Deployment.Provider.Name
@@ -167,4 +282,3 @@
             ]
         )
     ) ]
-

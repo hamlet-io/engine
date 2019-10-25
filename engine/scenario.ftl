@@ -1,12 +1,18 @@
 [#ftl]
 
 [#-- Scenarios allow loading input data using the engine itself --]
+[#assign scenarioList = []]
+
+[#macro updateScenarioList scenarioIds ]
+    [#assign scenarioList = combineEntities( scenarioList, asArray(scenarioIds), UNIQUE_COMBINE_BEHAVIOUR )]
+[/#macro]
 
 [#macro addScenario
     id
     blueprint={}
     settingSets=[]
     stackOutputs=[]
+    commandLineOption={}
 ]
 
     [#if blueprint?has_content ]
@@ -34,4 +40,8 @@
             ]
         /]
     [/#list]
+
+    [#if commandLineOption?has_content ]
+        [@addCommandLineOption options=commandLineOption /]
+    [/#if]
 [/#macro]

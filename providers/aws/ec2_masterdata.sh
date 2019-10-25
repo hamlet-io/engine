@@ -64,14 +64,15 @@ if [[ ${result} -ne 0 ]]; then
   cp amis/new_master.json masterData.json
 fi
 
-cat << EOF > "masterData.ftl"
+cat << EOF > "inputsources/shared/masterdata.ftl"
 [#ftl]
-[@addMasterData
-  provider=AWS_PROVIDER
-  data=
+[#macro aws_input_shared_masterdata_seed ]
+  [@addMasterData
+    data=
 EOF
-cat masterData.json >> masterData.ftl
-cat << EOF >> "masterData.ftl"
-/]
+cat masterData.json >> inputsources/shared/masterdata.ftl
+cat << EOF >> "inputsources/shared/masterdata.ftl"
+  /]
+[#/macro]
 EOF
 

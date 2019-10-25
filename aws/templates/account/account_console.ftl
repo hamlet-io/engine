@@ -1,4 +1,4 @@
-[#if commandLineOptions.Deployment.Unit.Name?contains("console") || (allDeploymentUnits!false) ]
+[#if getDeploymentUnit()?contains("console") || (allDeploymentUnits!false) ]
 
     [#if deploymentSubsetRequired("genplan", false)]
         [@addDefaultGenerationPlan subsets=["epilogue", "cli"] /]
