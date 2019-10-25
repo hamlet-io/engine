@@ -87,30 +87,34 @@
         /]
     [/#if]
 
-    [#if deploymentSubsetRequired(USER_COMPONENT_TYPE, true)]
 
-        [#if _context.Policy?has_content]
-            [#local policyId = formatDependentPolicyId(userId)]
-            [@createPolicy
+    [#if _context.Policy?has_content]
+        [#local policyId = formatDependentPolicyId(userId)]
+        [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(policyId)]
+            [@createManagedPolicy
                 id=policyId
                 name=_context.Name
                 statements=_context.Policy
                 users=userId
             /]
         [/#if]
+    [/#if]
 
-        [#local linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
+    [#local linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
 
-        [#if linkPolicies?has_content]
-            [#local policyId = formatDependentPolicyId(userId, "links")]
-            [@createPolicy
+    [#if linkPolicies?has_content]
+        [#local linkPolicyId = formatDependentPolicyId(userId, "links")]
+        [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(linkPolicyId)]
+            [@createManagedPolicy
                 id=policyId
                 name="links"
                 statements=linkPolicies
                 users=userId
             /]
-        [/#if]
+         [/#if]
+    [/#if]
 
+    [#if deploymentSubsetRequired(USER_COMPONENT_TYPE, true)]
         [@cfResource
             id=userId
             type="AWS::IAM::User"
