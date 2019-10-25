@@ -31,6 +31,22 @@
     /]
 [/#macro]
 
+[#assign MANAGED_POLICY_OUTPUT_MAPPINGS =
+    {
+        REFERENCE_ATTRIBUTE_TYPE : {
+            "UseRef" : true
+        },
+        ARN_ATTRIBUTE_TYPE : {
+            "UseRef" : true
+        }
+    }
+]
+[@addOutputMapping
+    provider=AWS_PROVIDER
+    resourceType=AWS_IAM_MANAGED_POLICY_RESOURCE_TYPE
+    mappings=MANAGED_POLICY_OUTPUT_MAPPINGS
+/]
+
 [#macro createManagedPolicy id name statements roles="" users="" groups="" dependencies=[] ]
     [@cfResource
         id=id
@@ -43,6 +59,7 @@
             attributeIfContent("Users", users, getReferences(users)) +
             attributeIfContent("Roles", roles, getReferences(roles))
         dependencies=dependencies
+        outputs=MANAGED_POLICY_OUTPUT_MAPPINGS
     /]
 [/#macro]
 
