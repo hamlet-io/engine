@@ -18,7 +18,7 @@
 /]
 
 [#-- Deployment Details --]
-[@addCommandLineOption 
+[@addCommandLineOption
     option={
         "Deployment" : {
             "Provider" : {
@@ -46,7 +46,7 @@
 /]
 
 [#-- Logging Details --]
-[@addCommandLineOption 
+[@addCommandLineOption
     option={
         "Logging" : {
             "Level" : logLevel!""
@@ -55,7 +55,7 @@
 /]
 
 [#-- RunId details --]
-[@addCommandLineOption 
+[@addCommandLineOption
     option={
         "Run" : {
             "Id" : runId!""
@@ -91,7 +91,7 @@
             ),
             "StackOutputs" : (stackOutputs!"")?has_content?then(
                                 stackOutputs?eval,
-                                {}
+                                []
             )
         }
     }
@@ -141,9 +141,9 @@
 [#include "output.ftl" ]
 
 [#-- Include any base level input sources --]
-[@includeBaseInputSourceConfiguration 
-    provider=SHARED_PROVIDER 
-    inputSource="shared" 
+[@includeBaseInputSourceConfiguration
+    provider=SHARED_PROVIDER
+    inputSource="shared"
 /]
 
 [#if commandLineOptions.Input.Source?has_content]
@@ -158,9 +158,9 @@
 
 [#-- Include any command line based input data source --]
 [#if commandLineOptions.Deployment.Provider.Name?has_content ]
-    [@includeBaseInputSourceConfiguration 
-        provider=commandLineOptions.Deployment.Provider.Name 
-        inputSource="shared" 
+    [@includeBaseInputSourceConfiguration
+        provider=commandLineOptions.Deployment.Provider.Name
+        inputSource="shared"
     /]
     [#if commandLineOptions.Input.Source?has_content]
         [@includeBaseInputSourceConfiguration
@@ -178,9 +178,9 @@
 [#-- start the blueprint with the masterData --]
 [@addBlueprint blueprint=getMasterData() /]
 
-[#-- Set the scnearios provided via the CLI --]
-[@updateScenarioList 
-    scenarioIds=commandLineOptions.Input.Scenarios 
+[#-- Set the scenarios provided via the CLI --]
+[@updateScenarioList
+    scenarioIds=commandLineOptions.Input.Scenarios
 /]
 
 [#-- Load test case if it has been specified --]
@@ -189,13 +189,13 @@
 [/#if]
 
 [#if commandLineOptions.Input.TestCase?has_content ]
-    [@includeTestCaseConfiguration 
-        provider=SHARED_PROVIDER 
+    [@includeTestCaseConfiguration
+        provider=SHARED_PROVIDER
         testCase=commandLineOptions.Input.TestCase
     /]
 
     [#if commandLineOptions.Deployment.Provider.Name?has_content ]
-        [@includeTestCaseConfiguration 
+        [@includeTestCaseConfiguration
             provider=commandLineOptions.Deployment.Provider.Name
             testCase=commandLineOptions.Input.TestCase
         /]
@@ -204,13 +204,13 @@
 
 [#-- Load Scenarios --]
 [#if scenarioList?has_content ]
-    [@includeScenarioConfiguration 
-        provider=SHARED_PROVIDER 
-        scenarios=scenarioList 
+    [@includeScenarioConfiguration
+        provider=SHARED_PROVIDER
+        scenarios=scenarioList
     /]
 
     [#if commandLineOptions.Deployment.Provider.Name?has_content ]
-        [@includeScenarioConfiguration 
+        [@includeScenarioConfiguration
             provider=commandLineOptions.Deployment.Provider.Name
             scenarios=scenarioList
         /]
@@ -282,4 +282,3 @@
             ]
         )
     ) ]
-
