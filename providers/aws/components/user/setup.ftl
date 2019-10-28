@@ -25,6 +25,8 @@
     [#local credentialFormats = solution.GenerateCredentials.Formats]
     [#local userPasswordLength = solution.GenerateCredentials.CharacterLength ]
 
+    [#local managedPolicyArns = []]
+
     [#local passwordEncryptionScheme = (solution.GenerateCredentials.EncryptionScheme?has_content)?then(
         solution.GenerateCredentials.EncryptionScheme?ensure_ends_with(":"),
         "" )]
@@ -66,6 +68,10 @@
         }
     ]
 
+    [#if _context.ManagedPolicy?has_content]
+        [#local managedPolicyArns += _context.ManagedPolicy ]
+    [/#if]
+
     [#if solution.Fragment?has_content ]
         [#local fragmentId = formatFragmentId(_context)]
         [#include fragmentList?ensure_starts_with("/")]
@@ -87,15 +93,14 @@
         /]
     [/#if]
 
-
     [#if _context.Policy?has_content]
         [#local policyId = formatDependentManagedPolicyId(userId)]
+        [#local managedPolicyArns += [ getReference(policyId, ARN_ATTRIBUTE_TYPE) ]]
         [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(policyId)]
             [@createManagedPolicy
                 id=policyId
                 name=_context.Name
                 statements=_context.Policy
-                users=userId
             /]
         [/#if]
     [/#if]
@@ -104,12 +109,12 @@
 
     [#if linkPolicies?has_content]
         [#local linkPolicyId = formatDependentManagedPolicyId(userId, "links")]
+        [#local managedPolicyArns += [ getReference(linkPolicyId, ARN_ATTRIBUTE_TYPE) ]]
         [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(linkPolicyId)]
             [@createManagedPolicy
                 id=linkPolicyId
                 name="links"
                 statements=linkPolicies
-                users=userId
             /]
          [/#if]
     [/#if]
@@ -124,7 +129,7 @@
                 } +
                 attributeIfContent(
                     "ManagedPolicyArns",
-                    _context.ManagedPolicy![]
+                    managedPolicyArns
                 )
             outputs=USER_OUTPUT_MAPPINGS
         /]
