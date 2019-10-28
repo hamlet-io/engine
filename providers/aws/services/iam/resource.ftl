@@ -28,6 +28,7 @@
             attributeIfContent("Users", users, getReferences(users)) +
             attributeIfContent("Roles", roles, getReferences(roles))
         dependencies=dependencies
+        outputs={}
     /]
 [/#macro]
 
