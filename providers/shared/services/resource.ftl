@@ -3,7 +3,7 @@
 [#-- Is a resource part of a deployment unit --]
 [#function isPartOfDeploymentUnit resourceId deploymentUnit deploymentUnitSubset]
   [#local resourceObject = getStackOutputObject(commandLineOptions.Deployment.Provider.Name, resourceId)]
-  [#local 
+  [#local
     currentDeploymentUnit =
       deploymentUnit +
       deploymentUnitSubset?has_content?then(

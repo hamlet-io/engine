@@ -16,7 +16,7 @@
     "Attributes" : [
         {
             "Names" : "Account",
-            "Type" : STRING_TYPE       
+            "Type" : STRING_TYPE
         },
         {
             "Names" : "Region",
@@ -49,20 +49,20 @@
 
 [#function getStackOutputObject provider id deploymentUnit="" region="" account="" ]
     [#-- Build the stack outputs list --]
-    [#local outputMacroOptions = 
+    [#local outputMacroOptions =
         [
             [ provider, "input", commandLineOptions.Input.Source, "stackoutput" ],
             [ SHARED_PROVIDER, "input", commandLineOptions.Input.Source, "stackoutput" ]
         ]]
-    
+
     [#local outputMacro = getFirstDefinedDirective(outputMacroOptions)]
     [#if outputMacro?has_content ]
-        [@(.vars[outputMacro]) 
-            id=id 
-            deploymentUnit=deploymentUnit 
-            region=region 
-            account=account 
-            level=level 
+        [@(.vars[outputMacro])
+            id=id
+            deploymentUnit=deploymentUnit
+            region=region
+            account=account
+            level=level
         /]
     [#else]
         [@debug
@@ -73,13 +73,13 @@
     [/#if]
 
     [#-- Apply default filters based on provider --]
-    [#local filterFunctionOptions = 
+    [#local filterFunctionOptions =
         [
             [ provider, "input", commandLineOptions.Input.Source, "stackoutput", "filter" ],
             [ SHARED_PROVIDER, "input", commandLineOptions.Input.Source, "stackoutput", "filter" ]
         ]
-    ] 
-    
+    ]
+
     [#local outputFilter = {
             "Account" : account,
             "Region" : region,
@@ -152,7 +152,7 @@
 [#macro internalMergeStackOutputs data ]
     [#if data?has_content ]
         [#list data as content ]
-            [#assign stackOutputsList = 
+            [#assign stackOutputsList =
                 combineEntities(
                     stackOutputsList,
                     [ getCompositeObject( stackOutputConfiguration.Attributes, content) ],
