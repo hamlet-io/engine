@@ -1639,6 +1639,8 @@ function set_rds_master_password() {
 
   info "Resetting master password for RDS instance ${db_identifier}"
   aws --region "${region}" rds modify-db-instance --db-instance-identifier ${db_identifier} --master-user-password "${password}" 1> /dev/null
+  sleep 5s
+  aws --region "${region}" rds wait db-instance-available --db-instance-identifier "${db_identifier}" || return $?
 }
 
 function get_rds_hostname() {
