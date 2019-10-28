@@ -106,7 +106,7 @@
         [#local linkPolicyId = formatDependentManagedPolicyId(userId, "links")]
         [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(linkPolicyId)]
             [@createManagedPolicy
-                id=policyId
+                id=linkPolicyId
                 name="links"
                 statements=linkPolicies
                 users=userId
