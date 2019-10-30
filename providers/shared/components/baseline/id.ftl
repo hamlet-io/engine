@@ -6,7 +6,7 @@
     [#return formatSegmentResourceId(SEED_RESOURCE_TYPE)]
 [/#function]
 
-[#function getBaselineComponentIds links ]
+[#function getBaselineComponentIds links cmk="cmk" ssh="ec2KeyPair" oai="originAccessId"]
     [#local ids = {}]
     [#list links as linkName, linkTarget ]
         [#if !linkTarget?has_content]
@@ -29,13 +29,29 @@
             [#case BASELINE_KEY_COMPONENT_TYPE ]
                 [#switch linkTargetSolution.Engine ]
                     [#case "cmk" ]
-                        [#local ids += { linkName, linkTargetResources["cmk"].Id }]
+                        [#if linkTargetResources[cmk].Id?has_content]
+                            [#local ids += { linkName, linkTargetResources[cmk].Id }]
+                        [#else]
+                            [@fatal
+                                message="CMK resource has not been found. A CMK is a mandatory baseline resource."
+                                context=linkTarget
+                            /]
+                        [/#if]
                         [#break]
                     [#case "ssh" ]
-                        [#local ids += { linkName, linkTargetResources["ec2KeyPair"].Id }]
+                        [#if linkTargetResources[ssh].Id?has_content]
+                            [#local ids += { linkName, linkTargetResources[ssh].Id }]
+                        [#else]
+                            [@fatal
+                                message="SSH resource has not been found. A SSH resource is a mandatory baseline resource."
+                                context=linkTarget
+                            /]
+                        [/#if]
                         [#break]
                     [#case "oai"]
-                        [#local ids += { linkName, linkTargetResources["originAccessId"].Id }]
+                        [#if linkTargetResources[oai].Id?has_content]
+                            [#local ids += { linkName, linkTargetResources[oai].Id }]
+                        [/#if]
                         [#break]
                 [/#switch]
                 [#break]
