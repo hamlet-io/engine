@@ -1357,6 +1357,9 @@
         "prod": {
           "IncludeInHost": {
             "Environment": false
+          },
+          "IncludeInDomain": {
+            "Environment": false
           }
         }
       }
