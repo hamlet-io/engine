@@ -22,13 +22,13 @@
     }
 ]
 
-[@addOutputMapping 
+[@addOutputMapping
     provider=AWS_PROVIDER
     resourceType=AWS_CLOUDFRONT_DISTRIBUTION_RESOURCE_TYPE
     mappings=CF_OUTPUT_MAPPINGS
 /]
 
-[@addOutputMapping 
+[@addOutputMapping
     provider=AWS_PROVIDER
     resourceType=AWS_CLOUDFRONT_ACCESS_ID_RESOURCE_TYPE
     mappings=CF_ACCESS_ID_OUTPUT_MAPPINGS
@@ -183,7 +183,8 @@
     ]
 [/#function]
 
-[#function getCFAPIGatewayCacheBehaviour origin customHeaders=[] compress=true]
+[#function getCFAPIGatewayCacheBehaviour origin customHeaders=[] compress=true viewerProtocolPolicy="redirect-to-https"
+]
     [#return
         getCFCacheBehaviour(
             origin,
@@ -223,7 +224,9 @@
                 ] + customHeaders,
                 "QueryString" : true
             },
-            compress
+            compress,
+            [],
+            viewerProtocolPolicy
         )
     ]
 [/#function]
