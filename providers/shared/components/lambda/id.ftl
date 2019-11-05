@@ -162,6 +162,11 @@
                 "Names" : "FixedCodeVersion",
                 "Children" : [
                     {
+                        "Names" : "NewVersionOnDeploy",
+                        "Description" : "Create a new version on each deployment",
+                        "Default" : false
+                    },
+                    {
                         "Names" : "CodeHash",
                         "Description" : "A sha256 hash of the code zip file",
                         "Default" : ""
