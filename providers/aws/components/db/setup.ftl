@@ -522,7 +522,7 @@
                     ] +
                     pseudoStackOutputScript(
                             "RDS CA Identifier",
-                            { formatId(rdsId, "ca") : "$\{requiredRDSCA}" },
+                            { formatId(rdsId, "ca") : requiredRDSCA },
                             "ca"
                     ) +
                     [
