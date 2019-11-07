@@ -893,7 +893,7 @@ behaviour.
         [#if value?is_hash ]
             [#local outputs += { key, value.Value } ]
         [#else ]
-            [#local outputs += { key, vaue } ]
+            [#local outputs += { key, value } ]
         [/#if]
     [/#list]
 
