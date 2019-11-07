@@ -317,7 +317,10 @@ function main() {
 
   pushd ${CF_DIR} > /dev/null 2>&1
 
-  # TODO(rossmurr4y): impliment prologue script when necessary.
+  # Run the prologue script if present
+  # Refresh the stack outputs in case something from pseudo stack is needed
+  [[ -s "${PROLOGUE}" ]] && \
+    { info "Processing prologue script ..." && . "${PROLOGUE}" && assemble_composite_stack_outputs || return $?; }
 
   process_deployment_status=0
   # Process the deployment
@@ -336,7 +339,11 @@ function main() {
 
   assemble_composite_stack_outputs
 
-  # TODO(rossmurr4y): impliment epilogue script when necessary.
+  # Run the epilogue script if present
+  # Refresh the stack outputs in case something from the just created stack is needed
+  # by the epilogue script
+  [[ -s "${EPILOGUE}" ]] && \
+  { info "Processing epilogue script ..." && assemble_composite_stack_outputs && . "${EPILOGUE}" || return $?; }
 
   return 0
 }
