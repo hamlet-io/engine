@@ -6,8 +6,6 @@ trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGI
 
 # Defaults
 DELAY_DEFAULT=30
-TIER_DEFAULT="web"
-COMPONENT_DEFAULT="www"
 
 function usage() {
     cat <<EOF
@@ -18,24 +16,24 @@ Usage: $(basename $0) -t TIER -i COMPONENT -w TASK -e ENV -v VALUE -d DELAY
 
 where
 
-(o) -c CONTAINER_ID     is the name of the container that environment details are applied to
-(o) -d DELAY            is the interval between checking the progress of the task
-(o) -e ENV              is the name of an environment variable to define for the task
-    -h                  shows this text
-(o) -i COMPONENT        is the name of the component in the solution where the task is defined
-(o) -t TIER             is the name of the tier in the solution where the task is defined
-(o) -v VALUE            is the value for the last environment value defined (via -e) for the task
-(m) -w TASK             is the name of the task to be run
-(o) -x INSTANCE         is the instance of the task to be run
-(o) -y VERSION          is the version of the task to be run
+(o) -c CONTAINER_ID         is the name of the container that environment details are applied to
+(o) -d DELAY                is the interval between checking the progress of the task
+(o) -e ENV                  is the name of an environment variable to define for the task
+    -h                      shows this text
+(m) -i COMPONENT            is the name of the ecs component in the solution where the task is defined
+(o) -j COMPONENT_INSTANCE   is the instance of the ecs cluster to run the task on
+(o) -k COMPONENT_VERSION    is the version of the ecs clsuter to run the task on
+(m) -t TIER                 is the name of the tier in the solution where the task is defined
+(o) -v VALUE                is the value for the last environment value defined (via -e) for the task
+(m) -w TASK                 is the name of the task to be run
+(o) -x INSTANCE             is the instance of the task to be run
+(o) -y VERSION              is the version of the task to be run
 
 (m) mandatory, (o) optional, (d) deprecated
 
 DEFAULTS:
 
 DELAY     = ${DELAY_DEFAULT} seconds
-TIER      = ${TIER_DEFAULT}
-COMPONENT = ${COMPONENT_DEFAULT}
 
 NOTES:
 
@@ -50,7 +48,7 @@ ENV_STRUCTURE="\"environment\":["
 ENV_NAME=
 
 # Parse options
-while getopts ":c:d:e:hi:t:v:x:y:w:" opt; do
+while getopts ":c:d:e:hi:j:k:t:v:x:y:w:" opt; do
     case $opt in
         c)
             CONTAINER_ID="${OPTARG}"
@@ -71,6 +69,12 @@ while getopts ":c:d:e:hi:t:v:x:y:w:" opt; do
         i)
             COMPONENT="${OPTARG}"
             ;;
+        j)
+            COMPONET_INSTANCE="${OPTARG}"
+            ;;
+        k)
+            COMPONENT_VERSION="${OPTARG}"
+            ;;
         t)
             TIER="${OPTARG}"
             ;;
@@ -81,10 +85,10 @@ while getopts ":c:d:e:hi:t:v:x:y:w:" opt; do
         w)
             TASK="${OPTARG}"
             ;;
-        x)  
+        x)
             INSTANCE="${OPTARG}"
             ;;
-        y)  
+        y)
             VERSION="${OPTARG}"
             ;;
         \?)
@@ -97,12 +101,13 @@ while getopts ":c:d:e:hi:t:v:x:y:w:" opt; do
 done
 
 DELAY="${DELAY:-${DELAY_DEFAULT}}"
-TIER="${TIER:-${TIER_DEFAULT}}"
-COMPONENT="${COMPONENT:-${COMPONENT_DEFAULT}}"
 ENV_STRUCTURE="${ENV_STRUCTURE}]"
 
 # Ensure mandatory arguments have been provided
-[[ -z "${TASK}" ]] && fatalMandatory
+if [[ -z "${TASK}" || -z "${TIER}" || -z "${COMPONENT}" ]]; then
+     fatalMandatory
+     exit 255
+fi
 
 # Set up the context
 . "${GENERATION_DIR}/setContext.sh"
@@ -112,81 +117,113 @@ status_file="$(getTopTempDir)/run_task_status.txt"
 # Ensure we are in the right place
 checkInSegmentDirectory
 
-# Extract key identifiers
-RID=$(getJSONValue "${COMPOSITE_BLUEPRINT}" ".Tiers[] | objects | select(.Name==\"${TIER}\") | .Id")
-CID=$(getJSONValue "${COMPOSITE_BLUEPRINT}" ".Tiers[] | objects | select(.Name==\"${TIER}\") | .Components[] | objects | select(.Name==\"${COMPONENT}\") | .Id")
-KID=$(getJSONValue "${COMPOSITE_BLUEPRINT}" ".Tiers[] | objects | select(.Name==\"${TIER}\") | .Components[] | objects | select(.Name==\"${COMPONENT}\") | .ECS.Tasks[] | objects | select(.Name==\"${TASK}\") | .Id")
+# Generate a blueprint that we can use to find hosting details
+info "Generating blueprint to find details..."
+${GENERATION_DIR}/createBlueprint.sh >/dev/null
+ENV_BLUEPRINT="${PRODUCT_INFRASTRUCTURE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}/blueprint.json"
 
-# Remove component type
-CID="${CID%-*}"
+# allow for undefined instance and versions
+if [[ -n "${COMPONENT_INSTANCE}" ]]; then
+    COMPONENT_INSTANCE="\"${COMPONENT_INSTANCE}\""
+else
+    COMPONENT_INSTANCE="null"
+fi
 
-# Handle task mode
-KID="${KID/-/X}"
+if [[ -n "${COMPONENT_VERSION}" ]]; then
+    COMPONENT_VERSION="\"${COMPONENT_VERSION}\""
+else
+    COMPONENT_VERSION="null"
+fi
 
-# Add Instance and Version to KID
-if [[ -n "${INSTANCE}" && "${INSTANCE}" != "default" ]]; then
-    KID="${KID}X${INSTANCE}"
-fi 
+if [[ -n "${INSTANCE}" ]]; then
+    INSTANCE="\"${INSTANCE}\""
+else
+    INSTANCE="null"
+fi
 
 if [[ -n "${VERSION}" ]]; then
-    KID="${KID}X${VERSION}"
+    VERSION="\"${VERSION}\""
+else
+    VERSION="null"
 fi
+
+# Search through the blueprint to find the cluster and the task
+COMPONENT_BLUEPRINT="$(getJSONValue "${ENV_BLUEPRINT}" ".Tenants[] | objects | select(.Configuration.Name==\"${TENANT}\") \
+                                    | .Products[] | objects | select(.Configuration.Name==\"${PRODUCT}\") \
+                                    | .Environments[] | objects | select(.Configuration.Name==\"${ENVIRONMENT}\") \
+                                    | .Segments[] | objects | select(.Configuration.Name==\"${SEGMENT}\") \
+                                    | .Tiers[] | objects | select(.Configuration.Name==\"${TIER}\") \
+                                    | .Components[] | objects | select(.Id==\"${COMPONENT}\") \
+                                    | .Occurrences[] | objects | \
+                                            select(.Core.Component.RawName==\"${COMPONENT}\" \
+                                                and .Core.Component.Instance.Name==${COMPONENT_INSTANCE} \
+                                                and .Core.Component.Version.Name==${COMPONENT_VERSION} \
+                                            ) \
+                                    | .Occurrences[] | objects | \
+                                            select(.Core.Component.RawName==\"${TASK}\" \
+                                                and .Core.Component.Instance.Name==${INSTANCE} \
+                                                and .Core.Component.Version.Name==${VERSION} \
+                                            )")"
+
+CLUSTER_ARN="$( echo "${COMPONENT_BLUEPRINT}" | jq -r '.State.Attributes.ECSHOST' )"
+DEFAULT_CONTAINER="$( echo "${COMPONENT_BLUEPRINT}" | jq -r '.Configuration.Solution.Containers | keys | .[0]' )"
+TASK_DEFINITION_ID="-$( echo "${COMPONENT_BLUEPRINT}" | jq -r '.State.ResourceGroups.default.Resources.task.Id' )-"
 
 # Handle container name
 if [[ -n "${CONTAINER_ID}" ]]; then
     CONTAINER="${CONTAINER_ID}"
 else
-    CONTAINER="${KID%%X*}"
+    CONTAINER="${DEFAULT_CONTAINER%-*}"
 fi
 
-# Find the cluster
-CLUSTER_ARN=$(aws --region ${REGION} ecs list-clusters | jq -r ".clusterArns[] | capture(\"(?<arn>.*${PRODUCT}-${ENVIRONMENT}-${SEGMENT}.*ecsX${RID}X${CID}.*)\").arn")
-if [[ -z "${CLUSTER_ARN}" ]]; then
-    CLUSTER_ARN=$(aws --region ${REGION} ecs list-clusters | jq -r ".clusterArns[] | capture(\"(?<arn>.*${PRODUCT}-${ENVIRONMENT}.*ecsX${RID}X${CID}.*)\").arn")
+if [[ "${SEGMENT}" == "default" ]]; then
+    SEGMENT=""
+fi
 
-    if [[ -z "${CLUSTER_ARN}" ]]; then
-        fatal "Unable to locate ECS cluster"
+TASK_DEFINITION_ARN="$(aws --region "${REGION}" ecs list-task-definitions --query "taskDefinitionArns[?contains(@, '${TASK_DEFINITION_ID}') == \`true\`]|[?contains(@, '${PRODUCT}-${ENVIRONMENT}-${SEGMENT}') == \`true\`] | [0]" --output text )"
+
+info "Found the following task details \n * ClusterARN=${CLUSTER_ARN} \n * TaskDefinitionArn=${TASK_DEFINITION_ARN} \n * Container=${CONTAINER}"
+
+# Check the cluster
+if [[ -n "${CLUSTER_ARN}" ]]; then
+    CLUSTER_STATUS="$(aws --region "${REGION}" ecs describe-clusters --clusters "${CLUSTER_ARN}" --output text --query 'clusters[0].status')"
+    debug "Cluster Status ${CLUSTER_STATUS}"
+    if [[ "${CLUSTER_STATUS}" != "ACTIVE" ]]; then
+        fatal "ECS Cluster ${CLUSTER_ARN} could not be found or was not active"
         exit
     fi
+else
+    fatal "ECS Cluster not found - Component=${COMPONENT}"
+    exit
 fi
 
 # Find the task definition
-TASK_DEFINITION_ARN=$(aws --region ${REGION} ecs list-task-definitions | jq -r ".taskDefinitionArns[] | capture(\"(?<arn>.*${PRODUCT}-${ENVIRONMENT}-${SEGMENT}.*ecsTaskX${RID}X${CID}X${KID}.*)\").arn")
 if [[ -z "${TASK_DEFINITION_ARN}" ]]; then
-    TASK_DEFINITION_ARN=$(aws --region ${REGION} ecs list-task-definitions | jq -r ".taskDefinitionArns[] | capture(\"(?<arn>.*${PRODUCT}-${ENVIRONMENT}.*ecsTaskX${RID}X${CID}X${KID}.*)\").arn")
-
-    if [[ -z "${TASK_DEFINITION_ARN}" ]]; then
-        fatal "Unable to locate task definition"
-        exit
-    fi
+    fatal "Unable to locate task definition"
+    exit
 fi
 
-# Find the container - support legacy naming
-for CONTAINER_NAME in "${CONTAINER}" "${TIER}-${COMPONENT}-${CONTAINER}"; do
-    aws --region ${REGION} ecs run-task --cluster "${CLUSTER_ARN}" --task-definition "${TASK_DEFINITION_ARN}" --count 1 --overrides "{\"containerOverrides\":[{\"name\":\"${CONTAINER_NAME}\",${ENV_STRUCTURE}}]}" > "${status_file}" 2>&1
-    RESULT=$?
-    [[ "$RESULT" -eq 0 ]] && break
-done
+# Find the container
+TASK_ARN="$(aws --region "${REGION}" ecs run-task --cluster "${CLUSTER_ARN}" --task-definition "${TASK_DEFINITION_ARN}" --count 1 --overrides "{\"containerOverrides\":[{\"name\":\"${CONTAINER}\",${ENV_STRUCTURE}}]}" --query 'tasks[0].taskArn' --output text || exit $? )"
 
-if [ "$RESULT" -ne 0 ]; then exit; fi
-
-cat "${status_file}"
-TASK_ARN=$(jq -r ".tasks[0].taskArn" < "${status_file}")
-
+info "Watching task..."
 while true; do
-    aws --region ${REGION} ecs describe-tasks --cluster ${CLUSTER_ARN} --tasks ${TASK_ARN} 2>/dev/null | jq ".tasks[] | select(.taskArn == \"${TASK_ARN}\") | {lastStatus: .lastStatus}" > "${status_file}"
-    cat "${status_file}"
-    grep "STOPPED" "${status_file}" >/dev/null 2>&1
-    RESULT=$?
-    if [ "$RESULT" -eq 0 ]; then break; fi
-    grep "PENDING\|RUNNING" "${status_file}"  >/dev/null 2>&1
-    RESULT=$?
-    if [ "$RESULT" -ne 0 ]; then break; fi
+    LAST_STATUS="$(aws --region ${REGION} ecs describe-tasks --cluster "${CLUSTER_ARN}" --tasks "${TASK_ARN}" --query "tasks[?taskArn=='${TASK_ARN}'].lastStatus" --output text || break $?)"
+
+    echo "...${LAST_STATUS}"
+
+    if [[ "${LAST_STATUS}" == "STOPPED" ]]; then
+        break
+    fi
     sleep $DELAY
 done
 
 # Show the exit codes and return an error if they are not 0
-aws --region ${REGION} ecs describe-tasks --cluster ${CLUSTER_ARN} --tasks ${TASK_ARN} 2>/dev/null | jq ".tasks[].containers[] | {name: .name, exitCode: .exitCode}" > "${status_file}"
-cat "${status_file}"
-RESULT=$(jq ".exitCode" < "${status_file}" | grep -m 1 -v "^0$" | tr -d '"' )
+TASK_FINAL_STATUS="$( aws --region "${REGION}" ecs describe-tasks --cluster "${CLUSTER_ARN}" --tasks "${TASK_ARN}" --query "tasks[?taskArn=='${TASK_ARN}'].{taskArn: taskArn, overrides: overrides, containers: containers }" || exit $? )"
+
+info "Task Results"
+echo "${TASK_FINAL_STATUS}"
+
+# Use the exit status of the override container to determine the result
+RESULT=$( echo "${TASK_FINAL_STATUS}" | jq -r ".[].containers[] | select(.name=\"${CONTAINER}\") | .exitCode" )
 RESULT=${RESULT:-0}
