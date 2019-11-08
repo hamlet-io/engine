@@ -38,15 +38,6 @@
                     "Mandatory" : true
                 }
             ]
-        },
-        {
-            "Names" : "Profiles",
-            "Children" : [
-                {
-                    "Names" : "Placement",
-                    "Default" : "external"
-                }
-            ]
         }
     ]
     provider=SHARED_PROVIDER
