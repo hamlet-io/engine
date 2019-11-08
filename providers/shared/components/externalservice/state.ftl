@@ -16,10 +16,7 @@
         occurrence.Configuration.Environment.Sensitive ]
 
     [#list environment as name,value]
-        [#local prefix = occurrence.Core.Component.Name?upper_case + "_"]
-        [#if name?starts_with(prefix)]
-            [#local attributes += { name?remove_beginning(prefix) : value } ]
-        [/#if]
+        [#local attributes += { name : value } ]
     [/#list]
 
     [#assign componentState =
