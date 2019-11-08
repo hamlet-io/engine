@@ -106,7 +106,7 @@
 
                             [#if ! endpoint?has_content && ! protocol?has_content ]
                                 [@fatal
-                                    message="Subscrption protocol or endpoints not found"
+                                    message="Subscription protocol or endpoints not found"
                                     context=link
                                     detail="External link Attributes Required SUBSCRIPTION_ENDPOINT - SUBSCRIPTION_PROTOCOL"
                                 /]
