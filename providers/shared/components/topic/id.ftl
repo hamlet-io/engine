@@ -48,7 +48,7 @@
         [
             {
                 "Type"  : "Description",
-                "Value" : "An individual service in the registry"
+                "Value" : "subscription to a topic"
             },
             {
                 "Type" : "Providers",
@@ -66,7 +66,7 @@
                 "Subobjects" : true,
                 "Children" : linkChildrenConfiguration
             },
-            {          
+            {
                 "Names" : "DeliveryPolicy",
                 "Children" : [
                     {
