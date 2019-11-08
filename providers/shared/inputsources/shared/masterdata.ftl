@@ -983,6 +983,15 @@
           "default" : {
             "Rules" : [ "All" ]
           }
+        },
+        "PlacementProfiles": {
+          "external": {
+            "default": {
+              "Provider": "shared",
+              "Region": "external",
+              "DeploymentFramework": "default"
+            }
+          }
         }
       }
   /]

@@ -95,10 +95,12 @@
                     [#local linkTargetAttributes = linkTarget.State.Attributes ]
 
                     [#local endpoint = ""]
+                    [#local protocol = ""]
                     [#local deliveryPolicy = {}]
 
                     [#switch linkTargetCore.Type ]
                         [#case "external" ]
+                        [#case EXTERNALSERVICE_COMPONENT_TYPE ]
                             [#local endpoint = linkTargetAttributes["SUBSCRIPTION_ENDPOINT"] ]
                             [#local protocol = linkTargetAttributes["SUBSCRIPTION_PROTOCOL"] ]
 
@@ -114,7 +116,7 @@
 
                     [#if ! endpoint?has_content && ! protocol?has_content ]
                         [@fatal
-                            message="Subscrption protocol or endpoints not found"
+                            message="Subscription protocol or endpoints not found"
                             context=link
                             detail="Could not determine protocol and endpoint for link"
                         /]

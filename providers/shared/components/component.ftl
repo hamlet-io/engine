@@ -48,6 +48,8 @@
 [#assign ES_COMPONENT_TYPE = "es"]
 [#assign ES_LEGACY_COMPONENT_TYPE = "elasticsearch"]
 
+[#assign EXTERNALSERVICE_COMPONENT_TYPE = "externalservice" ]
+
 [#assign FEDERATEDROLE_COMPONENT_TYPE = "federatedrole" ]
 [#assign FEDERATEDROLE_ASSIGNMENT_COMPONENT_TYPE = "federatedroleassignment" ]
 
@@ -248,7 +250,7 @@
     ]
 ]
 
-[#assign alertChildrenConfiguration =  
+[#assign alertChildrenConfiguration =
     [
         {
             "Names" : "Namespace",
@@ -336,7 +338,7 @@
     ]
 ]
 
-[#assign scalingPolicyChildrenConfiguration = 
+[#assign scalingPolicyChildrenConfiguration =
     [
         {
             "Names" : "Type",
@@ -884,14 +886,14 @@
             {
                 "Names" : "Order",
                 "Type" : ARRAY_OF_STRING_TYPE,
-                "Default" : [ 
-                    "Tier", 
+                "Default" : [
+                    "Tier",
                     "Component",
-                    "Type", 
-                    "SubComponent", 
-                    "Instance", 
+                    "Type",
+                    "SubComponent",
+                    "Instance",
                     "Version",
-                    "Name" 
+                    "Name"
                 ]
             },
             {
