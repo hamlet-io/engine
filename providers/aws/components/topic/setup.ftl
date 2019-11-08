@@ -101,8 +101,8 @@
                     [#switch linkTargetCore.Type ]
                         [#case "external" ]
                         [#case EXTERNALSERVICE_COMPONENT_TYPE ]
-                            [#local endpoint = linkTargetAttributes["SUBSCRIPTION_ENDPOINT"] ]
-                            [#local protocol = linkTargetAttributes["SUBSCRIPTION_PROTOCOL"] ]
+                            [#local endpoint = linkTargetAttributes["SUBSCRIPTION_ENDPOINT"]!"" ]
+                            [#local protocol = linkTargetAttributes["SUBSCRIPTION_PROTOCOL"]!"" ]
 
                             [#if ! endpoint?has_content && ! protocol?has_content ]
                                 [@fatal
