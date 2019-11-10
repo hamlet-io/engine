@@ -268,7 +268,7 @@ function main() {
   fi
 
   # variable for sentry source map upload
-  SENTRY_RELEASE_NAME="${EXPO_CURRENT_APP_VERSION}-r.${BUILD_REFERENCE}"
+  SENTRY_RELEASE_NAME="${BUILD_REFERENCE}"
   SENTRY_SOURCE_MAP_S3_URL="s3://${PUBLIC_BUCKET}/${PUBLIC_PREFIX}/packages/${EXPO_SDK_VERSION}"
   echo "SENTRY_SOURCE_MAP_S3_URL=${SENTRY_SOURCE_MAP_S3_URL}" >> ${AUTOMATION_DATA_DIR}/chain.properties
   echo "SENTRY_RELEASE_NAME=${SENTRY_RELEASE_NAME}" >> ${AUTOMATION_DATA_DIR}/chain.properties
@@ -344,6 +344,16 @@ function main() {
 
         jq -c --arg EXPO_ID_OVERRIDE "${EXPO_ID_OVERRIDE}" '[ .[] | .id=$EXPO_ID_OVERRIDE ]' < "${SRC_PATH}/app/dist/master/android-index.json" > "${tmpdir}/android-master-expo-override.json"
         mv "${tmpdir}/android-master-expo-override.json" "${SRC_PATH}/app/dist/master/android-index.json"
+
+    fi
+
+    if [[ -n "${SENTRY_RELEASE_NAME}" ]]; then
+      info "Override revisionId in master export to match the corresponding sentry release name ${SENTRY_RELEASE_NAME}"
+      jq -c --arg REVISION_ID "${SENTRY_RELEASE_NAME}" '.revisionId=$REVISION_ID' < "${SRC_PATH}/app/dist/master/ios-index.json" > "${tmpdir}/ios-expo-override.json"
+      mv "${tmpdir}/ios-expo-override.json" "${SRC_PATH}/app/dist/master/ios-index.json"
+
+      jq -c --arg REVISION_ID "${SENTRY_RELEASE_NAME}" '.revisionId=$REVISION_ID' < "${SRC_PATH}/app/dist/master/android-index.json" > "${tmpdir}/android-expo-override.json"
+      mv "${tmpdir}/android-expo-override.json" "${SRC_PATH}/app/dist/master/android-index.json"
 
     fi
 
