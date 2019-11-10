@@ -349,10 +349,10 @@ function main() {
 
     if [[ -n "${SENTRY_RELEASE_NAME}" ]]; then
       info "Override revisionId in master export to match the corresponding sentry release name ${SENTRY_RELEASE_NAME}"
-      jq -c --arg REVISION_ID "${SENTRY_RELEASE_NAME}" '.revisionId=$REVISION_ID' < "${SRC_PATH}/app/dist/master/ios-index.json" > "${tmpdir}/ios-expo-override.json"
+      jq -c --arg REVISION_ID "${SENTRY_RELEASE_NAME}" ' .[] | .revisionId=$REVISION_ID' < "${SRC_PATH}/app/dist/master/ios-index.json" > "${tmpdir}/ios-expo-override.json"
       mv "${tmpdir}/ios-expo-override.json" "${SRC_PATH}/app/dist/master/ios-index.json"
 
-      jq -c --arg REVISION_ID "${SENTRY_RELEASE_NAME}" '.revisionId=$REVISION_ID' < "${SRC_PATH}/app/dist/master/android-index.json" > "${tmpdir}/android-expo-override.json"
+      jq -c --arg REVISION_ID "${SENTRY_RELEASE_NAME}" ' .[] | .revisionId=$REVISION_ID' < "${SRC_PATH}/app/dist/master/android-index.json" > "${tmpdir}/android-expo-override.json"
       mv "${tmpdir}/android-expo-override.json" "${SRC_PATH}/app/dist/master/android-index.json"
 
     fi
