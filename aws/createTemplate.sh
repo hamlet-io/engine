@@ -10,6 +10,7 @@ REQUEST_REFERENCE_DEFAULT="unassigned"
 DEPLOYMENT_MODE_DEFAULT="update"
 GENERATION_PROVIDER_DEFAULT="aws"
 GENERATION_FRAMEWORK_DEFAULT="cf"
+GENERATION_INPUT_SOURCE_DEFAULT="composite"
 
 function usage() {
   cat <<EOF
@@ -20,16 +21,17 @@ Usage: $(basename $0) -l LEVEL -u DEPLOYMENT_UNIT -c CONFIGURATION_REFERENCE -q 
 
 where
 
-(m) -c CONFIGURATION_REFERENCE is the identifier of the configuration used to generate this template
+(o) -c CONFIGURATION_REFERENCE is the identifier of the configuration used to generate this template
 (o) -g RESOURCE_GROUP          is the deployment unit resource group
+(o) -g GENERATION_INPUT_SOURCE is the source of input data to use when generating the template
     -h                         shows this text
 (m) -l LEVEL                   is the template level - "blueprint", "account", "segment", "solution" or "application"
-(m) -q REQUEST_REFERENCE       is an opaque value to link this template to a triggering request management system
+(o) -q REQUEST_REFERENCE       is an opaque value to link this template to a triggering request management system
 (o) -r REGION                  is the AWS region identifier
-(o) -u DEPLOYMENT_UNIT         is the deployment unit to be included in the template
+(m) -u DEPLOYMENT_UNIT         is the deployment unit to be included in the template
 (o) -z DEPLOYMENT_UNIT_SUBSET  is the subset of the deployment unit required
 (o) -d DEPLOYMENT_MODE         is the deployment mode the template will be generated for
-(o) -p GENERATION_PROVIDER     is the provider to for template generation 
+(o) -p GENERATION_PROVIDER     is the provider to for template generation
 (o) -f GENERATION_FRAMEWORK    is the output framework to use for template generation
 (o) -t GENERATION_TESTCASE     is the test case you would like to generate a template for
 (o) -s GENERATION_SCENARIOS    is a comma seperated list of framework scenarios to load
@@ -43,13 +45,13 @@ REQUEST_REFERENCE       = "${REQUEST_REFERENCE_DEFAULT}"
 DEPLOYMENT_MODE         = "${DEPLOYMENT_MODE_DEFAULT}"
 GENERATION_PROVIDER     = "${GENERATION_PROVIDER_DEFAULT}"
 GENERATION_FRAMEWORK    = "${GENERATION_FRAMEWORK_DEFAULT}"
+GENERATION_INPUT_SOURCE = "${GENRATION_INPUT_SOURCE_DEFAULT}"
 
 NOTES:
 
 1. You must be in the directory specific to the level
 2. REGION is only relevant for the "product" level
 3. DEPLOYMENT_UNIT must be one of "s3", "cert", "roles", "apigateway" or "waf" for the "account" level
-4. DEPLOYMENT_UNIT must be one of "cmk", "cert", "sns" or "shared" for the "product" level
 5. For the "segment" level the "baseline" unit must be deployed before any other unit
 6. When deploying network level components in the "segment" level you must deploy vpc before igw, nat, or vpcendpoint
 
@@ -59,13 +61,14 @@ EOF
 function options() {
 
   # Parse options
-  while getopts ":c:d:f:g:hl:p:q:r:s:t:u:z:" option; do
+  while getopts ":c:d:f:g:hi:l:p:q:r:s:t:u:z:" option; do
       case "${option}" in
           c) CONFIGURATION_REFERENCE="${OPTARG}" ;;
           d) DEPLOYMENT_MODE="${OPTARG}" ;;
           f) GENERATION_FRAMEWORK="${OPTARG}" ;;
           g) RESOURCE_GROUP="${OPTARG}" ;;
           h) usage; return 1 ;;
+          i) GENERATION_INPUT_SOURCE="${OPTARG}" ;;
           l) LEVEL="${OPTARG}" ;;
           p) GENERATION_PROVIDER="${OPTARG}" ;;
           q) REQUEST_REFERENCE="${OPTARG}" ;;
@@ -85,13 +88,13 @@ function options() {
   DEPLOYMENT_MODE="${DEPLOYMENT_MODE:-${DEPLOYMENT_MODE_DEFAULT}}"
   GENERATION_PROVIDER="${GENERATION_PROVIDER:-${GENERATION_PROVIDER_DEFAULT}}"
   GENERATION_FRAMEWORK="${GENERATION_FRAMEWORK:-${GENERATION_FRAMEWORK_DEFAULT}}"
+  GENERATION_INPUT_SOURCE="${GENERATION_INPUT_SOURCE:-${GENERATION_INPUT_SOURCE_DEFAULT}}"
 
   # Check level and deployment unit
   ! isValidUnit "${LEVEL}" "${DEPLOYMENT_UNIT}" && fatal "Deployment unit/level not valid" && return 1
 
   # Ensure other mandatory arguments have been provided
-  [[ (-z "${REQUEST_REFERENCE}") ||
-      (-z "${CONFIGURATION_REFERENCE}") ]] && fatalMandatory && return 1
+  [[ (-z "${REQUEST_REFERENCE}") || (-z "${CONFIGURATION_REFERENCE}") ]] && fatalMandatory && return 1
 
   # Set up the context
   . "${GENERATION_DIR}/setContext.sh"
