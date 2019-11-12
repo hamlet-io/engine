@@ -23,7 +23,7 @@ where
 
 (o) -c CONFIGURATION_REFERENCE is the identifier of the configuration used to generate this template
 (o) -g RESOURCE_GROUP          is the deployment unit resource group
-(o) -g GENERATION_INPUT_SOURCE is the source of input data to use when generating the template
+(o) -i GENERATION_INPUT_SOURCE is the source of input data to use when generating the template
     -h                         shows this text
 (m) -l LEVEL                   is the template level - "blueprint", "account", "segment", "solution" or "application"
 (o) -q REQUEST_REFERENCE       is an opaque value to link this template to a triggering request management system
