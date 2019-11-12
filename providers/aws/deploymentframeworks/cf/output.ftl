@@ -241,11 +241,12 @@
 
 [#assign AWS_OUTPUT_RESOURCE_TYPE = "resource" ]
 
-[@addGenPlanStepOutputMapping 
+[#-- Add Output Step mappings for each output --]
+
+[@addGenPlanStepOutputMapping
     provider=AWS_PROVIDER
-    subsets=[
-        "template"
-    ]
+    subset="template"
     outputType=AWS_OUTPUT_RESOURCE_TYPE
     outputFormat=""
+    outputSuffix="template.json"
 /]
