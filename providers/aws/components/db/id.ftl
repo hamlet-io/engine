@@ -6,6 +6,7 @@
     resourceGroup=DEFAULT_RESOURCE_GROUP
     services=
         [
+            AWS_IDENTITY_SERVICE,
             AWS_CLOUDWATCH_SERVICE,
             AWS_KEY_MANAGEMENT_SERVICE,
             AWS_RELATIONAL_DATABASE_SERVICE,
