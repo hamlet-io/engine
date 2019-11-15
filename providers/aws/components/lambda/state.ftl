@@ -26,7 +26,14 @@
     [#local solution = occurrence.Configuration.Solution ]
 
     [#local id = formatResourceId(AWS_LAMBDA_FUNCTION_RESOURCE_TYPE, core.Id)]
-    [#local versionId = formatResourceId(AWS_LAMBDA_VERSION_RESOURCE_TYPE, core.Id )]
+
+    [#local versionOutputId = formatResourceId(AWS_LAMBDA_VERSION_RESOURCE_TYPE, core.Id) ]
+
+    [#if solution.FixedCodeVersion.NewVersionOnDeploy ]
+        [#local versionId = formatId(versionOutputId, runId )]
+    [#else]
+        [#local versionId = versionOutputId]
+    [/#if]
 
     [#local region = getExistingReference(id, REGION_ATTRIBUTE_TYPE)!regionId]
 
@@ -70,14 +77,15 @@
                 "version",
                 fixedCodeVersion,
                 {
-                    "Id" : versionId,
+                    "Id" : versionOutputId,
+                    "ResourceId" : versionId,
                     "Type" : AWS_LAMBDA_VERSION_RESOURCE_TYPE
                 }
             ),
             "Attributes" : {
                 "REGION" : region,
                 "ARN" : valueIfTrue(
-                            getExistingReference( versionId ),
+                            getExistingReference(versionOutputId),
                             fixedCodeVersion
                             formatArn(
                                 regionObject.Partition,

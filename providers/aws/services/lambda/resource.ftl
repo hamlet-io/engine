@@ -62,7 +62,7 @@
     }
 ]
 [#list lambdaMappings as type, mappings]
-    [@addOutputMapping 
+    [@addOutputMapping
         provider=AWS_PROVIDER
         resourceType=type
         mappings=mappings
@@ -114,7 +114,8 @@
             targetId
             codeHash=""
             description=""
-            dependencies="" ]
+            dependencies=""
+            outputId="" ]
     [@cfResource
         id=id
         type="AWS::Lambda::Version"
@@ -131,6 +132,7 @@
                 codeHash
             )
         outputs=LAMBDA_VERSION_OUTPUT_MAPPINGS
+        outputId=outputId
         dependencies=dependencies
     /]
 [/#macro]

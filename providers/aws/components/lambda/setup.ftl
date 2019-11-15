@@ -235,26 +235,30 @@
             name=fnLgName /]
     [/#if]
 
-    [#if deploymentSubsetRequired("lambda", true)]
-        [#if isPresent(solution.FixedCodeVersion) ]
-            [#local versionId = resources["version"].Id  ]
-            [#local codeHash = _context.CodeHash!solution.FixedCodeVersion.CodeHash ]
 
-            [#if !(core.Version?has_content)]
-                [@fatal
-                    message="A version must be defined for Fixed Code Version deployments"
-                    context=core
-                /]
-            [/#if]
+    [#if isPresent(solution.FixedCodeVersion) ]
+        [#local versionId = resources["version"].Id  ]
+        [#local versionResourceId = resources["version"].ResourceId ]
+        [#local codeHash = _context.CodeHash!solution.FixedCodeVersion.CodeHash ]
 
-            [@createLambdaVersion
-                id=versionId
-                targetId=fnId
-                codeHash=_context.CodeHash!""
-                dependencies=fnId
-                /]
+        [#if !(core.Version?has_content)]
+            [@fatal
+                message="A version must be defined for Fixed Code Version deployments"
+                context=core
+            /]
         [/#if]
 
+        [#if deploymentSubsetRequired("lambda", true)]
+            [@createLambdaVersion
+                id=versionResourceId
+                targetId=fnId
+                codeHash=_context.CodeHash!""
+                outputId=versionId
+            /]
+        [/#if]
+    [/#if]
+
+    [#if deploymentSubsetRequired("lambda", true)]
         [#-- VPC config uses an ENI so needs an SG - create one without restriction --]
         [#if vpcAccess ]
             [@createDependentSecurityGroup
@@ -322,7 +326,7 @@
             [@createLambdaPermission
                 id=formatLambdaPermissionId(fn, "replication")
                 action="lambda:GetFunction"
-                targetId=versionId
+                targetId=versionResourceId
                 source={
                     "Principal" : "replicator.lambda.amazonaws.com"
                 }
