@@ -16,7 +16,7 @@
         }
     }
 ]
-[@addOutputMapping 
+[@addOutputMapping
     provider=AWS_PROVIDER
     resourceType=AWS_RDS_RESOURCE_TYPE
     mappings=RDS_OUTPUT_MAPPINGS
@@ -53,6 +53,11 @@
     optionGroupId
     snapshotId
     securityGroupId
+    enhancedMonitoring
+    enhancedMonitoringInterval
+    performanceInsights
+    performanceInsightsRetention
+    enhancedMonitoringRoleId=""
     tier=""
     component=""
     dependencies=""
@@ -111,26 +116,41 @@
                 "MasterUsername": masterUsername,
                 "MasterUserPassword": masterPassword
             }
+        ) +
+        performanceInsights?then(
+            {
+                "EnablePerformanceInsights" : performanceInsights,
+                "PerformanceInsightsRetentionPeriod" : performanceInsightsRetention,
+                "PerformanceInsightsKMSKeyId" : getReference(kmsKeyId, ARN_ATTRIBUTE_TYPE)
+            },
+            {}
+        ) +
+        enhancedMonitoring?then(
+            {
+                "MonitoringInterval" : enhancedMonitoringInterval,
+                "MonitoringRoleArn" : getReference(enhancedMonitoringRoleId, ARN_ATTRIBUTE_TYPE)
+            },
+            {}
         )
-tags=
-    getCfTemplateCoreTags(
-        name,
-        tier,
-        component)
-outputs=
-    RDS_OUTPUT_MAPPINGS +
-    {
-        DATABASENAME_ATTRIBUTE_TYPE : {
-            "Value" : databaseName
-        }
-    } +
-    attributeIfContent(
-        LASTRESTORE_ATTRIBUTE_TYPE,
-        snapshotId,
+    tags=
+        getCfTemplateCoreTags(
+            name,
+            tier,
+            component)
+    outputs=
+        RDS_OUTPUT_MAPPINGS +
         {
-            "Value" : snapshotId
-        }
-    )
-/]
+            DATABASENAME_ATTRIBUTE_TYPE : {
+                "Value" : databaseName
+            }
+        } +
+        attributeIfContent(
+            LASTRESTORE_ATTRIBUTE_TYPE,
+            snapshotId,
+            {
+                "Value" : snapshotId
+            }
+        )
+    /]
 
 [/#macro]

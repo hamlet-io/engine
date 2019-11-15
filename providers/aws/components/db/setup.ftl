@@ -175,6 +175,22 @@
     [#local securityProfile = getSecurityProfile(solution.Profiles.Security, "db" )]
     [#local requiredRDSCA = securityProfile["SSLCertificateAuthority"]!"COTFatal: SSLCertificateAuthority not found in security profile: " + solution.Profiles.Security ]
 
+    [#if solution.Monitoring.DetailedMetrics.Enabled ]
+        [#local monitoringRoleId = resources["monitoringRole"].Id ]
+        [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(monitoringRoleId)]
+            [@createRole
+                id=monitoringRoleId
+                trustedServices=[
+                    "rds.amazonaws.com",
+                    "monitoring.rds.amazonaws.com"
+                ]
+                managedArns=[
+                    "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
+                ]
+            /]
+        [/#if]
+    [/#if]
+
     [#if deploymentSubsetRequired("prologue", false)]
         [@addToDefaultBashScriptOutput
             content=
@@ -401,6 +417,11 @@
                     deleteAutomatedBackups=solution.Backup.DeleteAutoBackups
                     deletionPolicy=deletionPolicy
                     updateReplacePolicy=updateReplacePolicy
+                    enhancedMonitoring=solution.Monitoring.DetailedMetrics.Enabled
+                    enhancedMonitoringInterval=solution.Monitoring.DetailedMetrics.CollectionInterval
+                    enhancedMonitoringRoleId=monitoringRoleId!""
+                    performanceInsights=solution.Monitoring.QueryPerformance.Enabled
+                    performanceInsightsRetention=solution.Monitoring.QueryPerformance.RetentionPeriod
                 /]
         [/#if]
     [/#if]

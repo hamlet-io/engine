@@ -66,7 +66,17 @@
                     "Name" : core.FullName,
                     "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
                 }
-            },
+            } +
+            solution.Monitoring.DetailedMetrics.Enabled?then(
+                {
+                    "monitoringRole" : {
+                        "Id" : formatResourceId(AWS_IAM_ROLE_RESOURCE_TYPE, core.Id, "monitoring" ),
+                        "Type" : AWS_IAM_ROLE_RESOURCE_TYPE,
+                        "IncludeInDeploymentState" : false
+                    }
+                },
+                {}
+            ),
             "Attributes" : {
                 "ENGINE" : engine,
                 "FQDN" : fqdn,
