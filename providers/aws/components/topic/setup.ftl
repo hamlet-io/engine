@@ -72,6 +72,8 @@
         [#local solution = subOccurrence.Configuration.Solution ]
         [#local resources = subOccurrence.State.Resources ]
 
+        [#local subscriptionDependencies = []]
+
         [#switch core.Type]
 
             [#case TOPIC_SUBSCRIPTION_COMPONENT_TYPE  ]
@@ -112,6 +114,37 @@
                                 /]
                             [/#if]
                             [#break]
+
+                        [#case LAMBDA_FUNCTION_COMPONENT_TYPE ]
+                            [#local endpoint = linkTargetAttributes["ARN"] ]
+                            [#local protocol = "lambda"]
+                            [#break]
+
+                        [#case SQS_COMPONENT_TYPE]
+
+                            [#local resourceId = linkTargetResources["queue"].Id ]
+                            [#local policyId =
+                                    formatDependentPolicyId(
+                                        subscriptionId,
+                                        resourceId) ]
+
+                            [#local subscriptionDependencies += [policyId] ]
+
+                            [@createSQSPolicy
+                                id=policyId
+                                queues=resourceId
+                                statements=sqsWritePermission(
+                                                resourceId,
+                                                "*",
+                                                {
+                                                    "ArnEquals" : {
+                                                        "aws:sourceArn" : getReference(topicId)
+                                                    }
+                                                })
+                            /]
+                            [#local endpoint = linkTargetAttributes["ARN"] ]
+                            [#local protocol = "sqs" ]
+                            [#break]
                     [/#switch]
 
                     [#if ! endpoint?has_content && ! protocol?has_content ]
@@ -138,6 +171,7 @@
                             protocol=protocol
                             rawMessageDelivery=solution.RawMessageDelivery
                             deliveryPolicy=deliveryPolicy
+                            dependencies=subscriptionDependencies
                         /]
                     [/#if]
                 [/#list]

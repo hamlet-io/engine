@@ -68,11 +68,14 @@
         sqsListQueuesPermission() ]
 [/#function]
 
-[#function sqsWritePermission id]
+[#function sqsWritePermission id principals="*" conditions=""]
     [#return
         getSqsStatement(
             "sqs:SendMessage*",
-            id)]
+            id,
+            principals,
+            conditions
+        )]
 [/#function]
 
 [#function sqsS3WritePermission id bucketName="" ]
@@ -87,5 +90,3 @@
                 }
             })]
 [/#function]
-
-
