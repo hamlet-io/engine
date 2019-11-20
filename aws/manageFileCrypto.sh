@@ -11,7 +11,7 @@ function usage() {
 
 Manage crypto for files
 
-Usage: $(basename $0) -f CRYPTO_FILE -e -d -u -a
+Usage: $(basename $0) -f CRYPTO_FILE -e -d -u -a KEYALIAS -k KEYID
 
 where
 
