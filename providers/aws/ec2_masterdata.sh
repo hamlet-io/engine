@@ -73,6 +73,5 @@ EOF
 cat masterData.json >> inputsources/shared/masterdata.ftl
 cat << EOF >> "inputsources/shared/masterdata.ftl"
   /]
-[#/macro]
+[/#macro]
 EOF
-
