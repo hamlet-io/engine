@@ -25,7 +25,10 @@
                     network.CIDR.Address + "/" + network.CIDR.Mask,
                     solution.Address.CIDR )]
 
-    [#local subnetCIDRMask = getSubnetMaskFromSizes(networkCIDR, network.Tiers.Order?size, network.Zones.Order?size ) ]
+    [#local subnetCIDRMask = getSubnetMaskFromSizes(
+                                networkCIDR,
+                                network.Tiers.Order?size,
+                                network.Zones.Order?size )]
     [#local subnetCIDRS = getSubnetsFromNetwork(networkCIDR, subnetCIDRMask)]
 
     [#local flowLogLgName = legacyVpc?then(
