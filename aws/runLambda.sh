@@ -5,8 +5,8 @@ trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGI
 . "${GENERATION_DIR}/common.sh"
 
 
-#Defaults 
-INCLUDE_LOG_TAIL_DEFAULT="false"
+#Defaults
+INCLUDE_LOG_TAIL_DEFAULT="true"
 
 tmpdir="$(getTempDir "cote_inf_XXX")"
 
@@ -38,7 +38,7 @@ EOF
 }
 
 
-function options() { 
+function options() {
 
     # Parse options
     while getopts ":f:hi:lu:" opt; do
@@ -55,7 +55,7 @@ function options() {
             u)
                 DEPLOYMENT_UNIT="${OPTARG}"
                 ;;
-            f) 
+            f)
                 FUNCTION_ID="${OPTARG}"
                 ;;
             \?)
@@ -76,7 +76,7 @@ function main() {
     options "$@" || return $?
 
     # Ensure mandatory arguments have been provided
-    [[ -z "${DEPLOYMENT_UNIT}" || -z "${FUNCTION_ID}"]] && fatalMandatory
+    [[ -z "${DEPLOYMENT_UNIT}" || -z "${FUNCTION_ID}" ]] && fatalMandatory; return $?
 
     # Set up the context
     . "${GENERATION_DIR}/setContext.sh"
@@ -85,35 +85,36 @@ function main() {
     checkInSegmentDirectory
 
     # Create build blueprint
-    . "${GENERATION_DIR}/createBuildblueprint.sh" -u "${DEPLOYMENT_UNIT}" 
+    ${GENERATION_DIR}/createBuildblueprint.sh -u "${DEPLOYMENT_UNIT}" >/dev/null || exit $?
 
     COT_TEMPLATE_DIR="${PRODUCT_INFRASTRUCTURE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}"
     BUILD_BLUEPRINT="${COT_TEMPLATE_DIR}/build_blueprint-${DEPLOYMENT_UNIT}-.json"
+
     DEPLOYMENT_UNIT_TYPE="$(jq -r '.Type' < "${BUILD_BLUEPRINT}" )"
 
-    LAMBDA_OUTPUT_FILE="${tmpdir}/${DEPLOYMENT_UNIT}_output.txt" 
+    LAMBDA_OUTPUT_FILE="${tmpdir}/${DEPLOYMENT_UNIT}_output.txt"
 
-    if [[ "${DEPLOYMENT_UNIT_TYPE}" -ne "lambda" ]]; then 
+    if [[ "${DEPLOYMENT_UNIT_TYPE}" -ne "lambda" ]]; then
         fatal "Component type is not a lambda function"
         return 255
     fi
 
-    if [[ -n "${INPUT_PAYLOAD}" ]]; then 
-        INPUT_PAYLOAD="$( echo "${INPUT_PAYLOAD}" | jq -r '.' )"  
-        if [[ -z "${INPUT_PAYLOAD}" ]]; then 
+    if [[ -n "${INPUT_PAYLOAD}" ]]; then
+        INPUT_PAYLOAD="$( echo "${INPUT_PAYLOAD}" | jq -r '.' )"
+        if [[ -z "${INPUT_PAYLOAD}" ]]; then
             fatal "Invalid input payload - must be in JSON format"
             return 255
         fi
-    fi 
+    fi
 
-    LAMBDA_ARN="$( jq --arg functionId ${FUNCTION_ID} -r '(.Occurrence.Occurrences[] | select( .Core.SubComponent.Id==$functionId ).State.Attributes.ARN' < "${BUILD_BLUEPRINT}" )"
+    LAMBDA_ARN="$( jq --arg functionId ${FUNCTION_ID} -r '.Occurrence.Occurrences[] | select( .Core.SubComponent.Id==$functionId ) | .State.Attributes.ARN' < "${BUILD_BLUEPRINT}")"
 
     if [[ -n "${LAMBDA_ARN}" ]]; then
 
         LAMBDA_EXECUTE=$(aws --region ${REGION} lambda invoke --function-name "${LAMBDA_ARN}" \
             --invocation-type "RequestResponse" --log-type "Tail" \
             --payload "${INPUT_PAYLOAD}" \
-            "${LAMBDA_OUTPUT_FILE}" )
+            "${LAMBDA_OUTPUT_FILE}" || return $? )
 
         FUNCTION_ERROR="$( echo "${LAMBDA_EXECUTE}" | jq -r '.FunctionError' )"
         LOG_RESULTS="$( echo "${LAMBDA_EXECUTE}" | jq -r '. | .LogResult' | base64 --decode )"
@@ -131,21 +132,21 @@ function main() {
             info "-------------------------"
         fi
 
-        if [[ "${INCLUDE_LOG_TAIL}" == "true" ]]; then 
+        if [[ "${INCLUDE_LOG_TAIL}" == "true" ]]; then
             info "Lambda Execution Logs:"
             info "${LOG_RESULTS}"
             info "-----------------------"
         fi
 
-        if [[ "${FUNCTION_ERROR}" -ne "null" ]]; then 
+        if [[ "${FUNCTION_ERROR}" -ne "null" ]]; then
             fatal "An error occurred in the lambda function - Details provided in the return payload"
-            return 128 
-        fi 
+            return 128
+        fi
 
-     else 
+     else
         error "Lambda ARN not found for ${DEPLOYMENT_UNIT} has it been deployed?"
         return 128
-    fi 
+    fi
 
     # All good
     info "Lambda execute complete"

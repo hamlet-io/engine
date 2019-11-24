@@ -119,7 +119,7 @@ checkInSegmentDirectory
 
 # Generate a blueprint that we can use to find hosting details
 info "Generating blueprint to find details..."
-${GENERATION_DIR}/createBlueprint.sh >/dev/null
+${GENERATION_DIR}/createBlueprint.sh >/dev/null || exit $?
 ENV_BLUEPRINT="${PRODUCT_INFRASTRUCTURE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}/blueprint.json"
 
 # allow for undefined instance and versions
