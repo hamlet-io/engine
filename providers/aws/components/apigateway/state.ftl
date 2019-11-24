@@ -70,7 +70,14 @@ created in either case.
     [#local apiName = formatComponentFullName(core.Tier, core.Component, occurrence)]
 
     [#local stageId = formatResourceId(AWS_APIGATEWAY_STAGE_RESOURCE_TYPE, core.Id)]
-    [#local stageName = core.Version.Name]
+    [#local stageName = valueIfContent(
+                            core.Version.Name,
+                            core.Version.Name,
+                            valueIfContent(
+                                core.Instance.Name,
+                                core.Instance.Name,
+                                core.Name
+                            ))]
 
     [#local serviceName = "execute-api" ]
 
