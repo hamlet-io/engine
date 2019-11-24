@@ -25,14 +25,8 @@
                     network.CIDR.Address + "/" + network.CIDR.Mask,
                     solution.Address.CIDR )]
 
-    [#local networkAddress = networkCIDR?split("/")[0] ]
-    [#local networkMask = (networkCIDR?split("/")[1])?number ]
-    [#local baseAddress = networkAddress?split(".") ]
-
-    [#local addressOffset = baseAddress[2]?number*256 + baseAddress[3]?number]
-    [#local addressesPerTier = powersOf2[getPowerOf2(powersOf2[32 - networkMask]/(network.Tiers.Order?size))]]
-    [#local addressesPerZone = powersOf2[getPowerOf2(addressesPerTier / (network.Zones.Order?size))]]
-    [#local subnetMask = 32 - powersOf2?seq_index_of(addressesPerZone)]
+    [#local subnetCIDRMask = getSubnetMaskFromSizes(networkCIDR, network.Tiers.Order?size, network.Zones.Order?size ) ]
+    [#local subnetCIDRS = getSubnetsFromNetwork(networkCIDR, subnetCIDRMask)]
 
     [#local flowLogLgName = legacyVpc?then(
                                 formatSegmentLogGroupName(AWS_VPC_FLOWLOG_RESOURCE_TYPE, "all")
@@ -59,9 +53,8 @@
                                     formatSubnetName(networkTier, zone),
                                     formatName(core.FullName, networkTier.Name, zone.Name))]
 
-            [#local subnetAddress = addressOffset + (networkTier.Network.Index * addressesPerTier) + (zone.Index * addressesPerZone) ]
-            [#local subnetCIDR = baseAddress[0] + "." + baseAddress[1] + "." + (subnetAddress/256)?int + "." + subnetAddress%256 + "/" + subnetMask]
-
+            [#local subnetIndex = ( tierId?index * network.Zones.Order?size ) + zone?index]
+            [#local subnetCIDR = subnetCIDRS[subnetIndex]]
             [#local subnets =  mergeObjects( subnets, {
                 networkTier.Id  : {
                     zone.Id : {
@@ -92,7 +85,7 @@
                     "Id" : legacyVpc?then(formatVPCId(), vpcId),
                     "ResourceId" : vpcId,
                     "Name" : vpcName,
-                    "Address": networkAddress + "/" + networkMask,
+                    "Address": networkCIDR,
                     "Type" : AWS_VPC_RESOURCE_TYPE
                 },
                 "subnets" : subnets
