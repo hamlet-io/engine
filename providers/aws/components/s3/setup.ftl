@@ -301,7 +301,7 @@
             tier=core.Tier
             component=core.Component
             lifecycleRules=
-                (solution.Lifecycle.Configured && ((solution.Lifecycle.Expiration!operationsExpiration)?has_content || (solution.Lifecycle.Offline!operationsOffline)?has_content))?then(
+                (solution.Lifecycle.Configured && solution.Lifecycle.Enabled && ((solution.Lifecycle.Expiration!operationsExpiration)?has_content || (solution.Lifecycle.Offline!operationsOffline)?has_content))?then(
                         getS3LifecycleRule(solution.Lifecycle.Expiration!operationsExpiration, solution.Lifecycle.Offline!operationsOffline),
                         []
                 )
