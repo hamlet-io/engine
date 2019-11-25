@@ -9,16 +9,18 @@ trap 'exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 function usage() {
     cat <<EOF
 
-Manage crypto for files 
+Manage crypto for files
 
-Usage: $(basename $0) -f CRYPTO_FILE -e -d -u
+Usage: $(basename $0) -f CRYPTO_FILE -e -d -u -a KEYALIAS -k KEYID
 
 where
 
+(o) -a              is the cmk alias
 (o) -d              if file should be decrypted
 (o) -e              if file should be encrypted
 (o) -f CRYPTO_FILE  is the path to the file managed
     -h              shows this text
+(o) -k KEYID        for the master key to be used
 (o) -u              if file should be updated
 
 (m) mandatory, (o) optional, (d) deprecated
@@ -34,8 +36,11 @@ EOF
 }
 
 # Parse options
-while getopts ":def:hu" opt; do
+while getopts ":a:def:hk:u" opt; do
     case $opt in
+        a)
+            export ALIAS="${OPTARG}"
+            ;;
         d)
             export CRYPTO_OPERATION="decrypt"
             ;;
@@ -47,6 +52,9 @@ while getopts ":def:hu" opt; do
             ;;
         h)
             usage
+            ;;
+        k)
+            export KEYID="${OPTARG}"
             ;;
         u)
             export CRYPTO_UPDATE="true"
@@ -61,7 +69,7 @@ while getopts ":def:hu" opt; do
 done
 
 # Perform the operation required
-case $CRYPTO_OPERATION in 
+case $CRYPTO_OPERATION in
     encrypt)
         ${GENERATION_DIR}/manageCrypto.sh -e
         ;;
