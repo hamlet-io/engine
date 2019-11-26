@@ -2,7 +2,7 @@
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
-. "${GENERATION_DIR}/common.sh"
+. "${GENERATION_BASE_DIR}/execution/common.sh"
 
 #Defaults
 DEFAULT_SENTRY_CLI_VERSION="1.46.0"
@@ -10,14 +10,14 @@ DEFAULT_RUN_SETUP="false"
 DEFAULT_SENTRY_URL_PREFIX="~/"
 
 # Get the generation context so we can run template generation
-. "${GENERATION_DIR}/setContext.sh"
+. "${GENERATION_BASE_DIR}/execution/setContext.sh"
 
 function env_setup() {
 
     # yarn install
     yarn global add \
         @sentry/cli@"${SENTRY_CLI_VERSION}" || return $?
-    
+
 	# make sure yarn global bin is on path
     export PATH="$(yarn global bin):$PATH"
 }
@@ -50,7 +50,7 @@ EOF
     exit
 }
 
-function options() { 
+function options() {
 
     # Parse options
     while getopts ":d:hm:p:r:s" opt; do
@@ -94,7 +94,7 @@ function main() {
 
   options "$@" || return $?
 
-  if [[ "${RUN_SETUP}" == "true" ]]; then 
+  if [[ "${RUN_SETUP}" == "true" ]]; then
     env_setup || return $?
   fi
 

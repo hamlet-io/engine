@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
-trap '. ${GENERATION_DIR}/cleanupContext.sh' EXIT SIGHUP SIGINT SIGTERM
-. "${GENERATION_DIR}/common.sh"
+trap '. ${GENERATION_BASE_DIR}/execution/cleanupContext.sh' EXIT SIGHUP SIGINT SIGTERM
+. "${GENERATION_BASE_DIR}/execution/common.sh"
 
 # Defaults
 DEFAULT_PIPELINE_STATUS_ONLY="false"
@@ -13,7 +13,7 @@ function usage() {
 
 Run an AWS Data pipeline
 
-Usage: $(basename $0) -t TIER -i COMPONENT -x INSTANCE -y VERSION 
+Usage: $(basename $0) -t TIER -i COMPONENT -x INSTANCE -y VERSION
 
 where
 
@@ -41,7 +41,7 @@ EOF
     exit
 }
 
-function options() { 
+function options() {
     # Parse options
     while getopts ":chi:st:x:y:" opt; do
         case $opt in
@@ -61,10 +61,10 @@ function options() {
             t)
                 TIER="${OPTARG}"
                 ;;
-            x)  
+            x)
                 INSTANCE="${OPTARG}"
                 ;;
-            y)  
+            y)
                 VERSION="${OPTARG}"
                 ;;
             \?)
@@ -90,7 +90,7 @@ function main() {
     [[ -z "${COMPONENT}" || -z "${TIER}" ]] && fatalMandatory
 
     # Set up the context
-    . "${GENERATION_DIR}/setContext.sh"
+    . "${GENERATION_BASE_DIR}/execution/setContext.sh"
 
     # Ensure we are in the right place
     checkInSegmentDirectory
@@ -106,7 +106,7 @@ function main() {
     # Add Instance and Version to pipeline name
     if [[ -n "${INSTANCE}" && "${INSTANCE}" != "default" ]]; then
         PIPELINE_NAME="${PIPELINE_NAME}-${INSTANCE}"
-    fi 
+    fi
 
     if [[ -n "${VERSION}" ]]; then
         PIPELINE_NAME="${PIPELINE_NAME}-${VERSION}"
@@ -115,13 +115,13 @@ function main() {
     # Find the pipeline
     PIPELINE_ID="$(aws --region ${REGION} datapipeline list-pipelines --query "pipelineIdList[?name==\`${PIPELINE_NAME}\`].id" --output text || return $?)"
 
-    if [[ -n "${PIPELINE_ID}" ]]; then 
+    if [[ -n "${PIPELINE_ID}" ]]; then
 
         info "Pipeline found Id: ${PIPELINE_ID}"
         PIPELINE_STATE="$(aws --region ${REGION} datapipeline list-runs --pipeline-id "${PIPELINE_ID}" --start-interval "$(date --utc +%FT%TZ --date="1 day ago"),$(date --utc +%FT%TZ)" --query "reverse(sort_by(@, &'@actualStartTime'))" --output json || return $?)"
         ACTIVE_JOBS="$(echo "${PIPELINE_STATE}" | jq -r '[ .[] | select( ."@status" == "RUNNING" or ."@status" == "ACTIVATING" or ."@status" == "DEACTIVATING" or ."@status" == "PENDING" or ."@status" == "SCHEDULED" or ."@status" == "SHUTTING_DOWN" or ."@status" == "WAITING_FOR_RUNNER" or ."@status" == "WAITING_ON_DEPENDENCIES" or ."@status" ==  "VALIDATING" )]')"
 
-        if [[ "${PIPELINE_STATUS_ONLY}" == "false" && ( "${PIPELINE_ALLOW_CONCURRENT}" == "true" || "$( echo "${ACTIVE_JOBS}" | jq -r '. | length' )" == "0" ) ]]; then 
+        if [[ "${PIPELINE_STATUS_ONLY}" == "false" && ( "${PIPELINE_ALLOW_CONCURRENT}" == "true" || "$( echo "${ACTIVE_JOBS}" | jq -r '. | length' )" == "0" ) ]]; then
             info "Activating pipeline ${PIPELINE_NAME} - ${PIPELINE_ID}"
             aws --region ${REGION} datapipeline activate-pipeline --pipeline-id "${PIPELINE_ID}" || return $?
             sleep 30
@@ -130,7 +130,7 @@ function main() {
         PIPELINE_STATE="$(aws --region ${REGION} datapipeline list-runs --pipeline-id "${PIPELINE_ID}" --start-interval "$(date --utc +%FT%TZ --date="1 day ago"),$(date --utc +%FT%TZ)" --query "reverse(sort_by(@, &'@actualStartTime'))" --output json || return $?)"
         ACTIVE_JOBS="$(echo "${PIPELINE_STATE}" | jq -r '[ .[] | select( ."@status" == "RUNNING" or ."@status" == "ACTIVATING" or ."@status" == "DEACTIVATING" or ."@status" == "PENDING" or ."@status" == "SCHEDULED" or ."@status" == "SHUTTING_DOWN" or ."@status" == "WAITING_FOR_RUNNER" or ."@status" == "WAITING_ON_DEPENDENCIES" or ."@status" ==  "VALIDATING" )]')"
 
-        if [[  "$( echo "${ACTIVE_JOBS}" | jq -r '. | length' )" -gt "0" ]]; then 
+        if [[  "$( echo "${ACTIVE_JOBS}" | jq -r '. | length' )" -gt "0" ]]; then
             info "Active pipeline jobs for ${PIPELINE_NAME} - ${PIPELINE_ID}"
             echo "${ACTIVE_JOBS}" | jq '.'
         else

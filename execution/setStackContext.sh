@@ -11,7 +11,7 @@
     ((-z "${DEPLOYMENT_UNIT}") && (! ("${LEVEL}" =~ product ))) ]] && fatalMandatory
 
 # Set up the context
-. "${GENERATION_DIR}/setContext.sh"
+. "${GENERATION_BASE_DIR}/execution/setContext.sh"
 
 case $LEVEL in
     account|product)
@@ -178,4 +178,3 @@ fi
 CLI="${LEVEL_PREFIX}${DEPLOYMENT_UNIT_PREFIX}${DEPLOYMENT_UNIT_SUBSET_PREFIX}${ACCOUNT_PREFIX}${REGION_PREFIX}cli.json"
 
 DEFINITION="${LEVEL_PREFIX}${DEPLOYMENT_UNIT_PREFIX}${DEPLOYMENT_UNIT_SUBSET_PREFIX}${ACCOUNT_PREFIX}${REGION_PREFIX}definition.json"
-

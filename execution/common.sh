@@ -4,8 +4,8 @@
 #
 # This script is designed to be sourced into other scripts
 
-. ${GENERATION_DIR}/utility.sh
-. ${GENERATION_DIR}/contextTree.sh
+. ${GENERATION_BASE_DIR}/execution/utility.sh
+. ${GENERATION_BASE_DIR}/execution/contextTree.sh
 
 function getLogLevel() {
   checkLogLevel "${GENERATION_LOG_LEVEL}"
@@ -15,4 +15,3 @@ function getLogLevel() {
 function getTempRootDir() {
   echo -n "${GENERATION_TMPDIR}"
 }
-

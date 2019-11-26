@@ -2,7 +2,7 @@
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
-. "${GENERATION_DIR}/common.sh"
+. "${GENERATION_BASE_DIR}/execution/common.sh"
 
 
 #Defaults
@@ -79,7 +79,7 @@ function main() {
     [[ -z "${DEPLOYMENT_UNIT}" || -z "${FUNCTION_ID}" ]] && fatalMandatory; return $?
 
     # Set up the context
-    . "${GENERATION_DIR}/setContext.sh"
+    . "${GENERATION_BASE_DIR}/execution/setContext.sh"
 
     # Ensure we are in the right place
     checkInSegmentDirectory

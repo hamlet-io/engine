@@ -2,7 +2,7 @@
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
-. "${GENERATION_DIR}/common.sh"
+. "${GENERATION_BASE_DIR}/execution/common.sh"
 
 #Defaults
 DEFAULT_EXPO_VERSION="2.21.2"
@@ -23,7 +23,7 @@ export FASTLANE_HIDE_CHANGELOG="true"
 tmpdir="$(getTempDir "cote_inf_XXX")"
 
 # Get the generation context so we can run template generation
-. "${GENERATION_DIR}/setContext.sh"
+. "${GENERATION_BASE_DIR}/execution/setContext.sh"
 
 function decrypt_kms_file() {
     local region="$1"; shift

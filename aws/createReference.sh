@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
-trap '. ${GENERATION_DIR}/cleanupContext.sh' EXIT SIGHUP SIGINT SIGTERM
-. "${GENERATION_DIR}/common.sh"
+trap '. ${GENERATION_BASE_DIR}/execution/cleanupContext.sh' EXIT SIGHUP SIGINT SIGTERM
+. "${GENERATION_BASE_DIR}/execution/common.sh"
 
 # Defaults
 REFERENCE_OUTPUT_DIR_DEFAULT="${GENERATION_BASE_DIR}/dist/reference/"
@@ -142,7 +142,7 @@ function process_template() {
 
     pass_args=("${args[@]}")
 
-    ${GENERATION_DIR}/freemarker.sh \
+    ${GENERATION_BASE_DIR}/execution/freemarker.sh \
       -d "${template_dir}"\
       ${GENERATION_PRE_PLUGIN_DIRS:+ -d "${GENERATION_PRE_PLUGIN_DIRS}"} \
       -d "${GENERATION_BASE_DIR}/engine" \

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
-trap '. ${GENERATION_DIR}/cleanupContext.sh' EXIT SIGHUP SIGINT SIGTERM
-. "${GENERATION_DIR}/common.sh"
+trap '. ${GENERATION_BASE_DIR}/execution/cleanupContext.sh' EXIT SIGHUP SIGINT SIGTERM
+. "${GENERATION_BASE_DIR}/execution/common.sh"
 
 # Defaults
 STACK_INITIATE_DEFAULT="true"
@@ -81,7 +81,7 @@ function options() {
 
   # Set up the context
   info "Preparing the context..."
-  . "${GENERATION_DIR}/setStackContext.sh"
+  . "${GENERATION_BASE_DIR}/execution/setStackContext.sh"
 
   return 0
 }

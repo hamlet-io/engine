@@ -2,7 +2,7 @@
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
-. "${GENERATION_DIR}/common.sh"
+. "${GENERATION_BASE_DIR}/execution/common.sh"
 
 # Defaults
 DELAY_DEFAULT=30
@@ -75,7 +75,7 @@ done
 [[ -z "${COMPONENT}" ]] && fatalMandatory
 
 # Set up the context
-. "${GENERATION_DIR}/setContext.sh"
+. "${GENERATION_BASE_DIR}/execution/setContext.sh"
 
 status_file="$(getTopTempDir)/reboot_rds_status.txt"
 
@@ -107,4 +107,3 @@ if [[ "${WAIT}" == "true" ]]; then
         sleep $DELAY
     done
 fi
-
