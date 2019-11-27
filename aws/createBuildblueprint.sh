@@ -21,11 +21,14 @@ function options() {
 function usage() {
   cat <<EOF
 
-Create a blueprint output for the provided deployment unit
+DESCRIPTION:
+  Create a blueprint providing contextual CodeOnTap information for a specifc deployment unit within a solution
+  Information is provided based on your segment context
 
-Usage: $(basename $0) -u DEPLOYMENT_UNIT
+USAGE:
+  $(basename $0) -u DEPLOYMENT_UNIT
 
-where
+PARAMETERS:
 
 (o) -i GENERATION_INPUT_SOURCE is the source of input data to use when generating the template
     -h                         shows this text
@@ -36,13 +39,32 @@ where
 (o) -t GENERATION_TESTCASE     is the test case you would like to generate a template for
 (m) -u DEPLOYMENT_UNIT         is the deployment unit to be included in the template
 
-(m) mandatory, (o) optional, (d) deprecated
+  (m) mandatory, (o) optional, (d) deprecated
+
+CONTEXT:
+
+  CMDBS:
+    (m) Account CMDB
+    (m) Product CMDB
+
+  LOCATION:
+    (m) SEGMENT_DIR
+
+  ENVIRONMENT_VARIABLES:
+    (m) ACCOUNT
+
+  (m) mandatory, (o) optional
 
 DEFAULTS:
 
+OUTPUTS:
+
+  - File
+    - Name: blueprint.json
+    - Directory: "AUTOMATION_DATA_DIR" or "PRODUCT_INFRASTRUCTURE_DIR/cot/ENVIRONMENT/SEGMENT/"
+
 NOTES:
 
-1. You must be in the directory specific to the level
 
 EOF
 }
