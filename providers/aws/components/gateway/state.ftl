@@ -133,7 +133,7 @@
 
             [#local endpointZones = {} ]
             [#list resourceZones as zone]
-                [#local networkEndpoints = getNetworkEndpoints(solution.NetworkEndpointGroups, zone.Id, region)]
+                [#local networkEndpoints = getNetworkEndpoints(solution.NetworkEndpointGroups, zone.Id, regionId)]
                 [#list networkEndpoints as id, networkEndpoint  ]
                     [#local endpointTypeZones = endpointZones[id]![] ]
                     [#local endpointZones += { id : endpointTypeZones + [ zone.Id ] }]

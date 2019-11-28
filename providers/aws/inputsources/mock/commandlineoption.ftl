@@ -6,9 +6,10 @@
         option={
             "Regions" : {
                 "Segment" : "ap-southeast-2",
+                "Product" : "ap-southeast-2",
                 "Account" : "ap-southeast-2"
             }
         }
-    
+
     /]
 [/#macro]
