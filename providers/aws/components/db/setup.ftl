@@ -457,11 +457,6 @@
                     tags=rdsTags
                     deletionPolicy=deletionPolicy
                     updateReplacePolicy=updateReplacePolicy
-                    enhancedMonitoring=solution.Monitoring.DetailedMetrics.Enabled
-                    enhancedMonitoringInterval=solution.Monitoring.DetailedMetrics.CollectionInterval
-                    enhancedMonitoringRoleId=monitoringRoleId!""
-                    performanceInsights=solution.Monitoring.QueryPerformance.Enabled
-                    performanceInsightsRetention=solution.Monitoring.QueryPerformance.RetentionPeriod
                 /]
 
                 [#list resources["dbInstances"]?values as dbInstance ]
@@ -485,6 +480,11 @@
                         tags=rdsTags
                         deletionPolicy=""
                         updateReplacePolicy=""
+                        enhancedMonitoring=solution.Monitoring.DetailedMetrics.Enabled
+                        enhancedMonitoringInterval=solution.Monitoring.DetailedMetrics.CollectionInterval
+                        enhancedMonitoringRoleId=monitoringRoleId!""
+                        performanceInsights=solution.Monitoring.QueryPerformance.Enabled
+                        performanceInsightsRetention=solution.Monitoring.QueryPerformance.RetentionPeriod
                     /]
                 [/#list]
 
@@ -516,6 +516,11 @@
                         deletionPolicy=deletionPolicy
                         updateReplacePolicy=updateReplacePolicy
                         tags=rdsTags
+                        enhancedMonitoring=solution.Monitoring.DetailedMetrics.Enabled
+                        enhancedMonitoringInterval=solution.Monitoring.DetailedMetrics.CollectionInterval
+                        enhancedMonitoringRoleId=monitoringRoleId!""
+                        performanceInsights=solution.Monitoring.QueryPerformance.Enabled
+                        performanceInsightsRetention=solution.Monitoring.QueryPerformance.RetentionPeriod
                     /]
             [/#if]
         [/#if]

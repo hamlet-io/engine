@@ -163,23 +163,6 @@
                 }
             ),
             !clusterMember
-        )
-    tags=tags
-    outputs=
-        RDS_OUTPUT_MAPPINGS +
-        attributeIfContent(
-            DATABASENAME_ATTRIBUTE_TYPE,
-            databaseName,
-            {
-                "Value" : databaseName
-            }
-        ) +
-        attributeIfContent(
-            LASTRESTORE_ATTRIBUTE_TYPE,
-            snapshotArn,
-            {
-                "Value" : snapshotArn
-            }
         ) +
         performanceInsights?then(
             {
@@ -196,23 +179,21 @@
             },
             {}
         )
-    tags=
-        getCfTemplateCoreTags(
-            name,
-            tier,
-            component)
+    tags=tags
     outputs=
         RDS_OUTPUT_MAPPINGS +
-        {
-            DATABASENAME_ATTRIBUTE_TYPE : {
+        attributeIfContent(
+            DATABASENAME_ATTRIBUTE_TYPE,
+            databaseName,
+            {
                 "Value" : databaseName
             }
-        } +
+        ) +
         attributeIfContent(
             LASTRESTORE_ATTRIBUTE_TYPE,
-            snapshotId,
+            snapshotArn,
             {
-                "Value" : snapshotId
+                "Value" : snapshotArn
             }
         )
     /]

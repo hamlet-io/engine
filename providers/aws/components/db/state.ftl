@@ -96,7 +96,16 @@
                 [#local instancesPerZone = processor.DesiredPerZone ]
         [#else]
             [#local processorCounts = getProcessorCounts(processor, multiAZ ) ]
-            [#local instancesPerZone = (processorCounts.DesiredCount / resourceZones?size)?round ]
+            [#if processorCounts.DesiredCount?has_content ]
+                [#local instancesPerZone = ( processorCounts.DesiredCount / resourceZones?size)?round ]
+            [#else]
+                [@fatal
+                    message="Invalid Processor Profile for Cluster"
+                    context=processor
+                    detail="Add Autoscaling processing profile"
+                /]
+                [#return]
+            [/#if]
         [/#if]
 
         [#list resourceZones as resourceZone ]
@@ -161,7 +170,7 @@
                     }
                 },
                 {}
-            ) + ,
+            ) +
             dbResources,
             "Attributes" : {
                 "ENGINE" : engine,
