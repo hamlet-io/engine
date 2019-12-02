@@ -11,7 +11,6 @@ DEPLOYMENT_MODE_DEFAULT="update"
 GENERATION_PROVIDER_DEFAULT="aws"
 GENERATION_FRAMEWORK_DEFAULT="cf"
 GENERATION_INPUT_SOURCE_DEFAULT="composite"
-GENERATION_TESTING_DEFAULT="false"
 
 function usage() {
   cat <<EOF
@@ -24,7 +23,7 @@ where
 
 (o) -c CONFIGURATION_REFERENCE is the identifier of the configuration used to generate this template
 (o) -g RESOURCE_GROUP          is the deployment unit resource group
-(o) -i GENERATION_INPUT_SOURCE is the source of input data to use when generating the template
+(o) -i GENERATION_INPUT_SOURCE is the source of input data to use when generating the template - "composite", "mock"
     -h                         shows this text
 (m) -l LEVEL                   is the template level - "blueprint", "account", "segment", "solution" or "application"
 (o) -o OUTPUT_DIR              is the directory where the outputs will be saved - defaults to the PRODUCT_INFRASTRUCTURE_DIR
@@ -52,9 +51,9 @@ GENERATION_INPUT_SOURCE = "${GENRATION_INPUT_SOURCE_DEFAULT}"
 NOTES:
 
 1. You must be in the directory specific to the level
-3. DEPLOYMENT_UNIT must be one of "s3", "cert", "roles", "apigateway" or "waf" for the "account" level
-5. For the "segment" level the "baseline" unit must be deployed before any other unit
-6. When deploying network level components in the "segment" level you must deploy vpc before igw, nat, or vpcendpoint
+2. DEPLOYMENT_UNIT must be one of "s3", "cert", "roles", "apigateway" or "waf" for the "account" level
+3. For the "segment" level the "baseline" unit must be deployed before any other unit
+4. When deploying network level components in the "segment" level you must deploy vpc before igw, nat, or vpcendpoint
 
 EOF
 }
@@ -76,10 +75,7 @@ function options() {
           q) REQUEST_REFERENCE="${OPTARG}" ;;
           r) REGION="${OPTARG}" ;;
           s) GENERATION_SCENARIOS="${OPTARG}" ;;
-          t)
-              GENERATION_TESTCASE="${OPTARG}"
-              GENERATION_TESTING="true"
-              ;;
+          t) GENERATION_TESTCASE="${OPTARG}" ;;
           u) DEPLOYMENT_UNIT="${OPTARG}" ;;
           z) DEPLOYMENT_UNIT_SUBSET="${OPTARG}" ;;
           \?) fatalOption; return 1 ;;
@@ -94,10 +90,9 @@ function options() {
   GENERATION_PROVIDER="${GENERATION_PROVIDER:-${GENERATION_PROVIDER_DEFAULT}}"
   GENERATION_FRAMEWORK="${GENERATION_FRAMEWORK:-${GENERATION_FRAMEWORK_DEFAULT}}"
   GENERATION_INPUT_SOURCE="${GENERATION_INPUT_SOURCE:-${GENERATION_INPUT_SOURCE_DEFAULT}}"
-  GENERATION_TESTING="${GENERATION_TESTING:-${GENERATION_TESTING_DEFAULT}}"
 
   # Skip context generation when testing
-  if [[ "${GENERATION_TESTING}" == "false" ]]; then
+  if [[ "${GENERATION_INPUT_SOURCE}" == "mock" ]]; then
     # Check level and deployment unit
     ! isValidUnit "${LEVEL}" "${DEPLOYMENT_UNIT}" && fatal "Deployment unit/level not valid" && return 1
 
