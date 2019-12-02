@@ -1251,6 +1251,59 @@
             "Device": "/dev/sdp",
             "Size": "30"
           }
+        },
+        "ECS": {},
+        "ElasticSearch": {},
+        "ComputeCluster": {},
+        "bastion": {}
+      }
+    },
+    "Processors": {
+      "default": {
+        "NAT": {
+          "Processor": "t2.micro"
+        },
+        "bastion": {
+          "Processor": "t2.micro"
+        },
+        "EC2": {
+          "Processor": "t2.micro"
+        },
+        "EMR": {
+          "Processor": "m4.large",
+          "DesiredCorePerZone": 1,
+          "DesiredTaskPerZone": 1
+        },
+        "ComputeCluster": {
+          "Processor": "t2.micro",
+          "MinPerZone": 1,
+          "MaxPerZone": 1,
+          "DesiredPerZone": 1
+        },
+        "ECS": {
+          "Processor": "t2.medium",
+          "MinPerZone": 1,
+          "MaxPerZone": 1,
+          "DesiredPerZone": 1
+        },
+        "ElastiCache": {
+          "Processor": "cache.t2.micro",
+          "CountPerZone": 1
+        },
+        "db": {
+          "Processor": "db.t2.small",
+          "MinPerZone": 1,
+          "MaxPerZone": 1,
+          "DesiredPerZone": 1
+        },
+        "ElasticSearch": {
+          "Processor": "m3.medium.elasticsearch",
+          "CountPerZone": 1
+        },
+        "service" : {
+          "DesiredPerZone" : 1,
+          "MinPerZone" : 1,
+          "MaxPerZone" : 1
         }
       },
       "ECS": {},

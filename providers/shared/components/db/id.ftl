@@ -224,6 +224,29 @@
                         ]
                     }
                 ]
+            },
+            {
+                "Names" : "Cluster",
+                "Description" : "Cluster specific configuration when using a clustered database engine",
+                "Children" : [
+                    {
+                        "Names" : "Parameters",
+                        "Description" : "Cluster level database parameters",
+                        "Subobjects" : true,
+                        "Children" : [
+                            {
+                                "Names" : "Name",
+                                "Type" : STRING_TYPE,
+                                "Mandatory" : true
+                            },
+                            {
+                                "Names" : "Value",
+                                "Type" : [ STRING_TYPE, NUMBER_TYPE, BOOLEAN_TYPE],
+                                "Mandatory" : true
+                            }
+                        ]
+                    }
+                ]
             }
         ]
 /]

@@ -35,6 +35,8 @@
 
     [#local vpcId = networkResources["vpc"].Id ]
 
+    [#local auroraCluster = false]
+
     [#local engine = solution.Engine]
     [#switch engine]
         [#case "mysql"]
@@ -55,6 +57,16 @@
             [/#if]
             [#break]
 
+        [#case "aurora-postgresql" ]
+            [#local auroraCluster = true ]
+            [#local port = solution.Port!"postgresql"]
+            [#if (ports[port].Port)?has_content]
+                [#local port = ports[port].Port ]
+            [#else]
+                [@fatal message="Unknown Port" context=port /]
+            [/#if]
+            [#break]
+
         [#default]
             [@precondition
                 function="solution_rds"
@@ -67,8 +79,20 @@
             [#break]
     [/#switch]
 
-    [#local rdsId = resources["db"].Id ]
-    [#local rdsFullName = resources["db"].Name ]
+    [#if auroraCluster ]
+        [#local rdsId = resources["dbCluster"].Id ]
+        [#local rdsFullName = resources["dbCluster"].Name ]
+        [#local rdsClusterParameterGroupId = resources["dbClusterParamGroup"].Id ]
+        [#local rdsClusterParameterGroupFamily = resources["dbClusterParamGroup"].Family ]
+        [#local rdsClusterDbInstances = resources["dbInstances"]]
+    [#else]
+        [#local rdsId = resources["db"].Id ]
+        [#local rdsFullName = resources["db"].Name ]
+    [/#if]
+
+    [#local hostType = attributes['TYPE'] ]
+    [#local dbScheme = attributes['SCHEME']]
+
     [#local rdsSubnetGroupId = resources["subnetGroup"].Id ]
     [#local rdsParameterGroupId = resources["parameterGroup"].Id ]
     [#local rdsParameterGroupFamily = resources["parameterGroup"].Family ]
@@ -76,7 +100,7 @@
 
     [#local engineVersion = solution.EngineVersion]
 
-    [#local rdsSecurityGroupId =  formatDependentComponentSecurityGroupId(core.Tier, core.Component, rdsId) ]
+    [#local rdsSecurityGroupId = resources["securityGroup"].Id ]
     [#local rdsSecurityGroupIngressId = formatDependentSecurityGroupIngressId(
                                             rdsSecurityGroupId,
                                             port)]
@@ -217,6 +241,7 @@
                         "info \"Creating Pre-Deployment snapshot... \"",
                         "create_snapshot" +
                         " \"" + region + "\" " +
+                        " \"" + hostType + "\" " +
                         " \"" + rdsFullName + "\" " +
                         " \"" + rdsPreDeploySnapshotId + "\" || return $?"
                     ] +
@@ -297,7 +322,7 @@
                     "Description" : rdsFullName,
                     "Parameters" : dbParameters
                 }
-            tags=getOccurrenceCoreTags(occurrence, rdsFullName)
+            tags=rdsTags
             outputs={}
         /]
 
@@ -313,9 +338,64 @@
                     "OptionConfigurations" : [
                     ]
                 }
-            tags=getOccurrenceCoreTags(occurrence, rdsFullName)
+            tags=rdsTags
             outputs={}
         /]
+
+        [#if auroraCluster ]
+
+            [#local clusterParameters = {} ]
+            [#list (solution.Cluster.Parameters)?values as parameter ]
+                [#local clusterParameters += { parameter.Name : parameter.Value }]
+            [/#list]
+
+            [@cfResource
+                id=rdsClusterParameterGroupId
+                type="AWS::RDS::DBClusterParameterGroup"
+                properties=
+                    {
+                        "Family" : rdsClusterParameterGroupFamily,
+                        "Description" : rdsFullName,
+                        "Parameters" : clusterParameters
+                    }
+                tags=rdsTags
+                outputs={}
+            /]
+        [/#if]
+
+        [#list solution.Alerts?values as alert ]
+
+            [#local monitoredResources = getMonitoredResources(resources, alert.Resource)]
+            [#list monitoredResources as name,monitoredResource ]
+
+                [@debug message="Monitored resource" context=monitoredResource enabled=false /]
+
+                [#switch alert.Comparison ]
+                    [#case "Threshold" ]
+                        [@createAlarm
+                            id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
+                            severity=alert.Severity
+                            resourceName=core.FullName
+                            alertName=alert.Name
+                            actions=getCWAlertActions(occurrence, solution.Profiles.Alert, alert.Severity )
+                            metric=getMetricName(alert.Metric, monitoredResource.Type, core.ShortFullName)
+                            namespace=getResourceMetricNamespace(monitoredResource.Type)
+                            description=alert.Description!alert.Name
+                            threshold=alert.Threshold
+                            statistic=alert.Statistic
+                            evaluationPeriods=alert.Periods
+                            period=alert.Time
+                            operator=alert.Operator
+                            reportOK=alert.ReportOk
+                            unit=alert.Unit
+                            missingData=alert.MissingData
+                            dimensions=getResourceMetricDimensions(monitoredResource, resources)
+                            dependencies=monitoredResource.Id
+                        /]
+                    [#break]
+                [/#switch]
+            [/#list]
+        [/#list]
 
         [#switch commandLineOptions.Deployment.Unit.Alternative!"" ]
             [#case "replace1" ]
@@ -324,9 +404,9 @@
                 [#local updateReplacePolicy = "Delete" ]
                 [#local rdsFullName=formatName(rdsFullName, "backup") ]
                 [#if rdsManualSnapshot?has_content ]
-                    [#local snapshotId = rdsManualSnapshot ]
+                    [#local snapshotArn = rdsManualSnapshot ]
                 [#else]
-                    [#local snapshotId = valueIfTrue(
+                    [#local snapshotArn = valueIfTrue(
                             rdsPreDeploySnapshotId,
                             solution.Backup.SnapshotOnDeploy,
                             rdsRestoreSnapshot)]
@@ -339,9 +419,9 @@
 
             [#case "replace2"]
                 [#if rdsManualSnapshot?has_content ]
-                    [#local snapshotId = rdsManualSnapshot ]
+                    [#local snapshotArn = rdsManualSnapshot ]
                 [#else]
-                [#local snapshotId = valueIfTrue(
+                [#local snapshotArn = valueIfTrue(
                         rdsPreDeploySnapshotId,
                         solution.Backup.SnapshotOnDeploy,
                         rdsRestoreSnapshot)]
@@ -350,71 +430,31 @@
 
             [#default]
                 [#if rdsManualSnapshot?has_content ]
-                    [#local snapshotId = rdsManualSnapshot ]
+                    [#local snapshotArn = rdsManualSnapshot ]
                 [#else]
-                    [#local snapshotId = rdsLastSnapshot]
+                    [#local snapshotArn = rdsLastSnapshot]
                 [/#if]
         [/#switch]
 
         [#if !hibernate]
-
-            [#list solution.Alerts?values as alert ]
-
-                [#local monitoredResources = getMonitoredResources(resources, alert.Resource)]
-                [#list monitoredResources as name,monitoredResource ]
-
-                    [@debug message="Monitored resource" context=monitoredResource enabled=false /]
-
-                    [#switch alert.Comparison ]
-                        [#case "Threshold" ]
-                            [@createAlarm
-                                id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
-                                severity=alert.Severity
-                                resourceName=core.FullName
-                                alertName=alert.Name
-                                actions=getCWAlertActions(occurrence, solution.Profiles.Alert, alert.Severity )
-                                metric=getMetricName(alert.Metric, monitoredResource.Type, core.ShortFullName)
-                                namespace=getResourceMetricNamespace(monitoredResource.Type)
-                                description=alert.Description!alert.Name
-                                threshold=alert.Threshold
-                                statistic=alert.Statistic
-                                evaluationPeriods=alert.Periods
-                                period=alert.Time
-                                operator=alert.Operator
-                                reportOK=alert.ReportOk
-                                unit=alert.Unit
-                                missingData=alert.MissingData
-                                dimensions=getResourceMetricDimensions(monitoredResource, resources)
-                                dependencies=monitoredResource.Id
-                            /]
-                        [#break]
-                    [/#switch]
-                [/#list]
-            [/#list]
-
-            [@createRDSInstance
+            [#if auroraCluster ]
+                [@createRDSCluster
                     id=rdsId
                     name=rdsFullName
                     engine=engine
                     engineVersion=engineVersion
-                    processor=processorProfile.Processor
-                    size=solution.Size
                     port=port
-                    multiAZ=multiAZ
                     encrypted=solution.Encrypted
                     kmsKeyId=cmkKeyId
                     masterUsername=rdsUsername
                     masterPassword=rdsPassword
                     databaseName=rdsDatabaseName
                     retentionPeriod=solution.Backup.RetentionPeriod
-                    snapshotId=snapshotId
                     subnetGroupId=getReference(rdsSubnetGroupId)
-                    parameterGroupId=getReference(rdsParameterGroupId)
-                    optionGroupId=getReference(rdsOptionGroupId)
+                    parameterGroupId=getReference(rdsClusterParameterGroupId)
+                    snapshotArn=snapshotArn
                     securityGroupId=getReference(rdsSecurityGroupId)
-                    allowMajorVersionUpgrade=solution.AllowMajorVersionUpgrade
-                    autoMinorVersionUpgrade=solution.AutoMinorVersionUpgrade!RDSAutoMinorVersionUpgrade
-                    deleteAutomatedBackups=solution.Backup.DeleteAutoBackups
+                    tags=rdsTags
                     deletionPolicy=deletionPolicy
                     updateReplacePolicy=updateReplacePolicy
                     enhancedMonitoring=solution.Monitoring.DetailedMetrics.Enabled
@@ -423,6 +463,61 @@
                     performanceInsights=solution.Monitoring.QueryPerformance.Enabled
                     performanceInsightsRetention=solution.Monitoring.QueryPerformance.RetentionPeriod
                 /]
+
+                [#list resources["dbInstances"]?values as dbInstance ]
+                    [@createRDSInstance
+                        id=dbInstance.Id
+                        name=dbInstance.Name
+                        availabilityZone=dbInstance.AvailabilityZone
+                        engine=engine
+                        engineVersion=engineVersion
+                        processor=processorProfile.Processor
+                        port=port
+                        subnetGroupId=rdsSubnetGroupId
+                        parameterGroupId=rdsParameterGroupId
+                        optionGroupId=rdsOptionGroupId
+                        securityGroupId=rdsSecurityGroupId
+                        allowMajorVersionUpgrade=solution.AllowMajorVersionUpgrade
+                        autoMinorVersionUpgrade=solution.AutoMinorVersionUpgrade!RDSAutoMinorVersionUpgrade
+                        deleteAutomatedBackups=solution.Backup.DeleteAutoBackups
+                        clusterMember=true
+                        clusterId=rdsId
+                        tags=rdsTags
+                        deletionPolicy=""
+                        updateReplacePolicy=""
+                    /]
+                [/#list]
+
+            [#else]
+                [@createRDSInstance
+                        id=rdsId
+                        name=rdsFullName
+                        engine=engine
+                        engineVersion=engineVersion
+                        processor=processorProfile.Processor
+                        size=solution.Size
+                        port=port
+                        multiAZ=multiAZ
+                        availabilityZone=zones[0].AWSZone
+                        encrypted=solution.Encrypted
+                        kmsKeyId=cmkKeyId
+                        masterUsername=rdsUsername
+                        masterPassword=rdsPassword
+                        databaseName=rdsDatabaseName
+                        retentionPeriod=solution.Backup.RetentionPeriod
+                        snapshotArn=snapshotArn
+                        subnetGroupId=rdsSubnetGroupId
+                        parameterGroupId=rdsParameterGroupId
+                        optionGroupId=rdsOptionGroupId
+                        securityGroupId=rdsSecurityGroupId
+                        allowMajorVersionUpgrade=solution.AllowMajorVersionUpgrade
+                        autoMinorVersionUpgrade=solution.AutoMinorVersionUpgrade!RDSAutoMinorVersionUpgrade
+                        deleteAutomatedBackups=solution.Backup.DeleteAutoBackups
+                        deletionPolicy=deletionPolicy
+                        updateReplacePolicy=updateReplacePolicy
+                        tags=rdsTags
+                    /]
+            [/#if]
         [/#if]
     [/#if]
 
@@ -440,7 +535,21 @@
                 [
                     "case $\{STACK_OPERATION} in",
                     "  create|update)"
+                    "       rds_hostname=\"$(get_rds_hostname" +
+                    "       \"" + region + "\" " +
+                    "       \"" + hostType + "\" " +
+                    "       \"" + rdsFullName + "\" || return $?)\""
                 ] +
+                auroraCluster?then(
+                    [
+                        "       rds_read_hostname=\"$(get_rds_hostname" +
+                        "       \"" + region + "\" " +
+                        "       \"" + hostType + "\" " +
+                        "       \"" + rdsFullName + "\" " +
+                        "       \"read\" || return $?)\""
+                    ],
+                    []
+                ) +
                 ( solution.GenerateCredentials.Enabled && !(rdsEncryptedPassword?has_content))?then(
                     [
                         "# Generate Master Password",
@@ -455,6 +564,7 @@
                         "info \"Setting Master Password... \"",
                         "set_rds_master_password" +
                         " \"" + region + "\" " +
+                        " \"" + hostType + "\" " +
                         " \"" + rdsFullName + "\" " +
                         " \"$\{master_password}\" || return $?"
                     ] +
@@ -465,11 +575,8 @@
                     ) +
                     [
                         "info \"Generating URL... \"",
-                        "rds_hostname=\"$(get_rds_hostname" +
-                        " \"" + region + "\" " +
-                        " \"" + rdsFullName + "\" || return $?)\"",
                         "rds_url=\"$(get_rds_url" +
-                        " \"" + engine + "\" " +
+                        " \"" + hostType + "\" " +
                         " \"" + rdsUsername + "\" " +
                         " \"$\{master_password}\" " +
                         " \"$\{rds_hostname}\" " +
@@ -480,9 +587,30 @@
                         " \"$\{rds_url}\" " +
                         " \"" + cmkKeyArn + "\" || return $?)\""
                     ] +
+                    auroraCluster?then(
+                        [
+                            "info \"Generating URL... \"",
+                            "rds_read_url=\"$(get_rds_url" +
+                            " \"" + hostType + "\" " +
+                            " \"" + rdsUsername + "\" " +
+                            " \"$\{master_password}\" " +
+                            " \"$\{rds_read_hostname}\" " +
+                            " \"" + port?c + "\" " +
+                            " \"" + rdsDatabaseName + "\" || return $?)\"",
+                            "encrypted_rds_read_url=\"$(encrypt_kms_string" +
+                            " \"" + region + "\" " +
+                            " \"$\{rds_read_url}\" " +
+                            " \"" + cmkKeyArn + "\" || return $?)\""
+                        ],
+                        []
+                    ) +
                     pseudoStackOutputScript(
                             "RDS Connection URL",
-                            { formatId(rdsId, "url") : "$\{encrypted_rds_url}" },
+                            { formatId(rdsId, "url") : "$\{encrypted_rds_url}" } +
+                            auroraCluster?then(
+                                { formatId(rdsId, "readurl") :  "$\{encrypted_rds_read_url}" },
+                                {}
+                            ),
                             "url"
                     ) +
                     [
@@ -502,14 +630,12 @@
                         "info \"Resetting Master Password... \"",
                         "set_rds_master_password" +
                         " \"" + region + "\" " +
+                        " \"" + hostType + "\" " +
                         " \"" + rdsFullName + "\" " +
                         " \"$\{master_password}\" || return $?",
                         "info \"Generating URL... \"",
-                        "rds_hostname=\"$(get_rds_hostname" +
-                        " \"" + region + "\" " +
-                        " \"" + rdsFullName + "\" || return $?)\"",
                         "rds_url=\"$(get_rds_url" +
-                        " \"" + engine + "\" " +
+                        " \"" + dbScheme + "\" " +
                         " \"" + rdsUsername + "\" " +
                         " \"$\{master_password}\" " +
                         " \"$\{rds_hostname}\" " +
@@ -520,9 +646,30 @@
                         " \"$\{rds_url}\" " +
                         " \"" + cmkKeyArn + "\" || return $?)\""
                     ] +
+                    auroraCluster?then(
+                        [
+                            "info \"Generating URL... \"",
+                            "rds_read_url=\"$(get_rds_url" +
+                            " \"" + dbScheme + "\" " +
+                            " \"" + rdsUsername + "\" " +
+                            " \"$\{master_password}\" " +
+                            " \"$\{rds_read_hostname}\" " +
+                            " \"" + port?c + "\" " +
+                            " \"" + rdsDatabaseName + "\" || return $?)\"",
+                            "encrypted_rds_read_url=\"$(encrypt_kms_string" +
+                            " \"" + region + "\" " +
+                            " \"$\{rds_read_url}\" " +
+                            " \"" + cmkKeyArn + "\" || return $?)\""
+                        ],
+                        []
+                    ) +
                     pseudoStackOutputScript(
                             "RDS Connection URL",
-                            { formatId(rdsId, "url") : "$\{encrypted_rds_url}" },
+                            { formatId(rdsId, "url") : "$\{encrypted_rds_url}" } +
+                            auroraCluster?then(
+                                { formatId(rdsId, "readurl") :  "$\{encrypted_rds_read_url}" },
+                                {}
+                            ),
                             "url"
                     ) +
                     [
@@ -530,7 +677,7 @@
                         "reset_master_password || return $?"
                     ],
                 []) +
-                (rdsCA != requiredRDSCA)?then(
+                (rdsCA != requiredRDSCA && !auroraCluster )?then(
                     [
                         "# Update RDS CA",
                         "function update_rds_ca() {",
