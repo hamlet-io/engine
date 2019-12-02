@@ -23,9 +23,10 @@ where
 
 (o) -c CONFIGURATION_REFERENCE is the identifier of the configuration used to generate this template
 (o) -g RESOURCE_GROUP          is the deployment unit resource group
-(o) -i GENERATION_INPUT_SOURCE is the source of input data to use when generating the template
+(o) -i GENERATION_INPUT_SOURCE is the source of input data to use when generating the template - "composite", "mock"
     -h                         shows this text
 (m) -l LEVEL                   is the template level - "blueprint", "account", "segment", "solution" or "application"
+(o) -o OUTPUT_DIR              is the directory where the outputs will be saved - defaults to the PRODUCT_INFRASTRUCTURE_DIR
 (o) -q REQUEST_REFERENCE       is an opaque value to link this template to a triggering request management system
 (o) -r REGION                  is the AWS region identifier
 (m) -u DEPLOYMENT_UNIT         is the deployment unit to be included in the template
@@ -50,10 +51,9 @@ GENERATION_INPUT_SOURCE = "${GENRATION_INPUT_SOURCE_DEFAULT}"
 NOTES:
 
 1. You must be in the directory specific to the level
-2. REGION is only relevant for the "product" level
-3. DEPLOYMENT_UNIT must be one of "s3", "cert", "roles", "apigateway" or "waf" for the "account" level
-5. For the "segment" level the "baseline" unit must be deployed before any other unit
-6. When deploying network level components in the "segment" level you must deploy vpc before igw, nat, or vpcendpoint
+2. DEPLOYMENT_UNIT must be one of "s3", "cert", "roles", "apigateway" or "waf" for the "account" level
+3. For the "segment" level the "baseline" unit must be deployed before any other unit
+4. When deploying network level components in the "segment" level you must deploy vpc before igw, nat, or vpcendpoint
 
 EOF
 }
@@ -61,7 +61,7 @@ EOF
 function options() {
 
   # Parse options
-  while getopts ":c:d:f:g:hi:l:p:q:r:s:t:u:z:" option; do
+  while getopts ":c:d:f:g:hi:l:o:p:q:r:s:t:u:z:" option; do
       case "${option}" in
           c) CONFIGURATION_REFERENCE="${OPTARG}" ;;
           d) DEPLOYMENT_MODE="${OPTARG}" ;;
@@ -70,6 +70,7 @@ function options() {
           h) usage; return 1 ;;
           i) GENERATION_INPUT_SOURCE="${OPTARG}" ;;
           l) LEVEL="${OPTARG}" ;;
+          o) OUTPUT_DIR="${OPTARG}" ;;
           p) GENERATION_PROVIDER="${OPTARG}" ;;
           q) REQUEST_REFERENCE="${OPTARG}" ;;
           r) REGION="${OPTARG}" ;;
@@ -90,26 +91,34 @@ function options() {
   GENERATION_FRAMEWORK="${GENERATION_FRAMEWORK:-${GENERATION_FRAMEWORK_DEFAULT}}"
   GENERATION_INPUT_SOURCE="${GENERATION_INPUT_SOURCE:-${GENERATION_INPUT_SOURCE_DEFAULT}}"
 
-  # Check level and deployment unit
-  ! isValidUnit "${LEVEL}" "${DEPLOYMENT_UNIT}" && fatal "Deployment unit/level not valid" && return 1
+  # Skip context generation when testing
+  if [[ "${GENERATION_INPUT_SOURCE}" == "mock" ]]; then
+    # Check level and deployment unit
+    ! isValidUnit "${LEVEL}" "${DEPLOYMENT_UNIT}" && fatal "Deployment unit/level not valid" && return 1
 
-  # Ensure other mandatory arguments have been provided
-  [[ (-z "${REQUEST_REFERENCE}") || (-z "${CONFIGURATION_REFERENCE}") ]] && fatalMandatory && return 1
+    # Ensure other mandatory arguments have been provided
+    [[ (-z "${REQUEST_REFERENCE}") || (-z "${CONFIGURATION_REFERENCE}") ]] && fatalMandatory && return 1
 
-  # Set up the context
-  . "${GENERATION_DIR}/setContext.sh"
+    # Set up the context
+    . "${GENERATION_DIR}/setContext.sh"
 
-  # Ensure we are in the right place
-  case "${LEVEL}" in
-    account|product)
-      [[ ! ("${LEVEL}" =~ ${LOCATION}) ]] &&
-        fatalLocation "Current directory doesn't match requested level \"${LEVEL}\"." && return 1
-      ;;
-    solution|segment|application|blueprint)
-      [[ ! ("segment" =~ ${LOCATION}) ]] &&
-        fatalLocation "Current directory doesn't match requested level \"${LEVEL}\"." && return 1
-      ;;
-  esac
+    # Ensure we are in the right place
+    case "${LEVEL}" in
+      account)
+        [[ ! ("${LEVEL}" =~ ${LOCATION}) ]] &&
+          fatalLocation "Current directory doesn't match requested level \"${LEVEL}\"." && return 1
+        ;;
+
+      solution|segment|application|blueprint)
+        [[ ! ("segment" =~ ${LOCATION}) ]] &&
+          fatalLocation "Current directory doesn't match requested level \"${LEVEL}\"." && return 1
+        ;;
+    esac
+  fi
+
+  # Contextual Defaults
+  OUTPUT_DIR_DEFAULT="${PRODUCT_INFRASTRUCTURE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"
+  OUTPUT_DIR="${OUTPUT_DIR:-${OUTPUT_DIR_DEFAULT}}"
 
   return 0
 }
@@ -276,15 +285,6 @@ function process_template_pass() {
 
       # LEGACY: Support stacks created before deployment units added to account level
       [[ ("${DEPLOYMENT_UNIT}" =~ s3) &&
-        (-f "${cf_dir}/${level_prefix}${region_prefix}template.json") ]] && \
-          for p in "${pass_list[@]}"; do pass_deployment_unit_prefix["${p}"]=""; done
-      ;;
-
-    product)
-      template_composites+=("PRODUCT")
-
-      # LEGACY: Support stacks created before deployment units added to product
-      [[ ("${DEPLOYMENT_UNIT}" =~ cmk) &&
         (-f "${cf_dir}/${level_prefix}${region_prefix}template.json") ]] && \
           for p in "${pass_list[@]}"; do pass_deployment_unit_prefix["${p}"]=""; done
       ;;
@@ -575,24 +575,24 @@ function process_template() {
   # Defaults
   local passes=("template")
   local template_alternatives=("primary")
-  local cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"
+  local cf_dir_default="${PRODUCT_INFRASTRUCTURE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"
+  local cf_dir="${OUTPUT_DIR:-${cf_dir_default}}"
 
   case "${level}" in
     blueprint)
-      cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}"
+      cf_dir_default="${PRODUCT_INFRASTRUCTURE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}"
+      cf_dir="${OUTPUT_DIR:-${cf_dir_default}}"
       ;;
 
     buildblueprint)
       # this is expected to run from an automation context
-      cf_dir="${AUTOMATION_DATA_DIR:-${PRODUCT_INFRASTRUCTURE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}}/"
+      cf_dir_default="${AUTOMATION_DATA_DIR:-${PRODUCT_INFRASTRUCTURE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}}/"
+      cf_dir="${OUTPUT_DIR:-${cf_dir_default}}"
       ;;
 
     account)
-      cf_dir="${ACCOUNT_INFRASTRUCTURE_DIR}/cf/shared"
-      ;;
-
-    product)
-      cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/cf/shared"
+      cf_dir_default="${ACCOUNT_INFRASTRUCTURE_DIR}/cf/shared"
+      cf_dir="${OUTPUT_DIR:-${cf_dir_default}}"
       ;;
 
     solution)
