@@ -92,7 +92,7 @@ function options() {
   GENERATION_INPUT_SOURCE="${GENERATION_INPUT_SOURCE:-${GENERATION_INPUT_SOURCE_DEFAULT}}"
 
   # Skip context generation when testing
-  if [[ "${GENERATION_INPUT_SOURCE}" == "mock" ]]; then
+  if [[ "${GENERATION_INPUT_SOURCE}" != "mock" ]]; then
     # Check level and deployment unit
     ! isValidUnit "${LEVEL}" "${DEPLOYMENT_UNIT}" && fatal "Deployment unit/level not valid" && return 1
 
