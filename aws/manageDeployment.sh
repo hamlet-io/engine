@@ -10,6 +10,7 @@ DEPLOYMENT_MONITOR_DEFAULT="true"
 DEPLOYMENT_OPERATION_DEFAULT="update"
 DEPLOYMENT_WAIT_DEFAULT=30
 DEPLOYMENT_SCOPE_DEFAULT="resourceGroup"
+RESOURCE_GROUP_DEFAULT="default"
 
 function usage() {
   cat <<EOF
@@ -21,11 +22,11 @@ function usage() {
   where
 
   (o) -d (DEPLOYMENT_OPERATION=delete)  to delete the deployment
+  (o) -g RESOURCE_GROUP                 Defines the Resource Group to deploy into. Mandatory with DEPLOYMENT_SCOPE as "resourceGroup".            
       -h                                shows this text
   (o) -i (DEPLOYMENT_MONITOR=false)     initiates but does not monitor the deployment operation.
   (m) -l LEVEL                          is the deployment level - "account", "product", "segment", "solution", "application" or "multiple"
   (o) -m (DEPLOYMENT_INITIATE=false)    monitors but does not initiate the deployment operation.
-  (o) -n DEPLOYMENT_NAME                to override the standard deployment naming.
   (o) -r REGION                         is the Azure location/region code for this deployment.
   (o) -s DEPLOYMENT_SCOPE               the deployment scope - "subscription" or "resourceGroup"
   (m) -u DEPLOYMENT_UNIT                is the deployment unit used to determine the deployment template.
@@ -41,20 +42,21 @@ function usage() {
   DEPLOYMENT_OPERATION = ${DEPLOYMENT_OPERATION_DEFAULT}
   DEPLOYMENT_WAIT      = ${DEPLOYMENT_WAIT_DEFAULT} seconds
   DEPLOYMENT_SCOPE     = ${DEPLOYMENT_SCOPE_DEFAULT}
+  RESOURCE_GROUP       = ${RESOURCE_GROUP_DEFAULT}
 
 EOF
 }
 
 function options() {
   # Parse options
-  while getopts ":dhil:mn:r:s:u:w:z:" option; do
+  while getopts ":dg:hil:mr:s:u:w:z:" option; do
     case "${option}" in
       d) DEPLOYMENT_OPERATION=delete ;;
+      g) RESOURCE_GROUP="${OPTARG}" ;;
       h) usage; return 1 ;;
       i) DEPLOYMENT_MONITOR=false ;;
       l) LEVEL="${OPTARG}" ;;
       m) DEPLOYMENT_INITIATE=false ;;
-      n) DEPLOYMENT_NAME="${OPTARG}" ;;
       r) REGION="${OPTARG}" ;;
       s) DEPLOYMENT_SCOPE="${OPTARG}" ;;
       u) DEPLOYMENT_UNIT="${OPTARG}" ;;
@@ -72,9 +74,14 @@ function options() {
   DEPLOYMENT_INITIATE=${DEPLOYMENT_INITIATE:-${DEPLOYMENT_INITIATE_DEFAULT}}
   DEPLOYMENT_MONITOR=${DEPLOYMENT_MONITOR:-${DEPLOYMENT_MONITOR_DEFAULT}}
   DEPLOYMENT_SCOPE=${DEPLOYMENT_SCOPE:-${DEPLOYMENT_SCOPE_DEFAULT}}
+  RESOURCE_GROUP=${RESOURCE_GROUP:-${RESOURCE_GROUP_DEFAULT}}
 
   # Add component suffix to the deployment name.
-  DEPLOYMENT_GROUP_NAME="${DEPLOYMENT_NAME}-${DEPLOYMENT_UNIT}"
+  if [[ -n "${DEPLOYMENT_UNIT_SUBSET}" ]]; then
+    DEPLOYMENT_NAME="${DEPLOYMENT_SCOPE}-${LEVEL}-${DEPLOYMENT_UNIT}-${DEPLOYMENT_UNIT_SUBSET}"
+  else
+    DEPLOYMENT_NAME="${DEPLOYMENT_SCOPE}-${LEVEL}-${DEPLOYMENT_UNIT}"
+  fi
 
   # Set up the context
   info "Preparing the context..."
@@ -174,14 +181,14 @@ function wait_for_deployment_execution() {
     case ${DEPLOYMENT_OPERATION} in
       update | create)
         if [[ "${DEPLOYMENT_SCOPE}" == "resourceGroup" ]]; then
-          DEPLOYMENT=$(az group deployment show --resource-group "${DEPLOYMENT_GROUP_NAME}" --name "${DEPLOYMENT_GROUP_NAME}")
+          DEPLOYMENT=$(az group deployment show --resource-group "${RESOURCE_GROUP}" --name "${DEPLOYMENT_NAME}")
         else
-          DEPLOYMENT=$(az deployment show --name "${DEPLOYMENT_GROUP_NAME}")
+          DEPLOYMENT=$(az deployment show --name "${DEPLOYMENT_NAME}")
         fi
       ;;
       delete) 
         # Delete the group not the deployment. Deleting a deployment has no impact on deployed resources in Azure.
-        DEPLOYMENT=$(az group show --resource-group "${DEPLOYMENT_GROUP_NAME}" 2>/dev/null) 
+        DEPLOYMENT=$(az group show --resource-group "${RESOURCE_GROUP}" 2>/dev/null) 
       ;;
       *)
         fatal "\"${DEPLOYMENT_OPERATION}\" is not one of the known stack operations."; return 1
@@ -227,7 +234,7 @@ function wait_for_deployment_execution() {
       0)
       ;;
       255) 
-        fatal "Deployment \"${DEPLOYMENT_GROUP_NAME}\" failed, fix deployment before retrying"
+        fatal "Deployment \"${DEPLOYMENT_NAME}\" in Resource Group \"${RESOURCE_GROUP}\" failed, fix deployment before retrying"
         break
       ;;
       *)
@@ -262,25 +269,25 @@ function process_deployment() {
         if [[ "${DEPLOYMENT_SCOPE}" == "resourceGroup" ]]; then
 
           # Check resource group status
-          info "Creating resource group ${DEPLOYMENT_GROUP_NAME} if required..."
-          deployment_group_exists=$(az group exists --resource-group "${DEPLOYMENT_GROUP_NAME}")
+          info "Creating resource group ${RESOURCE_GROUP} if required..."
+          deployment_group_exists=$(az group exists --resource-group "${RESOURCE_GROUP}")
           if [[ ${deployment_group_exists} = "false" ]]; then
-            az group create --resource-group "${DEPLOYMENT_GROUP_NAME}" --location "${REGION}" > /dev/null || return $?
+            az group create --resource-group "${RESOURCE_GROUP}" --location "${REGION}" > /dev/null || return $?
           fi
 
           # validate resource group level deployment
           info "Validating template..."
           az group deployment validate \
-            --resource-group "${DEPLOYMENT_GROUP_NAME}" \
+            --resource-group "${RESOURCE_GROUP}" \
             --template-file "${stripped_template_file}" \
             --parameters @"${stripped_parameter_file}" > /dev/null || return $?
           info "Template is valid."
 
           # Execute the deployment to the resource group
-          info "Starting deployment of ${DEPLOYMENT_GROUP_NAME} to the resource group."
+          info "Starting deployment of ${DEPLOYMENT_NAME} to the Resource Group ${RESOURCE_GROUP}."
           az group deployment create \
-            --resource-group "${DEPLOYMENT_GROUP_NAME}" \
-            --name "${DEPLOYMENT_GROUP_NAME}" \
+            --resource-group "${RESOURCE_GROUP}" \
+            --name "${DEPLOYMENT_NAME}" \
             --template-file "${stripped_template_file}" \
             --parameters @"${stripped_parameter_file}" \
             --no-wait > /dev/null || return $?
@@ -296,10 +303,10 @@ function process_deployment() {
           info "Template is valid."
 
           # Execute the deployment to the subscription
-          info "Starting deployment of ${DEPLOYMENT_GROUP_NAME} to the subscription."
+          info "Starting deployment of ${DEPLOYMENT_NAME} to the subscription."
           az deployment create \
             --location "${REGION}" \
-            --name "${DEPLOYMENT_GROUP_NAME}" \
+            --name "${DEPLOYMENT_NAME}" \
             --template-file "${stripped_template_file}" \
             --parameters @"${stripped_parameter_file}" \
             --no-wait > /dev/null || return $?
@@ -313,8 +320,8 @@ function process_deployment() {
         if [[ "${deployment_group_exists}" = "true" ]]; then
 
           # Delete the resource group
-          info "Deleting the ${DEPLOYMENT_GROUP_NAME} resource group"
-          az group delete --resource-group "${DEPLOYMENT_GROUP_NAME}" --no-wait --yes
+          info "Deleting the ${RESOURCE_GROUP} resource group"
+          az group delete --resource-group "${RESOURCE_GROUP}" --no-wait --yes
 
           wait_for_deployment_execution
 
@@ -324,7 +331,7 @@ function process_deployment() {
           fi
 
         else
-          info "No Resource Group found for: ${DEPLOYMENT_GROUP_NAME}. Nothing to do."
+          info "No Resource Group found for: ${RESOURCE_GROUP}. Nothing to do."
           return 0
         fi
 
@@ -361,7 +368,7 @@ function main() {
   # Check for completion
   case ${process_deployment_status} in
     0)
-      info "${DEPLOYMENT_OPERATION} completed for ${DEPLOYMENT_GROUP_NAME}."
+      info "${DEPLOYMENT_OPERATION} completed for ${RESOURCE_GROUP:-DEPLOYMENT_NAME}."
     ;;
     *)
       fatal "There was an issue during deployment."
