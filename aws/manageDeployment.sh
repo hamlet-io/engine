@@ -83,6 +83,31 @@ function options() {
   return 0
 }
 
+function succeed_or_fail() {
+  if [[ ${1} == "succeed" ]]; then
+    printf "[ \xE2\x9C\x94 ] "
+  else
+    printf "[ \xE2\x9D\x8C ] "
+  fi
+}
+
+function register_resource_providers() {
+
+  providers=$(cat ${1} | jq -c --raw-output '.resources | map(.type | split("/")[0] ) | unique | .[]')
+  
+  for ((i=0; i<${#providers[@]}; i++)); do
+    result=$(az provider register --namespace ${providers[i]})
+    if [[ -z "${result}" ]]; then
+      info "$(succeed_or_fail "succeed") ${providers[i]}"
+    else 
+      info "$(succeed_or_fail "fail") ${providers[i]}"
+      return 1
+    fi
+  done
+
+  return 0
+}
+
 function construct_parameter_inputs() {
 
   # if composites haven't run yet, do so
@@ -222,6 +247,10 @@ function process_deployment() {
   echo "${stripped_parameters}" | jq -c '.' > "${stripped_parameter_file}"
 
   exit_status=0
+
+  # Register Resource Providers
+  info "Registering Resource Providers."
+  register_resource_providers "${stripped_template_file}"
 
   if [[ "${DEPLOYMENT_INITIATE}" = "true" ]]; then
 
