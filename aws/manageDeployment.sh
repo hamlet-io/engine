@@ -95,17 +95,19 @@ function register_resource_providers() {
 
   providers=$(cat ${1} | jq -c --raw-output '.resources | map(.type | split("/")[0] ) | unique | .[]')
   
+  return_result=0
+
   for ((i=0; i<${#providers[@]}; i++)); do
     result=$(az provider register --namespace ${providers[i]})
     if [[ -z "${result}" ]]; then
       info "$(succeed_or_fail "succeed") ${providers[i]}"
     else 
       info "$(succeed_or_fail "fail") ${providers[i]}"
-      return 1
+      return_result=1
     fi
   done
 
-  return 0
+  return ${return_result}
 }
 
 function construct_parameter_inputs() {
