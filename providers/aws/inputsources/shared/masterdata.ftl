@@ -1251,12 +1251,12 @@
             "Device": "/dev/sdp",
             "Size": "30"
           }
-        }
-      },
-      "ECS": {},
-      "ElasticSearch": {},
-      "ComputeCluster": {},
-      "bastion": {}
+        },
+        "ECS": {},
+        "ElasticSearch": {},
+        "ComputeCluster": {},
+        "bastion": {}
+      }
     }
   },
   "Processors": {
@@ -1292,7 +1292,10 @@
         "CountPerZone": 1
       },
       "db": {
-        "Processor": "db.t2.small"
+        "Processor": "db.t2.small",
+        "MinPerZone": 1,
+        "MaxPerZone": 1,
+        "DesiredPerZone": 1
       },
       "ElasticSearch": {
         "Processor": "m3.medium.elasticsearch",

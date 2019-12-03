@@ -7,6 +7,9 @@
 [#assign AWS_RDS_OPTION_GROUP_RESOURCE_TYPE = "rdsOptionGroup" ]
 [#assign AWS_RDS_SNAPSHOT_RESOURCE_TYPE = "rdsSnapShot" ]
 
+[#assign AWS_RDS_CLUSTER_RESOURCE_TYPE = "rdsCluster" ]
+[#assign AWS_RDS_CLUSTER_PARAMETER_GROUP_RESOURCE_TYPE = "rdsClusterParameterGroup" ]
+
 [#function formatDependentRDSSnapshotId resourceId extensions... ]
     [#return formatDependentResourceId(
                 "snapshot",
@@ -20,4 +23,3 @@
                 resourceId,
                 extensions)]
 [/#function]
-

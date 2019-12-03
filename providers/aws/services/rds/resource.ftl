@@ -22,12 +22,43 @@
     mappings=RDS_OUTPUT_MAPPINGS
 /]
 
+[#assign RDS_CLUSTER_OUTPUT_MAPPINGS =
+    {
+        REFERENCE_ATTRIBUTE_TYPE : {
+            "UseRef" : true
+        },
+        DNS_ATTRIBUTE_TYPE : {
+            "Attribute" : "Endpoint.Address"
+        },
+        PORT_ATTRIBUTE_TYPE : {
+            "Attribute" : "Endpoint.Port"
+        },
+        "read" + DNS_ATTRIBUTE_TYPE : {
+            "Attribute" : "ReadEndpoint.Address"
+        }
+    }
+
+]
+[@addOutputMapping
+    provider=AWS_PROVIDER
+    resourceType=AWS_RDS_CLUSTER_RESOURCE_TYPE
+    mappings=RDS_CLUSTER_OUTPUT_MAPPINGS
+/]
+
 [#assign metricAttributes +=
     {
         AWS_RDS_RESOURCE_TYPE : {
             "Namespace" : "AWS/RDS",
             "Dimensions" : {
                 "DBInstanceIdentifier" : {
+                    "Output" : ""
+                }
+            }
+        },
+        AWS_RDS_CLUSTER_RESOURCE_TYPE : {
+            "Namespace" : "AWS/RDS",
+            "Dimensions" : {
+                "DBClusterIdentifier" : {
                     "Output" : ""
                 }
             }
@@ -39,32 +70,34 @@
     engine
     engineVersion
     processor
-    size
-    port
-    multiAZ
-    encrypted
-    kmsKeyId
-    masterUsername
-    masterPassword
-    databaseName
-    retentionPeriod
+    availabilityZone
     subnetGroupId
     parameterGroupId
     optionGroupId
-    snapshotId
     securityGroupId
     enhancedMonitoring
     enhancedMonitoringInterval
     performanceInsights
     performanceInsightsRetention
-    enhancedMonitoringRoleId=""
-    tier=""
-    component=""
+    tags
+    clusterMember=false
+    clusterId=""
+    multiAZ=false
+    encrypted=false
+    kmsKeyId=""
+    masterUsername=""
+    masterPassword=""
+    databaseName=""
+    port=""
+    retentionPeriod=""
+    size=""
+    snapshotArn=""
     dependencies=""
     outputId=""
     allowMajorVersionUpgrade=true
     autoMinorVersionUpgrade=true
     deleteAutomatedBackups=true
+    enhancedMonitoringRoleId=""
     deletionPolicy="Snapshot"
     updateReplacePolicy="Snapshot"
 ]
@@ -78,44 +111,58 @@
             "Engine": engine,
             "EngineVersion": engineVersion,
             "DBInstanceClass" : processor,
-            "AllocatedStorage": size,
             "AutoMinorVersionUpgrade": autoMinorVersionUpgrade,
             "AllowMajorVersionUpgrade" : allowMajorVersionUpgrade,
             "DeleteAutomatedBackups" : deleteAutomatedBackups,
-            "StorageType" : "gp2",
-            "Port" : port,
-            "BackupRetentionPeriod" : retentionPeriod,
-            "DBInstanceIdentifier": name,
-            "DBSubnetGroupName": subnetGroupId,
-            "DBParameterGroupName": parameterGroupId,
-            "OptionGroupName": optionGroupId,
-            "VPCSecurityGroups": [securityGroupId]
+            "DBSubnetGroupName": getReference(subnetGroupId),
+            "DBParameterGroupName": getReference(parameterGroupId),
+            "OptionGroupName": getReference(optionGroupId)
         } +
-        multiAZ?then(
+        valueIfTrue(
+            {
+                "AllocatedStorage": size,
+                "StorageType" : "gp2",
+                "BackupRetentionPeriod" : retentionPeriod,
+                "DBInstanceIdentifier": name,
+                "VPCSecurityGroups": asArray( getReference(securityGroupId)),
+                "Port" : port
+            },
+            ( !clusterMember ),
+            {
+                "DBClusterIdentifier" : getReference(clusterId)
+            }
+
+        ) +
+        valueIfTrue(
             {
                 "MultiAZ": true
             },
+            ( multiAZ && !clusterMember ),
             {
-                "AvailabilityZone" : zones[0].AWSZone
+                "AvailabilityZone" : availabilityZone
             }
         ) +
-        (!(snapshotId?has_content) && encrypted)?then(
+        valueIfTrue(
             {
                 "StorageEncrypted" : true,
                 "KmsKeyId" : getReference(kmsKeyId, ARN_ATTRIBUTE_TYPE)
             },
-            {}
+            ( (!(snapshotArn?has_content) && encrypted) && !clusterMember )
         ) +
         [#-- If restoring from a snapshot the database details will be provided by the snapshot --]
-        (snapshotId?has_content)?then(
-            {
-                "DBSnapshotIdentifier" : snapshotId
-            },
-            {
-                "DBName" : databaseName,
-                "MasterUsername": masterUsername,
-                "MasterUserPassword": masterPassword
-            }
+        valueIfTrue(
+            valueIfTrue(
+                {
+                    "DBSnapshotIdentifier" : snapshotArn
+                },
+                snapshotArn?has_content,
+                {
+                    "DBName" : databaseName,
+                    "MasterUsername": masterUsername,
+                    "MasterUserPassword": masterPassword
+                }
+            ),
+            !clusterMember
         ) +
         performanceInsights?then(
             {
@@ -132,13 +179,88 @@
             },
             {}
         )
-    tags=
-        getCfTemplateCoreTags(
-            name,
-            tier,
-            component)
+    tags=tags
     outputs=
         RDS_OUTPUT_MAPPINGS +
+        attributeIfContent(
+            DATABASENAME_ATTRIBUTE_TYPE,
+            databaseName,
+            {
+                "Value" : databaseName
+            }
+        ) +
+        attributeIfContent(
+            LASTRESTORE_ATTRIBUTE_TYPE,
+            snapshotArn,
+            {
+                "Value" : snapshotArn
+            }
+        )
+    /]
+[/#macro]
+
+[#macro createRDSCluster id name
+    engine
+    engineVersion
+    port
+    encrypted
+    kmsKeyId
+    masterUsername
+    masterPassword
+    databaseName
+    retentionPeriod
+    subnetGroupId
+    parameterGroupId
+    snapshotArn
+    securityGroupId
+    tags
+    dependencies=""
+    outputId=""
+    deletionPolicy="Snapshot"
+    updateReplacePolicy="Snapshot"
+]
+    [#local availabilityZones = []]
+    [#list zones as zone ]
+        [#local availabilityZones += [ zone.AWSZone ] ]
+    [/#list]
+
+    [@cfResource
+        id=id
+        type="AWS::RDS::DBCluster"
+        deletionPolicy=deletionPolicy
+        updateReplacePolicy=updateReplacePolicy
+        properties=
+            {
+                "DBClusterIdentifier" : name,
+                "DBClusterParameterGroupName" : parameterGroupId,
+                "DBSubnetGroupName" : subnetGroupId,
+                "Port" : port,
+                "VpcSecurityGroupIds" : asArray(securityGroupId),
+                "AvailabilityZones" : availabilityZones,
+                "Engine" : engine,
+                "EngineVersion" : engineVersion,
+                "BackupRetentionPeriod" : retentionPeriod
+            } +
+            (!(snapshotArn?has_content) && encrypted)?then(
+                {
+                    "StorageEncrypted" : true,
+                    "KmsKeyId" : getReference(kmsKeyId, ARN_ATTRIBUTE_TYPE)
+                },
+                {}
+            ) +
+            [#-- If restoring from a snapshot the database details will be provided by the snapshot --]
+            (snapshotArn?has_content)?then(
+                {
+                    "DBSnapshotIdentifier" : snapshotArn
+                },
+                {
+                    "DatabaseName" : databaseName,
+                    "MasterUsername": masterUsername,
+                    "MasterUserPassword": masterPassword
+                }
+            )
+        tags=tags
+        outputs=RDS_CLUSTER_OUTPUT_MAPPINGS +
         {
             DATABASENAME_ATTRIBUTE_TYPE : {
                 "Value" : databaseName
@@ -146,11 +268,10 @@
         } +
         attributeIfContent(
             LASTRESTORE_ATTRIBUTE_TYPE,
-            snapshotId,
+            snapshotArn,
             {
-                "Value" : snapshotId
+                "Value" : snapshotArn
             }
         )
     /]
-
 [/#macro]

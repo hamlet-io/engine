@@ -1543,111 +1543,226 @@ function delete_oai_credentials() {
 }
 
 # -- RDS --
+
+function add_tag_rds_resource() {
+  local region="$1"; shift
+  local rds_identifier="$1"; shift
+  local key="${1}"; shift
+  local value="${1}"; shift
+
+  aws --region "${region}" rds add-tags-to-resource --resource-name "${rds_identifier}" --tags "Key=${key},Value=${value}" || return $?
+
+}
+
 function create_snapshot() {
   local region="$1"; shift
+  local db_type="$1"; shift
   local db_identifier="$1"; shift
   local db_snapshot_identifier="$1"; shift
 
   # Check that the database exists
-  db_info=$(aws --region "${region}" rds describe-db-instances --db-instance-identifier ${db_identifier} )
+  if [[ "${db_type}" == "cluster" ]]; then
+    db_info=$(aws --region "${region}" rds describe-db-clusters --db-cluster-identifier ${db_identifier} )
 
-  if [[ -n "${db_info}" ]]; then
-    aws --region "${region}" rds create-db-snapshot --db-snapshot-identifier "${db_snapshot_identifier}" --db-instance-identifier "${db_identifier}" 1> /dev/null || return $?
+    if [[ -n "${db_info}" ]]; then
+      aws --region "${region}" rds create-db-cluster-snapshot --db-cluster-snapshot-identifier "${db_snapshot_identifier}"  --db-cluster-identifier "${db_identifier}" 1> /dev/null || return $?
+    else
+      info "Could not find db ${db_identifier} - Skipping pre-deploy snapshot"
+      return 0
+    fi
 
-  sleep 2s
-  while [ "${exit_status}" != "0" ]
-  do
-      SNAPSHOT_STATE="$(aws --region "${region}" rds describe-db-snapshots --db-snapshot-identifier "${db_snapshot_identifier}" --query 'DBSnapshots[0].Status' || return $? )"
-      SNAPSHOT_PROGRESS="$(aws --region "${region}" rds describe-db-snapshots --db-snapshot-identifier "${db_snapshot_identifier}" --query 'DBSnapshots[0].PercentProgress' || return $? )"
-      info "Snapshot id ${db_snapshot_identifier} creation: state is ${SNAPSHOT_STATE}, ${SNAPSHOT_PROGRESS}%..."
+    sleep 5s
+    while [ "${exit_status}" != "0" ]
+    do
+        SNAPSHOT_STATE="$(aws --region "${region}" rds describe-db-cluster-snapshots --db-cluster-snapshot-identifier "${db_snapshot_identifier}" --query 'DBClusterSnapshots[0].Status' || return $? )"
+        SNAPSHOT_PROGRESS="$(aws --region "${region}" rds describe-db-cluster-snapshots --db-cluster-snapshot-identifier "${db_snapshot_identifier}" --query 'DBClusterSnapshots[0].PercentProgress' || return $? )"
+        info "Snapshot id ${db_snapshot_identifier} creation: state is ${SNAPSHOT_STATE}, ${SNAPSHOT_PROGRESS}%..."
 
-      aws --region "${region}" rds wait db-snapshot-available --db-snapshot-identifier "${db_snapshot_identifier}"
-      exit_status="$?"
-  done
+        aws --region "${region}" rds wait db-cluster-snapshot-available --db-cluster-snapshot-identifier "${db_snapshot_identifier}"
+        exit_status="$?"
+    done
 
-  db_snapshot=$(aws --region "${region}" rds describe-db-snapshots --db-snapshot-identifier "${db_snapshot_identifier}" || return $?)
+    db_snapshot=$(aws --region "${region}" rds describe-db-cluster-snapshots --db-cluster-snapshot-identifier "${db_snapshot_identifier}" || return $?)
+    info "Snapshot Created - $(echo "${db_snapshot}" | jq -r '.DBClusterSnapshots[0] | .DBSnapshotIdentifier + " " + .SnapshotCreateTime' )"
+
+  else
+    db_info=$(aws --region "${region}" rds describe-db-instances --db-instance-identifier ${db_identifier} )
+
+    if [[ -n "${db_info}" ]]; then
+      aws --region "${region}" rds create-db-snapshot --db-snapshot-identifier "${db_snapshot_identifier}"  --db-instance-identifier "${db_identifier}" 1> /dev/null || return $?
+    else
+      info "Could not find db ${db_identifier} - Skipping pre-deploy snapshot"
+      return 0
+    fi
+
+    sleep 5s
+    while [ "${exit_status}" != "0" ]
+    do
+        SNAPSHOT_STATE="$(aws --region "${region}" rds describe-db-snapshots --db-snapshot-identifier "${db_snapshot_identifier}" --query 'DBSnapshots[0].Status' || return $? )"
+        SNAPSHOT_PROGRESS="$(aws --region "${region}" rds describe-db-snapshots --db-snapshot-identifier "${db_snapshot_identifier}" --query 'DBSnapshots[0].PercentProgress' || return $? )"
+        info "Snapshot id ${db_snapshot_identifier} creation: state is ${SNAPSHOT_STATE}, ${SNAPSHOT_PROGRESS}%..."
+
+        aws --region "${region}" rds wait db-snapshot-available --db-snapshot-identifier "${db_snapshot_identifier}"
+        exit_status="$?"
+    done
+
+    db_snapshot=$(aws --region "${region}" rds describe-db-snapshots --db-snapshot-identifier "${db_snapshot_identifier}" || return $?)
+    info "Snapshot Created - $(echo "${db_snapshot}" | jq -r '.DBSnapshots[0] | .DBSnapshotIdentifier + " " + .SnapshotCreateTime' )"
   fi
-  info "Snapshot Created - $(echo "${db_snapshot}" | jq -r '.DBSnapshots[0] | .DBSnapshotIdentifier + " " + .SnapshotCreateTime' )"
 }
 
 function encrypt_snapshot() {
   local region="$1"; shift
+  local db_type="$1"; shift
   local db_snapshot_identifier="$1"; shift
   local kms_key_id="$1"; shift
 
-  # Check the snapshot status
-  snapshot_info=$(aws --region "${region}" rds describe-db-snapshots --db-snapshot-identifier "${db_snapshot_identifier}" || return $? )
+  if [[ "${db_type}" == "cluster" ]]; then
+    # Check the snapshot status
+    snapshot_info=$(aws --region "${region}" rds describe-db-cluster-snapshots --db-cluster-snapshot-identifier "${db_snapshot_identifier}" || return $? )
 
-  if [[ -n "${snapshot_info}" ]]; then
-    if [[ $(echo "${snapshot_info}" | jq -r '.DBSnapshots[0].Status == "Available"') ]]; then
+    if [[ -n "${snapshot_info}" ]]; then
+      if [[ $(echo "${snapshot_info}" | jq -r '.DBClusterSnapshots[0].Status == "available"') ]]; then
 
-      if [[ $(echo "${snapshot_info}" | jq -r '.DBSnapshots[0].Encrypted') == false ]]; then
+        if [[ $(echo "${snapshot_info}" | jq -r '.DBClusterSnapshots[0].StorageEncrypted') == false ]]; then
 
-        info "Converting snapshot ${db_snapshot_identifier} to an encrypted snapshot"
+          info "Converting snapshot ${db_snapshot_identifier} to an encrypted snapshot"
 
-        # create encrypted snapshot
-        aws --region "${region}" rds copy-db-snapshot \
-          --source-db-snapshot-identifier "${db_snapshot_identifier}" \
-          --target-db-snapshot-identifier "encrypted-${db_snapshot_identifier}" \
-          --kms-key-id "${kms_key_id}" 1> /dev/null || return $?
+          # create encrypted snapshot
+          aws --region "${region}" rds copy-db-cluster-snapshot \
+            --source-db-cluster-snapshot-identifier "${db_snapshot_identifier}" \
+            --target-db-cluster-snapshot-identifier "encrypted-${db_snapshot_identifier}" \
+            --kms-key-id "${kms_key_id}" 1> /dev/null || return $?
 
-        info "Waiting for temp encrypted snapshot to become available..."
-        sleep 2
-        aws --region "${region}" rds wait db-snapshot-available --db-snapshot-identifier "encrypted-${db_snapshot_identifier}" || return $?
+          info "Waiting for temp encrypted snapshot to become available..."
+          sleep 2
+          aws --region "${region}" rds wait db-cluster-snapshot-available --db-cluster-snapshot-identifier "encrypted-${db_snapshot_identifier}" || return $?
 
-        info "Removing plaintext snapshot..."
-        # delete the original snapshot
-        aws --region "${region}" rds delete-db-snapshot --db-snapshot-identifier "${db_snapshot_identifier}"  1> /dev/null || return $?
-        aws --region "${region}" rds wait db-snapshot-deleted --db-snapshot-identifier "${db_snapshot_identifier}"  || return $?
+          info "Removing plaintext snapshot..."
+          # delete the original snapshot
+          aws --region "${region}" rds delete-db-cluster-snapshot --db-cluster-snapshot-identifier "${db_snapshot_identifier}"  1> /dev/null || return $?
+          aws --region "${region}" rds wait db-cluster-snapshot-deleted --db-cluster-snapshot-identifier "${db_snapshot_identifier}"  || return $?
 
-        # Copy snapshot back to original identifier
-        info "Renaming encrypted snapshot..."
-        aws --region "${region}" rds copy-db-snapshot \
-          --source-db-snapshot-identifier "encrypted-${db_snapshot_identifier}" \
-          --target-db-snapshot-identifier "${db_snapshot_identifier}" 1> /dev/null || return $?
+          # Copy snapshot back to original identifier
+          info "Renaming encrypted snapshot..."
+          aws --region "${region}" rds copy-db-cluster-snapshot \
+            --source-db-cluster-snapshot-identifier "encrypted-${db_snapshot_identifier}" \
+            --target-db-cluster-snapshot-identifier "${db_snapshot_identifier}" 1> /dev/null || return $?
 
-        sleep 2
-        aws --region "${region}" rds wait db-snapshot-available --db-snapshot-identifier "${db_snapshot_identifier}"  || return $?
+          sleep 2
+          aws --region "${region}" rds wait db-cluster-snapshot-available --db-cluster-snapshot-identifier "${db_snapshot_identifier}"  || return $?
 
-        # Remove the encrypted temp snapshot
-        aws --region "${region}" rds delete-db-snapshot --db-snapshot-identifier "encrypted-${db_snapshot_identifier}"  1> /dev/null || return $?
-        aws --region "${region}" rds wait db-snapshot-deleted --db-snapshot-identifier "encrypted-${db_snapshot_identifier}"  || return $?
+          # Remove the encrypted temp snapshot
+          aws --region "${region}" rds delete-db-cluster-snapshot --db-cluster-snapshot-identifier "encrypted-${db_snapshot_identifier}"  1> /dev/null || return $?
+          aws --region "${region}" rds wait db-cluster-snapshot-deleted --db-cluster-snapshot-identifier "encrypted-${db_snapshot_identifier}"  || return $?
 
-        db_snapshot=$(aws --region "${region}" rds describe-db-snapshots --db-snapshot-identifier "${db_snapshot_identifier}" || return $?)
-        info "Snapshot Converted - $(echo "${db_snapshot}" | jq -r '.DBSnapshots[0] | .DBSnapshotIdentifier + " " + .SnapshotCreateTime + " Encrypted: " + (.Encrypted|tostring)' )"
+          db_snapshot=$(aws --region "${region}" rds describe-db-cluster-snapshots --db-cluster-snapshot-identifier "${db_snapshot_identifier}" || return $?)
+          info "Snapshot Converted - $(echo "${db_snapshot}" | jq -r '.DBClusterSnapshots[0] | .DBClusterSnapshotIdentifier + " " + .SnapshotCreateTime + " Encrypted: " + (.StorageEncrypted|tostring)' )"
 
-        return 0
+          return 0
+
+        else
+
+          echo "Snapshot ${db_snapshot_identifier} already encrypted"
+          return 0
+
+        fi
 
       else
-
-        echo "Snapshot ${db_snapshot_identifier} already encrypted"
-        return 0
-
+        echo "Snapshot not in a usuable state $(echo "${snapshot_info}")"
+        return 255
       fi
+    fi
 
-    else
-      echo "Snapshot not in a usuable state $(echo "${snapshot_info}")"
-      return 255
+  else
+
+    # Check the snapshot status
+    snapshot_info=$(aws --region "${region}" rds describe-db-snapshots --db-snapshot-identifier "${db_snapshot_identifier}" || return $? )
+
+    if [[ -n "${snapshot_info}" ]]; then
+      if [[ $(echo "${snapshot_info}" | jq -r '.DBSnapshots[0].Status == "Available"') ]]; then
+
+        if [[ $(echo "${snapshot_info}" | jq -r '.DBSnapshots[0].Encrypted') == false ]]; then
+
+          info "Converting snapshot ${db_snapshot_identifier} to an encrypted snapshot"
+
+          # create encrypted snapshot
+          aws --region "${region}" rds copy-db-snapshot \
+            --source-db-snapshot-identifier "${db_snapshot_identifier}" \
+            --target-db-snapshot-identifier "encrypted-${db_snapshot_identifier}" \
+            --kms-key-id "${kms_key_id}" 1> /dev/null || return $?
+
+          info "Waiting for temp encrypted snapshot to become available..."
+          sleep 2
+          aws --region "${region}" rds wait db-snapshot-available --db-snapshot-identifier "encrypted-${db_snapshot_identifier}" || return $?
+
+          info "Removing plaintext snapshot..."
+          # delete the original snapshot
+          aws --region "${region}" rds delete-db-snapshot --db-snapshot-identifier "${db_snapshot_identifier}"  1> /dev/null || return $?
+          aws --region "${region}" rds wait db-snapshot-deleted --db-snapshot-identifier "${db_snapshot_identifier}"  || return $?
+
+          # Copy snapshot back to original identifier
+          info "Renaming encrypted snapshot..."
+          aws --region "${region}" rds copy-db-snapshot \
+            --source-db-snapshot-identifier "encrypted-${db_snapshot_identifier}" \
+            --target-db-snapshot-identifier "${db_snapshot_identifier}" 1> /dev/null || return $?
+
+          sleep 2
+          aws --region "${region}" rds wait db-snapshot-available --db-snapshot-identifier "${db_snapshot_identifier}"  || return $?
+
+          # Remove the encrypted temp snapshot
+          aws --region "${region}" rds delete-db-snapshot --db-snapshot-identifier "encrypted-${db_snapshot_identifier}"  1> /dev/null || return $?
+          aws --region "${region}" rds wait db-snapshot-deleted --db-snapshot-identifier "encrypted-${db_snapshot_identifier}"  || return $?
+
+          db_snapshot=$(aws --region "${region}" rds describe-db-snapshots --db-snapshot-identifier "${db_snapshot_identifier}" || return $?)
+          info "Snapshot Converted - $(echo "${db_snapshot}" | jq -r '.DBSnapshots[0] | .DBSnapshotIdentifier + " " + .SnapshotCreateTime + " Encrypted: " + (.Encrypted|tostring)' )"
+
+          return 0
+
+        else
+
+          echo "Snapshot ${db_snapshot_identifier} already encrypted"
+          return 0
+
+        fi
+
+      else
+        echo "Snapshot not in a usuable state $(echo "${snapshot_info}")"
+        return 255
+      fi
     fi
   fi
 }
 
 function set_rds_master_password() {
   local region="$1"; shift
+  local db_type="$1"; shift
   local db_identifier="$1"; shift
   local password="$1"; shift
 
   info "Resetting master password for RDS instance ${db_identifier}"
-  aws --region "${region}" rds modify-db-instance --db-instance-identifier ${db_identifier} --master-user-password "${password}" 1> /dev/null
-  sleep 5s
-  aws --region "${region}" rds wait db-instance-available --db-instance-identifier "${db_identifier}" || return $?
+  if [[ "${db_type}" == "cluster" ]]; then
+    aws --region "${region}" rds modify-db-cluster --db-cluster-identifier "${db_identifier}" --master-user-password "${password}" 1> /dev/null
+  else
+    aws --region "${region}" rds modify-db-instance --db-instance-identifier ${db_identifier} --master-user-password "${password}" 1> /dev/null
+  fi
 }
 
 function get_rds_hostname() {
   local region="$1"; shift
+  local db_type="$1"; shift
   local db_identifier="$1"; shift
+  local db_endpoint_type="$1"; shift
 
-  hostname="$(aws --region "${region}" rds describe-db-instances --db-instance-identifier ${db_identifier} --query 'DBInstances[0].Endpoint.Address' --output text)"
+  if [[ "${db_type}" == "cluster" ]]; then
+    if [[ "${db_endpoint_type}" == "read" ]]; then
+        hostname="$(aws --region "${region}" rds describe-db-clusters --db-cluster-identifier ${db_identifier} --query 'DBClusters[0].ReaderEndpoint' --output text)"
+    else
+        hostname="$(aws --region "${region}" rds describe-db-clusters --db-cluster-identifier ${db_identifier} --query 'DBClusters[0].Endpoint' --output text)"
+    fi
+  else
+    hostname="$(aws --region "${region}" rds describe-db-instances --db-instance-identifier ${db_identifier} --query 'DBInstances[0].Endpoint.Address' --output text)"
+  fi
 
   if [[ "${hostname}" != "None" ]]; then
     echo "${hostname}"
@@ -1710,7 +1825,7 @@ function update_rds_ca_identifier() {
 
   info "Updating CA for RDS instance ${db_identifier} to ${ca_identifier}"
   aws --region "${region}" rds wait db-instance-available --db-instance-identifier "${db_identifier}" || return $?
-  aws --region "${region}" rds modify-db-instance --db-instance-identifier ${db_identifier} --ca-certificate-identifier "${ca_identifier}" 1> /dev/null || return $?
+  aws --region "${region}" rds modify-db-instance --apply-immediately --db-instance-identifier ${db_identifier} --ca-certificate-identifier "${ca_identifier}" 1> /dev/null || return $?
 }
 
 # -- Git Repo Management --
