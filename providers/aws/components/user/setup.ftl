@@ -68,10 +68,6 @@
         }
     ]
 
-    [#if _context.ManagedPolicy?has_content]
-        [#local managedPolicyArns += _context.ManagedPolicy ]
-    [/#if]
-
     [#if solution.Fragment?has_content ]
         [#local fragmentId = formatFragmentId(_context)]
         [#include fragmentList?ensure_starts_with("/")]
@@ -91,6 +87,10 @@
                 "esac"
             ]
         /]
+    [/#if]
+
+    [#if _context.ManagedPolicy?has_content]
+        [#local managedPolicyArns += _context.ManagedPolicy ]
     [/#if]
 
     [#if _context.Policy?has_content]
