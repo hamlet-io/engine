@@ -586,7 +586,7 @@ function process_template() {
 
     buildblueprint)
       # this is expected to run from an automation context
-      cf_dir_default="${AUTOMATION_DATA_DIR:-${PRODUCT_INFRASTRUCTURE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}}/"
+      cf_dir_default="${AUTOMATION_DATA_DIR:-"${PRODUCT_INFRASTRUCTURE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}"}/"
       cf_dir="${OUTPUT_DIR:-${cf_dir_default}}"
       ;;
 
