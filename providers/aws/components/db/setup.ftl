@@ -370,6 +370,18 @@
 
                 [@debug message="Monitored resource" context=monitoredResource enabled=false /]
 
+                [#-- when replacing the instance the database is removed so we need to override refrences to keep the alarms around --]
+                [#if monitoredResource.Id == rdsId && (commandLineOptions.Deployment.Unit.Alternative!"") == "replace1" ]
+                    [#local resourceDimensions = [
+                        {
+                            "Name": "DBInstanceIdentifier",
+                            "Value": getExistingReference(rdsId)
+                        }
+                    ]]
+                [#else]
+                    [#local resourceDimensions = getResourceMetricDimensions(monitoredResource, resources) ]
+                [/#if]
+
                 [#switch alert.Comparison ]
                     [#case "Threshold" ]
                         [@createAlarm
@@ -389,8 +401,7 @@
                             reportOK=alert.ReportOk
                             unit=alert.Unit
                             missingData=alert.MissingData
-                            dimensions=getResourceMetricDimensions(monitoredResource, resources)
-                            dependencies=monitoredResource.Id
+                            dimensions=resourceDimensions
                         /]
                     [#break]
                 [/#switch]
