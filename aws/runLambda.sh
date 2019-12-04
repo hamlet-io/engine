@@ -85,7 +85,7 @@ function main() {
     checkInSegmentDirectory
 
     # Create build blueprint
-    ${GENERATION_DIR}/createBuildblueprint.sh -u "${DEPLOYMENT_UNIT}" >/dev/null || exit $?
+    ${GENERATION_DIR}/createBuildblueprint.sh -u "${DEPLOYMENT_UNIT}"  -o "${AUTOMATION_DATA_DIR}" >/dev/null || return $?
 
     COT_TEMPLATE_DIR="${PRODUCT_INFRASTRUCTURE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}"
     BUILD_BLUEPRINT="${COT_TEMPLATE_DIR}/build_blueprint-${DEPLOYMENT_UNIT}-.json"
