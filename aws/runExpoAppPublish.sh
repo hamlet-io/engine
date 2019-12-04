@@ -54,8 +54,8 @@ function env_setup() {
     brew cask upgrade || return $?
     brew cask install \
         fastlane || return $?
-    
-    # Make sure we have required software installed 
+
+    # Make sure we have required software installed
     pip3 install \
         qrcode[pil] \
         awscli || return $?
@@ -104,7 +104,7 @@ EOF
     exit
 }
 
-function options() { 
+function options() {
 
     # Parse options
     while getopts ":bfhmsq:t:u:" opt; do
@@ -162,7 +162,7 @@ function main() {
 
   options "$@" || return $?
 
-  if [[ "${RUN_SETUP}" == "true" ]]; then 
+  if [[ "${RUN_SETUP}" == "true" ]]; then
     env_setup || return $?
   fi
 
@@ -173,7 +173,8 @@ function main() {
   [[ -z "${DEPLOYMENT_UNIT}" ]] && fatalMandatory
 
   # Create build blueprint
-  . "${GENERATION_DIR}/createBuildblueprint.sh" -u "${DEPLOYMENT_UNIT}" 
+  info "Generating build blueprint..."
+  "${GENERATION_DIR}/createBuildblueprint.sh" -u "${DEPLOYMENT_UNIT}" -o "${AUTOMATION_DATA_DIR}" >/dev/null || return $?
 
   BUILD_BLUEPRINT="${AUTOMATION_DATA_DIR}/build_blueprint-${DEPLOYMENT_UNIT}-.json"
 
@@ -188,7 +189,7 @@ function main() {
   mkdir -p "${OPS_PATH}"
   mkdir -p "${REPORTS_PATH}"
 
-  # get config file 
+  # get config file
   CONFIG_BUCKET="$( jq -r '.Occurrence.State.Attributes.CONFIG_BUCKET' < "${BUILD_BLUEPRINT}" )"
   CONFIG_KEY="$( jq -r '.Occurrence.State.Attributes.CONFIG_FILE' < "${BUILD_BLUEPRINT}" )"
   CONFIG_FILE="${OPS_PATH}/config.json"
@@ -228,7 +229,7 @@ function main() {
   # Prepare the code build environment
   info "Getting source code from from s3://${SRC_BUCKET}/${SRC_PREFIX}/scripts.zip"
   aws --region "${AWS_REGION}" s3 cp "s3://${SRC_BUCKET}/${SRC_PREFIX}/scripts.zip" "${tmpdir}/scripts.zip" || return $?
-  
+
   unzip -q "${tmpdir}/scripts.zip" -d "${SRC_PATH}" || return $?
 
   cd "${SRC_PATH}"
@@ -239,31 +240,31 @@ function main() {
   aws --region "${AWS_REGION}" s3 sync "s3://${OPSDATA_BUCKET}/${CREDENTIALS_PREFIX}" "${OPS_PATH}" || return $?
   find "${OPS_PATH}" -name \*.kms -exec decrypt_kms_file "${AWS_REGION}" "{}" \;
 
-  # get the version of the expo SDK which is required 
+  # get the version of the expo SDK which is required
   EXPO_SDK_VERSION="$(jq -r '.expo.sdkVersion' < ./app.json)"
   EXPO_APP_VERSION="$(jq -r '.expo.version' < ./app.json)"
-  EXPO_PROJECT_SLUG="$(jq -r '.expo.slug' < ./app.json)" 
+  EXPO_PROJECT_SLUG="$(jq -r '.expo.slug' < ./app.json)"
   EXPO_CURRENT_APP_VERSION="${EXPO_APP_VERSION}"
 
   # Determine Binary Build status
   EXPO_CURRENT_SDK_BUILD="$(aws s3api list-objects-v2 --bucket "${PUBLIC_BUCKET}" --prefix "${PUBLIC_PREFIX}/packages/${EXPO_SDK_VERSION}" --query "join(',', Contents[*].Key)" --output text)"
   arrayFromList EXPO_CURRENT_SDK_FILES "${EXPO_CURRENT_SDK_BUILD}"
 
-  # Determine if App Version has been incremented 
-  if [[ -n "${EXPO_CURRENT_SDK_BUILD}" ]]; then 
+  # Determine if App Version has been incremented
+  if [[ -n "${EXPO_CURRENT_SDK_BUILD}" ]]; then
     for sdk_file in "${EXPO_CURRENT_SDK_FILES[@]}" ; do
         if [[ "${sdk_file}" == */${BUILD_FORMATS[0]}-index.json ]]; then
             aws --region "${AWS_REGION}" s3 cp "s3://${PUBLIC_BUCKET}/${sdk_file}" "${AUTOMATION_DATA_DIR}/current-app-manifest.json"
         fi
     done
 
-    if [[ -f "${AUTOMATION_DATA_DIR}/current-app-manifest.json" ]]; then 
+    if [[ -f "${AUTOMATION_DATA_DIR}/current-app-manifest.json" ]]; then
         EXPO_CURRENT_APP_VERSION="$(jq -r '.version' < "${AUTOMATION_DATA_DIR}/current-app-manifest.json" )"
         EXPO_CURRENT_APP_REVISION_ID="$(jq -r '.revisionId' < "${AUTOMATION_DATA_DIR}/current-app-manifest.json" )"
-    fi 
+    fi
   fi
 
-  if [[ -z "${EXPO_CURRENT_SDK_BUILD}" || "${FORCE_BINARY_BUILD}" == "true" || "${EXPO_CURRENT_APP_VERSION}" != "${EXPO_APP_VERSION}" ]]; then 
+  if [[ -z "${EXPO_CURRENT_SDK_BUILD}" || "${FORCE_BINARY_BUILD}" == "true" || "${EXPO_CURRENT_APP_VERSION}" != "${EXPO_APP_VERSION}" ]]; then
     BUILD_BINARY="true"
   fi
 
@@ -283,16 +284,16 @@ function main() {
     '.expo.releaseChannel=$RELEASE_CHANNEL | .expo.extra.build_reference=$BUILD_REFERENCE | .expo.ios.buildNumber=$BUILD_NUMBER | .expo.extra=.expo.extra + $envConfig[]["AppConfig"]' <  "./app.json" > "${tmpdir}/environment-app.json"
   mv "${tmpdir}/environment-app.json" "./app.json"
 
-  ## Optional app.json overrides 
+  ## Optional app.json overrides
   IOS_DIST_BUNDLE_ID="$( jq -r '.BuildConfig.IOS_DIST_BUNDLE_ID' < "${CONFIG_FILE}" )"
-  if [[ "${IOS_DIST_BUNDLE_ID}" != "null" && -n "${IOS_DIST_BUNDLE_ID}" ]]; then 
-    jq --arg IOS_DIST_BUNDLE_ID "${IOS_DIST_BUNDLE_ID}" '.expo.ios.bundleIdentifier=$IOS_DIST_BUNDLE_ID' <  "./app.json" > "${tmpdir}/ios-bundle-app.json"  
+  if [[ "${IOS_DIST_BUNDLE_ID}" != "null" && -n "${IOS_DIST_BUNDLE_ID}" ]]; then
+    jq --arg IOS_DIST_BUNDLE_ID "${IOS_DIST_BUNDLE_ID}" '.expo.ios.bundleIdentifier=$IOS_DIST_BUNDLE_ID' <  "./app.json" > "${tmpdir}/ios-bundle-app.json"
     mv "${tmpdir}/ios-bundle-app.json" "./app.json"
   fi
 
   ANDROID_BUNDLE_ID="$( jq -r '.BuildConfig.ANDROIRD_BUNDLE_ID' < "${CONFIG_FILE}" )"
-  if [[ "${ANDROID_BUNDLE_ID}" != "null" && -n "${ANDROID_BUNDLE_ID}" ]]; then 
-    jq --arg ANDROID_BUNDLE_ID "${ANDROID_BUNDLE_ID}" '.expo.android.package=$ANDROID_BUNDLE_ID' <  "./app.json" > "${tmpdir}/android-bundle-app.json"  
+  if [[ "${ANDROID_BUNDLE_ID}" != "null" && -n "${ANDROID_BUNDLE_ID}" ]]; then
+    jq --arg ANDROID_BUNDLE_ID "${ANDROID_BUNDLE_ID}" '.expo.android.package=$ANDROID_BUNDLE_ID' <  "./app.json" > "${tmpdir}/android-bundle-app.json"
     mv "${tmpdir}/android-bundle-app.json" "./app.json"
   fi
 
@@ -333,7 +334,7 @@ function main() {
         EXPO_EXPORT_MERGE_ARGUMENTS="${EXPO_EXPORT_MERGE_ARGUMENTS} --merge-src-dir "${dir}""
     done
 
-    # Create master export 
+    # Create master export
     info "Creating master OTA artefact with Extra Dirs: ${EXPO_EXPORT_MERGE_ARGUMENTS}"
     expo export --public-url "${PUBLIC_URL}" --output-dir "${SRC_PATH}/app/dist/master/" ${EXPO_EXPORT_MERGE_ARGUMENTS}  || return $?
 
@@ -362,7 +363,7 @@ function main() {
 
    DETAILED_HTML_QR_MESSAGE="<h4>Expo Client App QR Codes</h4> <p>Use these codes to load the app through the Expo Client</p>"
    DETAILED_HTML_BINARY_MESSAGE="<h4>Expo Binary Builds</h4>"
-   if [[ "${BUILD_BINARY}" == "false" ]]; then 
+   if [[ "${BUILD_BINARY}" == "false" ]]; then
      DETAILED_HTML_BINARY_MESSAGE="${DETAILED_HTML_BINARY_MESSAGE} <p> No binary builds were generated for this publish </p>"
    fi
 
@@ -376,7 +377,7 @@ function main() {
 
             ANDROID_KEYSTORE_PASSWORD="$( jq -r '.BuildConfig.ANDROID_KEYSTORE_PASSWORD' < "${CONFIG_FILE}" )"
             export ANDROID_KEYSTORE_PASSWORD="$( decrypt_kms_string "${AWS_REGION}" "${ANDROID_KEYSTORE_PASSWORD#"base64:"}")"
-            
+
             ANDROID_KEY_PASSWORD="$( jq -r '.BuildConfig.ANDROID_KEY_PASSWORD' < "${CONFIG_FILE}" )"
             export ANDROID_KEY_PASSWORD="$( decrypt_kms_string "${AWS_REGION}" "${ANDROID_KEY_PASSWORD#"base64:"}")"
 
@@ -395,10 +396,10 @@ function main() {
 
             IOS_DIST_P12_PASSWORD="$( jq -r '.BuildConfig.IOS_DIST_P12_PASSWORD' < "${CONFIG_FILE}" )"
             export EXPO_IOS_DIST_P12_PASSWORD="$( decrypt_kms_string "${AWS_REGION}" "${IOS_DIST_P12_PASSWORD#"base64:"}")"
-            
+
             export IOS_DIST_PROVISIONING_PROFILE="${OPS_PATH}/ios_profile.mobileprovision"
             export IOS_DIST_P12_FILE="${OPS_PATH}/ios_distribution.p12"
-            
+
             TURTLE_EXTRA_BUILD_ARGS="${TURTLE_EXTRA_BUILD_ARGS} --team-id ${IOS_DIST_APPLE_ID} --dist-p12-path ${IOS_DIST_P12_FILE} --provisioning-profile-path ${IOS_DIST_PROVISIONING_PROFILE}"
             ;;
         "*")
@@ -406,7 +407,7 @@ function main() {
             ;;
       esac
 
-      if [[ "${BUILD_BINARY}" == "true" ]]; then 
+      if [[ "${BUILD_BINARY}" == "true" ]]; then
 
         info "Building App Binary for ${build_format}"
 
@@ -436,7 +437,7 @@ function main() {
 
                 # Update App details
                 fastlane run set_info_plist_value path:"ios/${EXPO_PROJECT_SLUG}/Supporting/Info.plist" key:CFBundleVersion value:"${BUILD_NUMBER}" || return $?
-                if [[ "${IOS_DIST_BUNDLE_ID}" != "null" && -n "${IOS_DIST_BUNDLE_ID}" ]]; then 
+                if [[ "${IOS_DIST_BUNDLE_ID}" != "null" && -n "${IOS_DIST_BUNDLE_ID}" ]]; then
                     cd "${SRC_PATH}/ios"
                     fastlane run update_app_identifier app_identifier:"${IOS_DIST_BUNDLE_ID}" xcodeproj:"${EXPO_PROJECT_SLUG}.xcodeproj" plist_path:"${EXPO_PROJECT_SLUG}/Supporting/Info.plist" || return $?
                     cd "${SRC_PATH}"
@@ -450,19 +451,19 @@ function main() {
 
                 # Get the bundle file name from the manifest
                 BUNDLE_URL="$( jq -r '.bundleUrl' < "${BINARY_BUNDLE_FILE}")"
-                BUNDLE_FILE_NAME="$( basename "${BUNDLE_URL}")"  
+                BUNDLE_FILE_NAME="$( basename "${BUNDLE_URL}")"
 
                 if [[ "${DISABLE_OTA}" == "false" ]]; then
                     cp "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/bundles/${BUNDLE_FILE_NAME}" "${SRC_PATH}/ios/${EXPO_PROJECT_SLUG}/Supporting/shell-app.bundle"
                 fi
 
-                jq --arg RELEASE_CHANNEL "${RELEASE_CHANNEL}" --arg MANIFEST_URL "${EXPO_MANIFEST_URL}" '.manifestUrl=$MANIFEST_URL | .releaseChannel=$RELEASE_CHANNEL' <  "ios/${EXPO_PROJECT_SLUG}/Supporting/EXShell.json" > "${tmpdir}/EXShell.json"  
+                jq --arg RELEASE_CHANNEL "${RELEASE_CHANNEL}" --arg MANIFEST_URL "${EXPO_MANIFEST_URL}" '.manifestUrl=$MANIFEST_URL | .releaseChannel=$RELEASE_CHANNEL' <  "ios/${EXPO_PROJECT_SLUG}/Supporting/EXShell.json" > "${tmpdir}/EXShell.json"
                 mv "${tmpdir}/EXShell.json" "ios/${EXPO_PROJECT_SLUG}/Supporting/EXShell.json"
 
                 fastlane run set_info_plist_value path:"ios/${EXPO_PROJECT_SLUG}/Supporting/EXShell.plist" key:manifestUrl value:"${EXPO_MANIFEST_URL}" || return $?
                 fastlane run set_info_plist_value path:"ios/${EXPO_PROJECT_SLUG}/Supporting/EXShell.plist" key:releaseChannel value:"${RELEASE_CHANNEL}" || return $?
 
-                # Keychain setup - Creates a temporary keychain 
+                # Keychain setup - Creates a temporary keychain
                 fastlane run create_keychain path:"${FASTLANE_KEYCHAIN_PATH}" password:"${FASTLANE_KEYCHAIN_NAME}" add_to_search_list:"true" unlock:"true" timeout:3600 || return $?
 
                 # codesigning setup
@@ -481,17 +482,17 @@ function main() {
         esac
 
 
-        if [[ -f "${EXPO_BINARY_FILE_PATH}" ]]; then 
+        if [[ -f "${EXPO_BINARY_FILE_PATH}" ]]; then
             aws --region "${AWS_REGION}" s3 sync --exclude "*" --include "${BINARY_FILE_PREFIX}*" "${BINARY_PATH}" "s3://${APPDATA_BUCKET}/${EXPO_APPDATA_PREFIX}/" || return $?
             EXPO_BINARY_PRESIGNED_URL="$(aws --region "${AWS_REGION}" s3 presign --expires-in "${BINARY_EXPIRATION}" "s3://${APPDATA_BUCKET}/${EXPO_APPDATA_PREFIX}/${EXPO_BINARY_FILE_NAME}" )"
-            DETAILED_HTML_BINARY_MESSAGE="${DETAILED_HTML_BINARY_MESSAGE}<p><strong>${build_format}</strong> <a href="${EXPO_BINARY_PRESIGNED_URL}">${build_format} - ${EXPO_APP_VERSION} - ${BUILD_NUMBER}</a>" 
+            DETAILED_HTML_BINARY_MESSAGE="${DETAILED_HTML_BINARY_MESSAGE}<p><strong>${build_format}</strong> <a href="${EXPO_BINARY_PRESIGNED_URL}">${build_format} - ${EXPO_APP_VERSION} - ${BUILD_NUMBER}</a>"
 
-            if [[ "${SUBMIT_BINARY}" == "true" && -n "${IOS_TESTFLIGHT_USERNAME}" ]]; then 
+            if [[ "${SUBMIT_BINARY}" == "true" && -n "${IOS_TESTFLIGHT_USERNAME}" ]]; then
                 case "${build_format}" in
                     "ios")
 
                         # Ensure mandatory arguments have been provided
-                        if [[ -z "${IOS_TESTFLIGHT_USERNAME}" || -z "${IOS_TESTFLIGHT_PASSWORD}" || -z "${IOS_DIST_APP_ID}" ]]; then 
+                        if [[ -z "${IOS_TESTFLIGHT_USERNAME}" || -z "${IOS_TESTFLIGHT_PASSWORD}" || -z "${IOS_DIST_APP_ID}" ]]; then
                             fatal "TestFlight details not found please provide IOS_TESTFLIGHT_USERNAME, IOS_TESTFLIGHT_PASSWORD and IOS_DIST_APP_ID"
                             return 255
                         fi
@@ -502,17 +503,17 @@ function main() {
                         DETAILED_HTML_BINARY_MESSAGE="${DETAILED_HTML_BINARY_MESSAGE}<strong> Submitted to TestFlight</strong>"
                     ;;
                 esac
-            fi 
+            fi
         fi
-      else 
+      else
         info "Skipping build of app binary for ${build_format}"
       fi
 
   done
 
-  for qr_build_format in "${EXPO_QR_BUILD_FORMATS[@]}"; do 
+  for qr_build_format in "${EXPO_QR_BUILD_FORMATS[@]}"; do
 
-      #Generate EXPO QR Code 
+      #Generate EXPO QR Code
       EXPO_QR_FILE_PREFIX="${qr_build_format}"
       EXPO_QR_FILE_NAME="${EXPO_QR_FILE_PREFIX}-qr.png"
       EXPO_QR_FILE_PATH="${REPORTS_PATH}/${EXPO_QR_FILE_NAME}"
@@ -520,23 +521,23 @@ function main() {
       qr "exp://${PUBLIC_URL#*//}/${qr_build_format}-index.json?release-channel=${RELEASE_CHANNEL}" > "${EXPO_QR_FILE_PATH}" || return $?
 
       DETAILED_HTML_QR_MESSAGE="${DETAILED_HTML_QR_MESSAGE}<p><strong>${qr_build_format}</strong> <br> <img src=\"./${EXPO_QR_FILE_NAME}\" alt=\"EXPO QR Code\" width=\"200px\" /></p>"
-  
+
   done
 
-  DETAILED_HTML="<html><body> <h4>Expo Mobile App Publish</h4> <p> A new Expo mobile app publish has completed </p> <ul> <li><strong>Public URL</strong> ${PUBLIC_URL}</li> <li><strong>Release Channel</strong> ${RELEASE_CHANNEL}</li><li><strong>SDK Version</strong> ${EXPO_SDK_VERSION}</li><li><strong>App Version</strong> ${EXPO_APP_VERSION}</li><li><strong>Build Number</strong> ${BUILD_NUMBER}</li><li><strong>Code Commit</strong> ${BUILD_REFERENCE}</li></ul> ${DETAILED_HTML_QR_MESSAGE} ${DETAILED_HTML_BINARY_MESSAGE} </body></html>" 
+  DETAILED_HTML="<html><body> <h4>Expo Mobile App Publish</h4> <p> A new Expo mobile app publish has completed </p> <ul> <li><strong>Public URL</strong> ${PUBLIC_URL}</li> <li><strong>Release Channel</strong> ${RELEASE_CHANNEL}</li><li><strong>SDK Version</strong> ${EXPO_SDK_VERSION}</li><li><strong>App Version</strong> ${EXPO_APP_VERSION}</li><li><strong>Build Number</strong> ${BUILD_NUMBER}</li><li><strong>Code Commit</strong> ${BUILD_REFERENCE}</li></ul> ${DETAILED_HTML_QR_MESSAGE} ${DETAILED_HTML_BINARY_MESSAGE} </body></html>"
   echo "${DETAILED_HTML}" > "${REPORTS_PATH}/build-report.html"
 
   aws --region "${AWS_REGION}" s3 sync "${REPORTS_PATH}/" "s3://${PUBLIC_BUCKET}/${PUBLIC_PREFIX}/reports/" || return $?
 
-  if [[ "${BUILD_BINARY}" == "true" ]]; then 
-    if [[ "${SUBMIT_BINARY}" == "true" ]]; then 
+  if [[ "${BUILD_BINARY}" == "true" ]]; then
+    if [[ "${SUBMIT_BINARY}" == "true" ]]; then
         DETAIL_MESSAGE="${DETAIL_MESSAGE} *Expo Publish Complete* - *NEW BINARIES CREATED* - *SUBMITTED TO APP TESTING* -  More details available <${PUBLIC_URL}/reports/build-report.html|Here>"
     else
         DETAIL_MESSAGE="${DETAIL_MESSAGE} *Expo Publish Complete* - *NEW BINARIES CREATED* -  More details available <${PUBLIC_URL}/reports/build-report.html|Here>"
     fi
   else
     DETAIL_MESSAGE="${DETAIL_MESSAGE} *Expo Publish Complete* - More details available <${PUBLIC_URL}/reports/build-report.html|Here>"
-  fi 
+  fi
 
   echo "DETAIL_MESSAGE=${DETAIL_MESSAGE}" >> ${AUTOMATION_DATA_DIR}/context.properties
 
