@@ -404,7 +404,7 @@
                                 [#continue]
                             [/#if]
 
-                            [#local metricSpecification = getAutoScalingTrackMetric(
+                            [#local metricSpecification = getAutoScalingCustomTrackMetric(
                                                             getResourceMetricDimensions(monitoredResource, scalingTargetResources ),
                                                             getMetricName(scalingMetricTrigger.Metric, monitoredResource.Type, scalingTargetCore.ShortFullName),
                                                             getResourceMetricNamespace(monitoredResource.Type),

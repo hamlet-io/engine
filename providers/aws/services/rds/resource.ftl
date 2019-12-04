@@ -68,7 +68,6 @@
 
 [#macro createRDSInstance id name
     engine
-    engineVersion
     processor
     availabilityZone
     subnetGroupId
@@ -80,8 +79,10 @@
     performanceInsights
     performanceInsightsRetention
     tags
+    engineVersion=""
     clusterMember=false
     clusterId=""
+    clusterPromotionTier=""
     multiAZ=false
     encrypted=false
     kmsKeyId=""
@@ -109,7 +110,6 @@
     properties=
         {
             "Engine": engine,
-            "EngineVersion": engineVersion,
             "DBInstanceClass" : processor,
             "AutoMinorVersionUpgrade": autoMinorVersionUpgrade,
             "AllowMajorVersionUpgrade" : allowMajorVersionUpgrade,
@@ -125,11 +125,13 @@
                 "BackupRetentionPeriod" : retentionPeriod,
                 "DBInstanceIdentifier": name,
                 "VPCSecurityGroups": asArray( getReference(securityGroupId)),
-                "Port" : port
+                "Port" : port,
+                "EngineVersion": engineVersion
             },
             ( !clusterMember ),
             {
-                "DBClusterIdentifier" : getReference(clusterId)
+                "DBClusterIdentifier" : getReference(clusterId),
+                "PromotionTier" : clusterPromotionTier
             }
 
         ) +

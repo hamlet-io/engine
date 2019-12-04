@@ -14,7 +14,7 @@
             "UseRef" : true
         }
     }
-] 
+]
 
 [#assign AWS_AUTOSCALING_EC2_POLICY_OUTPUT_MAPPINGS =
     {
@@ -43,7 +43,7 @@
 ]
 
 [#list autoScalingMappings as type, mappings]
-    [@addOutputMapping 
+    [@addOutputMapping
         provider=AWS_PROVIDER
         resourceType=type
         mappings=mappings
@@ -51,7 +51,7 @@
 [/#list]
 
 [#-- Generic AutoScaling functions --]
-[#function getAutoScalingStepAdjustment 
+[#function getAutoScalingStepAdjustment
         adjustment
         lowerBound=""
         upperBound=""
@@ -62,15 +62,15 @@
             context={ "Adjustment" : adjustment, "lowerBound" : lowerBound, "upperBound" : upperBound}
         /]
     [/#if]
-    [#return 
+    [#return
         [
             {
                 "ScalingAdjustment" : adjustment
-            } + 
+            } +
             attributeIfContent(
                 "MetricIntervalLowerBound",
                 lowerBound
-            ) + 
+            ) +
             attributeIfContent(
                 "MetricIntervalUpperBound",
                 upperBound
@@ -79,14 +79,14 @@
     ]
 [/#function]
 
-[#function getAutoScalingTrackMetric
+[#function getAutoScalingCustomTrackMetric
     dimensions
     metricName
     namespace
-    statistic 
+    statistic
 ]
 
-    [#return 
+    [#return
         {
             "Dimensions" : dimensions,
             "MetricName" : metricName,
@@ -96,10 +96,20 @@
     ]
 [/#function]
 
+[#function getAutoScalingPredefinedTrackMetric
+    metricName
+]
+
+    [#return
+        {
+            "PredefinedMetricType" : metricName
+        }
+    ]
+[/#function]
 
 [#-- App AutoScaling functions --]
 [#function getAutoScalingAppEcsResourceId clusterId serviceId ]
-    [#return 
+    [#return
         {
             "Fn::Join" : [
                 "/",
@@ -113,8 +123,22 @@
     ]
 [/#function]
 
-[#function getAutoScalingAppStepPolicy 
-    adjustmentType 
+[#function getAutScalingRDSClusterResourceId clusterId ]
+    [#return
+        {
+            "Fn::Join" : [
+                ":",
+                [
+                    "cluster",
+                    getReference(clusterId)
+                ]
+            ]
+        }
+    ]
+[/#function]
+
+[#function getAutoScalingAppStepPolicy
+    adjustmentType
     cooldown
     metricAggregationType
     minAdjustment
@@ -134,18 +158,18 @@
         [#default]
             [#local adjustmentType = "COTFatal: Unsupported adjustmentType ${adjustmentType}" ]
     [/#switch]
-    
-    [#return 
+
+    [#return
         {
             "AdjustmentType" : adjustmentType,
             "MetricAggregationType" : metricAggregationType,
             "StepAdjustments" : stepAdjustments
-        } + 
+        } +
         attributeIfTrue(
             "Cooldown",
             cooldown > 0,
             cooldown
-        ) + 
+        ) +
         attributeIfTrue(
             "MinAdjustmentMagnitude",
             minAdjustment > 0,
@@ -155,57 +179,73 @@
 [/#function]
 
 
-[#function getAutoScalingAppTrackPolicy 
+[#function getAutoScalingAppTrackPolicy
     scaleIn
     scaleInCooldown
     scaleOutCooldown
     targetValue
+    specificationType
     metricSpecification
     ]
 
-    [#return 
+    [#return
         {
-            "CustomizedMetricSpecification" : metricSpecification,
             "TargetValue" : targetValue
-        } + 
+        } +
         attributeIfTrue(
             "ScaleInCooldown",
             scaleInCooldown > 0,
             scaleInCooldown
-        ) + 
+        ) +
         attributeIfTrue(
             "ScaleOutCooldown",
             scaleOutCooldown > 0,
             scaleOutCooldown
-        ) + 
+        ) +
         attributeIfTrue(
             "DisableScaleIn",
             scaleIn == false,
             true
+        ) +
+        attributeIfTrue(
+            "CustomizedMetricSpecification",
+            ( specificationType == "custom" ),
+            metricSpecification
+        ) +
+        attributeIfTrue(
+            "PredefinedMetricSpecification",
+            ( specificationType == "predefined" ),
+            metricSpecification
         )
     ]
 [/#function]
 
-[#macro createAutoScalingAppTarget 
+[#macro createAutoScalingAppTarget
         id
         minCount
         maxCount
         scalingResourceId
         scalableDimension
         resourceType
-        roleId
         scheduledActions=[]
         dependencies=""
         outputId=""
 ]
 
+    [#local trustedService = "ecs.application-autoscaling.amazonaws.com" ]
     [#local serviceNamespace = "" ]
     [#switch resourceType ]
-        [#case AWS_ECS_SERVICE_RESOURCE_TYPE ]
+        [#case AWS_ECS_SERVICE_RESOURCE_TYPE!"" ]
             [#local serviceNamespace = "ecs" ]
+            [#local serviceRoleArn = formatServiceLinkedRoleArn(trustedService, "AWSServiceRoleForApplicationAutoScaling_ECSService" ) ]
+            [#break]
+        [#case AWS_RDS_CLUSTER_RESOURCE_TYPE!"" ]
+            [#local serviceNamespace = "rds" ]
+            [#local serviceRoleArn = formatServiceLinkedRoleArn(trustedService, "AWSServiceRoleForApplicationAutoScaling_RDSCluster") ]
             [#break]
         [#default]
             [#local serviceNamespace = "COTFatal: Unsupported resource type for autoscaling" ]
+            [#local serviceRoleArn = "" ]
             [@fatal
                 message="Unsupported Resource Type"
                 detail={ "resourceId" : resourceId, "resourceType" : resourceType}
@@ -220,10 +260,10 @@
                 "MaxCapacity" : maxCount,
                 "MinCapacity" : minCount,
                 "ResourceId" : scalingResourceId,
-                "RoleARN" : getArn(roleId),
+                "RoleARN" : serviceRoleArn,
                 "ScalableDimension" : scalableDimension,
                 "ServiceNamespace" : serviceNamespace
-            } + 
+            } +
             attributeIfContent(
                 "ScheduledActions",
                 scheduledActions
@@ -249,14 +289,14 @@
         properties={
             "PolicyName" : name,
             "ScalingTargetId" : getReference(scalingTargetId)
-        } + 
+        } +
         (policyType?lower_case == "tracked")?then(
             {
                 "TargetTrackingScalingPolicyConfiguration" : scalingAction,
                 "PolicyType" : "TargetTrackingScaling"
             },
             {}
-        ) + 
+        ) +
         (policyType?lower_case == "stepped")?then(
             {
                 "StepScalingPolicyConfiguration" : scalingAction,
@@ -272,17 +312,17 @@
 
 
 [#-- Ec2 AutoScaling functions --]
-[#function getEc2AutoScalingTrackPolicy 
+[#function getEc2AutoScalingTrackPolicy
     scaleIn
     targetValue
     metricSpecification
     ]
 
-    [#return 
+    [#return
         {
             "CustomizedMetricSpecification" : metricSpecification,
             "TargetValue" : targetValue
-        } + 
+        } +
         attributeIfTrue(
             "DisableScaleIn",
             scaleIn == false,
@@ -291,7 +331,7 @@
     ]
 [/#function]
 
-[#macro createEc2AutoScalingSchedule 
+[#macro createEc2AutoScalingSchedule
     id
     autoScaleGroupId
     schedule
@@ -303,7 +343,7 @@
     [#if schedule?starts_with("cron(") ]
         [#local schedule = schedule?remove_beginning("cron(")?remove_ending(")") ]
     [#else]
-        [@fatal 
+        [@fatal
             message="Invalid schedule"
             detail="Provide a cron schedule in cron(* * * * * *) fromat"
         /]
@@ -365,7 +405,7 @@
                 "PolicyType" : "TargetTrackingScaling"
             },
             {}
-        ) + 
+        ) +
         (policyType?lower_case == "stepped")?then(
             {
                 "StepAdjustments" : scalingAction,
@@ -374,7 +414,7 @@
                 "MetricAggregationType" : metricAggregationType
             },
             {}
-        ) + 
+        ) +
         attributeIfTrue(
             "MinAdjustmentMagnitude",
             ( minAdjustment > 0 && policyType?lower_case == "stepped") ,

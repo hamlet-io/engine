@@ -82,6 +82,7 @@
             }
         }]
 
+        [#-- Calcuate the number of fixed instances required --]
         [#if multiAZ!false ]
             [#local resourceZones = zones ]
         [#else]
@@ -90,7 +91,7 @@
 
         [#local processor = getProcessor(
                                         occurrence,
-                                        "db",
+                                        DB_COMPONENT_TYPE,
                                         solution.ProcessorProfile)]
         [#if processor.DesiredPerZone?has_content ]
                 [#local instancesPerZone = processor.DesiredPerZone ]
@@ -108,6 +109,36 @@
             [/#if]
         [/#if]
 
+        [#local autoScaling = {}]
+        [#if solution.Cluster.ScalingPolicies?has_content ]
+
+            [#-- Autoscaling requires 2 fixed instances at all times so we force it to be set --]
+            [#local resourceZones = zones[0..1]]
+            [#local instancesPerZone = 1 ]
+
+            [#local autoScaling +=
+                {
+                    "scalingTarget" : {
+                        "Id" : formatResourceId(AWS_AUTOSCALING_APP_TARGET_RESOURCE_TYPE, core.Id),
+                        "Type" : AWS_AUTOSCALING_APP_TARGET_RESOURCE_TYPE
+                    }
+                }
+            ]
+            [#list solution.Cluster.ScalingPolicies as name, scalingPolicy ]
+                [#local autoScaling +=
+                    {
+                        "scalingPolicy" + name : {
+                            "Id" : formatDependentAutoScalingAppPolicyId(id, name),
+                            "Name" : formatName(core.FullName, name),
+                            "Type" : AWS_AUTOSCALING_APP_POLICY_RESOURCE_TYPE
+                        }
+                    }
+                ]
+            [/#list]
+        [/#if]
+        [#local dbResources = mergeObjects( dbResources, autoScaling )]
+
+        [#-- Define fixed instanaces per zone --]
         [#list resourceZones as resourceZone ]
             [#list 1..instancesPerZone as instanceId ]
                 [#local dbResources = mergeObjects(

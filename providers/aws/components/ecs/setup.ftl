@@ -396,7 +396,7 @@
                                 [#continue]
                             [/#if]
 
-                            [#local metricSpecification = getAutoScalingTrackMetric(
+                            [#local metricSpecification = getAutoScalingCustomTrackMetric(
                                                             getResourceMetricDimensions(monitoredResource, scalingTargetResources ),
                                                             getMetricName(scalingMetricTrigger.Metric, monitoredResource.Type, scalingTargetCore.ShortFullName),
                                                             getResourceMetricNamespace(monitoredResource.Type),
@@ -798,36 +798,8 @@
 
                 [#if solution.ScalingPolicies?has_content ]
                     [#local scalingTargetId = resources["scalingTarget"].Id ]
-                    [#local scalingRoleId = resources["scalingRole"].Id ]
 
-                    [#local serviceResourceType = resources["service"].Type ]
-
-                    [#if deploymentSubsetRequired("iam", true ) && isPartOfCurrentDeploymentUnit(scalingRoleId) ]
-                        [@createRole
-                            id=scalingRoleId
-                            trustedServices=[
-                                "application-autoscaling.amazonaws.com"
-                            ]
-                            policies=[
-                                getPolicyDocument(
-                                    [
-                                        getPolicyStatement(
-                                            [
-                                                "ecs:UpdateService",
-                                                "ecs:DescribeService"
-                                            ],
-                                            getArn(serviceId)),
-                                        getPolicyStatement(
-                                            [
-                                                "cloudwatch:DescribeAlarms",
-                                                "cloudwatch:PutMetricAlarm"
-                                            ]
-                                        )
-                                    ],
-                                    "autoscaling")
-                            ]
-                        /]
-                    [/#if]
+                    [#local serviceResourceType = resources["service"].Type ]]
 
                     [#local scheduledActions = []]
                     [#list solution.ScalingPolicies as name, scalingPolicy ]
@@ -945,18 +917,25 @@
                                         [#continue]
                                     [/#if]
 
-                                    [#local metricSpecification = getAutoScalingTrackMetric(
-                                                                    getResourceMetricDimensions(monitoredResource, scalingTargetResources ),
-                                                                    getMetricName(scalingMetricTrigger.Metric, monitoredResource.Type, scalingTargetCore.ShortFullName),
-                                                                    getResourceMetricNamespace(monitoredResource.Type),
-                                                                    scalingMetricTrigger.Statistic
-                                                                )]
+                                    [#if (scalingPolicy.Tracked.RecommendedMetric)?has_content ]
+                                        [#local specificationType = "predefined" ]
+                                        [#local metricSpecification = getAutoScalingPredefinedTrackMetric(scalingPolicy.Tracked.RecommendedMetric)]
+                                    [#else ]
+                                        [#local specificationType = "custom" ]
+                                        [#local metricSpecification = getAutoScalingCustomTrackMetric(
+                                                                        getResourceMetricDimensions(monitoredResource, scalingTargetResources ),
+                                                                        getMetricName(scalingMetricTrigger.Metric, monitoredResource.Type, scalingTargetCore.ShortFullName),
+                                                                        getResourceMetricNamespace(monitoredResource.Type),
+                                                                        scalingMetricTrigger.Statistic
+                                                                    )]
+                                    [/#if]
 
                                     [#local scalingAction = getAutoScalingAppTrackPolicy(
                                                                 scalingPolicy.Tracked.ScaleInEnabled,
                                                                 scalingPolicy.Cooldown.ScaleIn,
                                                                 scalingPolicy.Cooldown.ScaleOut,
                                                                 scalingPolicy.Tracked.TargetValue,
+                                                                specificationType,
                                                                 metricSpecification
                                                             )]
                                 [/#if]
@@ -1008,7 +987,6 @@
                         scalableDimension="ecs:service:DesiredCount"
                         resourceType=serviceResourceType
                         scheduledActions=scheduledActions
-                        roleId=scalingRoleId
                     /]
 
                 [/#if]
