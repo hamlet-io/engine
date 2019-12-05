@@ -1381,7 +1381,8 @@
         "ana",
         "mgmt",
         "docs",
-        "gbl"
+        "gbl",
+        "external"
       ]
     }
   },

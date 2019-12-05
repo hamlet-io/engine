@@ -64,7 +64,9 @@
     [/#if]
 
     [#-- TODO(mfl) remove when external link support superceded by external components --]
-    [#if fullLink.External!false]
+    [#if
+        (fullLink.External!false) &&
+        (fullLink.Type?? || (!getTier(link.Tier)?has_content))]
         [#-- If a type is provided, ensure it has been included --]
         [#if fullLink.Type??]
             [@includeComponentConfiguration fullLink.Type /]

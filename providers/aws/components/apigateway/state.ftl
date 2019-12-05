@@ -91,7 +91,7 @@ created in either case.
     [#local endpointType       = solution.EndpointType ]
     [#local isEdgeEndpointType = solution.EndpointType == "EDGE" ]
 
-    [#local region = getExistingReference(apiId, REGION_ATTRIBUTE_TYPE)?has_content(
+    [#local region = contentIfContent(
                         getExistingReference(apiId, REGION_ATTRIBUTE_TYPE),
                         regionId
                     )]
