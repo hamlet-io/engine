@@ -19,6 +19,7 @@
     [#-- Baseline component lookup --]
     [#local baselineLinks = getBaselineLinks(occurrence, [ "OpsData", "AppData", "Encryption", "SSHKey" ] )]
     [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
+    [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
     [#local cmkKeyId = baselineComponentIds["Encryption"] ]
     [#local cmkKeyArn = getExistingReference(cmkKeyId, ARN_ATTRIBUTE_TYPE)]
 
@@ -91,6 +92,20 @@
                 "esac"
             ]
         /]
+        [#-- Copy any asFiles  --]
+        [#local asFiles = getAsFileSettings(occurrence.Configuration.Settings.Product) ]
+        [#if asFiles?has_content]
+            [@debug message="Asfiles" context=asFiles enabled=false /]
+            [@addToDefaultBashScriptOutput
+                content=
+                    findAsFilesScript("filesToSync", asFiles) +
+                    syncFilesToBucketScript(
+                        "filesToSync",
+                        regionId,
+                        operationsBucket,
+                        getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX")
+                    ) /]
+        [/#if]
     [/#if]
 
     [#if _context.Policy?has_content]
