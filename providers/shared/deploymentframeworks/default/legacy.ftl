@@ -91,7 +91,13 @@
         [#return {} ]
     [/#if]
 
-    [#if link.Tier?lower_case == "external"]
+    [#-- Handle external links --]
+    [#-- They are deprecated in favour of an external tier but for now --]
+    [#-- they can still be used, even with an external tier, by explicitly --]
+    [#-- providing the link type --]
+    [#if
+        (link.Tier?lower_case == "external") &&
+        (link.Type?? || (!getTier(link.Tier)?has_content))]
         [#-- If a type is provided, ensure it has been included --]
         [#if link.Type??]
             [@includeComponentConfiguration link.Type /]
