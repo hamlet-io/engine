@@ -7,7 +7,7 @@
 [#assign settingsObject = {} ]
 
 [#macro addSettings type scope namespace="" settings={} ]
-    [@interalMergeSettings
+    [@internalMergeSettings
         type=type
         scope=scope
         namespace=namespace
@@ -150,14 +150,14 @@
 -- Internal support functions for setting processing --
 -------------------------------------------------------]
 
-[#macro interalMergeSettings type scope namespace="" settings={} ]
+[#macro internalMergeSettings type scope namespace="" settings={} ]
     [#local types=[ "Settings", "Builds", "Sensitive" ]]
     [#local scopes=[ "Accounts", "Products" ]]
 
     [#if settings?has_content ]
         [#if ! types?seq_contains(type) && ! scopes?seq_contains(scope)  ]
             [@fatal
-                message="Invalid Settings" 
+                message="Invalid Settings"
                 context={ "Type" : type, "Scope" : scope, "Namespace" : namespace }
                 detail={
                     "PossibleTypes" : types,
@@ -166,8 +166,8 @@
             /]
         [/#if]
 
-        [#if namspace?has_content ]
-            [#assign settingsObject = 
+        [#if namespace?has_content ]
+            [#assign settingsObject =
                 mergeObjects(
                     settingsObject,
                     {
@@ -188,7 +188,7 @@
                         }
                     }
                 )
-            ] 
+            ]
         [/#if]
     [/#if]
 [/#macro]
