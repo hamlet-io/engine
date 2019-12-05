@@ -58,6 +58,11 @@
                         "Default" : "10.0.0.0/16"
                     }
                 ]
+            },            
+            {
+                "Names" : "Links",
+                "Subobjects" : true,
+                "Children" : linkChildrenConfiguration
             }
         ]
 /]
