@@ -642,6 +642,7 @@
                         attributes,
                         [
                             content,
+                            (getDeploymentProfile(profiles.Deployment, commandLineOptions.Deployment.Mode)["*"])!{},
                             (getDeploymentProfile(profiles.Deployment, commandLineOptions.Deployment.Mode)[type])!{}
                         ])
             }

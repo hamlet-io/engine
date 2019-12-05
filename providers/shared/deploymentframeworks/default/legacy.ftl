@@ -374,6 +374,7 @@
                     [#-- Apply deployment profile overrides --]
                     [#local occurrenceContexts +=
                         [
+                            (getDeploymentProfile(profiles.Deployment, commandLineOptions.Deployment.Mode)["*"])!{},
                             (getDeploymentProfile(profiles.Deployment, commandLineOptions.Deployment.Mode)[type])!{}
                         ]
                     ]
