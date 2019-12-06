@@ -11,9 +11,31 @@
         [/#list]
     [/#if]
 
-    [#local environment =
-        occurrence.Configuration.Environment.General +
-        occurrence.Configuration.Environment.Sensitive ]
+    [#local fragment = getOccurrenceFragmentBase(occurrence) ]
+    [#assign _context =
+        {
+            "Id" : fragment,
+            "Name" : fragment,
+            "Instance" : core.Instance.Id,
+            "Version" : core.Version.Id,
+            "DefaultEnvironment" : defaultEnvironment(occurrence, {}, {}),
+            "Environment" : {},
+            "Links" : {},
+            "BaselineLinks" : {},
+            "DefaultCoreVariables" : false,
+            "DefaultEnvironmentVariables" : true,
+            "DefaultBaselineVariables" : false,
+            "DefaultLinkVariables" : false
+        }
+    ]
+
+    [#-- Add in fragment specifics including override of defaults --]
+    [#if solution.Fragment?has_content ]
+        [#local fragmentId = formatFragmentId(_context)]
+        [#include fragmentList?ensure_starts_with("/")]
+    [/#if]
+
+    [#local environment = getFinalEnvironment(occurrence, _context ).Environment ]
 
     [#list environment as name,value]
         [#local attributes += { name : value } ]
