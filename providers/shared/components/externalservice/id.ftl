@@ -38,6 +38,11 @@
                     "Mandatory" : true
                 }
             ]
+        },
+        {
+            "Names" : ["Fragment", "Container"],
+            "Type" : STRING_TYPE,
+            "Default" : ""
         }
     ]
     provider=SHARED_PROVIDER

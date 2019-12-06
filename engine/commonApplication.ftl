@@ -431,7 +431,13 @@
     [#local asFile = environmentSettings.AsFile!false]
     [#local serialisationConfig = environmentSettings.Json!{}]
 
-    [#local operationsBucket = context.BaselineLinks["OpsData"].State.Attributes["BUCKET"]!"COTFatal: asFile configured but could not find opsBucket"  ]
+    [#local hasBaselineLinks = (context.BaselineLinks!{})?has_content]
+
+    [#local operationsBucket = hasBaselineLinks?then(
+                                context.BaselineLinks["OpsData"].State.Attributes["BUCKET"]!"COTFatal: asFile configured but could not find opsBucket",
+                                ""
+    )]
+
     [#local runId = commandLineOptions.Run.Id]
     [#return
         {
@@ -448,7 +454,7 @@
                         "SETTINGS_FILE" : ["s3:/", operationsBucket, getSettingsFilePrefix(occurrence), "config/config_" + runId + ".json"]?join("/"),
                         "RUN_ID" : runId
                     },
-                    asFile,
+                    ( asFile && hasBaselineLinks),
                     valueIfTrue(
                         getSettingsAsEnvironment(occurrence.Configuration.Settings.Build) +
                         { "RUN_ID" : runId },
@@ -467,7 +473,7 @@
                     ) +
                     valueIfTrue(
                         getDefaultBaselineVariables(context.BaselineLinks),
-                        context.DefaultBaselineVariables
+                        ( context.DefaultBaselineVariables && hasBaselineLinks )
                     ) +
                     context.Environment
                 )

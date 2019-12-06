@@ -91,7 +91,10 @@ created in either case.
     [#local endpointType       = solution.EndpointType ]
     [#local isEdgeEndpointType = solution.EndpointType == "EDGE" ]
 
-    [#local region = getExistingReference(apiId, REGION_ATTRIBUTE_TYPE)!regionId ]
+    [#local region = getExistingReference(apiId, REGION_ATTRIBUTE_TYPE)?has_content(
+                        getExistingReference(apiId, REGION_ATTRIBUTE_TYPE),
+                        regionId
+                    )]
     [#-- The AWS assigned domain for the API --]
     [#local internalFqdn =
         formatDomainName(
