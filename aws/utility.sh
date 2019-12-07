@@ -93,12 +93,20 @@ function trace() {
   message "${LOG_LEVEL_TRACE}" "$@"
 }
 
-function info() {
+function information() {
   message "${LOG_LEVEL_INFORMATION}" "$@"
+}
+
+function info() {
+  information "$@"
 }
 
 function warning() {
   message "${LOG_LEVEL_WARNING}" "$@"
+}
+
+function warn() {
+  warning "$@"
 }
 
 function error() {
@@ -1912,12 +1920,16 @@ function git_rm() {
 }
 
 # -- semver handling --
-# From github.com/fsaintjacques/semver-tool
+# Comparisons/naming roughly aligned to https://github.com/npm/node-semver
+# in case we want to replace these routines with calls to this package via
+# docker
 
-function semver_validate {
-  local version=$1
+function semver_valid {
+  local version="$1"
 
-[[ "$version" =~ ^v?(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(\-([^+]+))?(\+(.*))?$ ]] || return 1
+  [[ "$version" =~ ^v?(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(\-([^+]+))?(\+(.*))?$ ]] ||
+    { echo -n "?"; return 1; }
+
   local major=${BASH_REMATCH[1]}
   local minor=${BASH_REMATCH[2]}
   local patch=${BASH_REMATCH[3]}
@@ -1928,17 +1940,59 @@ function semver_validate {
   return 0
 }
 
-function semver_compare {
-  local v1="$(semver_validate "$1")"; shift
-  local v2="$(semver_validate "$1")"; shift
+# Strip any leading "v" (note we handle leading = in semver_satisfies)
+# Convert any range indicators ("x" or "X") to 0
+# * not supported as substitute for x
+function semver_clean {
+  local version="$1"
 
-  if [[ (-z "${v1}") || (-z "${v2}") ]]; then
-    echo -n "?"
-    return 1
+  # Handle the full format
+  if [[ "$version" =~ ^v?(0|[1-9][0-9]*|x|X)\.(0|[1-9][0-9]*|x|X)\.(0|[1-9][0-9]*|x|X)(\-([^+]+))?(\+(.*))?$ ]]; then
+
+    local major="$(echo ${BASH_REMATCH[1]} | tr "xX" "0")"
+    local minor="$(echo ${BASH_REMATCH[2]} | tr "xX" "0")"
+    local patch="$(echo ${BASH_REMATCH[3]} | tr "xX" "0")"
+    local prere=${BASH_REMATCH[5]}
+    local build=${BASH_REMATCH[7]}
+
+    echo -n "${major}.${minor}.${patch}${prere:+-}${prere}${build:++}${build}"
+    return 0
   fi
 
-  local v1_components=(${v1})
-  local v2_components=(${v2})
+  # Handle major.minor
+  if [[ "$version" =~ ^v?(0|[1-9][0-9]*|x|X)\.(0|[1-9][0-9]*|x|X)$ ]]; then
+
+    local major="$(echo ${BASH_REMATCH[1]} | tr "xX" "0")"
+    local minor="$(echo ${BASH_REMATCH[2]} | tr "xX" "0")"
+
+    echo -n "${major}.${minor}.0"
+    return 0
+  fi
+
+  # Handle major
+  if [[ "$version" =~ ^v?(0|[1-9][0-9]*|x|X)$ ]]; then
+
+    local major="$(echo ${BASH_REMATCH[1]} | tr "xX" "0")"
+
+    echo -n "${major}.0.0"
+    return 0
+  fi
+
+  # Not valid
+  echo -n "?"
+  return 1
+}
+
+function semver_compare {
+  local v1="$(semver_clean "$1")"; shift
+  local v2="$(semver_clean "$1")"; shift
+
+  semver_valid "${v1}" > /dev/null &&
+      semver_valid "${v2}" > /dev/null ||
+      { echo -n "?"; return 1; }
+
+  local v1_components=($(semver_valid "${v1}"))
+  local v2_components=($(semver_valid "${v2}"))
 
   # MAJOR, MINOR and PATCH should compare numericaly
   for i in 0 1 2; do
@@ -1964,6 +2018,80 @@ function semver_compare {
   fi
 
   echo -n 0
+}
+
+# a range is a list of comparator sets joined by "||"" or "|", true if one of sets is true
+# a comparator set is a list of comparators, true if all comparators are true
+# a comparator is an operator and a version
+function semver_satisfies {
+  local version="$1"; shift
+  local range=$@
+
+  # First determine the comparator sets
+  # Standardise on single "|" as separator
+  declare -a comparator_sets
+  arrayFromList comparator_sets "${range//||/|}" "|"
+
+  for comparator_set in "${comparator_sets[@]}"; do
+    debug "Checking comparator set \"${comparator_set}\" ..."
+
+    # Now determine the comparators for each set
+    declare -a comparators
+    arrayFromList comparators "${comparator_set}"
+
+    # Assume all comparators will match
+    local match=0
+
+    for comparator in "${comparators[@]}"; do
+      debug "Checking comparator \"${comparator}\" ..."
+
+      # Split into operator and version
+      [[ "$comparator" =~ ^(<|<=|>|>=|=)(.+)$ ]] || return 1
+      local operator="${BASH_REMATCH[1]}"
+      local comparator_version="$(semver_clean "${BASH_REMATCH[2]}")"
+
+      # Do the version comparison
+      comparator_result="$(semver_compare "${version}" "${comparator_version}")"
+      [[ "${comparator_result}" == "?" ]] && return 1
+
+      debug "Comparing \"${version}\" to \"${comparator_version}\", result=${comparator_result}"
+
+      # Process the operator
+      case "${operator}" in
+        \<)
+          [[ "${comparator_result}" -lt 0 ]] && continue
+          ;;
+
+        \<=)
+          [[ "${comparator_result}" -le 0 ]] && continue
+          ;;
+
+        \>)
+          [[ "${comparator_result}" -gt 0 ]] && continue
+          ;;
+
+        \>=)
+          [[ "${comparator_result}" -ge 0 ]] && continue
+          ;;
+
+        =)
+          [[ "${comparator_result}" -eq 0 ]] && continue
+          ;;
+
+        *)
+          match=1
+          ;;
+      esac
+      match=1
+      break
+    done
+
+    # All comparators matched so success (this comparator set is true)
+    [[ ${match} -eq 0 ]] && return 0
+
+  done
+
+  return 1
 }
 
 # -- Cloudfront handling --
