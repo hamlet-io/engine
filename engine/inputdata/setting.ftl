@@ -16,7 +16,15 @@
 [/#macro]
 
 [#function formatSettingName parts...]
-    [#return concatenate(parts, "_")?upper_case?replace("-", "_")]
+    [#-- First join the parts and force to upper case --]
+    [#local name = concatenate(parts, "_")?upper_case ]
+
+    [#-- Use a lookbehind regex to permit any non-alphanumeric to be escaped by "^" --]
+    [#-- Double backslash is one for freemarker and one for regex --]
+    [#local name = name?replace("(?<!\\^)[^0-9A-Z\\^]", "_", "r")]
+
+    [#-- Finally remove ^ --]
+    [#return name?replace("^", "")]
 [/#function]
 
 [#function asFlattenedSettings object prefix=""]
