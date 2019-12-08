@@ -29,7 +29,7 @@ where
 
 (o) -i GENERATION_INPUT_SOURCE is the source of input data to use when generating the template
     -h                         shows this text
-(o) -o OUTPUT_DIR              is the directory where the outputs will be saved - defaults to the PRODUCT_INFRASTRUCTURE_DIR
+(o) -o OUTPUT_DIR              is the directory where the outputs will be saved - defaults to the PRODUCT_STATE_DIR
 (o) -p GENERATION_PROVIDER     is the provider to for template generation
 (o) -f GENERATION_FRAMEWORK    is the output framework to use for template generation
 (o) -s GENERATION_SCENARIOS    is a comma seperated list of framework scenarios to load

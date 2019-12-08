@@ -75,7 +75,7 @@ function process_template() {
 
   case "${type}" in
     component)
-      cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}"
+      cf_dir="${PRODUCT_STATE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}"
       passes=("reference")
 
       pass_level_prefix["reference"]="component-reference"
