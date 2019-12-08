@@ -16,23 +16,23 @@
     "Attributes" : [
         {
             "Names" : "Account",
-            "Type" : STRING_TYPE
+            "Type" : STRING_TYPE,
+            "Mandatory" : true
         },
         {
             "Names" : "Region",
-            "Type" : STRING_TYPE
-        },
-        {
-            "Names" : "Level",
-            "Type" : STRING_TYPE
+            "Type" : STRING_TYPE,
+            "Mandatory" : true
         },
         {
             "Names" : "DeploymentUnit",
-            "Type" : STRING_TYPE
+            "Type" : STRING_TYPE,
+            "Mandatory" : true
         },
         {
-            "Names" : "Id",
-            "Type" : STRING_TYPE
+            "Names" : "Level",
+            "Type" : STRING_TYPE,
+            "Mandatory" : true
         },
         {
             "Names" : "*",

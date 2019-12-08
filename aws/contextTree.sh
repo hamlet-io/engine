@@ -36,36 +36,6 @@ function parse_stack_filename() {
   return 1
 }
 
-function add_standard_pairs_to_stack() {
-  local account="$1"; shift
-  local region="$1"; shift
-  local level="$1"; shift
-  local deployment_unit="$1"; shift
-  local input_file="$1"; shift
-  local output_file="$1"; shift
-
-  pushTempDir "${FUNCNAME[0]}_XXXXXX"
-  local result_file="$(getTopTempDir)/add_standard_pairs_to_stack.json"
-  local return_status
-
-  runJQ -f ${GENERATION_DIR}/formatOutputs.jq \
-    --arg Account "${account}" \
-    --arg Region "${region}" \
-    --arg Level "${level}" \
-    --arg DeploymentUnit "${deployment_unit}" \
-    < "${input_file}" > "${result_file}"; return_status=$?
-
-  if [[ ${return_status} -eq 0 ]]; then
-    # Copy/overwrite the output
-    [[ -n "${output_file}" ]] && \
-      cp "${result_file}" "${output_file}" ||
-      cp "${result_file}" "${input_file}"; return_status=$?
-  fi
-
-  popTempDir
-  return ${return_status}
-}
-
 function create_pseudo_stack() {
   local comment="$1"; shift
   local file="$1"; shift
@@ -194,7 +164,7 @@ function assemble_settings() {
     -name account.json \
     -and -not -path "*/.*/*" \) | sort)
 
-#  debug "Account=${account_files[@]}"
+  # debug "Account=${account_files[@]}"
 
   # Settings
   for account_file in "${account_files[@]}"; do
@@ -220,7 +190,7 @@ function assemble_settings() {
     -name product.json \
     -and -not -path "*/.*/*" \) | sort)
 
-#  debug "Products=${product_files[@]}"
+  # debug "Products=${product_files[@]}"
 
   for product_file in "${product_files[@]}"; do
 
@@ -371,99 +341,31 @@ function assemble_composite_stack_outputs() {
   local restore_nullglob=$(shopt -p nullglob)
   shopt -s nullglob
 
-  pushTempDir "${FUNCNAME[0]}_XXXXXX"
-  local tmp_dir="$(getTopTempDir)"
-
   local stack_array=()
   [[ (-n "${ACCOUNT}") ]] &&
-      addToArray "stack_array" "${ACCOUNT_STATE_DIR}"/cf/shared/acc*-stack.json
-  [[ (-n "${PRODUCT}") && (-n "${REGION}") ]] &&
-      addToArray "stack_array" "${PRODUCT_STATE_DIR}"/cf/shared/product*-"${REGION}"*-stack.json
+      addToArray "stack_array" "${ACCOUNT_INFRASTRUCTURE_DIR}"/*/shared/acc*-stack.json
   [[ (-n "${ENVIRONMENT}") && (-n "${SEGMENT}") && (-n "${REGION}") ]] &&
-      addToArray "stack_array" "${PRODUCT_STATE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"/*-stack.json
+      addToArray "stack_array" "${PRODUCT_INFRASTRUCTURE_DIR}"/*/"${ENVIRONMENT}/${SEGMENT}"/*-stack.json
 
   ${restore_nullglob}
 
   debug "STACK_OUTPUTS=${stack_array[*]}"
+  composite_stack_output_values="[]"
+
   export COMPOSITE_STACK_OUTPUTS="${CACHE_DIR}/composite_stack_outputs.json"
+
+  # Load all files into a a single array of objects with the filename as key so we can determine level
   if [[ $(arraySize "stack_array") -ne 0 ]]; then
-    # Add default account, region, stack level and deployment unit
-    local modified_stack_array=()
-    for stack in "${stack_array[@]}"; do
-      # Annotate as necessary
-      if parse_stack_filename "${stack}"; then
-        modified_stack_filename="${tmp_dir}/$(fileName "${stack}")"
-        add_standard_pairs_to_stack \
-          "${stack_account:-${AWSID}}" \
-          "${stack_region}" \
-          "${stack_level}" \
-          "${stack_deployment_unit}" \
-          "${stack}" \
-          "${modified_stack_filename}"
-        modified_stack_array+=("${modified_stack_filename}")
-      else
-        modified_stack_array+=("${stack}")
-      fi
+    for stack_output in "${stack_array[@]}"; do
+      composite_stack_output_values="$( echo '{}' | jq \
+          --argjson composite_stack "${composite_stack_output_values}" \
+          --slurpfile stack_output "${stack_output}" \
+          --arg stack_name "$( fileName ${stack_output} )" \
+          '$composite_stack + [  { "FileName" : $stack_name, "Content" : $stack_output } ]' )"
     done
-    debug "MODIFIED_STACK_OUTPUTS=${modified_stack_array[*]}"
-    ${GENERATION_DIR}/manageJSON.sh -f "[.[].Stacks | select(.!=null) | .[].Outputs | select(.!=null) ]" -o "${COMPOSITE_STACK_OUTPUTS}" "${modified_stack_array[@]}"
-
-    # TODO(rossmurr4y): Make this logic provider independant - based on details specified elsewhere in the plugin.
-    # if composite outputs is found empty, re-filter with Azure formatted outputs
-    if [[ $( jq -r '.|tostring == "[]"' < "${COMPOSITE_STACK_OUTPUTS}" ) == "true" ]]; then
-      ${GENERATION_DIR}/manageJSON.sh -f ".[].properties.outputs | select(.!=null)" -o "${COMPOSITE_STACK_OUTPUTS}" "${modified_stack_array[@]}"
-    fi
-
-  else
-    echo "[]" > "${COMPOSITE_STACK_OUTPUTS}"
   fi
 
-  popTempDir
-}
-
-function getCompositeStackOutput() {
-  local file="$1"; shift
-  local keys=("$@")
-
-  local patterns=()
-
-  for key in "${keys[@]}"; do
-    patterns+=(".[] | .${key}")
-  done
-  getJSONValue "${file}" "${patterns[@]}"
-}
-
-function getCmk() {
-  local level="$1"; shift
-
-  getCompositeStackOutput "${COMPOSITE_STACK_OUTPUTS}" "cmkX${level}" "cmkX${level}Xcmk"
-}
-
-function encrypt_file() {
-  local region="$1"; shift
-  local key_id="$1"; shift
-  local input_file="$1"; shift
-  local output_file="$1"; shift
-
-  pushTempDir "${FUNCNAME[0]}_XXXXXX"
-  local tmp_dir="$(getTopTempDir)"
-  local cmk=$(getCompositeStackOutput "${COMPOSITE_STACK_OUTPUTS}" "${key_id}")
-  local return_status
-
-  cp "${input_file}" "${tmp_dir}/encrypt_file"
-
-  (cd "${tmp_dir}"; aws --region "${region}" --output text kms encrypt \
-    --key-id "${cmk}" --query CiphertextBlob \
-    --plaintext "fileb://encrypt_file" > "${output_file}"; return_status=$?)
-
-  popTempDir
-  return ${return_status}
-}
-
-function getBucketName() {
-  local keys=("$@")
-
-  getCompositeStackOutput "${COMPOSITE_STACK_OUTPUTS}" "${keys[@]}"
+  echo "${composite_stack_output_values}" > "${COMPOSITE_STACK_OUTPUTS}"
 }
 
 function getBluePrintParameter() {
@@ -472,15 +374,6 @@ function getBluePrintParameter() {
   getJSONValue "${COMPOSITE_BLUEPRINT}" "${patterns[@]}"
 }
 
-# -- Buckets --
-
-function getOperationsBucket() {
-  getBucketName "s3XsegmentXops"
-}
-
-function getCodeBucket() {
-  getBucketName "s3XaccountXcode"
-}
 
 # -- GEN3 directory structure --
 

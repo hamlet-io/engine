@@ -90,11 +90,11 @@
 
         [#-- load in the scenarios --]
         [#list [ "scenario" ] as level ]
-            [#local scenarioMacroOptions = 
+            [#local scenarioMacroOptions =
                 [
                     [ provider, "scenario", scenario ]
                 ]]
-            
+
             [#local scenarioMacro = getFirstDefinedDirective(scenarioMacroOptions)]
             [#if scenarioMacro?has_content ]
                 [@(.vars[scenarioMacro]) /]
@@ -104,7 +104,7 @@
                     context=scenarioMacroOptions
                     enabled=false
                 /]
-            [/#if]    
+            [/#if]
         [/#list]
 
     [/#list]
@@ -125,11 +125,11 @@
 
     [#-- load in the testCases --]
     [#list [ "testcase" ] as level ]
-        [#local testCaseMacroOptions = 
+        [#local testCaseMacroOptions =
             [
                 [ provider, "testcase", testCase ]
             ]]
-        
+
         [#local testCaseMacro = getFirstDefinedDirective(testCaseMacroOptions)]
         [#if testCaseMacro?has_content ]
             [@(.vars[testCaseMacro]) /]
@@ -139,7 +139,7 @@
                 context=testCaseMacroOptions
                 enabled=false
             /]
-        [/#if]    
+        [/#if]
     [/#list]
 [/#macro]
 
@@ -161,11 +161,11 @@
 
     [#-- seed in data provided at the inputsources level for provider and inputSource --]
     [#list [ "commandlineoption", "masterdata" ] as level ]
-        [#local seedMacroOptions = 
+        [#local seedMacroOptions =
             [
                 [ provider, "input", inputSource, level, "seed" ]
             ]]
-        
+
         [#local seedMacro = getFirstDefinedDirective(seedMacroOptions)]
         [#if seedMacro?has_content ]
             [@(.vars[seedMacro]) /]
@@ -175,7 +175,7 @@
                 context=seedMacroOptions
                 enabled=false
             /]
-        [/#if]    
+        [/#if]
     [/#list]
 [/#macro]
 
@@ -196,22 +196,22 @@
     [@includeTemplates templates=templates /]
 
     [#-- seed in data provided at the inputsources level for provider and inputSource --]
-    [#list [ "blueprint", "setting", "definition" ] as level ]
-        [#local seedMacroOptions = 
+    [#list [ "blueprint", "stackoutput", "setting", "definition"  ] as level ]
+        [#local seedMacroOptions =
             [
                 [ provider, "input", inputSource, level, "seed" ]
             ]]
-        
+
         [#local seedMacro = getFirstDefinedDirective(seedMacroOptions)]
         [#if seedMacro?has_content ]
             [@(.vars[seedMacro]) /]
         [#else]
             [@debug
-                message="Unable to invoke any of the setting seed macro options"
+                message="Unable to invoke any of the input seed macro options"
                 context=seedMacroOptions
                 enabled=false
             /]
-        [/#if]    
+        [/#if]
     [/#list]
 [/#macro]
 
