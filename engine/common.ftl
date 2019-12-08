@@ -889,13 +889,15 @@ behaviour.
 [#function pseudoStackOutputScript description outputs filesuffix="" ]
     [#local outputString = ""]
 
-    [#list getCFTemplateCoreOutputs(region, accountObject.AWSId) as  key,value ]
+    [#--
+    [#list getCFTemplateCoreOutputs(regionId, accountObject.AWSId) as  key,value ]
         [#if value?is_hash ]
             [#local outputs += { key, value.Value } ]
         [#else ]
             [#local outputs += { key, value } ]
         [/#if]
     [/#list]
+    --]
 
     [#list outputs as key,value ]
         [#local outputString +=

@@ -53,11 +53,10 @@
     [#-- Baseline component lookup --]
     [#local baselineLinks = getBaselineLinks(occurrence, [ "Encryption" ], false, false )]
 
-    [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
+    [#local cmkResources = baselineLinks["Encryption"].State.Resources ]
+    [#local cmkAlias = cmkResources["cmkAlias"].Name ]
 
-    [#local cmkKeyId = baselineComponentIds["Encryption" ]]
-
-    [@debug message={ "KeyId" : cmkKeyId } enabled=true /]
+    [@debug message={ "KeyAlias" : cmkAlias } enabled=true /]
 
     [#-- Subcomponents --]
     [#list occurrence.Occurrences![] as subOccurrence]
@@ -362,9 +361,9 @@
                                     "\"$\{key_pair_name}\" " +
                                     "\"$\{pem_file}\" || return $?",
                                 "    [[ -f \"$\{SEGMENT_OPERATIONS_DIR}/" + localKeyPairPrivateKey + ".plaintext\" ]] && ",
-                                "      { encrypt_file" + " " +
+                                "      { encrypt_kms_file" + " " +
                                         "\"" + regionId + "\"" + " " +
-                                        "\"" + cmkKeyId + "\"" + " " +
+                                        "\"" + cmkAlias + "\"" + " " +
                                         "\"$\{SEGMENT_OPERATIONS_DIR}/" + localKeyPairPrivateKey + ".plaintext\"" + " " +
                                         "\"$\{SEGMENT_OPERATIONS_DIR}/" + localKeyPairPrivateKey + "\" || return $?; }",
                                 "  fi",

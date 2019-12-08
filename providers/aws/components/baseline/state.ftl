@@ -107,6 +107,7 @@
     [#local parentState = parent.State ]
 
     [#local resources = {}]
+    [#local attributes = {}]
 
     [#switch solution.Engine ]
         [#case "cmk"]
@@ -144,6 +145,31 @@
                 }
             ]
 
+            [#local attributes +=
+                {
+                    "ID" : getExistingReference(cmkOutputId),
+                    "ARN" : getExistingReference(cmkOutputId, ARN_ATTRIBUTE_TYPE)
+                }
+            ]
+
+            [#break]
+
+        [#case "cmk-account" ]
+            [#local cmkId = formatAccountCMKTemplateId()]
+            [#local resources +=
+                {
+                    "cmk" : {
+                        "Id" : cmkId,
+                        "Type" : AWS_CMK_RESOURCE_TYPE
+                    }
+                }
+            ]
+            [#local attributes +=
+                {
+                    "ID" : getExistingReference(cmkId),
+                    "ARN" : getExistingReference(cmkId, ARN_ATTRIBUTE_TYPE)
+                }
+            ]
             [#break]
 
         [#case "ssh"]
@@ -202,7 +228,7 @@
     [#assign componentState =
         {
             "Resources" : resources,
-            "Attributes" : {},
+            "Attributes" : attributes,
             "Roles" : {
                 "Inbound" : {},
                 "Outbound" : {}

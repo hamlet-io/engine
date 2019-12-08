@@ -712,6 +712,27 @@ function encrypt_kms_string() {
   aws --region "${region}" kms encrypt --key-id "${kms_key_id}" --plaintext "${value}" --query CiphertextBlob --output text
 }
 
+function encrypt_kms_file() {
+  local region="$1"; shift
+  local input_file="$1"; shift
+  local output_file="$1"; shift
+  local kms_key_id="$1"; shift
+
+  pushTempDir "${FUNCNAME[0]}_XXXXXX"
+  local tmp_dir="$(getTopTempDir)"
+  local return_status
+
+  cp "${input_file}" "${tmp_dir}/encrypt_file"
+
+  (cd "${tmp_dir}"; aws --region "${region}" --output text kms encrypt \
+    --key-id "${kms_key_id}" --query CiphertextBlob \
+    --plaintext "fileb://encrypt_file" > "${output_file}"; return_status=$?)
+
+  popTempDir
+
+  return ${return_status}
+}
+
 # -- IAM --
 function create_iam_accesskey() {
   local region="$1"; shift

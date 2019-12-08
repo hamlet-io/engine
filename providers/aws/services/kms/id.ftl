@@ -12,6 +12,15 @@
         )]
 [/#function]
 
+[#function formatAccountCMKTemplateId ]
+    [#return
+        getExistingReference(
+            formatAccountResourceId(AWS_CMK_RESOURCE_TYPE,"cmk"))?has_content?then(
+                "cmk",
+                formatAccountResourceId(AWS_CMK_RESOURCE_TYPE)
+            )]
+[/#function]
+
 [#function formatSegmentCMKTemplateId ]
     [#return
         getExistingReference(
