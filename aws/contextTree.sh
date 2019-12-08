@@ -405,7 +405,7 @@ function assemble_composite_stack_outputs() {
     done
     debug "MODIFIED_STACK_OUTPUTS=${modified_stack_array[*]}"
     ${GENERATION_DIR}/manageJSON.sh -f "[.[].Stacks | select(.!=null) | .[].Outputs | select(.!=null) ]" -o "${COMPOSITE_STACK_OUTPUTS}" "${modified_stack_array[@]}"
-  
+
     # TODO(rossmurr4y): Make this logic provider independant - based on details specified elsewhere in the plugin.
     # if composite outputs is found empty, re-filter with Azure formatted outputs
     if [[ $( jq -r '.|tostring == "[]"' < "${COMPOSITE_STACK_OUTPUTS}" ) == "true" ]]; then
@@ -1346,9 +1346,35 @@ function upgrade_cmdb_repo_to_v1_3_2() {
   upgrade_cmdb_repo_to_v1_3_1 "$@"
 }
 
+declare -A gen3_compatability
+# TODO: Align to GEN3 framework version where v2.0.0 format is to be introduced
+gen3_compatability=(
+  ["2.0.0"]=">=7.0.0"
+)
+
+function is_upgrade_compatible() {
+  local cmdb_version="$(semver_clean "$1")"; shift
+  local gen3_version="$1"; shift
+
+  local compatible_range="${gen3_compatability[${cmdb_version}]}"
+
+  if [[ -n "${compatible_range}" ]]; then
+
+    # Must know the gen3 version
+    [[ -z "${gen3_version}" ]] && return 2
+
+    semver_satisfies "${gen3_version}" "${compatible_range}"
+    return $?
+  fi
+
+  # Upgrade is compatible
+  return 0
+}
+
 function process_cmdb() {
   local root_dir="$1";shift
   local action="$1";shift
+  local gen3_version="$1";shift
   local version_list="$1";shift
   local dry_run="${1:+(Dryrun) }";shift
 
@@ -1392,6 +1418,19 @@ function process_cmdb() {
         continue
       fi
 
+      # Ensure current gen3 framework version is compatible with the upgrade
+      is_upgrade_compatible "${version}" "${gen3_version}"; upgrade_status=$?
+      case "${upgrade_status}" in
+        2)
+          warn "${dry_run}${action^} of repo "${cmdb_repo}" to ${version} requires the GEN3 framework version to be defined. Skipping upgrade process ..."
+          break
+          ;;
+        1)
+          warn "${dry_run}${action^} of repo "${cmdb_repo}" to ${version} is not compatible with the current gen3 framework version of ${gen3_version}. Skipping upgrade process ..."
+          break
+          ;;
+      esac
+
       pushd "${cmdb_repo}" > /dev/null 2>&1
       ${action,,}_cmdb_repo_to_${version//./_} "${cmdb_repo}" "${dry_run}"; return_status=$?
       popd > /dev/null 2>&1
@@ -1422,21 +1461,23 @@ function process_cmdb() {
 
 function upgrade_cmdb() {
   local root_dir="$1";shift
+  local gen3_version="$1";shift
   local dry_run="$1";shift
   local versions="$1";shift
 
   local required_versions=(${versions})
   [[ -z "${versions}" ]] && required_versions=("v1.0.0" "v1.1.0" "v1.2.0" "v1.3.0" "v1.3.1" "v1.3.2")
 
-  process_cmdb "${root_dir}" "upgrade" "${required_versions[*]}" ${dry_run}
+  process_cmdb "${root_dir}" "upgrade" "${gen3_version}" "${required_versions[*]}" ${dry_run}
 }
 
 function cleanup_cmdb() {
   local root_dir="$1";shift
+  local gen3_version="$1";shift
   local dry_run="$1";shift
 
   local required_versions=(${versions})
   [[ -z "${versions}" ]] && required_versions=("v1.0.0" "v1.1.0")
 
-  process_cmdb "${root_dir}" "cleanup" "${required_versions[*]}" ${dry_run}
+  process_cmdb "${root_dir}" "cleanup" "${gen3_version}" "${required_versions[*]}" ${dry_run}
 }
