@@ -1108,9 +1108,11 @@ function cleanup_cmdb_repo_to_v1_1_0() {
   local dry_run="$1";shift
 
   for source in "${!upgrade_v1_1_0_sources[@]}"; do
-    readarray -t source_dirs < <(find "${root_dir}" -mindepth 1 -maxdepth 2 -type d \
-      -name "${source}" )
+    readarray -t source_dirs < <(find "${root_dir}" -type d -name "${source}" )
     for source_dir in "${source_dirs[@]}"; do
+      local target_dir="$(filePath "${source_dir}")/${upgrade_v1_1_0_sources[${source}]}"
+      debug "Checking ${source_dir} ..."
+      [[ ! -d "${target_dir}" ]] && continue
       info "Deleting ${source_dir} ..."
       [[ -n "${dry_run}" ]] && continue
       git_rm -rf "${source_dir}" || return 1
@@ -1118,6 +1120,13 @@ function cleanup_cmdb_repo_to_v1_1_0() {
   done
 
   return 0
+}
+
+function cleanup_cmdb_repo_to_v1_1_1() {
+  # Rerun 1.1.0 to pick up errors in original implementation
+  # Previously it only worked for product repos but now should
+  # work for all repos
+  cleanup_cmdb_repo_to_v1_1_0 "$@"
 }
 
 # container_* files now should be fragment_*
@@ -1477,7 +1486,7 @@ function cleanup_cmdb() {
   local dry_run="$1";shift
 
   local required_versions=(${versions})
-  [[ -z "${versions}" ]] && required_versions=("v1.0.0" "v1.1.0")
+  [[ -z "${versions}" ]] && required_versions=("v1.0.0" "v1.1.0" "v1.1.1")
 
   process_cmdb "${root_dir}" "cleanup" "${gen3_version}" "${required_versions[*]}" ${dry_run}
 }
