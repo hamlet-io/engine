@@ -121,27 +121,6 @@
                             [#break]
 
                         [#case SQS_COMPONENT_TYPE]
-
-                            [#local resourceId = linkTargetResources["queue"].Id ]
-                            [#local policyId =
-                                    formatDependentPolicyId(
-                                        subscriptionId,
-                                        resourceId) ]
-
-                            [#local subscriptionDependencies += [policyId] ]
-
-                            [@createSQSPolicy
-                                id=policyId
-                                queues=resourceId
-                                statements=sqsWritePermission(
-                                                resourceId,
-                                                "*",
-                                                {
-                                                    "ArnEquals" : {
-                                                        "aws:sourceArn" : getReference(topicId)
-                                                    }
-                                                })
-                            /]
                             [#local endpoint = linkTargetAttributes["ARN"] ]
                             [#local protocol = "sqs" ]
                             [#break]
