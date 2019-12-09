@@ -76,5 +76,53 @@
                 [/#switch]
             [/#list]
         [/#list]
+
+        [#list solution.Links as linkId,link]
+
+            [#local linkTarget = getLinkTarget(occurrence, link) ]
+
+            [@debug message="Link Target" context=linkTarget enabled=false /]
+
+            [#if !linkTarget?has_content]
+                [#continue]
+            [/#if]
+
+            [#local linkTargetCore = linkTarget.Core ]
+            [#local linkTargetResources = linkTarget.State.Resources ]
+            [#local linkTargetRoles = linkTarget.State.Roles ]
+            [#local linkDirection = linkTarget.Direction ]
+            [#local linkRole = linkTarget.Role]
+
+            [#switch linkDirection ]
+                [#case "inbound" ]
+                    [#switch linkRole ]
+                        [#case "invoke" ]
+                            [#switch linkTargetCore.Type ]
+                                [#case TOPIC_COMPONENT_TYPE]
+                                    [#local topicId = linkTargetResources["topic"].Id ]
+                                    [#local policyId =
+                                            formatDependentPolicyId(
+                                                sqsId,
+                                                topicId) ]
+
+                                    [@createSQSPolicy
+                                        id=policyId
+                                        queues=sqsId
+                                        statements=sqsWritePermission(
+                                                        sqsId,
+                                                        linkTargetRoles.Inbound["invoke"].Principal,
+                                                        {
+                                                            "ArnEquals" : {
+                                                                "aws:sourceArn" : linkTargetRoles.Inbound["invoke"].SourceArn
+                                                            }
+                                                        })
+                                    /]
+                                    [#break]
+                            [/#switch]
+                            [#break]
+                    [/#switch]
+                    [#break]
+            [/#switch]
+        [/#list]
     [/#if]
 [/#macro]
