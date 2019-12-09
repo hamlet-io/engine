@@ -45,7 +45,7 @@ if [[ -n "${DEPLOYMENT_UNIT_SUBSET}" ]]; then
 fi
 case $LEVEL in
     account)
-        CF_DIR="${ACCOUNT_INFRASTRUCTURE_DIR}/cf/shared"
+        CF_DIR="${ACCOUNT_STATE_DIR}/cf/shared"
         PRODUCT_PREFIX="${ACCOUNT}"
         REGION="${ACCOUNT_REGION}"
         REGION_PREFIX="${ACCOUNT_REGION}-"
@@ -59,7 +59,7 @@ case $LEVEL in
                 DEPLOYMENT_UNIT_SUFFIX=""
             fi
         fi
-        
+
         # Simplify stack naming if stack doesn't already exist
         if [[ ! -f "${CF_DIR}/${LEVEL_PREFIX}${DEPLOYMENT_UNIT_PREFIX}${REGION_PREFIX}stack.json" ]]; then
             PRODUCT_PREFIX=""
@@ -70,7 +70,7 @@ case $LEVEL in
         ;;
 
     product)
-        CF_DIR="${PRODUCT_INFRASTRUCTURE_DIR}/cf/shared"
+        CF_DIR="${PRODUCT_STATE_DIR}/cf/shared"
         ENVIRONMENT_SUFFIX=""
         SEGMENT_SUFFIX=""
 
@@ -84,7 +84,7 @@ case $LEVEL in
         ;;
 
     solution)
-        CF_DIR="${PRODUCT_INFRASTRUCTURE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"
+        CF_DIR="${PRODUCT_STATE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"
         LEVEL_PREFIX="soln-"
         LEVEL_SUFFIX="-soln"
         if [[ -f "${CF_DIR}/solution-${REGION}-template.json" ]]; then
@@ -96,11 +96,11 @@ case $LEVEL in
         ;;
 
     segment)
-        CF_DIR="${PRODUCT_INFRASTRUCTURE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"
+        CF_DIR="${PRODUCT_STATE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"
         LEVEL_PREFIX="seg-"
         LEVEL_SUFFIX="-seg"
 
-        # LEGACY: Support old formats for existing stacks so they can be updated 
+        # LEGACY: Support old formats for existing stacks so they can be updated
         if [[ !("${DEPLOYMENT_UNIT}" =~ cmk|cert|dns ) ]]; then
             if [[ -f "${CF_DIR}/cont-${DEPLOYMENT_UNIT_PREFIX}${REGION_PREFIX}template.json" ]]; then
                 LEVEL_PREFIX="cont-"
@@ -130,13 +130,13 @@ case $LEVEL in
         ;;
 
     application)
-        CF_DIR="${PRODUCT_INFRASTRUCTURE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"
+        CF_DIR="${PRODUCT_STATE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"
         LEVEL_PREFIX="app-"
         LEVEL_SUFFIX="-app"
         ;;
 
     multiple)
-        CF_DIR="${PRODUCT_INFRASTRUCTURE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"
+        CF_DIR="${PRODUCT_STATE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"
         LEVEL_PREFIX="multi-"
         LEVEL_SUFFIX="-multi"
         ;;

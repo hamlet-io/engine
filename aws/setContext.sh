@@ -76,7 +76,24 @@ for composite in "${TEMPLATE_COMPOSITES[@]}"; do
 done
 
 # Check if the current directory gives any clue to the context
-pushd "$(pwd)" >/dev/null
+# Accommodate both pre cmdb v2.0.0 where segment/environment in the config tree
+# and post v2.0.0 where they are in the infrastructure tree
+current_dir="$(pwd)"
+pushd "${current_dir}" >/dev/null
+
+local solutions_ancestor_dir="$(findAncestorDir "solutions" "${current_dir}")"
+local solutionsv2_ancestor_dir="$(findAncestorDir "solutionsv2" "${current_dir}")"
+if [[ (-z "${solutions_ancestor_dir}") && (-z "${solutionsv2_ancestor_dir}") ]]; then
+    # We are not in the solutions part of the tree
+    # Assume we are in the >=v2.0.0 cmdb config or operations trees
+    infrastructure_dir="${current_dir//settings/solutions}"
+    infrastructure_dir="${infrastructure_dir//operations/infrastructure}"
+    infrastructure_dir="${infrastructure_dir//config/infrastructure}"
+    debug "Not in solutions tree - checking ${infrastructure_dir} ..."
+    if [[ -d "${infrastructure_dir}" ]]; then
+        cd "${infrastructure_dir}"
+    fi
+fi
 
 if [[ (-f "segment.json") ]]; then
     export LOCATION="${LOCATION:-segment}"
@@ -86,7 +103,7 @@ if [[ (-f "segment.json") ]]; then
     else
         export ENVIRONMENT="${SEGMENT}"
         export SEGMENT="default"
-        cd ../..
+        cd ../../../config
     fi
 fi
 
@@ -94,7 +111,7 @@ if [[ (-f "environment.json") ]]; then
     export LOCATION="${LOCATION:-environment}"
     export ENVIRONMENT="$(fileName "$(pwd)")"
 
-    cd ../..
+    cd ../../../config
 fi
 
 if [[ -f "account.json" ]]; then
@@ -140,7 +157,7 @@ findGen3Dirs "${GENERATION_DATA_DIR}" || exit
 # Build the composite solution ( aka blueprint)
 export GENERATION_INPUT_SOURCE="${GENERATION_INPUT_SOURCE:-"composite"}"
 
-if [[ "${GENERATION_INPUT_SOURCE}" == "composite" ]]; then 
+if [[ "${GENERATION_INPUT_SOURCE}" == "composite" ]]; then
     blueprint_alternate_dirs=( \
     "${SEGMENT_SOLUTIONS_DIR}" \
     "${ENVIRONMENT_SHARED_SOLUTIONS_DIR}" \

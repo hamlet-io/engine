@@ -26,7 +26,7 @@ where
 (o) -i GENERATION_INPUT_SOURCE is the source of input data to use when generating the template - "composite", "mock"
     -h                         shows this text
 (m) -l LEVEL                   is the template level - "blueprint", "account", "segment", "solution" or "application"
-(o) -o OUTPUT_DIR              is the directory where the outputs will be saved - defaults to the PRODUCT_INFRASTRUCTURE_DIR
+(o) -o OUTPUT_DIR              is the directory where the outputs will be saved - defaults to the PRODUCT_STATE_DIR
 (o) -q REQUEST_REFERENCE       is an opaque value to link this template to a triggering request management system
 (o) -r REGION                  is the AWS region identifier
 (m) -u DEPLOYMENT_UNIT         is the deployment unit to be included in the template
@@ -117,7 +117,7 @@ function options() {
   fi
 
   # Contextual Defaults
-  OUTPUT_DIR_DEFAULT="${PRODUCT_INFRASTRUCTURE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"
+  OUTPUT_DIR_DEFAULT="${PRODUCT_STATE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"
   OUTPUT_DIR="${OUTPUT_DIR:-${OUTPUT_DIR_DEFAULT}}"
 
   return 0
@@ -575,23 +575,23 @@ function process_template() {
   # Defaults
   local passes=("template")
   local template_alternatives=("primary")
-  local cf_dir_default="${PRODUCT_INFRASTRUCTURE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"
+  local cf_dir_default="${PRODUCT_STATE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"
   local cf_dir="${OUTPUT_DIR:-${cf_dir_default}}"
 
   case "${level}" in
     blueprint)
-      cf_dir_default="${PRODUCT_INFRASTRUCTURE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}"
+      cf_dir_default="${PRODUCT_STATE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}"
       cf_dir="${OUTPUT_DIR:-${cf_dir_default}}"
       ;;
 
     buildblueprint)
       # this is expected to run from an automation context
-      cf_dir_default="${AUTOMATION_DATA_DIR:-"${PRODUCT_INFRASTRUCTURE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}"}"
+      cf_dir_default="${AUTOMATION_DATA_DIR:-"${PRODUCT_STATE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}"}"
       cf_dir="${OUTPUT_DIR:-${cf_dir_default}}"
       ;;
 
     account)
-      cf_dir_default="${ACCOUNT_INFRASTRUCTURE_DIR}/cf/shared"
+      cf_dir_default="${ACCOUNT_STATE_DIR}/cf/shared"
       cf_dir="${OUTPUT_DIR:-${cf_dir_default}}"
       ;;
 
