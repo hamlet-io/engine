@@ -230,8 +230,8 @@ function main() {
             fatal "Nothing to encrypt"
     else
         if [[ -z "${CRYPTO_TEXT}" ]]; then
-            [[ -z "${CRYPTO_FILE}" ]] && insufficientArgumentsError; return 255
-            [[ -z "${TARGET_FILE}" ]] && fatal "Can't locate file based on provided path"; return 255
+            [[ -z "${CRYPTO_FILE}" ]] && insufficientArgumentsError && return 255
+            [[ -z "${TARGET_FILE}" ]] && fatal "Can't locate file based on provided path" && return 255
 
             # Default cipherdata to the file contents
             FILE_TEXT=$( cat "${TARGET_FILE}")
