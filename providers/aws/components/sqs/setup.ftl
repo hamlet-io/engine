@@ -110,12 +110,13 @@
                                         queues=sqsId
                                         statements=sqsWritePermission(
                                                         sqsId,
-                                                        linkTargetRoles.Inbound["invoke"].Principal,
+                                                        {"Service" : linkTargetRoles.Inbound["invoke"].Principal},
                                                         {
                                                             "ArnEquals" : {
                                                                 "aws:sourceArn" : linkTargetRoles.Inbound["invoke"].SourceArn
                                                             }
-                                                        })
+                                                        },
+                                                        true)
                                     /]
                                     [#break]
                             [/#switch]
