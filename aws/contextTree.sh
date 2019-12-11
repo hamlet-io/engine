@@ -337,6 +337,9 @@ function assemble_composite_definitions() {
 
 function assemble_composite_stack_outputs() {
 
+  pushTempDir "${FUNCNAME[0]}_XXXXXX"
+  local tmp_dir="$(getTopTempDir)"
+
   # Create the composite stack outputs
   local restore_nullglob=$(shopt -p nullglob)
   shopt -s nullglob
@@ -350,22 +353,25 @@ function assemble_composite_stack_outputs() {
   ${restore_nullglob}
 
   debug "STACK_OUTPUTS=${stack_array[*]}"
-  composite_stack_output_values="[]"
 
   export COMPOSITE_STACK_OUTPUTS="${CACHE_DIR}/composite_stack_outputs.json"
+  local composite_stack_array=()
 
   # Load all files into a a single array of objects with the filename as key so we can determine level
   if [[ $(arraySize "stack_array") -ne 0 ]]; then
     for stack_output in "${stack_array[@]}"; do
-      composite_stack_output_values="$( echo '{}' | jq \
-          --argjson composite_stack "${composite_stack_output_values}" \
-          --slurpfile stack_output "${stack_output}" \
-          --arg stack_name "$( fileName ${stack_output} )" \
-          '$composite_stack + [  { "FileName" : $stack_name, "Content" : $stack_output } ]' )"
+      stack_file_name="$( fileName ${stack_output} )"
+      tmp_stack_file="${tmp_dir}/${stack_file_name}"
+      addToArray "composite_stack_array" "${tmp_stack_file}"
+      jq --arg stack_name "${stack_file_name}" \
+          '{ "FileName" : $stack_name, "Content" : [.] }' < "${stack_output}" >> "${tmp_stack_file}"
     done
   fi
 
-  echo "${composite_stack_output_values}" > "${COMPOSITE_STACK_OUTPUTS}"
+  jq -s '.' ${composite_stack_array[*]} > "${COMPOSITE_STACK_OUTPUTS}"
+
+  popTempDir
+  return 0
 }
 
 function getBluePrintParameter() {
