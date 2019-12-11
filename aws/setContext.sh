@@ -81,8 +81,8 @@ done
 current_dir="$(pwd)"
 pushd "${current_dir}" >/dev/null
 
-local solutions_ancestor_dir="$(findAncestorDir "solutions" "${current_dir}")"
-local solutionsv2_ancestor_dir="$(findAncestorDir "solutionsv2" "${current_dir}")"
+solutions_ancestor_dir="$(findAncestorDir "solutions" "${current_dir}")"
+solutionsv2_ancestor_dir="$(findAncestorDir "solutionsv2" "${current_dir}")"
 if [[ (-z "${solutions_ancestor_dir}") && (-z "${solutionsv2_ancestor_dir}") ]]; then
     # We are not in the solutions part of the tree
     # Assume we are in the >=v2.0.0 cmdb config or operations trees
