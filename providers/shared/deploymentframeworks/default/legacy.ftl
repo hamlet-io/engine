@@ -106,7 +106,8 @@
             internalCreateOccurrenceFromExternalLink(occurrence, link) +
             {
                 "Direction" : link.Direction!"outbound",
-                "Role" : link.Role!"external"
+                "Role" : link.Role!"external",
+                "IncludeInContext" : link.IncludeInContext![]
             }
         ]
     [/#if]
@@ -200,7 +201,8 @@
                 targetSubOccurrence +
                 {
                     "Direction" : direction,
-                    "Role" : role
+                    "Role" : role,
+                    "IncludeInContext" : link.IncludeInContext![]
                 } ]
         [/#list]
     [/#list]

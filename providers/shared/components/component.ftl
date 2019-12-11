@@ -222,6 +222,10 @@
                 "Names" : "Enabled",
                 "Type" : BOOLEAN_TYPE,
                 "Default" : true
+            },
+            {
+                "Names" : "IncludeInContext",
+                "Type" : ARRAY_OF_STRING_TYPE
             }
         ]
 ]
