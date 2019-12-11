@@ -68,10 +68,15 @@
         sqsListQueuesPermission() ]
 [/#function]
 
-[#function sqsWritePermission id principals="*" conditions=""]
+[#function sqsWritePermission id principals="*" conditions="" resourcePolicy=false]
+    [#-- SQS resource policies don't support wildcards --]
     [#return
         getSqsStatement(
-            "sqs:SendMessage*",
+            valueIfTrue(
+                "sqs:SendMessage",
+                resourcePolicy,
+                "sqs:SendMessage*"
+            ),
             id,
             principals,
             conditions
