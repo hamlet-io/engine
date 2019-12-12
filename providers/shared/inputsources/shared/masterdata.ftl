@@ -984,6 +984,7 @@
             "Rules" : [ "All" ]
           }
         },
+        "OSProfiles": {},
         "PlacementProfiles": {
           "external": {
             "default": {
