@@ -245,7 +245,7 @@
             {
                 "Names" : "Engine",
                 "Type" : STRING_TYPE,
-                "Values" : [ "cmk", "ssh", "oai" ],
+                "Values" : [ "cmk", "ssh", "oai", "cmk-account" ],
                 "Mandatory" : true
             },
             {

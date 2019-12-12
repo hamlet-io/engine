@@ -334,9 +334,8 @@ function main() {
   pushd ${CF_DIR} > /dev/null 2>&1
 
   # Run the prologue script if present
-  # Refresh the stack outputs in case something from pseudo stack is needed
   [[ -s "${PROLOGUE}" ]] && \
-    { info "Processing prologue script ..." && . "${PROLOGUE}" && assemble_composite_stack_outputs || return $?; }
+    { info "Processing prologue script ..." && . "${PROLOGUE}" || return $?; }
 
   process_stack_status=0
   # Process the stack
@@ -356,10 +355,9 @@ function main() {
   esac
 
   # Run the epilogue script if present
-  # Refresh the stack outputs in case something from the just created stack is needed
   # by the epilogue script
   [[ -s "${EPILOGUE}" ]] && \
-  { info "Processing epilogue script ..." && assemble_composite_stack_outputs && . "${EPILOGUE}" || return $?; }
+  { info "Processing epilogue script ..." && . "${EPILOGUE}" || return $?; }
 
   return 0
 }
