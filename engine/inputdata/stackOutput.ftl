@@ -25,14 +25,14 @@
             "Mandatory" : true
         },
         {
-            "Names" : "DeploymentUnit",
+            "Names" : "Level",
             "Type" : STRING_TYPE,
             "Mandatory" : true
         },
         {
-            "Names" : "Level",
+            "Names" : "DeploymentUnit",
             "Type" : STRING_TYPE,
-            "Mandatory" : true
+            "Default" : ""
         },
         {
             "Names" : "*",

@@ -24,21 +24,26 @@
         [#list (stackOutputFile["Content"]![]) as rawStackOutput ]
             [#if (rawStackOutput["Stacks"]!{})?has_content ]
                 [#list rawStackOutput["Stacks"] as stack ]
-
-                    [#local stackOutput = {
-                        "Level" : level
-                    } ]
-
                     [#if (stack["Outputs"]![])?has_content ]
-                        [#list stack["Outputs"] as output ]
-                            [#local stackOutput += {
-                                output.OutputKey : output.OutputValue
-                            }]
-                        [/#list]
+
+                        [#local stackOutput = {} ]
+
+                        [#if stack["Outputs"]?is_sequence ]
+                            [#list stack["Outputs"] as output ]
+                                [#local stackOutput += {
+                                    output.OutputKey : output.OutputValue
+                                }]
+                            [/#list]
+                        [/#if]
+
+                        [#if stack["Outputs"]?is_collection ]
+                            [#local stackOutput = stack["Outputs"] ]
+                        [/#if]
+
+                        [#if stackOutput?has_content ]
+                            [#local stackOutputs += [ mergeObjects( { "Level" : level} , stackOutput) ] ]
+                        [/#if]
                     [/#if]
-
-                    [#local stackOutputs += [ stackOutput ] ]
-
                 [/#list]
             [/#if]
         [/#list]
