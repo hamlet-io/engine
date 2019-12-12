@@ -75,7 +75,8 @@
             internalCreateOccurrenceFromContextExternalLink(occurrence, link) +
             {
                 "Direction" : fullLink.Direction,
-                "Role" : fullLink.Role
+                "Role" : fullLink.Role,
+                "IncludeInContext" : fullLink.IncludeInContext![]
             }
         ]
     [/#if]
@@ -131,7 +132,8 @@
             targetOccurrence +
             {
                 "Direction" : fullLink.Direction,
-                "Role" : role
+                "Role" : role,
+                "IncludeInContext" : fullLink.IncludeInContext![]
             } ]
     [/#if]
 

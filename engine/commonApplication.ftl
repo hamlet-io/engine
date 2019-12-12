@@ -119,7 +119,7 @@
     [#local result = {"Links" : links, "Environment": {} }]
     [#list links as name,value]
         [#if (value.Direction != "inbound") || includeInbound]
-            [#local result = addLinkVariablesToContext(result, name, name, [], false) ]
+            [#local result = addLinkVariablesToContext(result, name, name, value.IncludeInContext, false) ]
         [/#if]
     [/#list]
     [#return result.Environment]
@@ -439,6 +439,8 @@
     )]
 
     [#local runId = commandLineOptions.Run.Id]
+    [#-- Link attributes can be overridden by build and product settings, and --]
+    [#-- anything can be overridden if explicitly defined via fragments --]
     [#return
         {
             "Environment" :
@@ -456,6 +458,14 @@
                     },
                     ( asFile && hasBaselineLinks),
                     valueIfTrue(
+                        getDefaultLinkVariables(context.Links),
+                        context.DefaultLinkVariables
+                    ) +
+                    valueIfTrue(
+                        getDefaultBaselineVariables(context.BaselineLinks),
+                        ( context.DefaultBaselineVariables && hasBaselineLinks )
+                    ) +
+                    valueIfTrue(
                         getSettingsAsEnvironment(occurrence.Configuration.Settings.Build) +
                         { "RUN_ID" : runId },
                         context.DefaultCoreVariables
@@ -466,14 +476,6 @@
                             serialisationConfig
                         )
                         context.DefaultEnvironmentVariables
-                    ) +
-                    valueIfTrue(
-                        getDefaultLinkVariables(context.Links),
-                        context.DefaultLinkVariables
-                    ) +
-                    valueIfTrue(
-                        getDefaultBaselineVariables(context.BaselineLinks),
-                        ( context.DefaultBaselineVariables && hasBaselineLinks )
                     ) +
                     context.Environment
                 )
