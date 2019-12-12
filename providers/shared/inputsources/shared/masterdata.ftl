@@ -984,7 +984,7 @@
             "Rules" : [ "All" ]
           }
         },
-        "OSProfiles": {},
+        "VMImageProfiles": {},
         "PlacementProfiles": {
           "external": {
             "default": {
