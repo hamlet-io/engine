@@ -27,7 +27,7 @@
         {
             "Names" : "Level",
             "Type" : STRING_TYPE,
-            "Mandatory" : true
+            "Default" : ""
         },
         {
             "Names" : "DeploymentUnit",

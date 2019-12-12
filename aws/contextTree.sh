@@ -346,9 +346,9 @@ function assemble_composite_stack_outputs() {
 
   local stack_array=()
   [[ (-n "${ACCOUNT}") ]] &&
-      addToArray "stack_array" "${ACCOUNT_INFRASTRUCTURE_DIR}"/*/shared/acc*-stack.json
+      addToArray "stack_array" "${ACCOUNT_STATE_DIR}"/*/shared/acc*-stack.json
   [[ (-n "${ENVIRONMENT}") && (-n "${SEGMENT}") && (-n "${REGION}") ]] &&
-      addToArray "stack_array" "${PRODUCT_INFRASTRUCTURE_DIR}"/*/"${ENVIRONMENT}/${SEGMENT}"/*-stack.json
+      addToArray "stack_array" "${PRODUCT_STATE_DIR}"/*/"${ENVIRONMENT}/${SEGMENT}"/*-stack.json
 
   ${restore_nullglob}
 
@@ -357,7 +357,7 @@ function assemble_composite_stack_outputs() {
   export COMPOSITE_STACK_OUTPUTS="${CACHE_DIR}/composite_stack_outputs.json"
   local composite_stack_array=()
 
-  # Load all files into a a single array of objects with the filename as key so we can determine level
+  # Create standardised versions of the stack output files
   if [[ $(arraySize "stack_array") -ne 0 ]]; then
     for stack_output in "${stack_array[@]}"; do
       stack_file_name="$( fileName ${stack_output} )"
@@ -368,6 +368,7 @@ function assemble_composite_stack_outputs() {
     done
   fi
 
+  # Slurp all of the standardised files and put them into a single file as an array
   jq -s '.' ${composite_stack_array[*]} > "${COMPOSITE_STACK_OUTPUTS}"
 
   popTempDir
