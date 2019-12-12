@@ -111,6 +111,11 @@
 [@addReferenceData type=NETWORKENDPOINTGROUP_REFERENCE_TYPE data=blueprintObject.NetworkEndpointGroups /]
 [#assign networkEndpointGroups = referenceData.NetworkEndpointGroups ]
 
+[#-- Virtual Machine Image Profiles --]
+[@includeSharedReferenceConfiguration referenceType=VIRTUAL_MACHINE_IMAGE_REFERENCE_TYPE /]
+[@addReferenceData type=VIRTUAL_MACHINE_IMAGE_REFERENCE_TYPE data=blueprintObject.VMImageProfiles /]
+[#assign vmImageProfiles = referenceData.VMImageProfiles]
+
 [#-- Regions --]
 [#if commandLineOptions.Regions.Segment?has_content]
     [#assign regionId = commandLineOptions.Regions.Segment]

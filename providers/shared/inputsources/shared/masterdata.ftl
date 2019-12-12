@@ -984,6 +984,7 @@
             "Rules" : [ "All" ]
           }
         },
+        "VMImageProfiles": {},
         "PlacementProfiles": {
           "external": {
             "default": {
