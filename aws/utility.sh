@@ -262,6 +262,9 @@ function findDir() {
   local matches=()
   for pattern in "${patterns[@]}"; do
     matches+=("${root_dir}"/**/${pattern})
+    if [[ "${#matches[@]}" -gt 0 ]]; then
+      break
+    fi
   done
 
   ${restore_nullglob}
