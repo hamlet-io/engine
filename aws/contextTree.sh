@@ -1697,6 +1697,13 @@ function process_cmdb() {
 
     [[ -z "${current_version}" ]] && current_version="v0.0.0"
 
+    # Most of the time we expect no upgrade to be required
+    local last_check="$(semver_compare "${current_version}" "${versions[-1]}")"
+    if [[ "${last_check}" != "-1" ]]; then
+      debug "${action^} of repo "${cmdb_repo}" to ${versions[-1]} is not required - skipping all version checks"
+      continue
+    fi
+
     for version in "${versions[@]}"; do
       # Nothing to do if not less than version being checked
       local semver_check="$(semver_compare "${current_version}" "${version}")"
