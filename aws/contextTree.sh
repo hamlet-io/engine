@@ -369,7 +369,8 @@ function assemble_composite_stack_outputs() {
   fi
 
   # Slurp all of the standardised files and put them into a single file as an array
-  jq -s '.' ${composite_stack_array[*]} > "${COMPOSITE_STACK_OUTPUTS}"
+  ${GENERATION_DIR}/manageJSON.sh -f "." -o "${COMPOSITE_STACK_OUTPUTS}" "${composite_stack_array[@]}"
+
 
   popTempDir
   return 0
