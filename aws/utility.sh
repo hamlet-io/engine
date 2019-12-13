@@ -2118,6 +2118,39 @@ function semver_satisfies {
   return 1
 }
 
+function semver_upgrade_list() {
+  local upgrade_list=($1);shift
+  local maximum_version="$1";shift
+
+  local required_upgrades=()
+
+
+  # assume upgrade list is ordered
+  case "$(semver_compare "${maximum_version}" "${upgrade_list[-1]}")" in
+    1|0)
+      # Simple optimisation for the common case of all versions being required
+      echo -n "${upgrade_list[*]}"
+      ;;
+
+    *)
+      for upgrade_version in "${upgrade_list[@]}"; do
+        if [[ "$(semver_compare "${upgrade_version}" "${maximum_version}")" == "1" ]]; then
+          # Ignore all higher versions
+          break
+        else
+          required_upgrades+=("${upgrade_version}")
+          continue
+        fi
+      done
+
+      echo -n "${required_upgrades[*]}"
+      ;;
+  esac
+
+  return 0
+}
+
+
 # -- Cloudfront handling --
 function invalidate_distribution() {
     local region="$1"; shift

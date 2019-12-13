@@ -42,9 +42,9 @@ export GENERATION_DATA_DIR=$(findGen3RootDir "${ROOT_DIR:-$(pwd)}") ||
 # Check the cmdb doesn't need upgrading
 if [[ "${GENERATION_NO_CMDB_CHECK}" != "true" ]]; then
     debug "Checking if cmdb upgrade needed ..."
-    upgrade_cmdb "${GENERATION_DATA_DIR}" ||
+    upgrade_cmdb "${GENERATION_DATA_DIR}" "" "" "${GENERATION_MAX_CMDB_UPGRADE_VERSION}" ||
         { fatal "CMDB upgrade failed."; exit 1; }
-    cleanup_cmdb "${GENERATION_DATA_DIR}" ||
+    cleanup_cmdb "${GENERATION_DATA_DIR}" "" "" "${GENERATION_MAX_CMDB_CLEANUP_VERSION}"||
         { fatal "CMDB cleanup failed."; exit 1; }
 fi
 
