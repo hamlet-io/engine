@@ -195,10 +195,6 @@ function options() {
         assemble_composite_stack_outputs
     fi
 
-    # Contextual Defaults
-    OUTPUT_DIR_DEFAULT="${PRODUCT_STATE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"
-    OUTPUT_DIR="${OUTPUT_DIR:-${OUTPUT_DIR_DEFAULT}}"
-
   fi
 
   # Specific intput control for mock input
