@@ -682,8 +682,6 @@ function process_template() {
     account)
       cf_dir_default="${ACCOUNT_STATE_DIR}/cf/shared"
       cf_dir="${OUTPUT_DIR:-${cf_dir_default}}"
-
-      info "Account cf_dir = ${cf_dir} - StateDir ${ACCOUNT_STATE_DIR} - OutputDir ${OUTPUT_DIR}"
       ;;
 
     solution)
