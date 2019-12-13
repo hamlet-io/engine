@@ -269,10 +269,8 @@ function main() {
   fi
 
   # variable for sentry source map upload
-  SENTRY_RELEASE_NAME="${BUILD_REFERENCE}"
   SENTRY_SOURCE_MAP_S3_URL="s3://${PUBLIC_BUCKET}/${PUBLIC_PREFIX}/packages/${EXPO_SDK_VERSION}"
   echo "SENTRY_SOURCE_MAP_S3_URL=${SENTRY_SOURCE_MAP_S3_URL}" >> ${AUTOMATION_DATA_DIR}/chain.properties
-  echo "SENTRY_RELEASE_NAME=${SENTRY_RELEASE_NAME}" >> ${AUTOMATION_DATA_DIR}/chain.properties
   echo "SENTRY_URL_PREFIX=~/${PUBLIC_PREFIX}" >> ${AUTOMATION_DATA_DIR}/chain.properties
 
   # Update the app.json with build context information - Also ensure we always have a unique IOS build number
@@ -314,12 +312,12 @@ function main() {
 
   if [[ "${DISABLE_OTA}" == "false" ]]; then
 
-    if [[ -n "${SENTRY_RELEASE_NAME}" ]]; then
-      info "Override revisionId to match the corresponding sentry release name ${SENTRY_RELEASE_NAME}"
-      jq -c --arg REVISION_ID "${SENTRY_RELEASE_NAME}" '.revisionId=$REVISION_ID' < "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/ios-index.json" > "${tmpdir}/ios-expo-override.json"
+    if [[ -n "${BUILD_REFERENCE}" ]]; then
+      info "Override revisionId to match the build reference ${BUILD_REFERENCE}"
+      jq -c --arg REVISION_ID "${BUILD_REFERENCE}" '.revisionId=$REVISION_ID' < "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/ios-index.json" > "${tmpdir}/ios-expo-override.json"
       mv "${tmpdir}/ios-expo-override.json" "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/ios-index.json"
 
-      jq -c --arg REVISION_ID "${SENTRY_RELEASE_NAME}" '.revisionId=$REVISION_ID' < "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/android-index.json" > "${tmpdir}/android-expo-override.json"
+      jq -c --arg REVISION_ID "${BUILD_REFERENCE}" '.revisionId=$REVISION_ID' < "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/android-index.json" > "${tmpdir}/android-expo-override.json"
       mv "${tmpdir}/android-expo-override.json" "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/android-index.json"
 
     fi
@@ -348,12 +346,12 @@ function main() {
 
     fi
 
-    if [[ -n "${SENTRY_RELEASE_NAME}" ]]; then
-      info "Override revisionId in master export to match the corresponding sentry release name ${SENTRY_RELEASE_NAME}"
-      jq -c --arg REVISION_ID "${SENTRY_RELEASE_NAME}" 'if type=="array" then [ .[] | .revisionId=$REVISION_ID ] else .revisionId=$REVISION_ID end' < "${SRC_PATH}/app/dist/master/ios-index.json" > "${tmpdir}/ios-expo-override.json"
+    if [[ -n "${BUILD_REFERENCE}" ]]; then
+      info "Override revisionId in master export to match the build reference ${BUILD_REFERENCE}"
+      jq -c --arg REVISION_ID "${BUILD_REFERENCE}" 'if type=="array" then [ .[] | .revisionId=$REVISION_ID ] else .revisionId=$REVISION_ID end' < "${SRC_PATH}/app/dist/master/ios-index.json" > "${tmpdir}/ios-expo-override.json"
       mv "${tmpdir}/ios-expo-override.json" "${SRC_PATH}/app/dist/master/ios-index.json"
 
-      jq -c --arg REVISION_ID "${SENTRY_RELEASE_NAME}" 'if type=="array" then [ .[] | .revisionId=$REVISION_ID ] else .revisionId=$REVISION_ID end' < "${SRC_PATH}/app/dist/master/android-index.json" > "${tmpdir}/android-expo-override.json"
+      jq -c --arg REVISION_ID "${BUILD_REFERENCE}" 'if type=="array" then [ .[] | .revisionId=$REVISION_ID ] else .revisionId=$REVISION_ID end' < "${SRC_PATH}/app/dist/master/android-index.json" > "${tmpdir}/android-expo-override.json"
       mv "${tmpdir}/android-expo-override.json" "${SRC_PATH}/app/dist/master/android-index.json"
 
     fi
