@@ -366,11 +366,13 @@ function assemble_composite_stack_outputs() {
       jq --arg stack_name "${stack_file_name}" \
           '{ "FileName" : $stack_name, "Content" : [.] }' < "${stack_output}" >> "${tmp_stack_file}"
     done
+
+    # Slurp all of the standardised files and put them into a single file as an array
+    ${GENERATION_DIR}/manageJSON.sh -f "." -o "${COMPOSITE_STACK_OUTPUTS}" "${composite_stack_array[@]}"
+
+  else
+    echo "[]" > "${COMPOSITE_STACK_OUTPUTS}"
   fi
-
-  # Slurp all of the standardised files and put them into a single file as an array
-  ${GENERATION_DIR}/manageJSON.sh -f "." -o "${COMPOSITE_STACK_OUTPUTS}" "${composite_stack_array[@]}"
-
 
   popTempDir
   return 0
