@@ -362,10 +362,10 @@
                                     "\"$\{pem_file}\" || return $?",
                                 "    [[ -f \"$\{SEGMENT_OPERATIONS_DIR}/" + localKeyPairPrivateKey + ".plaintext\" ]] && ",
                                 "      { encrypt_kms_file" + " " +
-                                        "\"" + regionId + "\"" + " " +
-                                        "\"" + cmkAlias + "\"" + " " +
-                                        "\"$\{SEGMENT_OPERATIONS_DIR}/" + localKeyPairPrivateKey + ".plaintext\"" + " " +
-                                        "\"$\{SEGMENT_OPERATIONS_DIR}/" + localKeyPairPrivateKey + "\" || return $?; }",
+                                        "\"" + regionId + "\" " +
+                                        "\"$\{SEGMENT_OPERATIONS_DIR}/" + localKeyPairPrivateKey + ".plaintext\" " +
+                                        "\"$\{SEGMENT_OPERATIONS_DIR}/" + localKeyPairPrivateKey + "\" " +
+                                        "\"" + cmkAlias + "\" || return $?; }"
                                 "  fi",
                                 "  #"
                             ] +
