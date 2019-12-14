@@ -448,8 +448,8 @@ function findGen3AccountInfrastructureDir() {
   local account="$1"; shift
 
   findDir "${root_dir}" \
-    "infrastructure/**/${account}" \
-    "${account}/infrastructure"
+    "${account}/infrastructure" \
+    "infrastructure/**/${account}"
 }
 
 # It would be very rare that accounts would have standard settings and operations
@@ -463,10 +463,10 @@ function findGen3AccountOperationsDir() {
 
   # TODO(mfl): Remove infrastructure checks when all repos converted to >=v2.0.0
   findDir "${root_dir}" \
-    "operations/**/${account}/settings" \
     "${account}/operations/settings" \
-    "infrastructure/**/${account}/operations" \
-    "${account}/infrastructure/operations"
+    "operations/**/${account}/settings" \
+    "${account}/infrastructure/operations" \
+    "infrastructure/**/${account}/operations"
 }
 
 function findGen3AccountStateDir() {
@@ -475,10 +475,10 @@ function findGen3AccountStateDir() {
 
   # TODO(mfl): Remove infrastructure checks when all repos converted to >=v2.0.0
   findDir "${root_dir}" \
-    "state/**/${account}" \
     "${account}/state" \
-    "infrastructure/**/${account}" \
-    "${account}/infrastructure"
+    "state/**/${account}" \
+    "${account}/infrastructure" \
+    "infrastructure/**/${account}"
 }
 
 function findGen3ProductDir() {
@@ -507,8 +507,8 @@ function findGen3ProductInfrastructureDir() {
   local product="$1"; shift
 
   findDir "${root_dir}" \
-    "infrastructure/**/${product}" \
-    "${product}/infrastructure"
+    "${product}/infrastructure" \
+    "infrastructure/**/${product}"
 }
 
 function findGen3ProductOperationsDir() {
@@ -517,10 +517,10 @@ function findGen3ProductOperationsDir() {
 
   # TODO(mfl): Remove infrastructure checks when all repos converted to >=v2.0.0
   findDir "${root_dir}" \
-    "operations/**/${product}/settings" \
     "${product}/operations/settings" \
-    "infrastructure/**/${product}/operations" \
-    "${product}/infrastructure/operations"
+    "operations/**/${product}/settings" \
+    "${product}/infrastructure/operations" \
+    "infrastructure/**/${product}/operations"
 }
 
 function findGen3ProductSolutionsDir() {
@@ -529,10 +529,10 @@ function findGen3ProductSolutionsDir() {
 
   # TODO(mfl): Remove config checks when all repos converted to >=v2.0.0
   findDir "${root_dir}" \
-    "infrastructure/**/${product}/solutions" \
     "${product}/infrastructure/solutions" \
-    "config/**/${product}/solutionsv2" \
-    "${product}/config/solutionsv2"
+    "infrastructure/**/${product}/solutions" \
+    "${product}/config/solutionsv2" \
+    "config/**/${product}/solutionsv2"
 }
 
 function findGen3ProductBuildsDir() {
@@ -541,10 +541,10 @@ function findGen3ProductBuildsDir() {
 
   # TODO(mfl): Remove config checks when all repos converted to >=v2.0.0
   findDir "${root_dir}" \
-    "infrastructure/**/${product}/builds" \
     "${product}/infrastructure/builds" \
-    "config/**/${product}/settings" \
-    "${product}/config/settings"
+    "infrastructure/**/${product}/builds" \
+    "${product}/config/settings" \
+    "config/**/${product}/settings"
 }
 
 function findGen3ProductStateDir() {
@@ -553,10 +553,10 @@ function findGen3ProductStateDir() {
 
   # TODO(mfl): Remove infrastructure checks when all repos converted to >=v2.0.0
   findDir "${root_dir}" \
-    "state/**/${product}" \
     "${product}/state" \
-    "infrastructure/**/${product}" \
-    "${product}/infrastructure"
+    "state/**/${product}" \
+    "${product}/infrastructure" \
+    "infrastructure/**/${product}"
 }
 
 function findGen3ProductEnvironmentDir() {
@@ -1540,10 +1540,8 @@ function upgrade_cmdb_repo_to_v2_0_0() {
 }
 
 declare -A gen3_compatability
-# TODO: Align to GEN3 framework version where v2.0.0 format is to be introduced
-gen3_compatability=(
-  ["2.0.0"]=">=7.0.0"
-)
+# Entry example:  ["2.0.0"]=">=7.0.0"
+gen3_compatability=()
 
 function is_upgrade_compatible() {
   local cmdb_version="$(semver_clean "$1")"; shift
@@ -1663,22 +1661,32 @@ function upgrade_cmdb() {
   local root_dir="$1";shift
   local gen3_version="$1";shift
   local dry_run="$1";shift
-  local versions="$1";shift
+  local maximum_version="${1:-v1.3.2}";shift
 
-  local required_versions=(${versions})
-  [[ -z "${versions}" ]] && required_versions=("v1.0.0" "v1.1.0" "v1.2.0" "v1.3.0" "v1.3.1" "v1.3.2")
+  local upgrade_order=("v1.0.0" "v1.1.0" "v1.2.0" "v1.3.0" "v1.3.1" "v1.3.2" "v2.0.0")
 
-  process_cmdb "${root_dir}" "upgrade" "${gen3_version}" "${required_versions[*]}" ${dry_run}
+  debug "Maximum CMDB upgrade version required is ${maximum_version}"
+
+  local required_versions="$(semver_upgrade_list "${upgrade_order[*]}" "${maximum_version}")"
+
+  debug "Required CMDB upgrade order is ${required_versions}"
+
+  process_cmdb "${root_dir}" "upgrade" "${gen3_version}" "${required_versions}" ${dry_run}
 }
 
 function cleanup_cmdb() {
   local root_dir="$1";shift
   local gen3_version="$1";shift
   local dry_run="$1";shift
-  local versions="$1";shift
+  local maximum_version="${1:-v1.1.1}";shift
 
-  local required_versions=(${versions})
-  [[ -z "${versions}" ]] && required_versions=("v1.0.0" "v1.1.0" "v1.1.1")
+  local upgrade_order=("v1.0.0" "v1.1.0" "v1.1.1")
 
-  process_cmdb "${root_dir}" "cleanup" "${gen3_version}" "${required_versions[*]}" ${dry_run}
+  debug "Maximum CMDB cleanup version required is ${maximum_version}"
+
+  local required_versions="$(semver_upgrade_list "${upgrade_order[*]}" "${maximum_version}")"
+
+  debug "Required CMDB cleanup order is ${required_versions}"
+
+  process_cmdb "${root_dir}" "cleanup" "${gen3_version}" "${required_versions}" ${dry_run}
 }
