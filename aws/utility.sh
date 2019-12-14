@@ -722,11 +722,13 @@ function encrypt_kms_file() {
   local tmp_dir="$(getTopTempDir)"
   local return_status
 
-  cp "${input_file}" "${tmp_dir}/encrypt_file"
+  cp "${input_file}" "${tmp_dir}/encrypt_file" || return_status=255
 
-  (cd "${tmp_dir}"; aws --region "${region}" --output text kms encrypt \
-    --key-id "${kms_key_id}" --query CiphertextBlob \
-    --plaintext "fileb://encrypt_file" > "${output_file}"; return_status=$?)
+  if [[ -z "${return_status}" ]]; then
+    (cd "${tmp_dir}"; aws --region "${region}" --output text kms encrypt \
+      --key-id "${kms_key_id}" --query CiphertextBlob \
+      --plaintext "fileb://encrypt_file" > "${output_file}"; return_status=$?)
+  fi
 
   popTempDir
 
