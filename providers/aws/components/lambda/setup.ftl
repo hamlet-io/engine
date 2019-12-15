@@ -185,6 +185,10 @@
 
     [#local linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
 
+    [#-- Ensure policies are ignored as dependencies unless created as part of this template --]
+    [#local policyId = ""]
+    [#local linkPolicyId = ""]
+
     [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(roleId)]
 
         [#-- Create a role under which the function will run and attach required policies --]
@@ -215,9 +219,9 @@
         [/#if]
 
         [#if linkPolicies?has_content]
-            [#local policyId = formatDependentPolicyId(fnId, "links")]
+            [#local linkPolicyId = formatDependentPolicyId(fnId, "links")]
             [@createPolicy
-                id=policyId
+                id=linkPolicyId
                 name="links"
                 statements=linkPolicies
                 roles=roleId
@@ -309,7 +313,7 @@
                     []
                 )
             dependencies=
-                [roleId] +
+                [roleId, policyId, linkPolicyId] +
                 valueIfTrue([fnLgId], solution.PredefineLogGroup, [])
         /]
 
