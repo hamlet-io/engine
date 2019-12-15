@@ -106,7 +106,7 @@ function options() {
   if [[ "${GENERATION_INPUT_SOURCE}" == "composite" ]]; then
 
 
-    info "Building composite inputs for engine..."
+    debug "Building composite inputs for engine..."
     # Set up the context
     . "${GENERATION_DIR}/setContext.sh"
 
