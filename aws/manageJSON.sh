@@ -20,6 +20,7 @@ where
 (o) -d              to default missing attributes
 (o) -f JSON_FILTER  is the filter to use
     -h              shows this text
+(o) -n              strip null key/values from JSON data
 (m) -o JSON_OUTPUT  is the desired output file
 
 (m) mandatory, (o) optional, (d) deprecated
@@ -36,6 +37,7 @@ NOTES:
    (if any) of JSON_LIST
 3. If defaulting is turned on, Name attributes will be found where an Id
    attribute exists and no Name attribute exists
+4. Only one predefined filter can be applied at a time
 
 EOF
     exit
