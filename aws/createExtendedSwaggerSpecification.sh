@@ -37,7 +37,7 @@ INTEGRATIONS_FILE = "${INTEGRATIONS_FILE_DEFAULT}"
 NOTES:
 
 1. A file is produced for every combination of region and account included in
-   the integrations file with the account and region appended to the provided 
+   the integrations file with the account and region appended to the provided
    filename with "-" separators.
 2. If EXTENDED_SWAGGER_FILE ends with a ".zip" extension, then the generated
    files are packaged into a zip file.
@@ -92,7 +92,7 @@ REGIONS=($(jq -r '.Regions | select(.!=null) | .[]' < ${INTEGRATIONS_FILE} | tr 
 # TODO adjust next lines when path length limitations in jq are fixed
 POST_PROCESSING_FILTER="${tmp_dir}/pp.jq"
 cp ${GENERATION_DIR}/postProcessSwagger.jq "${POST_PROCESSING_FILTER}"
-            
+
 # Set up the type specific template information
 TEMPLATE_DIR="${GENERATION_DIR}/templates"
 TEMPLATE="createSwaggerExtensions.ftl"
@@ -113,7 +113,7 @@ for ACCOUNT in "${ACCOUNTS[@]}"; do
         ARGS+=("-v" "region=${REGION}")
         ARGS+=("-v" "swagger=${SWAGGER_FILE}")
         ARGS+=("-v" "integrations=${INTEGRATIONS_FILE}")
-        
+
         ${GENERATION_DIR}/freemarker.sh -t ${TEMPLATE} -d ${TEMPLATE_DIR} -o "${SWAGGER_EXTENSIONS_FILE}" "${ARGS[@]}"
         RESULT=$?
         [[ "${RESULT}" -ne 0 ]] && exit
@@ -127,7 +127,7 @@ for ACCOUNT in "${ACCOUNTS[@]}"; do
         jq -f "${POST_PROCESSING_FILTER}" < "${SWAGGER_EXTENSIONS_PRE_POST_FILE}" > "${TARGET_SWAGGER_FILE}"
         RESULT=$?
         [[ "${RESULT}" -ne 0 ]] && exit
-        
+
     done
 done
 

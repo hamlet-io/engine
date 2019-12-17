@@ -108,7 +108,7 @@ function main() {
 
         strip_null )
             runJQ -s "${JSON_FILTER}" "${JSON_ARRAY[@]}" | \
-                runJQ -s -f ${GENERATION_DIR}/.jq/nullClean.jq > ${JSON_OUTPUT} || return $?
+                runJQ -s -f ${GENERATION_DIR}/nullClean.jq > ${JSON_OUTPUT} || return $?
             ;;
 
         *)
