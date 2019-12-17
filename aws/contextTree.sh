@@ -368,7 +368,7 @@ function assemble_composite_stack_outputs() {
     done
 
     # Slurp all of the standardised files and put them into a single file as an array
-    ${GENERATION_DIR}/manageJSON.sh -f "." -o "${COMPOSITE_STACK_OUTPUTS}" "${composite_stack_array[@]}"
+    ${GENERATION_DIR}/manageJSON.sh -f '.[]' -n -o "${COMPOSITE_STACK_OUTPUTS}" "${composite_stack_array[@]}" || return $?
 
   else
     echo "[]" > "${COMPOSITE_STACK_OUTPUTS}"

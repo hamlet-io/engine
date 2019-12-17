@@ -41,60 +41,83 @@ EOF
     exit
 }
 
-# Parse options
-while getopts ":cdf:ho:" opt; do
-    case $opt in
-        c)
-            JSON_FORMAT="-c"
+
+function options() {
+    # Parse options
+    while getopts ":cdf:hno:" opt; do
+        case $opt in
+            c)
+                JSON_FORMAT="-c"
+                ;;
+            d)
+                JSON_PREDEFINED_FILTER="add_defaults"
+                ;;
+            f)
+                JSON_FILTER="${OPTARG}"
+                ;;
+            h)
+                usage
+                ;;
+            n)
+                JSON_PREDEFINED_FILTER="strip_null"
+                ;;
+            o)
+                JSON_OUTPUT="${OPTARG}"
+                ;;
+            \?)
+                fatalOption
+                ;;
+            :)
+                fatalOptionArgument
+                ;;
+        esac
+    done
+
+    # Set defaults
+    JSON_FORMAT="${JSON_FORMAT:-$JSON_FORMAT_DEFAULT}"
+}
+
+function main() {
+
+    options "$@" || return $?
+
+    # Determine the file list
+    shift $((OPTIND-1))
+    JSON_ARRAY=(${JSON_LIST})
+    JSON_ARRAY+=("$@")
+
+    # Ensure mandatory arguments have been provided
+    [[ (-z "${JSON_OUTPUT}") ||
+        ("${#JSON_ARRAY[@]}" -eq 0) ]] && fatalMandatory && exit 255
+
+    # Merge the files
+    if [[ -z "${JSON_FILTER}" ]]; then
+        FILTER_INDEX=0
+        JSON_FILTER=".[${FILTER_INDEX}]"
+        for F in "${JSON_ARRAY[@]}"; do
+            [[ "${FILTER_INDEX}" > 0 ]] && JSON_FILTER="${JSON_FILTER} * .[$FILTER_INDEX]"
+            FILTER_INDEX=$(( $FILTER_INDEX + 1 ))
+        done
+    fi
+
+    case "${JSON_PREDEFINED_FILTER}" in
+        add_defaults )
+            runJQ -s "${JSON_FILTER}" "${JSON_ARRAY[@]}" | \
+                runJQ ${JSON_FORMAT} -f ${GENERATION_DIR}/addDefaults.jq > ${JSON_OUTPUT} || return $?
             ;;
-        d)
-            JSON_ADD_DEFAULTS="true"
+
+        strip_null )
+            runJQ -s "${JSON_FILTER}" "${JSON_ARRAY[@]}" | \
+                runJQ -s -f ${GENERATION_DIR}/.jq/nullClean.jq > ${JSON_OUTPUT} || return $?
             ;;
-        f)
-            JSON_FILTER="${OPTARG}"
-            ;;
-        h)
-            usage
-            ;;
-        o)
-            JSON_OUTPUT="${OPTARG}"
-            ;;
-        \?)
-            fatalOption
-            ;;
-        :)
-            fatalOptionArgument
+
+        *)
+            runJQ ${JSON_FORMAT} -s "${JSON_FILTER}" "${JSON_ARRAY[@]}" > ${JSON_OUTPUT} || return $?
             ;;
     esac
-done
 
-# Set defaults
-JSON_FORMAT="${JSON_FORMAT:-$JSON_FORMAT_DEFAULT}"
+    dos2unix "${JSON_OUTPUT}" 2> /dev/null
+    return $?
+}
 
-# Determine the file list
-shift $((OPTIND-1))
-JSON_ARRAY=(${JSON_LIST})
-JSON_ARRAY+=("$@")
-
-# Ensure mandatory arguments have been provided
-[[ (-z "${JSON_OUTPUT}") ||
-    ("${#JSON_ARRAY[@]}" -eq 0) ]] && fatalMandatory && exit 255
-
-# Merge the files
-if [[ -z "${JSON_FILTER}" ]]; then
-    FILTER_INDEX=0
-    JSON_FILTER=".[${FILTER_INDEX}]"
-    for F in "${JSON_ARRAY[@]}"; do
-        [[ "${FILTER_INDEX}" > 0 ]] && JSON_FILTER="${JSON_FILTER} * .[$FILTER_INDEX]"
-        FILTER_INDEX=$(( $FILTER_INDEX + 1 ))
-    done
-fi
-if [[ "${JSON_ADD_DEFAULTS}" == "true" ]]; then
-    runJQ -s "${JSON_FILTER}" "${JSON_ARRAY[@]}" | \
-    runJQ ${JSON_FORMAT} -f ${GENERATION_DIR}/addDefaults.jq > ${JSON_OUTPUT}
-else
-    runJQ ${JSON_FORMAT} -s "${JSON_FILTER}" "${JSON_ARRAY[@]}" > ${JSON_OUTPUT}
-fi
-RESULT=$?
-[[ "${RESULT}" -eq 0 ]] && dos2unix "${JSON_OUTPUT}" 2> /dev/null
-#
+main "$@"
