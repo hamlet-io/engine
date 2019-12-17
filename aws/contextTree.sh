@@ -83,65 +83,88 @@ EOF
   return ${return_status}
 }
 
-function convertFilesToJSONObject() {
-  local base_ancestors=($1); shift
-  local prefixes=($1); shift
-  local root_dir="$1";shift
-  local as_file="$1";shift
+function getFilesAsJSON() {
+  local result_file="$1";shift
   local files=("$@")
+
+  local file_array=()
+  local return_status
 
   pushTempDir "${FUNCNAME[0]}_XXXXXX"
   local tmp_dir="$(getTopTempDir)"
-  local base_file="${tmp_dir}/base.json"
-  local processed_files=("${base_file}")
+
+  # Create standardised versions of the files
+  if [[ $(arraySize "files") -ne 0 ]]; then
+    for file in "${files[@]}"; do
+      local file_name="$( fileName ${file} )"
+      local relative_file_path="$( filePath ${file} )"
+      local file_path="$( cd "${relative_file_path}"; pwd )"
+      local tmp_file="$( getTempFile "XXXXXX" "${tmp_dir}" )"
+      addToArray "file_array" "${tmp_file}"
+      if $(contains "${file}" "asFile"); then
+        # Only want the filename
+        echo {} | jq --arg file_name "${file_name}" --arg file_path "${file_path}" \
+            '{ "FileName" : $file_name, "FilePath" : $file_path, "Content" : [] }' >> "${tmp_file}"
+      else
+        # Want file content - handle a few content variants
+        case "$(fileExtension "${file_name}")" in
+          json)
+            jq --arg file_name "${file_name}" --arg file_path "${file_path}" \
+                '{ "FileName" : $file_name, "FilePath" : $file_path, "Content" : [.] }' < "${file}" > "${tmp_file}"
+            ;;
+
+          escjson)
+            jq --arg file_name "${file_name}" --arg file_path "${file_path}" \
+                '{ "FileName" : $file_name, "FilePath" : $file_path, "Content" : [tojson] }' < "${file}" > "${tmp_file}"
+            ;;
+
+          *)
+            # Assume raw input
+            jq -sR --arg file_name "${file_name}" --arg file_path "${file_path}" \
+                '{ "FileName" : $file_name, "FilePath" : $file_path, "Content" : [.] }' < "${file}" > "${tmp_file}"
+            ;;
+
+        esac
+      fi
+    done
+
+    # Slurp all of the standardised files and put them into a single file as an array
+    runJQ --indent 2 -s '.' "${file_array[@]}" > "${result_file}"; return_status=$?
+  else
+    echo "[]" > "${result_file}"; return_status=0
+  fi
+
+  popTempDir
+  return ${return_status}
+}
+
+function convertFilesToJSONObject() {
+  local ancestors=($1); shift
+  local root_dir="$1";shift
+  local base_dir="$1";shift
+  local result_file="$1";shift
+  local files=("$@")
+
+  local filter='{ "RootDirectory" : $root_dir, "BaseDirectory" : $base_dir, "Files" : . }'
   local return_status
 
-  echo -n "{}" > "${base_file}"
+  pushTempDir "${FUNCNAME[0]}_XXXXXX"
+  local tmp_dir="$(getTopTempDir)"
 
-  for file in "${files[@]}"; do
+  # First assemble all the files
+  getFilesAsJSON "${tmp_dir}/files.json" "${files[@]}"; return_status=$?
+  if [[ $return_status -eq 0 ]]; then
 
-    local file_name="$(fileName "${file}")"
-    local file_path="$(filePath "${file}")"
-    local file_absolute_path="$(cd "${file_path}"; pwd)"
-    local file_root_relative_path="${file_absolute_path##${root_dir}/}"
-    local relative_file="${file_root_relative_path}/${file_name}"
+    # Add any ancestors
+    for (( index=${#ancestors[@]}-1 ; index >= 0 ; index-- )) ; do
+      filter="{\"${ancestors[index]}\" : ${filter} }"
+    done
 
-    local source_file="${file}"
-    local attribute="$( fileBase "${file}" | tr "-" "_" )"
+    # Add the root and base directories
+    jq --arg root_dir "${root_dir}" --arg base_dir "${base_dir}" \
+      "${filter}" < "${tmp_dir}/files.json" > "${result_file}"; return_status=$?
+  fi
 
-    if [[ "${as_file}" == "true" ]]; then
-      source_file="$(getTempFile "asfile_${attribute,,}_XXXXXX.json" "${tmp_dir}")"
-      echo -n "{\"${attribute^^}\" : {\"Value\" : \"$(fileName "${file}")\", \"AsFile\" : \"${relative_file}\" }}" > "${source_file}" || return 1
-    else
-      case "$(fileExtension "${file}")" in
-        json)
-          ;;
-
-        escjson)
-          source_file="$(getTempFile "escjson_${attribute,,}_XXXXXX.json" "${tmp_dir}")"
-          runJQ \
-            "{\"${attribute^^}\" : {\"Value\" : tojson, \"FromFile\" : \"${relative_file}\" }}" \
-            "${file}" > "${source_file}" || return 1
-          ;;
-
-        *)
-          # Assume raw input
-          source_file="$(getTempFile "raw_${attribute,,}_XXXXXX.json" "${tmp_dir}")"
-          runJQ -sR \
-            "{\"${attribute^^}\" : {\"Value\" : ., \"FromFile\" : \"${relative_file}\" }}" \
-            "${file}" > "${source_file}" || return 1
-          ;;
-
-      esac
-    fi
-
-    local file_ancestors=("${prefixes[@]}" $(filePath "${file}" | tr "./" " ") )
-    local processed_file="$(getTempFile "processed_XXXXXX.json" "${tmp_dir}")"
-    addJSONAncestorObjects "${source_file}" "${base_ancestors[@]}" $(join "-" "${file_ancestors[@]}" | tr "[:upper:]" "[:lower:]") > "${processed_file}" || return 1
-    processed_files+=("${processed_file}")
-  done
-
-  jqMerge "${processed_files[@]}"; return_status=$?
   popTempDir
   return ${return_status}
 }
@@ -178,10 +201,12 @@ function assemble_settings() {
     debug "Processing account dir ${account_dir} ..."
     pushd "${account_dir}" > /dev/null 2>&1 || continue
 
-    tmp_file="$( getTempFile "account_settings_XXXXXX.json" "${tmp_dir}")"
     readarray -t setting_files < <(find . -type f -name "*.json" )
-    convertFilesToJSONObject "Settings Accounts" "${name}" "${root_dir}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
-    tmp_file_list+=("${tmp_file}")
+    if ! arrayIsEmpty "setting_files" ; then
+      tmp_file="${tmp_dir}/accounts_settings_${name}.json"
+      convertFilesToJSONObject "Accounts Settings ${name}" "${root_dir}" "${account_dir}" "${tmp_file}" "${setting_files[@]}" || return 1
+      tmp_file_list+=("${tmp_file}")
+    fi
     popd > /dev/null
   done
 
@@ -205,35 +230,11 @@ function assemble_settings() {
       debug "Processing settings dir ${settings_dir} ..."
       pushd "${settings_dir}" > /dev/null 2>&1 || continue
 
-      # Settings
       readarray -t setting_files < <(find . -type f \( \
-        -not \( -name "*build.json" -or -name "*credentials.json" -or -name "*sensitive.json" \) \
-        -and -not \( -path "*/asfile/*" -or -path "*/asFile/*" \) \
-        -and -not \( -name ".*" -or -path "*/.*/*" \) \) )
+        -not \( -name ".*" -or -path "*/.*/*" \) \) )
       if ! arrayIsEmpty "setting_files" ; then
-        tmp_file="$( getTempFile "product_settings_XXXXXX.json" "${tmp_dir}")"
-        convertFilesToJSONObject "Settings Products" "${name}" "${root_dir}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
-        tmp_file_list+=("${tmp_file}")
-      fi
-
-      # Sensitive
-      readarray -t setting_files < <(find . -type f \( \
-        \( -name "*credentials.json" -or -name "*sensitive.json" \) \
-        -and -not \( -path "*/asfile/*" -or -path "*/asFile/*" \) \
-        -and -not \( -name ".*" -or -path "*/.*/*" \) \) )
-      if ! arrayIsEmpty "setting_files" ; then
-        tmp_file="$( getTempFile "product_sensitive_XXXXXX.json" "${tmp_dir}")"
-        convertFilesToJSONObject "Sensitive Products" "${name}" "${root_dir}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
-        tmp_file_list+=("${tmp_file}")
-      fi
-
-      # asFiles
-      readarray -t setting_files < <(find . -type f \( \
-        \( -path "*/asfile/*" -or -path "*/asFile/*" \) \
-        -and -not \( -name ".*" -or -path "*/.*/*" \) \) )
-      if ! arrayIsEmpty "setting_files" ; then
-        tmp_file="$( getTempFile "product_settings_asfile_XXXXXX.json" "${tmp_dir}")"
-        convertFilesToJSONObject "Settings Products" "${name}" "${root_dir}" "true" "${setting_files[@]}" > "${tmp_file}" || return 1
+        tmp_file="${tmp_dir}/products_settings_${name}.json"
+        convertFilesToJSONObject "Products Settings ${name}" "${root_dir}" "${settings_dir}" "${tmp_file}" "${setting_files[@]}"  || return 1
         tmp_file_list+=("${tmp_file}")
       fi
 
@@ -242,17 +243,15 @@ function assemble_settings() {
 
     # Builds
     local builds_dir="$(findGen3ProductBuildsDir "${root_dir}" "${name}")"
-    if [[ -d "${builds_dir}" ]]; then
+    if [[ (-d "${builds_dir}") && ("${settings_dir}" != "${builds_dir}") ]]; then
       debug "Processing builds dir ${builds_dir} ..."
       pushd "${builds_dir}" > /dev/null
 
       readarray -t build_files < <(find . -type f \( \
-        -name "*build.json" \
-        -and -not \( -path "*/asfile/*" -or -path "*/asFile/*" \) \
-        -and -not \( -name ".*" -or -path "*/.*/*" \) \) )
+        -not \( -name ".*" -or -path "*/.*/*" \) \) )
       if ! arrayIsEmpty "build_files" ; then
-        tmp_file="$( getTempFile "builds_builds_XXXXXX.json" "${tmp_dir}")"
-        convertFilesToJSONObject "Builds Products" "${name}" "${root_dir}" "false" "${build_files[@]}" > "${tmp_file}" || return 1
+        tmp_file="${tmp_dir}/products_builds_${name}.json"
+        convertFilesToJSONObject "Products Builds ${name}" "${root_dir}" "${builds_dir}" "${tmp_file}" "${build_files[@]}"  || return 1
         tmp_file_list+=("${tmp_file}")
       fi
 
@@ -265,35 +264,11 @@ function assemble_settings() {
       debug "Processing operations dir ${operations_dir} ..."
       pushd "${operations_dir}" > /dev/null
 
-      # Settings
-      readarray -t setting_files < <(find . -type f \( \
-        -not \( -name "*build.json" -or -name "*credentials.json" -or -name "*sensitive.json" \) \
-        -and -not \( -path "*/asfile/*" -or -path "*/asFile/*" \) \
-        -and -not \( -name ".*" -or -path "*/.*/*" \) \) )
-      if ! arrayIsEmpty "setting_files" ; then
-        tmp_file="$( getTempFile "operations_settings_XXXXXX.json" "${tmp_dir}")"
-        convertFilesToJSONObject "Settings Products" "${name}" "${root_dir}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
-        tmp_file_list+=("${tmp_file}")
-      fi
-
-      # Sensitive
-      readarray -t setting_files < <(find . -type f \( \
-        \( -name "*credentials.json" -or -name "*sensitive.json" \) \
-        -and -not \( -path "*/asfile/*" -or -path "*/asFile/*" \) \
-        -and -not \( -name ".*" -or -path "*/.*/*" \) \) )
-      if ! arrayIsEmpty "setting_files" ; then
-        tmp_file="$( getTempFile "operations_sensitive_XXXXXX.json" "${tmp_dir}")"
-        convertFilesToJSONObject "Sensitive Products" "${name}" "${root_dir}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
-        tmp_file_list+=("${tmp_file}")
-      fi
-
-      # asFiles
-      readarray -t setting_files < <(find . -type f \( \
-        \( -path "*/asfile/*" -or -path "*/asFile/*" \) \
-        -and -not \( -name ".*" -or -path "*/.*/*" \) \) )
-      if ! arrayIsEmpty "setting_files" ; then
-        tmp_file="$( getTempFile "operations_settings_asfile_XXXXXX.json" "${tmp_dir}")"
-        convertFilesToJSONObject "Settings Products" "${name}" "${root_dir}" "true" "${setting_files[@]}" > "${tmp_file}" || return 1
+      readarray -t operations_files < <(find . -type f \( \
+        -not \( -name ".*" -or -path "*/.*/*" \) \) )
+      if ! arrayIsEmpty "operations_files" ; then
+        tmp_file="${tmp_dir}/products_operations_${name}.json"
+        convertFilesToJSONObject "Products Operations ${name}" "${root_dir}" "${operations_dir}" "${tmp_file}" "${operations_files[@]}"  || return 1
         tmp_file_list+=("${tmp_file}")
       fi
 
@@ -355,24 +330,8 @@ function assemble_composite_stack_outputs() {
   debug "STACK_OUTPUTS=${stack_array[*]}"
 
   export COMPOSITE_STACK_OUTPUTS="${CACHE_DIR}/composite_stack_outputs.json"
-  local composite_stack_array=()
 
-  # Create standardised versions of the stack output files
-  if [[ $(arraySize "stack_array") -ne 0 ]]; then
-    for stack_output in "${stack_array[@]}"; do
-      stack_file_name="$( fileName ${stack_output} )"
-      tmp_stack_file="${tmp_dir}/${stack_file_name}"
-      addToArray "composite_stack_array" "${tmp_stack_file}"
-      jq --arg stack_name "${stack_file_name}" \
-          '{ "FileName" : $stack_name, "Content" : [.] }' < "${stack_output}" >> "${tmp_stack_file}"
-    done
-
-    # Slurp all of the standardised files and put them into a single file as an array
-    ${GENERATION_DIR}/manageJSON.sh -f "." -o "${COMPOSITE_STACK_OUTPUTS}" "${composite_stack_array[@]}"
-
-  else
-    echo "[]" > "${COMPOSITE_STACK_OUTPUTS}"
-  fi
+  getFilesAsJSON "${COMPOSITE_STACK_OUTPUTS}" "${stack_array[@]}"; return_status=$?
 
   popTempDir
   return 0
