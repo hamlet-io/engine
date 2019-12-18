@@ -22,6 +22,7 @@
                         formatEIPId( core.Id, zone.Id),
                         formatEIPId( core.Id, zone.Id, "eth0")
                     ),
+                    "Name" : formatName(core.FullName, zone.Name),
                     "Type" : AWS_EIP_RESOURCE_TYPE
                 },
                 "ec2EIPAssociation" : {

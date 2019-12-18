@@ -8,6 +8,7 @@
             "Resources" : {
                 "eip" : {
                     "Id" : formatEIPId(core.Id),
+                    "Name" : core.FullName,
                     "Type" : AWS_EIP_RESOURCE_TYPE
                 },
                 "securityGroupTo" : {

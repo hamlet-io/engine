@@ -26,6 +26,7 @@
                             zone.Id : {
                                 "eip" : {
                                     "Id" : eipId,
+                                    "Name" : formatName(core.FullName, zone.Name),
                                     "Type" : AWS_EIP_RESOURCE_TYPE
                                 }
                             }

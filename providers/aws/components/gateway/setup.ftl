@@ -49,10 +49,17 @@
         [#list gwResources["Zones"] as zone, zoneResources ]
             [#if (zoneResources["eip"]!{})?has_content ]
                 [#local eipId = zoneResources["eip"].Id ]
+                [#local eipName = zoneResources["eip"].Name ]
                 [#if deploymentSubsetRequired("eip", true) &&
                         isPartOfCurrentDeploymentUnit(eipId)]
 
-                    [@createEIP id=eipId /]
+                    [@createEIP
+                        id=eipId
+                        tags=getOccurrenceCoreTags(
+                            occurrence,
+                            eipName
+                        )
+                    /]
 
                 [/#if]
             [/#if]

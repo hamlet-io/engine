@@ -323,6 +323,7 @@
                 [#local zoneEc2InstanceName        = zoneResources[zone.Id]["ec2Instance"].Name ]
                 [#local zoneEc2ENIId               = zoneResources[zone.Id]["ec2ENI"].Id ]
                 [#local zoneEc2EIPId               = zoneResources[zone.Id]["ec2EIP"].Id]
+                [#local zoneEc2EIPName             = zoneResources[zone.Id]["ec2EIP"].Id]
                 [#local zoneEc2EIPAssociationId    = zoneResources[zone.Id]["ec2EIPAssociation"].Id]
 
                 [#local updateCommand = "yum clean all && yum -y update"]
@@ -439,6 +440,10 @@
                     [@createEIP
                         id=zoneEc2EIPId
                         dependencies=[zoneEc2ENIId]
+                        tags=getOccurrenceCoreTags(
+                            occurrence,
+                            zoneEc2EIPName
+                        )
                     /]
 
                     [@cfResource
