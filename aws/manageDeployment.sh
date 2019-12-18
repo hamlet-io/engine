@@ -3,6 +3,7 @@
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh' EXIT SIGHUP SIGINT SIGTERM
 . "${GENERATION_DIR}/common.sh"
+. "${GENERATION_PLUGIN_DIRS}/azure/utility.sh"
 
 # Defaults
 DEPLOYMENT_INITIATE_DEFAULT="true"
