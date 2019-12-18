@@ -501,7 +501,7 @@
 
     [#list solution.Containers?values as container]
         [#local containerPortMappings = [] ]
-        [#local containerLinks = container.Links ]
+        [#local containerLinks = mergeObjects( solution.Links, container.Links) ]
         [#local ingressRules = []]
 
         [#list container.Ports?values as port]
