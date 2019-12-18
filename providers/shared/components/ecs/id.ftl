@@ -96,7 +96,7 @@
         {
             "Names" : "Profiles",
             "Children" :
-                [                      
+                [
                     {
                         "Names" : "Alert",
                         "Type" : STRING_TYPE,
@@ -166,7 +166,7 @@
                             "Names" : "Processor",
                             "Type" : STRING_TYPE,
                             "Default" : "default"
-                        },                        
+                        },
                         {
                             "Names" : "Alert",
                             "Type" : STRING_TYPE,
@@ -234,6 +234,9 @@
 
 [@addChildComponent
     type=ECS_SERVICE_COMPONENT_TYPE
+    parent=ECS_COMPONENT_TYPE
+    childAttribute="Services"
+    linkAttributes="Service"
     properties=
         [
             {
@@ -348,7 +351,7 @@
             {
                 "Names" : "Profiles",
                 "Children" :
-                    [                    
+                    [
                         {
                             "Names" : "Alert",
                             "Type" : STRING_TYPE,
@@ -360,15 +363,20 @@
                             "Default" : "default"
                         }
                     ]
+            },
+            {
+                "Names" : "Links",
+                "Subobjects" : true,
+                "Children" : linkChildrenConfiguration
             }
         ]
-    parent=ECS_COMPONENT_TYPE
-    childAttribute="Services"
-    linkAttributes="Service"
 /]
 
 [@addChildComponent
     type=ECS_TASK_COMPONENT_TYPE
+    parent=ECS_COMPONENT_TYPE
+    childAttribute="Tasks"
+    linkAttributes="Task"
     properties=
         [
             {
@@ -473,16 +481,18 @@
             {
                 "Names" : "Profiles",
                 "Children" :
-                    [                     
+                    [
                         {
                             "Names" : "Alert",
                             "Type" : STRING_TYPE,
                             "Default" : "default"
                         }
                     ]
+            },
+            {
+                "Names" : "Links",
+                "Subobjects" : true,
+                "Children" : linkChildrenConfiguration
             }
         ]
-    parent=ECS_COMPONENT_TYPE
-    childAttribute="Tasks"
-    linkAttributes="Task"
 /]
