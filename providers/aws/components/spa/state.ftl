@@ -6,6 +6,17 @@
 
     [#local cfId  = formatComponentCFDistributionId(core.Tier, core.Component, occurrence)]
 
+    [#-- Baseline component lookup --]
+    [#local baselineLinks = getBaselineLinks(occurrence, [ "OpsData" ] )]
+    [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
+
+    [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
+
+    [#local configFilePath = formatRelativePath(
+                                getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX"),
+                                "config" )]
+    [#local configFileName = "config.json" ]
+
     [#assign componentState =
         {
             "Resources" : {
@@ -25,7 +36,12 @@
                 {}
             ),
             "Attributes" : {
-                "CONFIG_PATH_PATTERN" : solution.ConfigPathPattern
+                "CONFIG_PATH_PATTERN" : solution.ConfigPathPattern,
+                "CONFIG_BUCKET" : operationsBucket,
+                "CONFIG_FILE" : formatRelativePath(
+                                    configFilePath,
+                                    configFileName
+                                )
             },
             "Roles" : {
                 "Inbound" : {},
