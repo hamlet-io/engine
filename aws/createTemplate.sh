@@ -176,7 +176,7 @@ function options() {
             ("${GENERATION_USE_SETTINGS_CACHE}" != "true")) ||
         (! -f "${COMPOSITE_SETTINGS}") ]]; then
         debug "Generating composite settings ..."
-        assemble_settings "${GENERATION_DATA_DIR}" "${COMPOSITE_SETTINGS}"
+        assemble_settings "${GENERATION_DATA_DIR}" "${COMPOSITE_SETTINGS}" || return $?
     fi
 
     # Create the composite definitions
@@ -184,7 +184,7 @@ function options() {
     if [[ (("${GENERATION_USE_CACHE}" != "true") &&
             ("${GENERATION_USE_DEFINITIONS_CACHE}" != "true")) ||
         (! -f "${COMPOSITE_DEFINITIONS}") ]]; then
-        assemble_composite_definitions
+        assemble_composite_definitions || return $?
     fi
 
     # Create the composite stack outputs
@@ -192,7 +192,7 @@ function options() {
     if [[ (("${GENERATION_USE_CACHE}" != "true") &&
             ("${GENERATION_USE_STACK_OUTPUTS_CACHE}" != "true")) ||
         (! -f "${COMPOSITE_STACK_OUTPUTS}") ]]; then
-        assemble_composite_stack_outputs
+        assemble_composite_stack_outputs || return $?
     fi
 
   fi

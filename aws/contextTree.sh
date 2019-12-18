@@ -129,7 +129,8 @@ function getFilesAsJSON() {
     done
 
     # Slurp all of the standardised files and put them into a single file as an array
-    runJQ --indent 2 -s '.' "${file_array[@]}" > "${result_file}"; return_status=$?
+    # Freemarker doesn't support the null json value in ?eval so we need to remove any null values
+    runJQ --indent 2 -s -f "${GENERATION_DIR}/nullStrip.jq" "${file_array[@]}" > "${result_file}"; return_status=$?
   else
     echo "[]" > "${result_file}"; return_status=0
   fi
@@ -334,7 +335,7 @@ function assemble_composite_stack_outputs() {
   getFilesAsJSON "${COMPOSITE_STACK_OUTPUTS}" "${stack_array[@]}"; return_status=$?
 
   popTempDir
-  return 0
+  return ${return_status}
 }
 
 function getBluePrintParameter() {
