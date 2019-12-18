@@ -365,7 +365,7 @@
 
         [#list solution.Alerts?values as alert ]
 
-            [#local monitoredResources = getMonitoredResources(resources, alert.Resource)]
+            [#local monitoredResources = getMonitoredResources(core.Id, resources, alert.Resource)]
             [#list monitoredResources as name,monitoredResource ]
 
                 [@debug message="Monitored resource" context=monitoredResource enabled=false /]
@@ -391,7 +391,7 @@
                             alertName=alert.Name
                             actions=getCWAlertActions(occurrence, solution.Profiles.Alert, alert.Severity )
                             metric=getMetricName(alert.Metric, monitoredResource.Type, core.ShortFullName)
-                            namespace=getResourceMetricNamespace(monitoredResource.Type)
+                            namespace=getResourceMetricNamespace(monitoredResource.Type, alert.Namespace)
                             description=alert.Description!alert.Name
                             threshold=alert.Threshold
                             statistic=alert.Statistic

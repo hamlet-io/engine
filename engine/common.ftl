@@ -968,7 +968,12 @@ behaviour.
 
 [/#function]
 
-[#function getResourceMetricNamespace resourceType ]
+[#function getResourceMetricNamespace resourceType override="" ]
+
+    [#if override?has_content ]
+        [#return override]
+    [/#if]
+
     [#local resourceTypeNameSpace = (metricAttributes[resourceType]).Namespace!"" ]
 
     [#if resourceTypeNameSpace?has_content ]
@@ -1001,14 +1006,19 @@ behaviour.
     [/#switch]
 [/#function]
 
-[#function getMonitoredResources resources, resourceQualifier ]
+[#function getMonitoredResources coreId resources, resourceQualifier ]
     [#local monitoredResources = {} ]
+
+    [#-- allow for a none type which disables dimension lookup --]
+    [#if resourceQualifier.Type?has_content && resourceQualifier.Type == "_none" ]
+        [#return { "_none" : { "Id" : coreId, "Type" : "_none" } }]
+    [/#if]
 
     [#list resources as id,resource ]
 
         [#if !resource["Type"]?has_content && resource?is_hash]
             [#list resource as id,subResource ]
-                [#local monitoredResources += getMonitoredResources({id : subResource}, resourceQualifier)]
+                [#local monitoredResources += getMonitoredResources(coreId, {id : subResource}, resourceQualifier)]
             [/#list]
 
         [#else]
