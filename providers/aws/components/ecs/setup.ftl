@@ -273,6 +273,10 @@
             [#list 1..maxSize as index]
                 [@createEIP
                     id=formatComponentEIPId(core.Tier, core.Component, index)
+                    tags=getOccurrenceCoreTags(
+                        occurrence,
+                        formatName(core.FullName, index)
+                    )
                 /]
                 [#local allocationIds +=
                     [

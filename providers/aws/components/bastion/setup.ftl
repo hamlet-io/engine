@@ -13,6 +13,7 @@
 
     [#local bastionRoleId = resources["role"].Id ]
     [#local bastionEIPId = resources["eip"].Id ]
+    [#local bastionEIPName = resources["eip"].Name ]
     [#local bastionSecurityGroupFromId = resources["securityGroupFrom"].Id]
     [#local bastionSecurityGroupFromName = resources["securityGroupFrom"].Name]
     [#local bastionSecurityGroupToId = resources["securityGroupTo"].Id]
@@ -154,6 +155,10 @@
                     isPartOfCurrentDeploymentUnit(bastionEIPId)]
                 [@createEIP
                     id=bastionEIPId
+                    tags=getOccurrenceCoreTags(
+                            occurrence,
+                            bastionEIPName
+                        )
                 /]
             [/#if]
 
@@ -228,13 +233,6 @@
                 outputs={}
             /]
 
-            [#local asgTags =
-                getOccurrenceCoreTags(
-                    occurrence,
-                    bastionAutoScaleGroupName
-                    "",
-                    true)]
-
             [@createEc2AutoScaleGroup
                 id=bastionAutoScaleGroupId
                 tier=core.Tier
@@ -244,7 +242,12 @@
                 processorProfile=processorProfile
                 autoScalingConfig=solution.AutoScaling
                 multiAZ=multiAZ
-                tags=asgTags
+                tags=getOccurrenceCoreTags(
+                        occurrence,
+                        bastionAutoScaleGroupName
+                        "",
+                        true
+                    )
                 networkResources=networkResources
             /]
 

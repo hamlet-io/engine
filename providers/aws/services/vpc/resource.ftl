@@ -295,7 +295,7 @@
         }
     }
 ]
-[@addOutputMapping 
+[@addOutputMapping
     provider=AWS_PROVIDER
     resourceType=AWS_EIP_RESOURCE_TYPE
     mappings=EIP_OUTPUT_MAPPINGS
@@ -303,6 +303,7 @@
 
 [#macro createEIP
             id
+            tags
             dependencies=""]
     [@cfResource
         id=id
@@ -312,6 +313,7 @@
                 "Domain" : "vpc"
             }
         outputs=EIP_OUTPUT_MAPPINGS
+        tags=tags
         dependencies=dependencies
     /]
 [/#macro]
