@@ -145,7 +145,7 @@
 
             [#list solution.Alerts?values as alert ]
 
-                [#local monitoredResources = getMonitoredResources(resources, alert.Resource)]
+                [#local monitoredResources = getMonitoredResources(core.Id, resources, alert.Resource)]
                 [#list monitoredResources as name,monitoredResource ]
 
                     [@debug message="Monitored resource" context=monitoredResource enabled=false /]
@@ -159,7 +159,7 @@
                                 alertName=alert.Name
                                 actions=getCWAlertActions(subOccurrence, solution.Profiles.Alert, alert.Severity )
                                 metric=getMetricName(alert.Metric, monitoredResource.Type, core.ShortFullName)
-                                namespace=getResourceMetricNamespace(monitoredResource.Type)
+                                namespace=getResourceMetricNamespace(monitoredResource.Type, alert.Namespace)
                                 description=alert.Description!alert.Name
                                 threshold=alert.Threshold
                                 statistic=alert.Statistic
@@ -170,7 +170,6 @@
                                 unit=alert.Unit
                                 missingData=alert.MissingData
                                 dimensions=getResourceMetricDimensions(monitoredResource, resources)
-                                dependencies=monitoredResource.Id
                             /]
                         [#break]
                     [/#switch]
@@ -221,7 +220,7 @@
                             {
                                 platformAppId : core.Name,
                                 formatId(platformAppId, ARN_ATTRIBUTE_TYPE) : "$\{platform_app_arn}",
-                                formatId(platformAppId, REGION_ATTRIBUTE_TYPE) : regionId 
+                                formatId(platformAppId, REGION_ATTRIBUTE_TYPE) : regionId
                             },
                             core.SubComponent.Id
                         ) +

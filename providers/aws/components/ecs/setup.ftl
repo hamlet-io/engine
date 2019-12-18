@@ -214,7 +214,7 @@
 
         [#list solution.Alerts?values as alert ]
 
-            [#local monitoredResources = getMonitoredResources(resources, alert.Resource)]
+            [#local monitoredResources = getMonitoredResources(core.Id, resources, alert.Resource)]
             [#list monitoredResources as name,monitoredResource ]
 
                 [@debug message="Monitored resource" context=monitoredResource enabled=false /]
@@ -228,7 +228,7 @@
                             alertName=alert.Name
                             actions=getCWAlertActions(occurrence, solution.Profiles.Alert, alert.Severity )
                             metric=getMetricName(alert.Metric, monitoredResource.Type, core.ShortFullName)
-                            namespace=getResourceMetricNamespace(monitoredResource.Type)
+                            namespace=getResourceMetricNamespace(monitoredResource.Type, alert.Namespace)
                             description=alert.Description!alert.Name
                             threshold=alert.Threshold
                             statistic=alert.Statistic
@@ -239,7 +239,6 @@
                             unit=alert.Unit
                             missingData=alert.MissingData
                             dimensions=getResourceMetricDimensions(monitoredResource, resources)
-                            dependencies=monitoredResource.Id
                         /]
                     [#break]
                 [/#switch]
@@ -315,7 +314,7 @@
                             [#local scalingTargetResources = resources ]
                         [/#if]
 
-                        [#local monitoredResources = getMonitoredResources(scalingTargetResources, scalingMetricTrigger.Resource)]
+                        [#local monitoredResources = getMonitoredResources(core.Id, scalingTargetResources, scalingMetricTrigger.Resource)]
 
                         [#if monitoredResources?keys?size > 1 ]
                             [@fatal
@@ -857,7 +856,7 @@
                                     [#local scalingTargetResources = resources + { "cluster" : parentResources["cluster"] }]
                                 [/#if]
 
-                                [#local monitoredResources = getMonitoredResources(scalingTargetResources, scalingMetricTrigger.Resource)]
+                                [#local monitoredResources = getMonitoredResources(core.Id, scalingTargetResources, scalingMetricTrigger.Resource)]
 
                                 [#if monitoredResources?keys?size > 1 ]
                                     [@fatal
@@ -1283,7 +1282,7 @@
 
             [#list solution.Alerts?values as alert ]
 
-                [#local monitoredResources = getMonitoredResources(resources, alert.Resource)]
+                [#local monitoredResources = getMonitoredResources(core.Id, resources, alert.Resource)]
                 [#list monitoredResources as name,monitoredResource ]
 
                     [#switch alert.Comparison ]
@@ -1295,7 +1294,7 @@
                                 alertName=alert.Name
                                 actions=getCWAlertActions(subOccurrence, solution.Profiles.Alert, alert.Severity )
                                 metric=getMetricName(alert.Metric, monitoredResource.Type, core.ShortFullName)
-                                namespace=getResourceMetricNamespace(monitoredResource.Type)
+                                namespace=getResourceMetricNamespace(monitoredResource.Type, alert.Namespace)
                                 description=alert.Description!alert.Name
                                 threshold=alert.Threshold
                                 statistic=alert.Statistic
@@ -1306,7 +1305,6 @@
                                 unit=alert.Unit
                                 missingData=alert.MissingData
                                 dimensions=getResourceMetricDimensions(monitoredResource, ( resources + { "cluster" : parentResources["cluster"] } ) )
-                                dependencies=monitoredResource.Id
                             /]
                         [#break]
                     [/#switch]

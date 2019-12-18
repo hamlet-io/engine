@@ -85,7 +85,16 @@
 [/#function]
 
 [#-- Metric Dimensions are extended dynamically by each resouce type --]
-[#assign metricAttributes = {}]
+[#assign metricAttributes = {
+    "_none" : {
+        "Namespace" : "",
+        "Dimensions" : {
+            "None" : {
+                "None" : ""
+            }
+        }
+    }
+}]
 
 [#-- Include a reference to a resource --]
 [#-- Allows resources to share a template or be separated --]
