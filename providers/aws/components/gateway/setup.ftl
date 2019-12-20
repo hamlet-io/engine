@@ -54,10 +54,7 @@
 
                     [@createEIP
                         id=eipId
-                        tags=getOccurrenceCoreTags(
-                            occurrence,
-                            eipName
-                        )
+                        tags=[]
                     /]
 
                 [/#if]
