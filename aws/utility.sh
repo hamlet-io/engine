@@ -1842,14 +1842,14 @@ function check_rds_snapshot_username() {
 }
 
 function get_rds_url() {
-  local engine="$1"; shift
+  local scheme="$1"; shift
   local username="$1"; shift
   local password="$1"; shift
   local fqdn="$1"; shift
   local port="$1"; shift
   local database_name="$1"; shift
 
-  echo "${engine}://${username}:${password}@${fqdn}:${port}/${database_name}"
+  echo "${scheme}://${username}:${password}@${fqdn}:${port}/${database_name}"
 }
 
 function update_rds_ca_identifier() {
