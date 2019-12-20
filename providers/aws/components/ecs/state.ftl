@@ -58,8 +58,8 @@
     [/#list]
 
     [#local autoScaling = {}]
-    [#if solution.ScalingPolicies?has_content ]
-        [#list solution.ScalingPolicies as name, scalingPolicy ]
+    [#if solution.HostScalingPolicies?has_content ]
+        [#list solution.HostScalingPolicies as name, scalingPolicy ]
 
             [#if scalingPolicy.Type == "scheduled" ]
                 [#local autoScaling +=
