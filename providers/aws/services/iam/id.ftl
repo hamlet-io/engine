@@ -69,3 +69,17 @@
                 component,
                 extensions)]
 [/#function]
+
+
+[#function formatServiceLinkedRoleArn trustedService roleName ]
+    [#return
+        formatGlobalArn(
+            "iam"
+            formatRelativePath(
+                "role",
+                trustedService,
+                roleName
+            )
+        )
+    ]
+[/#function]

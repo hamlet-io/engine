@@ -58,8 +58,8 @@
     [/#list]
 
     [#local autoScaling = {}]
-    [#if solution.ScalingPolicies?has_content ]
-        [#list solution.ScalingPolicies as name, scalingPolicy ]
+    [#if solution.HostScalingPolicies?has_content ]
+        [#list solution.HostScalingPolicies as name, scalingPolicy ]
 
             [#if scalingPolicy.Type == "scheduled" ]
                 [#local autoScaling +=
@@ -179,11 +179,6 @@
                 "scalingTarget" : {
                     "Id" : formatResourceId(AWS_AUTOSCALING_APP_TARGET_RESOURCE_TYPE, core.Id),
                     "Type" : AWS_AUTOSCALING_APP_TARGET_RESOURCE_TYPE
-                },
-                "scalingRole" :  {
-                    "Id" : formatDependentRoleId(serviceId, "scalingRole"),
-                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE,
-                    "IncludeInDeploymentState" : false
                 }
             }
         ]

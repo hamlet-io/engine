@@ -230,6 +230,11 @@
                 "Description" : "Cluster specific configuration when using a clustered database engine",
                 "Children" : [
                     {
+                        "Names" : "ScalingPolicies",
+                        "Subobjects" : true,
+                        "Children" : scalingPolicyChildrenConfiguration
+                    },
+                    {
                         "Names" : "Parameters",
                         "Description" : "Cluster level database parameters",
                         "Subobjects" : true,

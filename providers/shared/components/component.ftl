@@ -439,6 +439,11 @@
                     "Names" : "ScaleInEnabled",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : true
+                },
+                {
+                    "Names" : "RecommendedMetric",
+                    "Description" : "Use a recommended (predefined) metric for scaling",
+                    "Type" : STRING_TYPE
                 }
             ]
         },
