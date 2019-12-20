@@ -1,11 +1,10 @@
 [#ftl]
-[#macro aws_s3_cf_solution occurrence ]
-    [@debug message="Entering" context=occurrence enabled=false /]
+[#macro aws_s3_cf_genplan_solution occurrence ]
+    [@addDefaultGenerationPlan subsets="template" /]
+[/#macro]
 
-    [#if deploymentSubsetRequired("genplan", false)]
-        [@addDefaultGenerationPlan subsets="template" /]
-        [#return]
-    [/#if]
+[#macro aws_s3_cf_setup_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
@@ -81,7 +80,7 @@
                                     formatS3NotificationPolicyId(
                                         s3Id,
                                         resourceId) ]
-                                
+
                                 [#local dependencies += [policyId] ]
 
                                 [#if deploymentSubsetRequired("s3", true)]
@@ -102,7 +101,7 @@
                                     formatS3NotificationPolicyId(
                                         s3Id,
                                         resourceId) ]
-                                        
+
                                 [#local dependencies += [ policyId ]]
 
                                 [#if deploymentSubsetRequired("s3", true )]
@@ -115,8 +114,8 @@
                         [/#switch]
 
                         [#list notification.Events as event ]
-                            [#local notifications += 
-                                    getS3Notification(resourceId, resourceType, event, notification.Prefix, notification.Suffix) ]     
+                            [#local notifications +=
+                                    getS3Notification(resourceId, resourceType, event, notification.Prefix, notification.Suffix) ]
                         [/#list]
                     [/#if]
                 [/#if]
@@ -184,7 +183,7 @@
 
                     [#local originPath = (linkTargetConfiguration.Solution.Origin.BasePath)?remove_ending("/") ]
                     [#if linkDirection == "inbound" ]
-                        [#local policyStatements += 
+                        [#local policyStatements +=
                                 s3ReadPermission(
                                     s3Name,
                                     originPath,

@@ -1,11 +1,10 @@
 [#ftl]
-[#macro aws_user_cf_application occurrence ]
-    [@debug message="Entering" context=occurrence enabled=false /]
+[#macro aws_user_cf_genplan_application occurrence ]
+    [@addDefaultGenerationPlan subsets=["prologue", "template", "epilogue"] /]
+[/#macro]
 
-    [#if deploymentSubsetRequired("genplan", false)]
-        [@addDefaultGenerationPlan subsets=["prologue", "template", "epilogue"] /]
-        [#return]
-    [/#if]
+[#macro aws_user_cf_setup_application occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#local core = occurrence.Core ]
     [#local resources = occurrence.State.Resources]

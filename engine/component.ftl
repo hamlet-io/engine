@@ -167,19 +167,26 @@
     [#return profile[key]!{} ]
 [/#function]
 
-[#function invokeComponentMacro occurrence resourceGroup levels=[] parent={} baseState={} ]
+[#function invokeComponentMacro occurrence resourceGroup type qualifiers=[] parent={} baseState={} ]
     [#local placement = (occurrence.State.ResourceGroups[resourceGroup].Placement)!{} ]
     [#if placement?has_content]
         [#local macroOptions = [] ]
-            [#list asArray(levels) as level]
-                [#-- An empty level is assumed to be ignored --]
-                [#local macroOptions +=
-                    [
-                        [placement.Provider, occurrence.Core.Type, resourceGroup, placement.DeploymentFramework, level],
-                        [placement.Provider, occurrence.Core.Type, placement.DeploymentFramework, level],
-                        [placement.Provider, resourceGroup, placement.DeploymentFramework, level]
-                    ]]
-            [/#list]
+        [#list asArray(qualifiers) as qualifier]
+            [#-- An empty level is assumed to be ignored --]
+            [#local macroOptions +=
+                [
+                    [placement.Provider, occurrence.Core.Type, resourceGroup, placement.DeploymentFramework, type, qualifier],
+                    [placement.Provider, occurrence.Core.Type, placement.DeploymentFramework, type, qualifier],
+                    [placement.Provider, resourceGroup, placement.DeploymentFramework, type, qualifier]
+                ]]
+        [/#list]
+
+        [#local macroOptions +=
+            [
+                [placement.Provider, occurrence.Core.Type, resourceGroup, placement.DeploymentFramework, type],
+                [placement.Provider, occurrence.Core.Type, placement.DeploymentFramework, type],
+                [placement.Provider, resourceGroup, placement.DeploymentFramework, type]
+            ]]
         [#local macro = getFirstDefinedDirective(macroOptions)]
         [#if macro?has_content]
             [#if parent?has_content || baseState?has_content]
@@ -196,22 +203,35 @@
             [@debug
                 message="Unable to invoke any of the macro options"
                 context=macroOptions
-                enabled=false
+                enabled=true
             /]
         [/#if]
     [/#if]
     [#return false]
 [/#function]
 
-[#function invokeSetupMacro occurrence resourceGroup levels=[] ]
+[#function invokeSetupMacro occurrence resourceGroup qualifiers=[] ]
     [#return
         invokeComponentMacro(
             occurrence,
             resourceGroup,
-            levels,
+            "setup",
+            qualifiers,
             {},
             {}
-        ) ]
+        )]
+[/#function]
+
+[#function invokeGenPlanMacro occurrence resourceGroup qualifiers=[] ]
+    [#return
+        invokeComponentMacro(
+            occurrence,
+            resourceGroup,
+            "genplan",
+            qualifiers,
+            {},
+            {}
+        )]
 [/#function]
 
 [#function invokeStateMacro occurrence resourceGroup parent={} baseState={} ]
@@ -220,9 +240,10 @@
             occurrence,
             resourceGroup,
             "state",
+            [],
             parent,
             baseState
-        ) ]
+        )]
 [/#function]
 
 [#-- Tiers --]

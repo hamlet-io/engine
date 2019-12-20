@@ -1,11 +1,10 @@
 [#ftl]
-[#macro aws_cdn_cf_solution occurrence ]
-    [@debug message="Entering" context=occurrence enabled=false /]
+[#macro aws_cdn_cf_genplan_solution occurrence ]
+    [@addDefaultGenerationPlan subsets=["template", "epilogue"] /]
+[/#macro]
 
-    [#if deploymentSubsetRequired("genplan", false)]
-        [@addDefaultGenerationPlan subsets=["template", "epilogue"] /]
-        [#return]
-    [/#if]
+[#macro aws_cdn_cf_setup_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#local core = occurrence.Core ]
     [#local resources = occurrence.State.Resources]
@@ -365,7 +364,7 @@
 
         [#local errorResponses = []]
         [#if solution.Pages.NotFound?has_content || solution.Pages.Error?has_content ]
-            [#local errorResponses += 
+            [#local errorResponses +=
                 getErrorResponse(
                         404,
                         200,
@@ -377,7 +376,7 @@
         [/#if]
 
         [#if solution.Pages.Denied?has_content || solution.Pages.Error?has_content ]
-            [#local errorResponses += 
+            [#local errorResponses +=
                 getErrorResponse(
                         403,
                         200,
@@ -389,14 +388,14 @@
         [/#if]
 
         [#list solution.ErrorResponseOverrides as key,errorResponseOverride ]
-            [#local errorResponses += 
+            [#local errorResponses +=
                 getErrorResponse(
                         errorResponseOverride.ErrorCode,
                         errorResponseOverride.ResponseCode,
                         errorResponseOverride.ResponsePagePath
                 )
             ]
-        [/#list] 
+        [/#list]
 
         [@createCFDistribution
             id=cfId

@@ -1,11 +1,10 @@
 [#ftl]
-[#macro aws_userpool_cf_solution occurrence ]
-    [@debug message="Entering" context=occurrence enabled=false /]
+[#macro aws_userpool_cf_genplan_solution occurrence ]
+    [@addDefaultGenerationPlan subsets=["prologue", "template", "epilogue", "cli"] /]
+[/#macro]
 
-    [#if deploymentSubsetRequired("genplan", false)]
-        [@addDefaultGenerationPlan subsets=["prologue", "template", "epilogue", "cli"] /]
-        [#return]
-    [/#if]
+[#macro aws_userpool_cf_setup_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
@@ -25,7 +24,7 @@
         [#local userPoolCustomDomainCertArn = resources["customdomain"].CertificateArn]
 
         [#if ! userPoolCustomDomainCertArn?has_content ]
-            [@fatal 
+            [@fatal
                 message="ACM Certificate required in us-east-1"
                 context=resources
                 enabled=true
@@ -342,7 +341,7 @@
                                             )]
                     [#local samlIDPSignout = (environment[settingsPrefix + "SAML_IDP_SIGNOUT"])?has_content?then(
                                                     (environment[settingsPrefix + "SAML_IDP_SIGNOUT"]),
-                                                    subSolution.SAML.EnableIDPSignOut?c 
+                                                    subSolution.SAML.EnableIDPSignOut?c
                                             )]
 
                     [#local providerDetails = {
@@ -365,7 +364,7 @@
                                                 subSolution.OIDC.Scopes?join(","),
                                                 (environment[settingsPrefix + "OIDC_SCOPES"])!"COTFatal: Scopes not defined"
                                             )]
-                    
+
                     [#local oidcAttributesMethod = subSolution.OIDC.AttributesHttpMethod?has_content?then(
                                                 subSolution.OIDC.AttributesHttpMethod,
                                                 (environment[settingsPrefix + "OIDC_ATTRIBUTES_HTTP_METHOD"])!"COTFatal: AttributesHttpMethod not defined"
@@ -375,7 +374,7 @@
                                                 subSolution.OIDC.Issuer,
                                                 (environment[settingsPrefix + "OIDC_ISSUER"])!"COTFatal: Issuer not defined"
                                             )]
-                    
+
                     [#local oidcAuthorizeUrl = subSolution.OIDC.AuthorizeUrl?has_content?then(
                                                 subSolution.OIDC.AuthorizeUrl,
                                                 (environment[settingsPrefix + "OIDC_AUTHORIZE_URL"])!"COTFatal: AuthorizeUrl not defined"
@@ -385,7 +384,7 @@
                                                 subSolution.OIDC.TokenUrl,
                                                 (environment[settingsPrefix + "OIDC_TOKEN_URL"])!"COTFatal: TokenUrl not defined"
                                             )]
-                    
+
                     [#local oidcAttributesUrl = subSolution.OIDC.AttributesUrl?has_content?then(
                                                 subSolution.OIDC.AttributesUrl,
                                                 (environment[settingsPrefix + "OIDC_ATTRIBUTES_URL"])!"COTFatal: AttributesUrl not defined"
@@ -435,7 +434,7 @@
                         "       \"" + region + "\" " +
                         "       \"$\{userPoolId}\" " +
                         "       \"" + authProviderName + "\" " +
-                        "       \"" + authProviderEngine + "\" " + 
+                        "       \"" + authProviderEngine + "\" " +
                         (authProviderEngine == "OIDC" )?then(
                             "       \"" + subSolution.EncryptionScheme + "\" \"" + (oidcClientSecret!"") + "\" ",
                             "       \"\" \"\" "

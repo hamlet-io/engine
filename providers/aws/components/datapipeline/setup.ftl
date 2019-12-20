@@ -1,11 +1,10 @@
 [#ftl]
-[#macro aws_datapipeline_cf_application occurrence ]
-    [@debug message="Entering" context=occurrence enabled=false /]
+[#macro aws_datapipeline_cf_genplan_application occurrence ]
+    [@addDefaultGenerationPlan subsets=["prologue", "template", "epilogue", "cli", "config"] /]
+[/#macro]
 
-    [#if deploymentSubsetRequired("genplan", false)]
-        [@addDefaultGenerationPlan subsets=["prologue", "template", "epilogue", "cli", "config"] /]
-        [#return]
-    [/#if]
+[#macro aws_datapipeline_cf_setup_application occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]

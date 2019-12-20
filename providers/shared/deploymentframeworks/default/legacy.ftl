@@ -39,15 +39,25 @@
                             }
                     /]
 
-                    [@debug message=occurrence enabled=false /]
-
                     [#list occurrence.State.ResourceGroups as key,value]
-                        [#if invokeSetupMacro(occurrence, key, ["setup", level]) ]
-                            [@debug
-                                message="Processing " + key + " ..."
-                                enabled=false
-                            /]
-                        [/#if]
+                        [#switch commandLineOptions.Deployment.Unit.Subset ]
+                            [#case "genplan" ]/]
+                                [#if invokeGenPlanMacro(occurrence, key, ["genplan", level] ) ]
+                                    [@debug
+                                        message="GenPlan Processing key:" + key + "level:" + level + "..."
+                                        enabled=false
+                                    /]
+                                [/#if]
+                                [#break]
+
+                            [#default]
+                                [#if invokeSetupMacro(occurrence, key, ["setup", level]) ]
+                                    [@debug
+                                        message="Processing " + key + " ..."
+                                        enabled=false
+                                    /]
+                                [/#if]
+                        [/#switch]
                     [/#list]
                     [#local processingEnd = .now]
                     [@timing

@@ -1,11 +1,10 @@
 [#ftl]
-[#macro aws_baseline_cf_segment occurrence ]
-    [@debug message="Entering" context=occurrence enabled=false /]
+[#macro aws_baseline_cf_genplan_segment occurrence ]
+    [@addDefaultGenerationPlan subsets=["prologue", "template", "epilogue"] /]
+[/#macro]
 
-    [#if deploymentSubsetRequired("genplan", false)]
-        [@addDefaultGenerationPlan subsets=["prologue", "template", "epilogue"] /]
-        [#return]
-    [/#if]
+[#macro aws_baseline_cf_setup_segment occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]

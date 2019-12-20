@@ -1,11 +1,10 @@
 [#ftl]
-[#macro aws_es_cf_solution occurrence ]
-    [@debug message="Entering" context=occurrence enabled=false /]
+[#macro aws_es_cf_genplan_solution occurrence ]
+    [@addDefaultGenerationPlan subsets=["template", "epilogue", "cli"] /]å
+[/#macro]
 
-    [#if deploymentSubsetRequired("genplan", false)]
-        [@addDefaultGenerationPlan subsets=["template", "epilogue", "cli"] /]
-        [#return]
-    [/#if]
+[#macro aws_es_cf_setup_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]

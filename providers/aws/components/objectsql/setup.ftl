@@ -1,12 +1,10 @@
 [#ftl]
+[#macro aws_objectsql_cf_genplan_solution occurrence ]
+    [@addDefaultGenerationPlan subsets=["cli", "prologue"] /]
+[/#macro]
 
-[#macro aws_objectsql_cf_solution occurrence ]
+[#macro aws_objectsql_cf_setup_solution occurrence ]
     [@debug message="Entering" context=occurrence enabled=true /]
-
-    [#if deploymentSubsetRequired("genplan", false)]
-        [@addDefaultGenerationPlan subsets=["cli", "prologue"] /]
-        [#return]
-    [/#if]
 
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
@@ -30,12 +28,12 @@
     [#local dataPrefix = getAppDataFilePrefix(occurrence) ]
 
     [#local kmsKeyId = baselineComponentIds["Encryption"] ]
-    
+
     [#local outputLocation = formatRelativePath( "s3://", dataBucket, dataPrefix, "/" )]
 
     [#local resultConfiguration = {
         "OutputLocation": outputLocation
-    } + 
+    } +
     ( solution.Encrypted )?then(
         {
             "EncryptionConfiguration" : {
@@ -46,7 +44,7 @@
         {}
     )]
 
-    [#local workGroupConfig = 
+    [#local workGroupConfig =
         {
             "EnforceWorkGroupConfiguration": true,
             "PublishCloudWatchMetricsEnabled": true
@@ -59,15 +57,15 @@
     ]
 
     [#if deploymentSubsetRequired("cli", true) ]
- 
+
         [@addCliToDefaultJsonOutput
             id=workGroupCreateId
             command=workGroupCreateCommand
             content={
                 "Name" : workGroupName,
-                "Configuration" : 
-                    mergeObjects( 
-                        workGroupConfig, 
+                "Configuration" :
+                    mergeObjects(
+                        workGroupConfig,
                         {
                             "ResultConfiguration" : resultConfiguration
                         }
@@ -80,7 +78,7 @@
             command=workGroupUpdateCommand
             content={
                 "WorkGroup" : workGroupName,
-                "ConfigurationUpdates" : 
+                "ConfigurationUpdates" :
                         mergeObjects(
                             workGroupConfig,
                             {
@@ -103,28 +101,28 @@
                     "       info \"Setting up athena workgroup " + workGroupName + "\"",
                     "       if [[ -z \"$\{workgroup_deployed}\" ]]; then ",
                     "           info \"Creating Athena workgroup\"",
-                    "           aws --region " + region + 
+                    "           aws --region " + region +
                     "           athena create-work-group --cli-input-json \"file://$\{tmpdir}/cli-" +
                                         workGroupCreateId + "-" + workGroupCreateCommand + ".json\" || exit $?",
                     "       else",
                     "           info \"Updating Athena workgroup" + workGroupName + "\"",
-                    "           aws --region " + region + 
+                    "           aws --region " + region +
                     "           athena update-work-group --cli-input-json \"file://$\{tmpdir}/cli-" +
                                     workGroupUpdateId + "-" + workGroupUpdateCommand + ".json\" || exit $?",
                     "        fi"
-                ] + 
+                ] +
                     pseudoStackOutputScript(
                         "Athena WorkGroup",
                         {
                             formatId( workGroupId, NAME_ATTRIBUTE_TYPE ) : workGroupName
                         }
-                    ) + 
+                    ) +
                 [
                     "       ;;",
                     "  delete)",
                     "       if [[ -n \"$\{workgroup_deployed}\" ]]; then ",
                     "           info \"Deleting Athena workgroup" + workGroupName + "\"",
-                    "           aws --region " + region + " athena delete-work-group --work-group \"" + workGroupName + "\" --recursive-delete-option || exit $?", 
+                    "           aws --region " + region + " athena delete-work-group --work-group \"" + workGroupName + "\" --recursive-delete-option || exit $?",
                     "       fi",
                     " ;;",
                     "esac"
