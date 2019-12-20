@@ -249,6 +249,11 @@
                 "Mandatory" : true
             },
             {
+                "Names" : "IPAddressGroups",
+                "Type" : ARRAY_OF_STRING_TYPE,
+                "Default" : ["_global"]
+            },
+            {
                 "Names" : "Links",
                 "Subobjects" : true,
                 "Children" : linkChildrenConfiguration
