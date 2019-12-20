@@ -591,7 +591,7 @@
                     [
                         "info \"Generating URL... \"",
                         "rds_url=\"$(get_rds_url" +
-                        " \"" + hostType + "\" " +
+                        " \"" + engine + "\" " +
                         " \"" + rdsUsername + "\" " +
                         " \"$\{master_password}\" " +
                         " \"$\{rds_hostname}\" " +
@@ -606,7 +606,7 @@
                         [
                             "info \"Generating URL... \"",
                             "rds_read_url=\"$(get_rds_url" +
-                            " \"" + hostType + "\" " +
+                            " \"" + engine + "\" " +
                             " \"" + rdsUsername + "\" " +
                             " \"$\{master_password}\" " +
                             " \"$\{rds_read_hostname}\" " +
