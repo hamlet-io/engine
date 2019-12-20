@@ -1,6 +1,6 @@
 [#ftl]
 
-[#macro aws_apigateway_cf_genplan_application ]
+[#macro aws_apigateway_cf_genplan_application occurrence ]
     [@addDefaultGenerationPlan subsets=["pregeneration", "prologue", "template", "epilogue", "config"] /]
 [/#macro]
 

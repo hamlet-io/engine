@@ -172,7 +172,6 @@
     [#if placement?has_content]
         [#local macroOptions = [] ]
         [#list asArray(qualifiers) as qualifier]
-            [#-- An empty level is assumed to be ignored --]
             [#local macroOptions +=
                 [
                     [placement.Provider, occurrence.Core.Type, resourceGroup, placement.DeploymentFramework, type, qualifier],

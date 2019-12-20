@@ -42,18 +42,18 @@
                     [#list occurrence.State.ResourceGroups as key,value]
                         [#switch commandLineOptions.Deployment.Unit.Subset ]
                             [#case "genplan" ]/]
-                                [#if invokeGenPlanMacro(occurrence, key, ["genplan", level] ) ]
+                                [#if invokeGenPlanMacro(occurrence, key, [ level ] ) ]
                                     [@debug
-                                        message="GenPlan Processing key:" + key + "level:" + level + "..."
+                                        message="Genplan Processing key:" + key + "..."
                                         enabled=false
                                     /]
                                 [/#if]
                                 [#break]
 
                             [#default]
-                                [#if invokeSetupMacro(occurrence, key, ["setup", level]) ]
+                                [#if invokeSetupMacro(occurrence, key, [ level ] ) ]
                                     [@debug
-                                        message="Processing " + key + " ..."
+                                        message="Setup Processing " + key + " ..."
                                         enabled=false
                                     /]
                                 [/#if]
