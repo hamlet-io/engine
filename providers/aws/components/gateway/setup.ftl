@@ -1,11 +1,10 @@
 [#ftl]
-[#macro aws_gateway_cf_segment occurrence ]
-    [@debug message="Entering" context=occurrence enabled=false /]
+[#macro aws_gateway_cf_genplan_segment occurrence ]
+    [@addDefaultGenerationPlan subsets="template" /]
+[/#macro]
 
-    [#if deploymentSubsetRequired("genplan", false)]
-        [@addDefaultGenerationPlan subsets="template" /]
-        [#return]
-    [/#if]
+[#macro aws_gateway_cf_setup_segment occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#local gwCore = occurrence.Core ]
     [#local gwSolution = occurrence.Configuration.Solution ]

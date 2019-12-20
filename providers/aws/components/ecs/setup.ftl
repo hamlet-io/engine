@@ -1,11 +1,10 @@
 [#ftl]
-[#macro aws_ecs_cf_solution occurrence ]
-    [@debug message="Entering" context=occurrence enabled=false /]
+[#macro aws_ecs_cf_genplan_solution occurrence ]
+    [@addDefaultGenerationPlan subsets="template" /]
+[/#macro]
 
-    [#if deploymentSubsetRequired("genplan", false)]
-        [@addDefaultGenerationPlan subsets="template" /]
-        [#return]
-    [/#if]
+[#macro aws_ecs_cf_setup_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
@@ -479,13 +478,12 @@
     [/#if]
 [/#macro]
 
-[#macro aws_ecs_cf_application occurrence ]
-    [@debug message="Entering" context=occurrence enabled=false /]
+[#macro aws_ecs_cf_genplan_application occurrence ]
+    [@addDefaultGenerationPlan subsets=["prologue", "template", "epilogue", "cli"] /]å
+[/#macro]
 
-    [#if deploymentSubsetRequired("genplan", false)]
-        [@addDefaultGenerationPlan subsets=["prologue", "template", "epilogue", "cli"] /]
-        [#return]
-    [/#if]
+[#macro aws_ecs_cf_setup_application occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#local parentResources = occurrence.State.Resources]
     [#local parentSolution = occurrence.Configuration.Solution ]

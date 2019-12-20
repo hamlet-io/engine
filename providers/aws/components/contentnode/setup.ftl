@@ -1,11 +1,10 @@
 [#ftl]
-[#macro aws_contentnode_cf_application occurrence ]
-    [@debug message="Entering" context=occurrence enabled=false /]
+[#macro aws_contentnode_cf_genplan_application occurrence ]
+    [@addDefaultGenerationPlan subsets="prologue" /]
+[/#macro]
 
-    [#if deploymentSubsetRequired("genplan", false)]
-        [@addDefaultGenerationPlan subsets="prologue" /]
-        [#return]
-    [/#if]
+[#macro aws_contentnode_cf_setup_application occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
@@ -62,7 +61,7 @@
                                         "\"" +    linkTargetAttributes.REPOSITORY + "\" " +
                                         "\"" +    linkTargetAttributes.PREFIX + "\" " +
                                         "\"" +    pathObject + "\" " +
-                                        "\"" +    linkTargetAttributes.BRANCH + "\" " + 
+                                        "\"" +    linkTargetAttributes.BRANCH + "\" " +
                                         "\"replace\" || return $? ",
                                 "}",
                                 "#",

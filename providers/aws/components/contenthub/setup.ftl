@@ -1,11 +1,10 @@
 [#ftl]
-[#macro aws_contenthub_cf_solution occurrence ]
-    [@debug message="Entering" context=occurrence enabled=false /]
+[#macro aws_contenthub_cf_genplan_solution occurrence ]
+    [@addDefaultGenerationPlan subsets="prologue" /]
+[/#macro]
 
-    [#if deploymentSubsetRequired("genplan", false)]
-        [@addDefaultGenerationPlan subsets="prologue" /]
-        [#return]
-    [/#if]
+[#macro aws_contenthub_cf_setup_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution ]

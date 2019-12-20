@@ -1,12 +1,11 @@
 [#ftl]
+[#macro aws_lambda_cf_genplan_application occurrence ]
+    [@addDefaultGenerationPlan subsets=["prologue", "template", "config"] /]
+[/#macro]
 
-[#macro aws_lambda_cf_application occurrence ]
+[#macro aws_lambda_cf_setup_application occurrence ]
     [@debug message="Entering" context=occurrence enabled=false /]
 
-    [#if deploymentSubsetRequired("genplan", false)]
-        [@addDefaultGenerationPlan subsets=["prologue", "template", "config"] /]
-        [#return]
-    [/#if]
     [#list occurrence.Occurrences as fn]
         [@internalProcessFunction fn /]
     [/#list]

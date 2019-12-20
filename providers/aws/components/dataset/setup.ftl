@@ -1,10 +1,9 @@
 [#ftl]
-[#macro aws_dataset_cf_application occurrence ]
-    [#if deploymentSubsetRequired("genplan", false)]
-        [@addDefaultGenerationPlan subsets=[ "prologue" ] /]
-        [#return]
-    [/#if]
+[#macro aws_dataset_cf_genplan_application occurrence ]
+    [@addDefaultGenerationPlan subsets=[ "prologue" ] /]
+[#/macro]
 
+[#macro aws_dataset_cf_setup_application occurrence ]
     [#if deploymentSubsetRequired("prologue", false)]
         [@addToDefaultBashScriptOutput
             [

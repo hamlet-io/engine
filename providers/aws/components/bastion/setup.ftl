@@ -1,11 +1,10 @@
 [#ftl]
-[#macro aws_bastion_cf_segment occurrence ]
-    [@debug message="Entering" context=occurrence enabled=false /]
+[#macro aws_bastion_cf_genplan_segment occurrence ]
+    [@addDefaultGenerationPlan subsets="template" /]
+[/#macro]
 
-    [#if deploymentSubsetRequired("genplan", false)]
-        [@addDefaultGenerationPlan subsets="template" /]
-        [#return]
-    [/#if]
+[#macro aws_bastion_cf_setup_segment occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]

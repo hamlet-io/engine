@@ -1,26 +1,18 @@
 [#ftl]
-[#macro aws_spa_cf_solution occurrence ]
-    [#if deploymentSubsetRequired("genplan", false)]
-        [@addDefaultGenerationPlan subsets=["prologue" ] /]
-        [#return]
-    [/#if]
-
-    [#if deploymentSubsetRequired("prologue", false)]
-        [@addToDefaultBashScriptOutput
-            [
-                "warning \"solution level spa components have been deprecated. Please remove this component\""
-            ]
-        /]
-    [/#if]
+[#macro aws_spa_cf_genplan_solution occurrence ]
+    [@addDefaultGenerationPlan subsets=[] /]
+    [@error
+        message="Solution SPA Deprecation"
+        context="Solution SPA has been replaced with the CDN component - please remove this unit from you solution level units"
+    /]
 [/#macro]
 
-[#macro aws_spa_cf_application occurrence  ]
-    [@debug message="Entering" context=occurrence enabled=false /]
+[#macro aws_spa_cf_genplan_application occurrence  ]
+    [@addDefaultGenerationPlan subsets=["prologue", "config", "epilogue" ] /]
+[/#macro]
 
-    [#if deploymentSubsetRequired("genplan", false)]
-        [@addDefaultGenerationPlan subsets=["prologue", "config", "epilogue" ] /]
-        [#return]
-    [/#if]
+[#macro aws_spa_cf_setup_application occurrence  ]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]

@@ -1,11 +1,11 @@
 [#ftl]
-[#macro aws_apigateway_cf_application occurrence ]
-    [@debug message="Entering" context=occurrence enabled=false /]
 
-    [#if deploymentSubsetRequired("genplan", false)]
-        [@addDefaultGenerationPlan subsets=["pregeneration", "prologue", "template", "epilogue", "config"] /]
-        [#return]
-    [/#if]
+[#macro aws_apigateway_cf_genplan_application occurrence ]
+    [@addDefaultGenerationPlan subsets=["pregeneration", "prologue", "template", "epilogue", "config"] /]
+[/#macro]
+
+[#macro aws_apigateway_cf_setup_application occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
