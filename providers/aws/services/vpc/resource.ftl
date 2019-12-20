@@ -303,7 +303,7 @@
 
 [#macro createEIP
             id
-            tags
+            tags=[]
             dependencies=""]
     [@cfResource
         id=id
