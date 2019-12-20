@@ -203,7 +203,7 @@
             [@debug
                 message="Unable to invoke any of the macro options"
                 context=macroOptions
-                enabled=true
+                enabled=false
             /]
         [/#if]
     [/#if]
