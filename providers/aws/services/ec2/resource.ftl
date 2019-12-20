@@ -16,13 +16,13 @@
     }
 ]
 
-[@addOutputMapping 
+[@addOutputMapping
     provider=AWS_PROVIDER
     resourceType=AWS_EC2_AUTO_SCALE_GROUP_RESOURCE_TYPE
     mappings=AWS_EC2_AUTO_SCALE_GROUP_OUTPUT_MAPPINGS
 /]
 
-[@addOutputMapping 
+[@addOutputMapping
     provider=AWS_PROVIDER
     resourceType=AWS_EC2_EBS_RESOURCE_TYPE
     mappings=AWS_EC2_EBS_VOLUME_OUTPUT_MAPPINGS
@@ -630,44 +630,45 @@
 [/#function]
 
 [#function getBlockDevices storageProfile]
-    [#if (storageProfile.Volumes)?has_content]
-        [#local ebsVolumes = [] ]
-        [#list storageProfile.Volumes?values as volume]
-            [#if volume?is_hash]
-                [#local ebsVolumes +=
-                    [
-                        {
-                            "DeviceName" : volume.Device,
-                            "Ebs" : {
-                                "DeleteOnTermination" : true,
-                                "Encrypted" : false,
-                                "VolumeSize" : volume.Size,
-                                "VolumeType" : "gp2"
+    [#if storageProfile?is_hash ]
+        [#if (storageProfile.Volumes)?has_content]
+            [#local ebsVolumes = [] ]
+            [#list storageProfile.Volumes?values as volume]
+                [#if volume?is_hash]
+                    [#local ebsVolumes +=
+                        [
+                            {
+                                "DeviceName" : volume.Device,
+                                "Ebs" : {
+                                    "DeleteOnTermination" : true,
+                                    "Encrypted" : false,
+                                    "VolumeSize" : volume.Size,
+                                    "VolumeType" : "gp2"
+                                }
                             }
-                        }
+                        ]
                     ]
-                ]
-            [/#if]
-        [/#list]
-        [#return
-            {
-                "BlockDeviceMappings" :
-                    ebsVolumes +
-                    [
-                        {
-                            "DeviceName" : "/dev/sdc",
-                            "VirtualName" : "ephemeral0"
-                        },
-                        {
-                            "DeviceName" : "/dev/sdt",
-                            "VirtualName" : "ephemeral1"
-                        }
-                    ]
-            }
-        ]
-    [#else]
-        [#return {} ]
+                [/#if]
+            [/#list]
+            [#return
+                {
+                    "BlockDeviceMappings" :
+                        ebsVolumes +
+                        [
+                            {
+                                "DeviceName" : "/dev/sdc",
+                                "VirtualName" : "ephemeral0"
+                            },
+                            {
+                                "DeviceName" : "/dev/sdt",
+                                "VirtualName" : "ephemeral1"
+                            }
+                        ]
+                }
+            ]
+        [/#if]
     [/#if]
+    [#return {} ]
 [/#function]
 
 [#macro createEC2LaunchConfig id
