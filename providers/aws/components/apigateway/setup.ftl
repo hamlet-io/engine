@@ -304,7 +304,11 @@
                         "Format" : "$context.identity.sourceIp $context.identity.caller $context.identity.user $context.identity.userArn [$context.requestTime] $context.apiId $context.httpMethod $context.resourcePath $context.protocol $context.status $context.responseLength $context.requestId"
                     }
                 } +
-                attributeIfContent("Variables", stageVariables)
+                attributeIfContent("Variables", stageVariables) +
+                attributeIfTrue(
+                    "TracingEnabled",
+                    ((solution.Tracing.Mode)!"") == "active",
+                    true)
             outputs={}
             dependencies=deployId
         /]

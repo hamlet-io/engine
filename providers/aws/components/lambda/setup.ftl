@@ -298,7 +298,8 @@
                     "Encrypted" : solution.Encrypted,
                     "KMSKeyId" : cmkKeyId,
                     "Name" : fnName,
-                    "Description" : fnName
+                    "Description" : fnName,
+                    "Tracing" : solution.Tracing
                 }
             roleId=roleId
             securityGroupIds=
