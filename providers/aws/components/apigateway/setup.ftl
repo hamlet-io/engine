@@ -12,6 +12,7 @@
     [#local resources = occurrence.State.Resources ]
     [#local attributes = occurrence.State.Attributes ]
     [#local buildSettings = occurrence.Configuration.Settings.Build ]
+    [#local buildRegistry = buildSettings["BUILD_FORMATS"].Value[0] ]
     [#local roles = occurrence.State.Roles]
 
     [#local apiId      = resources["apigateway"].Id]
@@ -27,11 +28,11 @@
 
     [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
-    [#local swaggerFileName ="swagger_" + commandLineOptions.Run.Id + ".json"  ]
-    [#local swaggerFileLocation = formatRelativePath(
+    [#local openapiFileName ="openapi_" + commandLineOptions.Run.Id + ".json"  ]
+    [#local openapiFileLocation = formatRelativePath(
                                                 getSettingsFilePrefix(occurrence),
                                                 "config",
-                                                swaggerFileName)]
+                                                openapiFileName)]
 
     [#-- Baseline component lookup --]
     [#local baselineLinks = getBaselineLinks(occurrence, [ "OpsData", "AppData" ] )]
@@ -67,6 +68,7 @@
     [#local stageVariables += getFinalEnvironment(occurrence, _context ).Environment ]
 
     [#local cognitoPools = {} ]
+    [#local lambdaAuthorizers = {} ]
 
     [#list solution.Links?values as link]
         [#if link?is_hash]
@@ -95,16 +97,30 @@
                     [#break]
 
                 [#case LAMBDA_FUNCTION_COMPONENT_TYPE]
-                    [#-- Add function even if it isn't active so APi gateway if fully configured --]
+                    [#-- Add function even if it isn't active so API gateway is fully configured --]
                     [#-- even if lambda have yet to be deployed                                  --]
-                    [#local stageVariables +=
-                        {
+                    [#local stageVariableName =
                             formatSettingName(
                                 link.Name,
                                 linkTargetCore.SubComponent.Name,
-                                "LAMBDA") : linkTargetResources["function"].Name
+                                "LAMBDA")
+                    ]
+                    [#local stageVariables +=
+                        {
+                            stageVariableName :
+                                linkTargetResources["function"].Name
                         }
                     ]
+                    [#if ["authorise", "authorize"]?seq_contains(linkTarget.Role) ]
+                        [#local lambdaAuthorizers +=
+                            {
+                                link.Name : {
+                                    "Name" : link.Name,
+                                    "StageVariable" : stageVariableName,
+                                    "Default" : true
+                                }
+                            } ]
+                    [/#if]
                     [#break]
 
                 [#case USERPOOL_COMPONENT_TYPE]
@@ -147,11 +163,11 @@
 
     [#-- Determine the resource policy                                                --]
     [#--                                                                              --]
-    [#-- For SIG4 variants, AWS_IAM must be enabled in the swagger specification      --]
+    [#-- For SIG4 variants, AWS_IAM must be enabled in the openAPI specification      --]
     [#-- If AWS_IAM is enabled, it's IAM policy is evaluated in the usual fashion     --]
     [#-- with the resource policy. However if NOT defined, there is no explicit ALLOW --]
     [#-- (at present) so the resource policy must provide one.                        --]
-    [#-- If an "AWS_ALLOW" were introduced in the swagger spec to provide the ALLOW,  --]
+    [#-- If an "AWS_ALLOW" were introduced in the openAPI spec to provide the ALLOW,  --]
     [#-- then the switch below could be simplified.                                   --]
     [#--                                                                              --]
     [#-- NOTE: the format of the resource arn is non-standard and undocumented at the --]
@@ -242,7 +258,7 @@
     [/#if]
 
     [#if deploymentSubsetRequired("apigateway", true)]
-        [#-- Assume extended swagger specification is in the ops bucket --]
+        [#-- Assume extended openAPI specification is in the ops bucket --]
         [@cfResource
             id=apiId
             type="AWS::ApiGateway::RestApi"
@@ -250,7 +266,7 @@
                 {
                     "BodyS3Location" : {
                         "Bucket" : operationsBucket,
-                        "Key" : swaggerFileLocation
+                        "Key" : openapiFileLocation
                     },
                     "Name" : apiName,
                     "Parameters" : {
@@ -565,7 +581,7 @@
                     "   copyFilesFromBucket" + " " +
                         regionId + " " +
                         operationsBucket + " " +
-                        swaggerFileLocation + " " +
+                        openapiFileLocation + " " +
                     "   \"$\{tmpdir}\" || return $?"
                     "   ;;",
                     " esac"
@@ -579,10 +595,10 @@
 
             [#local publisherPath = getContentPath( occurrence, publisher.Path )]
             [#if publisher.UsePathInName ]
-                [#local fileName = formatName( publisherPath, "swagger.json") ]
+                [#local fileName = formatName( publisherPath, buildRegistry + ".json") ]
                 [#local publisherPath = "" ]
             [#else]
-                [#local fileName = "swagger.json" ]
+                [#local fileName = buildRegistry + ".json" ]
             [/#if]
 
             [#list publisherLinks as publisherLinkId, publisherLinkTarget ]
@@ -598,7 +614,7 @@
                                     "case $\{STACK_OPERATION} in",
                                     "  create|update)",
                                     "info \"Sending API Specification to " + id + "-" + publisherLinkTargetCore.FullName + "\"",
-                                    " cp \"$\{tmpdir}/" + swaggerFileName + "\" \"$\{tmpdir}/" + fileName + "\" ",
+                                    " cp \"$\{tmpdir}/" + openapiFileName + "\" \"$\{tmpdir}/" + fileName + "\" ",
                                     "  copy_contentnode_file \"$\{tmpdir}/" + fileName + "\" " +
                                     "\"" +    publisherLinkTargetAttributes.ENGINE + "\" " +
                                     "\"" +    publisherLinkTargetAttributes.REPOSITORY + "\" " +
@@ -645,16 +661,17 @@
         [@addToDefaultBashScriptOutput
             content=
                 getBuildScript(
-                    "swaggerFiles",
+                    "openapiFiles",
                     regionId,
-                    "swagger",
+                    buildRegistry,
                     productName,
                     occurrence,
-                    "swagger.zip"
+                    buildRegistry + ".zip"
                 ) +
                 [
-                    "get_swagger_definition_file" + " " +
-                            "\"$\{swaggerFiles[0]}\"" + " " +
+                    "get_openapi_definition_file" + " " +
+                            "\"" + buildRegistry + "\"" + " " +
+                            "\"$\{openapiFiles[0]}\"" + " " +
                             "\"" + core.Id + "\"" + " " +
                             "\"" + core.Name + "\"" + " " +
                             "\"" + accountId + "\"" + " " +
@@ -667,25 +684,26 @@
     [/#if]
 
     [#if definitionsObject[core.Id]?? ]
-        [#local swaggerDefinition = definitionsObject[core.Id] ]
-        [#if swaggerDefinition["x-amazon-apigateway-request-validator"]?? ]
+        [#local openapiDefinition = definitionsObject[core.Id] ]
+        [#if openapiDefinition["x-amazon-apigateway-request-validator"]?? ]
             [#-- Pass definition through - it is legacy and has already has been processed --]
-            [#local extendedSwaggerDefinition = swaggerDefinition ]
+            [#local extendedOpenapiDefinition = openapiDefinition ]
         [#else]
-            [#local swaggerIntegrations = getOccurrenceSettingValue(occurrence, [["apigw"], ["Integrations"]], true) ]
-            [#if !swaggerIntegrations?has_content]
+            [#local openapiIntegrations = getOccurrenceSettingValue(occurrence, [["apigw"], ["Integrations"]], true) ]
+            [#if !openapiIntegrations?has_content]
                 [@fatal
                     message="API Gateway integration definitions not found"
                     context=occurrence
                 /]
-                [#local swaggerIntegrations = {} ]
+                [#local openapiIntegrations = {} ]
             [/#if]
-            [#if swaggerIntegrations?is_hash]
-                [#local swaggerContext =
+            [#if openapiIntegrations?is_hash]
+                [#local openapiContext =
                     {
                         "Account" : accountObject.AWSId,
                         "Region" : region,
                         "CognitoPools" : cognitoPools,
+                        "LambdaAuthorizers" : lambdaAuthorizers,
                         "FQDN" : attributes["FQDN"],
                         "Scheme" : attributes["SCHEME"],
                         "BasePath" : attributes["BASE_PATH"],
@@ -694,56 +712,56 @@
                     } ]
 
                 [#-- Determine if there are any roles required by specific methods --]
-                [#local extendedSwaggerRoles = getSwaggerDefinitionRoles(swaggerDefinition, swaggerIntegrations) ]
-                [#list extendedSwaggerRoles as path,policies]
-                    [#local swaggerRoleId = formatDependentRoleId(stageId, formatId(path))]
+                [#local extendedOpenapiRoles = getOpenapiDefinitionRoles(openapiDefinition, openapiIntegrations) ]
+                [#list extendedOpenapiRoles as path,policies]
+                    [#local openapiRoleId = formatDependentRoleId(stageId, formatId(path))]
                     [#-- Roles must be defined in a separate unit so the ARNs are available here --]
                     [#if deploymentSubsetRequired("iam", false)  &&
-                        isPartOfCurrentDeploymentUnit(swaggerRoleId)]
+                        isPartOfCurrentDeploymentUnit(openapiRoleId)]
                         [@createRole
-                            id=swaggerRoleId
+                            id=openapiRoleId
                             trustedServices="apigateway.amazonaws.com"
                             policies=policies
                         /]
                     [/#if]
-                    [#local swaggerContext +=
+                    [#local openapiContext +=
                         {
-                            formatAbsolutePath(path,"rolearn") : getArn(swaggerRoleId, true)
+                            formatAbsolutePath(path,"rolearn") : getArn(openapiRoleId, true)
                         } ]
                 [/#list]
 
-                [#-- Generate the extended swagger specification --]
-                [#local extendedSwaggerDefinition =
-                    extendSwaggerDefinition(
-                        swaggerDefinition,
-                        swaggerIntegrations,
-                        swaggerContext,
+                [#-- Generate the extended openAPI specification --]
+                [#local extendedOpenapiDefinition =
+                    extendOpenapiDefinition(
+                        openapiDefinition,
+                        openapiIntegrations,
+                        openapiContext,
                         true) ]
 
             [#else]
-                [#local extendedSwaggerDefinition = {} ]
+                [#local extendedOpenapiDefinition = {} ]
                 [@fatal
                     message="API Gateway integration definitions should be a hash"
-                    context={ "Integrations" : swaggerIntegrations}
+                    context={ "Integrations" : openapiIntegrations}
                 /]
             [/#if]
         [/#if]
 
-        [#if extendedSwaggerDefinition?has_content]
+        [#if extendedOpenapiDefinition?has_content]
             [#if deploymentSubsetRequired("config", false)]
-                [@addToDefaultJsonOutput content=extendedSwaggerDefinition /]
+                [@addToDefaultJsonOutput content=extendedOpenapiDefinition /]
             [/#if]
         [/#if]
     [/#if]
 
     [#if deploymentSubsetRequired("prologue", false)]
-        [#-- Copy the final swagger definition to the ops bucket --]
+        [#-- Copy the final openAPI definition to the ops bucket --]
         [@addToDefaultBashScriptOutput
             content=
                 getLocalFileScript(
                     "configFiles",
                     "$\{CONFIG}",
-                    "swagger_" + commandLineOptions.Run.Id + ".json"
+                    "openapi_" + commandLineOptions.Run.Id + ".json"
                 ) +
                 syncFilesToBucketScript(
                     "configFiles",

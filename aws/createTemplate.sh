@@ -212,8 +212,9 @@ function options() {
   return 0
 }
 
-function get_swagger_definition_file() {
-  local swagger_zip="$1"; shift
+function get_openapi_definition_file() {
+  local registry="$1"; shift
+  local openapi_zip="$1"; shift
   local id="$1"; shift
   local name="$1"; shift
   local accountId="$1"; shift
@@ -221,20 +222,20 @@ function get_swagger_definition_file() {
   local region="$1"; shift
 
   pushTempDir "${FUNCNAME[0]}_XXXXXX"
-  local swagger_file_dir="$(getTopTempDir)"
+  local openapi_file_dir="$(getTopTempDir)"
 
   # Name definitions based on the component
   local definition_file="${cf_dir}/defn-${name}-${accountId}-${region}-definition.json"
 
-  local swagger_file="${swagger_file_dir}/swagger-extended-base.json"
-  local legacy_swagger_file="${swagger_file_dir}/swagger-${region}-${accountNumber}.json"
-  local swagger_definition=
+  local openapi_file="${openapi_file_dir}/${registry}-extended-base.json"
+  local legacy_openapi_file="${openapi_file_dir}/${registry}-${region}-${accountNumber}.json"
+  local openapi_definition=
 
-  [[ -s "${swagger_zip}" ]] ||
-      { fatal "Unable to locate swagger zip file ${swagger_zip}"; popTempDir; return 1; }
+  [[ -s "${openapi_zip}" ]] ||
+      { fatal "Unable to locate zip file ${openapi_zip}"; popTempDir; return 1; }
 
-  unzip "${swagger_zip}" -d "${swagger_file_dir}"  ||
-      { fatal "Unable to unzip swagger zip file ${swagger_zip}"; popTempDir; return 1; }
+  unzip "${openapi_zip}" -d "${openapi_file_dir}"  ||
+      { fatal "Unable to unzip zip file ${openapi_zip}"; popTempDir; return 1; }
 
   # Use existing legacy files in preference to generation as part of deployment
   # This is mainly so projects using the legacy approach are not affected
@@ -246,19 +247,19 @@ function get_swagger_definition_file() {
   #      "Value" : ... (existing file contents)
   #    }
   # }
-  [[ -f "${swagger_file}"        ]] && swagger_definition="${swagger_file}"
-  [[ -f "${legacy_swagger_file}" ]] && swagger_definition="${legacy_swagger_file}"
+  [[ -f "${openapi_file}"        ]] && openapi_definition="${openapi_file}"
+  [[ -f "${legacy_openapi_file}" ]] && openapi_definition="${legacy_openapi_file}"
 
-  [[ -n "${swagger_definition}" ]] ||
-      { fatal "Unable to locate swagger file in ${swagger_zip}"; popTempDir; return 1; }
+  [[ -n "${openapi_definition}" ]] ||
+      { fatal "Unable to locate ${registry} file in ${openapi_zip}"; popTempDir; return 1; }
 
-  info "Saving ${swagger_definition} to ${definition_file} ..."
+  info "Saving ${openapi_definition} to ${definition_file} ..."
 
   # Index via id to allow definitions to be combined into single composite
-  addJSONAncestorObjects "${swagger_definition}" "${id}" > "${swagger_file_dir}/definition.json" ||
+  addJSONAncestorObjects "${openapi_definition}" "${id}" > "${openapi_file_dir}/definition.json" ||
       { popTempDir; return 1; }
 
-  cp "${swagger_file_dir}/definition.json" "${definition_file}" ||
+  cp "${openapi_file_dir}/definition.json" "${definition_file}" ||
       { popTempDir; return 1; }
 
   popTempDir

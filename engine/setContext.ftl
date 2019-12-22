@@ -1,7 +1,7 @@
 [#ftl]
 [#include "engine.ftl"]
 [#include "common.ftl"]
-[#include "swagger.ftl"]
+[#include "openapi.ftl"]
 
 [#-- Temporary AWS stuff --]
 [#if commandLineOptions.Deployment.Provider.Name = "aws"]
@@ -322,7 +322,7 @@
     [#if commandLineOptions.Deployment.Provider.Name = "aws"]
     [#assign segmentSeed = getExistingReference(formatSegmentSeedId()) ]
 
-    
+
         [#assign legacyVpc = getExistingReference(formatVPCId())?has_content ]
         [#if legacyVpc ]
             [#assign vpc = getExistingReference(formatVPCId())]
@@ -517,8 +517,8 @@
 [@includeSharedReferenceConfiguration referenceType=IPADDRESSGROUP_REFERENCE_TYPE /]
 
 [#if blueprintObject.IPAddressGroups?has_content ]
-    [@addReferenceData type=IPADDRESSGROUP_REFERENCE_TYPE 
-        data=getEffectiveIPAddressGroups(blueprintObject.IPAddressGroups) 
+    [@addReferenceData type=IPADDRESSGROUP_REFERENCE_TYPE
+        data=getEffectiveIPAddressGroups(blueprintObject.IPAddressGroups)
     /]
 [/#if]
 [#assign ipAddressGroups = referenceData.IPAddressGroups!{} ]

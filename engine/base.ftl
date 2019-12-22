@@ -797,6 +797,10 @@ are added.
                               [#list childObject as key,value]
                                   [#if value?is_hash]
                                       [#local subobjectKeys += [key] ]
+                                  [#else]
+                                      [@fatal
+                                        message="Subobject content is not a hash"
+                                        context=childObject /]
                                   [/#if]
                               [/#list]
                             [#else]

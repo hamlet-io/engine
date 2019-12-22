@@ -39,6 +39,7 @@
             [#continue]
         [/#if]
         [#if value?is_sequence]
+            [#local result += {formatSettingName(prefix, key) : {"Value" : value, "Internal" : true}} ]
             [#continue]
         [/#if]
         [#local result += {formatSettingName(prefix, key) : {"Value" : value}} ]
