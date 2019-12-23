@@ -91,18 +91,18 @@
     [#return result]
 [/#function]
 
+[#-- TODO(mfl) Make this work for IPv6 as well --]
+[#-- For now always assume IPv4                --]
 [#function formatWAFIPMatchTuples filter={} valueSet={} ]
     [#local result= [] ]
     [#list getWAFValueList(filter.Targets, valueSet) as target]
-        [#local analyzedCIDR = analyzeCIDR(target) ]
-        [#if analyzedCIDR?has_content]
-            [#local result += [
-                    {
-                        "Type" : analyzedCIDR.Type,
-                        "Value" : target
-                    }
-                ] ]
-        [/#if]
+        [#local result += [
+                {
+                    "Type" : "IPV4",
+                    "Value" : target
+                }
+            ]
+        ]
     [/#list]
     [#return result]
 [/#function]
