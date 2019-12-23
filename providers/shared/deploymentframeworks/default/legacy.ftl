@@ -41,7 +41,7 @@
 
                     [#list occurrence.State.ResourceGroups as key,value]
                         [#switch commandLineOptions.Deployment.Unit.Subset ]
-                            [#case "genplan" ]/]
+                            [#case "genplan" ]
                                 [#if invokeGenPlanMacro(occurrence, key, [ level ] ) ]
                                     [@debug
                                         message="Genplan Processing key:" + key + "..."
