@@ -97,14 +97,28 @@
             attributeIfTrue(
                 "KmsKeyArn",
                 settings.Encrypted!false,
-                getReference(settings.KMSKeyId, ARN_ATTRIBUTE_TYPE)) +
+                getReference(settings.KMSKeyId, ARN_ATTRIBUTE_TYPE)
+            ) +
             attributeIfContent(
                 "VpcConfig",
                 securityGroupIds,
                 {
                     "SecurityGroupIds" : getReferences(securityGroupIds),
                     "SubnetIds" : getReferences(subnetIds)
-                })
+                }
+            ) +
+            attributeIfContent(
+                "TracingConfig",
+                settings.Tracing.Mode!"",
+                {
+                    "Mode" :
+                        valueIfTrue(
+                            "Active",
+                            (settings.Tracing.Mode!"") == "active",
+                            "PassThrough")
+                }
+            )
+
         outputs=LAMBDA_FUNCTION_OUTPUT_MAPPINGS
         dependencies=dependencies
     /]

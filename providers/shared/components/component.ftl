@@ -953,3 +953,13 @@
         ]
     }
 ]]
+
+[#assign tracingChildConfiguration =
+    [
+        {
+            "Names" : "Mode",
+            "Type" : STRING_TYPE,
+            "Values" : ["active", "passthrough"]
+        }
+    ]
+]

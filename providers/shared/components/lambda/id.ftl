@@ -183,6 +183,10 @@
                             "Default" : "default"
                         }
                     ]
+            },
+            {
+                "Names" : "Tracing",
+                "Children" : tracingChildConfiguration
             }
         ]
     parent=LAMBDA_COMPONENT_TYPE

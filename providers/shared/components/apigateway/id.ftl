@@ -216,6 +216,10 @@ object.
                 "Type" : STRING_TYPE,
                 "Values" : [ "ignore", "prepend", "split" ],
                 "Default" : "ignore"
+            },
+            {
+                "Names" : "Tracing",
+                "Children" : tracingChildConfiguration
             }
         ]
 /]
