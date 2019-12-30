@@ -167,7 +167,7 @@
     [#return profile[key]!{} ]
 [/#function]
 
-[#function invokeComponentMacro occurrence resourceGroup type qualifiers=[] parent={} baseState={} ]
+[#function invokeComponentMacro occurrence resourceGroup type qualifiers=[] parent={} baseState={} includeShared=false ]
     [#local placement = (occurrence.State.ResourceGroups[resourceGroup].Placement)!{} ]
     [#if placement?has_content]
         [#local macroOptions = [] ]
@@ -186,6 +186,27 @@
                 [placement.Provider, occurrence.Core.Type, placement.DeploymentFramework, type],
                 [placement.Provider, resourceGroup, placement.DeploymentFramework, type]
             ]]
+
+        [#if includeShared ]
+            [#list asArray(qualifiers) as qualifier]
+                [#local macroOptions +=
+                    [
+                        ["shared", occurrence.Core.Type, resourceGroup, placement.DeploymentFramework, type, qualifier],
+                        ["shared", occurrence.Core.Type, placement.DeploymentFramework, type, qualifier],
+                        ["shared", resourceGroup, placement.DeploymentFramework, type, qualifier],
+                        ["shared", placement.DeploymentFramework, type, qualifier ],
+                        ["shared", type, qualifier ]
+                    ]]
+            [/#list]
+
+            [#local macroOptions += [
+                ["shared", occurrence.Core.Type, resourceGroup, placement.DeploymentFramework, type],
+                ["shared", occurrence.Core.Type, placement.DeploymentFramework, type],
+                ["shared", resourceGroup, placement.DeploymentFramework, type],
+                ["shared", placement.DeploymentFramework, type ],
+                ["shared", type ]
+            ]]
+        [/#if]
         [#local macro = getFirstDefinedDirective(macroOptions)]
         [#if macro?has_content]
             [#if parent?has_content || baseState?has_content]
@@ -230,6 +251,19 @@
             qualifiers,
             {},
             {}
+        )]
+[/#function]
+
+[#function invokeTestPlanMacro occurrence resourceGroup qualifiers=[] ]
+    [#return
+        invokeComponentMacro(
+            occurrence,
+            resourceGroup,
+            "testplan",
+            qualifiers,
+            {},
+            {},
+            true
         )]
 [/#function]
 

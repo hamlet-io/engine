@@ -874,6 +874,12 @@
                 "Description" : "The profile used to lookup standard services provided by the segment baseline",
                 "Type" : STRING_TYPE,
                 "Default" : "default"
+            },
+            {
+                "Names" : "Testing",
+                "Description" : "The testing profiles to apply to the component",
+                "Type" : ARRAY_OF_STRING_TYPE,
+                "Default" : []
             }
         ]
     }

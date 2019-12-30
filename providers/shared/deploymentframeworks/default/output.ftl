@@ -188,9 +188,8 @@
         /]
     [/#if]
 
-    [#if (commandLineOptions.Input.TestCase!"")?has_content ]
-        [#local subsets = combineEntities( subsets, [ "testplan" ], UNIQUE_COMBINE_BEHAVIOUR) ]
-    [/#if]
+
+    [#local subsets = combineEntities( subsets, [ "testplan" ], UNIQUE_COMBINE_BEHAVIOUR) ]
 
     [#list asArray(subsets) as subset]
         [#-- Each subset gets its own section --]
@@ -277,7 +276,7 @@
 [@initialiseDefaultScriptOutput format=BASH_DEFAULT_OUTPUT_FORMAT /]
 [@initialiseJsonOutput name=JSON_DEFAULT_OUTPUT_TYPE /]
 
-[@addGenPlanStepOutputMapping 
+[@addGenPlanStepOutputMapping
     provider=SHARED_PROVIDER
     subsets=[
         "genplan",
@@ -300,6 +299,10 @@
     outputFormat=""
 /]
 
+[#-- TESTPLAN --]
+[#macro addDefaultTestPlan ]
+    [@addToDefaultJsonOutput content=testPlan /]
+[/#macro]
 
 [#------------------------------------------------------------
 -- internal support functions for default output processing --

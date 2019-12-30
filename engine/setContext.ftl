@@ -23,6 +23,15 @@
 [#assign cmdbProductLookupPrefixes = [] ]
 [#assign segmentQualifiers = [] ]
 
+[#-- Testing --]
+[@includeSharedReferenceConfiguration referenceType=TESTCASE_REFERENCE_TYPE /]
+[@addReferenceData type=TESTCASE_REFERENCE_TYPE data=blueprintObject.TestCases /]
+[#assign testCases = referenceData.TestCases ]
+
+[@includeSharedReferenceConfiguration referenceType=TESTPROFILE_REFERENCE_TYPE /]
+[@addReferenceData type=TESTPROFILE_REFERENCE_TYPE data=blueprintObject.TestProfiles /]
+[#assign testProfiles = referenceData.TestProfiles ]
+
 [#-- Regions --]
 [@includeSharedReferenceConfiguration referenceType=REGION_REFERENCE_TYPE /]
 [@addReferenceData type=REGION_REFERENCE_TYPE data=blueprintObject.Regions /]

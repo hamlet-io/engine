@@ -183,25 +183,6 @@
     scenarioIds=commandLineOptions.Input.Scenarios
 /]
 
-[#-- Load test case if it has been specified --]
-[#if (commandLineOptions.Deployment.Unit.Subset!"") == "testplan" ]
-    [@initialiseJsonOutput name="testplan" /]
-[/#if]
-
-[#if commandLineOptions.Input.TestCase?has_content ]
-    [@includeTestCaseConfiguration
-        provider=SHARED_PROVIDER
-        testCase=commandLineOptions.Input.TestCase
-    /]
-
-    [#if commandLineOptions.Deployment.Provider.Name?has_content ]
-        [@includeTestCaseConfiguration
-            provider=commandLineOptions.Deployment.Provider.Name
-            testCase=commandLineOptions.Input.TestCase
-        /]
-    [/#if]
-[/#if]
-
 [#-- Load Scenarios --]
 [#if scenarioList?has_content ]
     [@includeScenarioConfiguration
