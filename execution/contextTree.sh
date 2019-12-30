@@ -130,7 +130,7 @@ function getFilesAsJSON() {
 
     # Slurp all of the standardised files and put them into a single file as an array
     # Freemarker doesn't support the null json value in ?eval so we need to remove any null values
-    runJQ --indent 2 -s -f "${GENERATION_DIR}/nullStrip.jq" "${file_array[@]}" > "${result_file}"; return_status=$?
+    runJQ --indent 2 -s -f "${GENERATION_BASE_DIR}/execution/nullStrip.jq" "${file_array[@]}" > "${result_file}"; return_status=$?
   else
     echo "[]" > "${result_file}"; return_status=0
   fi
