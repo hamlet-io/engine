@@ -468,8 +468,9 @@
         ) ]
 
     [#-- a local unit build commit/tag takes preference over a shared one --]
-    [#local occurrenceBuildCommit = occurrenceBuild.COMMIT!"" ]
-    [#local occurrenceBuildTag = occurrenceBuild.TAG!"" ]
+    [#local occurrenceBuildCommit = occurrenceBuild.COMMIT!{} ]
+    [#local occurrenceBuildTag = occurrenceBuild.TAG!{} ]
+    [#local occurrenceBuildFormats = occurrenceBuild.FORMATS!{} ]
 
     [#-- Reference could be a deployment unit or a component --]
     [#if occurrenceBuild.REFERENCE?has_content]
@@ -496,6 +497,14 @@
     [/#if]
 
     [#return
+        attributeIfContent(
+            "BUILD_FORMATS",
+            valueIfContent(
+                occurrenceBuildFormats,
+                occurrenceBuildFormats,
+                occurrenceBuild.FORMATS!{}
+            )
+        ) +
         attributeIfContent(
             "BUILD_REFERENCE",
             valueIfContent(

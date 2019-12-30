@@ -107,7 +107,9 @@
                 },
                 "Outbound" : {
                     "default" : "invoke",
-                    "invoke" : lambdaInvokePermission(id)
+                    "invoke" : lambdaInvokePermission(id),
+                    "authorise" : lambdaInvokePermission(id),
+                    "authorize" : lambdaInvokePermission(id)
                 }
             }
         }

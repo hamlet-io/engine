@@ -1,7 +1,7 @@
 [#ftl]
 [#--
 Ideally stages should be a separate subcomponent. However the deployment
-model makes that tricky with the swagger definition associated to the api
+model makes that tricky with the openAPI definition associated to the api
 object.
 --]
 

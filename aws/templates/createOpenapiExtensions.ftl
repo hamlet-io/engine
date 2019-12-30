@@ -1,8 +1,8 @@
 [#ftl]
 [#include "/base.ftl" ]
-[#include "/swagger.ftl" ]
+[#include "/openapi.ftl" ]
 
-[#assign swaggerObject = swagger?eval ]
+[#assign openapiObject = openapi?eval ]
 [#assign integrationsObject = integrations?eval ]
 [#assign _context =
     {
@@ -13,5 +13,5 @@
 [#-- Determine the Cognito User Pools --]
 [#assign _context += {"CognitoPools" : getLegacyCognitoPools(_context, integrationsObject)} ]
 
-[@toJSON extendSwaggerDefinition(swaggerObject, integrationsObject, _context) /]
+[@toJSON extendOpenapiDefinition(openapiObject, integrationsObject, _context) /]
 

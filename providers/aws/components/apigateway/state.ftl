@@ -41,7 +41,7 @@ included in the mapping. (Confusing isn't it :-) )
 
 The INTERNAL_PATH is provided to inform the lambda code what it will see of the
 stage in the path it receives. This environment variable can thus be used to
-adjust routes within http frameworks. The "basePath" attribute in any swagger
+adjust routes within http frameworks. The "basePath" attribute in any openAPI
 spec should reflect what is expected in the API URL as described above.
 
 To obtain the modes described above, the following key configuration setting
