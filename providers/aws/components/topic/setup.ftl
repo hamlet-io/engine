@@ -1,9 +1,9 @@
 [#ftl]
-[#macro aws_topic_cf_solution occurrence ]
+[#macro aws_topic_cf_genplan_solution occurrence ]
     [@addDefaultGenerationPlan subsets="template" /]
 [/#macro]
 
-[#macro aws_topic_cf_solution occurrence ]
+[#macro aws_topic_cf_setup_solution occurrence ]
     [@debug message="Entering" context=occurrence enabled=false /]
 
     [#local core = occurrence.Core]
