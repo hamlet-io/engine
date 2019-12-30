@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
-trap '. ${GENERATION_DIR}/cleanupContext.sh' EXIT SIGHUP SIGINT SIGTERM
-. "${GENERATION_DIR}/common.sh"
+trap '. ${GENERATION_BASE_DIR}/execution/cleanupContext.sh' EXIT SIGHUP SIGINT SIGTERM
+. "${GENERATION_BASE_DIR}/execution/common.sh"
 . "${GENERATION_PLUGIN_DIRS}/azure/utility.sh"
 
 # Defaults
@@ -23,7 +23,7 @@ function usage() {
   where
 
   (o) -d (DEPLOYMENT_OPERATION=delete)  to delete the deployment
-  (o) -g RESOURCE_GROUP                 Defines the Resource Group to deploy into. Mandatory with DEPLOYMENT_SCOPE as "resourceGroup".            
+  (o) -g RESOURCE_GROUP                 Defines the Resource Group to deploy into. Mandatory with DEPLOYMENT_SCOPE as "resourceGroup".
       -h                                shows this text
   (o) -i (DEPLOYMENT_MONITOR=false)     initiates but does not monitor the deployment operation.
   (m) -l LEVEL                          is the deployment level - "account", "product", "segment", "solution", "application" or "multiple"
@@ -86,7 +86,7 @@ function options() {
 
   # Set up the context
   info "Preparing the context..."
-  . "${GENERATION_DIR}/setStackContext.sh"
+  . "${GENERATION_BASE_DIR}/execution/setStackContext.sh"
 
   return 0
 }
@@ -102,14 +102,14 @@ function succeed_or_fail() {
 function register_resource_providers() {
 
   providers=$(cat ${1} | jq -c --raw-output '.resources | map(.type | split("/")[0] ) | unique | .[]')
-  
+
   return_result=0
 
   for ((i=0; i<${#providers[@]}; i++)); do
     result=$(az provider register --namespace ${providers[i]})
     if [[ -z "${result}" ]]; then
       info "$(succeed_or_fail "succeed") ${providers[i]}"
-    else 
+    else
       info "$(succeed_or_fail "fail") ${providers[i]}"
       return_result=1
     fi
@@ -142,21 +142,21 @@ function construct_parameter_inputs() {
   # Construct filter multiplier args
   merge_filter_files=()
   #TODO(rossmurr4y): template parameter defaults - account for defaults using ARM functions.
-  #if [[ -f ${template_parameter_defaults}  && $(cat "${template_parameter_defaults}") != "null" && $(cat "${template_parameter_defaults}") != "{}" ]]; then  
+  #if [[ -f ${template_parameter_defaults}  && $(cat "${template_parameter_defaults}") != "null" && $(cat "${template_parameter_defaults}") != "{}" ]]; then
   #  merge_filter_files+=("${template_parameter_defaults}")
   #fi
-  if [[ -f ${template_configs}  && $(cat "${template_configs}") != "null" && $(cat "${template_configs}") != "{}" ]]; then 
+  if [[ -f ${template_configs}  && $(cat "${template_configs}") != "null" && $(cat "${template_configs}") != "{}" ]]; then
     merge_filter_files+=("${template_configs}")
-  fi 
+  fi
   if [[ -f ${arm_composite_stack_outputs} && $(cat "${arm_composite_stack_outputs}") != "null" && $(cat "${arm_composite_stack_outputs}") != "[]" ]]; then
    merge_filter_files+=("${arm_composite_stack_outputs}")
-  fi 
+  fi
   jqMerge "${merge_filter_files[@]}" > ${parameter_library}
 
   # from the parameter library, return only the ones required by template
   arrayFromList template_required_parameters "$(jq '.parameters | keys | .[]' < ${TEMPLATE})"
   output_parameter_json=('{}')
-  for parameter in ${template_required_parameters[@]}; do 
+  for parameter in ${template_required_parameters[@]}; do
     output_parameter_json+=$(cat "${parameter_library}" | jq --argjson parameter "${parameter}" 'to_entries[] | select( .key == $parameter ) | { (.key) : {"value": (.value)}}' )
   done
   template_inputs=$(echo "${output_parameter_json}" | jq -s 'add')
@@ -187,9 +187,9 @@ function wait_for_deployment_execution() {
           DEPLOYMENT=$(az deployment show --name "${DEPLOYMENT_NAME}")
         fi
       ;;
-      delete) 
+      delete)
         # Delete the group not the deployment. Deleting a deployment has no impact on deployed resources in Azure.
-        DEPLOYMENT=$(az group show --resource-group "${RESOURCE_GROUP}" 2>/dev/null) 
+        DEPLOYMENT=$(az group show --resource-group "${RESOURCE_GROUP}" 2>/dev/null)
       ;;
       *)
         fatal "\"${DEPLOYMENT_OPERATION}\" is not one of the known stack operations."; return 1
@@ -204,14 +204,14 @@ function wait_for_deployment_execution() {
       info "[${NOW}] Provisioning State is \"${DEPLOYMENT_STATE}\"."
 
       case ${DEPLOYMENT_STATE} in
-        Failed) 
+        Failed)
           exit_status=255
         ;;
         Running | Accepted | Deleting)
           info "    Retry in ${DEPLOYMENT_WAIT} seconds..."
-          sleep ${DEPLOYMENT_WAIT} 
+          sleep ${DEPLOYMENT_WAIT}
         ;;
-        Succeeded) 
+        Succeeded)
           # Retreive the deployment
           echo "${DEPLOYMENT}" | jq '.' > ${STACK} || return $?
           exit_status=0
@@ -234,7 +234,7 @@ function wait_for_deployment_execution() {
     case ${exit_status} in
       0)
       ;;
-      255) 
+      255)
         fatal "Deployment \"${DEPLOYMENT_NAME}\" in Resource Group \"${RESOURCE_GROUP}\" failed, fix deployment before retrying"
         break
       ;;
@@ -292,7 +292,7 @@ function process_deployment() {
             --template-file "${stripped_template_file}" \
             --parameters @"${stripped_parameter_file}" \
             --no-wait > /dev/null || return $?
-        
+
         elif [[ "${DEPLOYMENT_SCOPE}" == "subscription" ]]; then
 
           # validate subscription level deployment

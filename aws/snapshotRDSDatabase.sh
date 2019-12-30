@@ -2,7 +2,7 @@
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
-. "${GENERATION_DIR}/common.sh"
+. "${GENERATION_BASE_DIR}/execution/common.sh"
 
 # Defaults
 DELAY_DEFAULT=30
@@ -90,7 +90,7 @@ done
 [[ -z "${COMPONENT}" ]] && fatalMandatory
 
 # Set up the context
-. "${GENERATION_DIR}/setContext.sh"
+. "${GENERATION_BASE_DIR}/execution/setContext.sh"
 
 status_file="$(getTopTempDir)/snapshot_rds_status.txt"
 
@@ -102,7 +102,7 @@ SEGMENT_SUFFIX="-${SEGMENT}"
 if [[ ("${SEGMENT}" == "${ENVIRONMENT}") ||
         ("${SEGMENT}" == "default") ]]; then
     SEGMENT_SUFFIX=""
-fi 
+fi
 TIER_SUFFIX="-${TIER}"
 COMPONENT_SUFFIX="-${COMPONENT}"
 
@@ -135,7 +135,7 @@ if [[ ("${RETAIN}" != "") || ("${AGE}" != "") ]]; then
             if [[ $LASTDATE > $SNAPSHOTDATE ]]; then
                 LIST="${LIST} ${SNAPSHOT}"
             fi
-        done        
+        done
     fi
     if [[ "${LIST}" != "" ]]; then
         for SNAPSHOT in $(echo $LIST); do
@@ -158,4 +158,3 @@ if [[ "${WAIT}" == "true" ]]; then
         sleep $DELAY
     done
 fi
-

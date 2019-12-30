@@ -2,7 +2,7 @@
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
-. "${GENERATION_DIR}/common.sh"
+. "${GENERATION_BASE_DIR}/execution/common.sh"
 
 # Defaults
 ACL_DEFAULT="private"
@@ -76,9 +76,9 @@ DISPLAY_ACLS="${DISPLAY_ACLS:-${DISPLAY_ACLS_DEFAULT}}"
 [[ -z "${BUCKET}" ]] && fatalMandatory
 
 # Set up the context
-. "${GENERATION_DIR}/setContext.sh"
+. "${GENERATION_BASE_DIR}/execution/setContext.sh"
 
-# Get the list of ECS clusters  
+# Get the list of ECS clusters
 for KEY in $(aws --region ${REGION} s3 ls s3://${BUCKET}${PREFIX} --recursive  | tr -s " " | tr -d "\r" | cut -d " " -f4); do
     if [[ "${DISPLAY_ACLS}" == "true" ]]; then
         # Show current ACL
@@ -92,4 +92,3 @@ done
 
 # All good
 RESULT=0
-

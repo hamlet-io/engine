@@ -2,7 +2,7 @@
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
-. "${GENERATION_DIR}/common.sh"
+. "${GENERATION_BASE_DIR}/execution/common.sh"
 
 # Defaults
 DELAY_DEFAULT=30
@@ -110,7 +110,7 @@ if [[ -z "${TASK}" || -z "${TIER}" || -z "${COMPONENT}" ]]; then
 fi
 
 # Set up the context
-. "${GENERATION_DIR}/setContext.sh"
+. "${GENERATION_BASE_DIR}/execution/setContext.sh"
 
 status_file="$(getTopTempDir)/run_task_status.txt"
 

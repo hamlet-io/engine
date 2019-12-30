@@ -2,7 +2,7 @@
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap 'exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
-. "${GENERATION_DIR}/common.sh"
+. "${GENERATION_BASE_DIR}/execution/common.sh"
 
 # Defaults
 
@@ -89,6 +89,5 @@ if [[ "${#RAW_VARIABLES[@]}" -gt 0 ]]; then
   RAW_VARIABLES=("-r" "${RAW_VARIABLES[@]}")
 fi
 
-java -jar "${GENERATION_DIR}/freemarker-wrapper-1.8.2.jar" -i $TEMPLATE "${TEMPLATEDIRS[@]}" -o $OUTPUT "${VARIABLES[@]}" "${RAW_VARIABLES[@]}"
+java -jar "${GENERATION_BASE_DIR}/execution/freemarker-wrapper-1.8.2.jar" -i $TEMPLATE "${TEMPLATEDIRS[@]}" -o $OUTPUT "${VARIABLES[@]}" "${RAW_VARIABLES[@]}"
 RESULT=$?
-

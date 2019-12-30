@@ -201,7 +201,7 @@ if [[ "${GENERATION_INPUT_SOURCE}" == "composite" ]]; then
 
         debug "BLUEPRINT=${blueprint_array[*]}"
         if [[ ! $(arrayIsEmpty "blueprint_array") ]]; then
-            ${GENERATION_DIR}/manageJSON.sh -o "${COMPOSITE_BLUEPRINT}" "${blueprint_array[@]}"
+            ${GENERATION_BASE_DIR}/execution/manageJSON.sh -o "${COMPOSITE_BLUEPRINT}" "${blueprint_array[@]}"
         else
             echo "{}" > "${COMPOSITE_BLUEPRINT}"
         fi

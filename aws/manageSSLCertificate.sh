@@ -2,7 +2,7 @@
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
-. "${GENERATION_DIR}/common.sh"
+. "${GENERATION_BASE_DIR}/execution/common.sh"
 
 CERTIFICATE_OPERATION_LIST="list"
 CERTIFICATE_OPERATION_DELETE="delete"
@@ -112,7 +112,7 @@ case ${CERTIFICATE_OPERATION} in
 esac
 
 # Set up the context
-. "${GENERATION_DIR}/setContext.sh"
+. "${GENERATION_BASE_DIR}/execution/setContext.sh"
 
 case ${CERTIFICATE_OPERATION} in
     ${CERTIFICATE_OPERATION_LIST})
@@ -175,7 +175,7 @@ case ${CERTIFICATE_OPERATION} in
                                                    --private-key file://${LOCAL_CERTIFICATE_PRIVATE} \
                                                    --certificate-chain file://${LOCAL_CERTIFICATE_CHAIN}
             else
-                aws --region ${REGION} iam upload-server-certificate 
+                aws --region ${REGION} iam upload-server-certificate
                                                    --server-certificate-name ${CERTIFICATE_ID}-cloudfront \
                                                    --path "/cloudfront/${CERTIFICATE_ID}/" \
                                                    --certificate-body file://${LOCAL_CERTIFICATE_PUBLIC} \
@@ -186,5 +186,3 @@ case ${CERTIFICATE_OPERATION} in
         fi
         ;;
 esac
-
-
