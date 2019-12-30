@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
-trap '. ${GENERATION_DIR}/cleanupContext.sh' EXIT SIGHUP SIGINT SIGTERM
-. "${GENERATION_DIR}/execution/common.sh"
+trap '. ${GENERATION_BASE_DIR}/execution/cleanupContext.sh' EXIT SIGHUP SIGINT SIGTERM
+. "${GENERATION_BASE_DIR}/execution/common.sh"
 . "${GENERATION_PLUGIN_DIRS}/azure/utility.sh"
 
 # Defaults
@@ -189,7 +189,7 @@ function wait_for_deployment_execution() {
       ;;
       delete)
         # Delete the group not the deployment. Deleting a deployment has no impact on deployed resources in Azure.
-        DEPLOYMENT=$(az group show --resource-group "${DEPLOYMENT_GROUP_NAME}" 2>/dev/null)
+        DEPLOYMENT=$(az group show --resource-group "${RESOURCE_GROUP}" 2>/dev/null)
       ;;
       *)
         fatal "\"${DEPLOYMENT_OPERATION}\" is not one of the known stack operations."; return 1
@@ -235,7 +235,7 @@ function wait_for_deployment_execution() {
       0)
       ;;
       255)
-        fatal "Deployment \"${DEPLOYMENT_GROUP_NAME}\" failed, fix deployment before retrying"
+        fatal "Deployment \"${DEPLOYMENT_NAME}\" in Resource Group \"${RESOURCE_GROUP}\" failed, fix deployment before retrying"
         break
       ;;
       *)
