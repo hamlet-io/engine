@@ -25,7 +25,7 @@ where
 (o) -g RESOURCE_GROUP          is the deployment unit resource group
 (o) -i GENERATION_INPUT_SOURCE is the source of input data to use when generating the template - "composite", "mock"
     -h                         shows this text
-(m) -l LEVEL                   is the template level - "blueprint", "account", "segment", "solution" or "application"
+(m) -l LEVEL                   is the template level - "unitlist", "blueprint", "account", "segment", "solution" or "application"
 (o) -o OUTPUT_DIR              is the directory where the outputs will be saved - defaults to the PRODUCT_STATE_DIR
 (o) -q REQUEST_REFERENCE       is an opaque value to link this template to a triggering request management system
 (o) -r REGION                  is the AWS region identifier
@@ -116,7 +116,7 @@ function options() {
           fatalLocation "Current directory doesn't match requested level \"${LEVEL}\"." && return 1
         ;;
 
-      solution|segment|application|blueprint)
+      solution|segment|application|blueprint|unitlist)
         [[ ! ("segment" =~ ${LOCATION}) ]] &&
           fatalLocation "Current directory doesn't match requested level \"${LEVEL}\"." && return 1
         ;;
@@ -340,6 +340,19 @@ function process_template_pass() {
   pass_description["template"]="cloud formation"
 
   case "${level}" in
+
+    unitlist)
+      # Blueprint applies across accounts and regions
+      for p in "${pass_list[@]}"; do
+        pass_account_prefix["${p}"]=""
+        pass_region_prefix["${p}"]=""
+      done
+
+      pass_level_prefix["config"]="unitlist"
+      pass_description["config"]="unitlist"
+      pass_suffix["config"]=".json"
+      ;;
+
     blueprint)
       template_composites+=("FRAGMENT" )
 
@@ -668,14 +681,19 @@ function process_template() {
   local cf_dir="${OUTPUT_DIR:-${cf_dir_default}}"
 
   case "${level}" in
+
+    unitlist)
+      cf_dir_default="${PRODUCT_STATE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}"
+      cf_dir="${OUTPUT_DIR:-${cf_dir_default}}"
+      ;;
+
     blueprint)
       cf_dir_default="${PRODUCT_STATE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}"
       cf_dir="${OUTPUT_DIR:-${cf_dir_default}}"
       ;;
 
     buildblueprint)
-      # this is expected to run from an automation context
-      cf_dir_default="${AUTOMATION_DATA_DIR:-"${PRODUCT_STATE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}"}"
+      cf_dir_default="${PRODUCT_STATE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}"
       cf_dir="${OUTPUT_DIR:-${cf_dir_default}}"
       ;;
 
