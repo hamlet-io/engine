@@ -1,6 +1,6 @@
 [#ftl]
 
-[#function getSecurityGroupIngressRules port cidr groupId=""]
+[#function getSecurityGroupRules port cidr groupId=""]
     [#local rules = [] ]
     [#list asArray(cidr) as cidrBlock]
         [#local rule =
@@ -89,19 +89,29 @@
                 )
             type="AWS::EC2::SecurityGroupIngress"
             properties=
-                getSecurityGroupIngressRules(port, cidrBlock, groupId)[0]
+                getSecurityGroupRules(port, cidrBlock, groupId)[0]
         /]
     [/#list]
 [/#macro]
 
-[#macro createSecurityGroup id name vpcId tier={} component={} occurrence={} description="" ingressRules=[] ]
+[#macro createSecurityGroup id name vpcId tier={} component={} occurrence={} description="" ingressRules=[] egressRules=[] ]
     [#local nonemptyIngressRules = [] ]
     [#list asFlattenedArray(ingressRules) as ingressRule]
         [#if ingressRule.CIDR?has_content]
             [#local nonemptyIngressRules +=
-                        getSecurityGroupIngressRules(
+                        getSecurityGroupRules(
                             ingressRule.Port,
                             ingressRule.CIDR) ]
+        [/#if]
+    [/#list]
+
+    [#local nonemptyEgressRules = [] ]
+    [#list asFlattenedArray(egressRules) as egressRule]
+        [#if egressRule.CIDR?has_content]
+            [#local nonemptyEgressRules +=
+                        getSecurityGroupRules(
+                            egressRule.Port,
+                            egressRule.CIDR) ]
         [/#if]
     [/#list]
 
@@ -116,6 +126,10 @@
         attributeIfContent(
             "SecurityGroupIngress",
             nonemptyIngressRules
+        ) +
+        attributeIfContent(
+            "SecurityGroupEgress",
+            nonemptyEgressRules
         )
     ]
 

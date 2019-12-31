@@ -434,7 +434,9 @@
                         name=securityGroupName
                         occurrence=occurrence
                         ingressRules=[ {"Port" : sourcePort.Port, "CIDR" : cidrs} ]
-                        vpcId=vpcId/]
+                        egressRules=[ { "Port" : "any",  "CIDR" : "0.0.0.0/0" }]
+                        vpcId=vpcId
+                    /]
 
                 [/#if]
                 [#break]
