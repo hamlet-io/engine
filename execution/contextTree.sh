@@ -704,6 +704,7 @@ function isValidUnit() {
 
   # Known levels
   declare -gA unit_required=( \
+    ["unitlist"]="false" \
     ["blueprint"]="false" \
     ["buildblueprint"]="true" \
     ["account"]="true" \
