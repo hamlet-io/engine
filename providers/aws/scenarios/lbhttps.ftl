@@ -53,13 +53,20 @@
                 "httpslb" : {
                     "OutputSuffix" : "template",
                     "Structural" : {
-                        "CFNResource" : [
-                            "AWS::ElasticLoadBalancingV2::LoadBalancer",
-                            "AWS::ElasticLoadBalancingV2::ListenerRule",
-                            "AWS::ElasticLoadBalancingV2::Listener",
-                            "AWS::ElasticLoadBalancingV2::TargetGroup",
-                            "AWS::EC2::SecurityGroup"
-                        ],
+                        "CFNResource" : {
+                            "httpListenerRule" : {
+                                "Name" : "listenerRuleXelbXhttpslbXhttpX100",
+                                "Type" : "AWS::ElasticLoadBalancingV2::ListenerRule"
+                            },
+                            "httpListener" : {
+                                "Name" : "listenerXelbXhttpslbXhttps",
+                                "Type" : "AWS::ElasticLoadBalancingV2::Listener"
+                            },
+                            "loadBalancer" : {
+                                "Name" : "albXelbXhttpslb",
+                                "Type" : "AWS::ElasticLoadBalancingV2::LoadBalancer"
+                            }
+                        },
                         "Match" : {
                             "LBName" : {
                                 "Path"  : "Resources.albXelbXhttpslb.Properties.Name",
