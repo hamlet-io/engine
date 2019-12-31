@@ -67,7 +67,7 @@
 ]
 
 [#list lbMappings as type, mappings]
-    [@addOutputMapping 
+    [@addOutputMapping
         provider=AWS_PROVIDER
         resourceType=type
         mappings=mappings
@@ -237,8 +237,8 @@
             {
                 "HealthCheckPort" : (destination.HealthCheck.Port)!"traffic-port",
                 "HealthCheckProtocol" : healthCheckProtocol,
-                "HealthCheckIntervalSeconds" : destination.HealthCheck.Interval,
-                "HealthyThresholdCount" : destination.HealthCheck.HealthyThreshold,
+                "HealthCheckIntervalSeconds" : destination.HealthCheck.Interval?number,
+                "HealthyThresholdCount" : destination.HealthCheck.HealthyThreshold?number,
                 "Port" : destination.Port,
                 "Protocol" : (destination.Protocol)?upper_case,
                 "VpcId": getReference(vpcId),
@@ -263,11 +263,11 @@
             ) +
             (healthCheckProtocol != "TCP")?then(
                 {
-                    "HealthCheckTimeoutSeconds" : destination.HealthCheck.Timeout,
-                    "UnhealthyThresholdCount" : destination.HealthCheck.UnhealthyThreshold
+                    "HealthCheckTimeoutSeconds" : destination.HealthCheck.Timeout?number,
+                    "UnhealthyThresholdCount" : destination.HealthCheck.UnhealthyThreshold?number
                 },
                 {
-                    "UnhealthyThresholdCount" : destination.HealthCheck.HealthyThreshold
+                    "UnhealthyThresholdCount" : destination.HealthCheck.HealthyThreshold?number
                 }
 
             )
