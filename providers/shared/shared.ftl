@@ -108,18 +108,23 @@
                 )]
             [/#if]
 
-            [#if testCase.Structural.CFNResource?has_content ]
-                [#local tests = mergeObjects(
-                    tests,
+            [#list (testCase.Structural.CFNResource)!{} as id,CFNResourceTest ]
+                [#local tests = combineEntities(tests,
                     {
-                        testCaseName  : {
-                            "structure" : {
-                                "resource" : testCase.Structural.CFNResource
+                        testCaseName : {
+                            "structure"  : {
+                                "resource" : [
+                                    [
+                                        CFNResourceTest.Name,
+                                        CFNResourceTest.Type
+                                    ]
+                                ]
                             }
                         }
-                    }
+                    },
+                    APPEND_COMBINE_BEHAVIOUR
                 )]
-            [/#if]
+            [/#list]
 
             [#if testCase.Structural.CFNOutput?has_content ]
                 [#local tests = mergeObjects(

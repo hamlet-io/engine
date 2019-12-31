@@ -61,7 +61,19 @@
                 {
                     "Names" : "CFNResource",
                     "Description" : "Does a resource with the type exist",
-                    "Type" : ARRAY_OF_STRING_TYPE
+                    "SubObjects" : true,
+                    "Children" : [
+                        {
+                            "Names" : "Name",
+                            "Mandatory" : true,
+                            "Type" : STRING_TYPE
+                        },
+                        {
+                            "Names" : "Type",
+                            "Mandatory" : true,
+                            "Type" : STRING_TYPE
+                        }
+                    ]
                 },
                 {
                     "Names" : "CFNOutput",
