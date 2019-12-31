@@ -15,7 +15,7 @@
     ],
     "Attributes" : [
         {
-            "Names" : "Account",
+            "Names" : ["Account", "Subscription"],
             "Type" : STRING_TYPE,
             "Mandatory" : true
         },
