@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
-trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
+trap '. ${GENERATION_BASE_DIR}/execution/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 . "${GENERATION_BASE_DIR}/execution/common.sh"
 
 BASE64_REGEX="^[A-Za-z0-9+/=\n]\+$"
@@ -135,7 +135,7 @@ function main() {
     options "$@" || return $?
 
     # Set up the context - LOCATION will tell us where we are
-    . "${GENERATION_DIR}/setContext.sh"
+    . "${GENERATION_BASE_DIR}/execution/setContext.sh"
 
     # Set up the list of files to check
     FILES=()

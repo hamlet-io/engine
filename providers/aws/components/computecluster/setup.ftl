@@ -149,7 +149,7 @@
     [#list bootstrapProfile.BootStraps as bootstrapName ]
         [#local bootstrap = bootstraps[bootstrapName]]
         [#local configSets +=
-            getInitConfigUserBootstrap(bootstrap, environmentVariables )!{}]
+            getInitConfigUserBootstrap(bootstrapName, bootstrap, environmentVariables )!{}]
     [/#list]
 
     [#if deploymentSubsetRequired("iam", true) &&

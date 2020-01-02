@@ -105,9 +105,20 @@
         getInitConfigDirsFiles(_context.Files, _context.Directories) ]
 
     [#list bootstrapProfile.BootStraps as bootstrapName ]
-        [#local bootstrap = bootstraps[bootstrapName]]
-        [#local configSets +=
-            getInitConfigUserBootstrap(bootstrap, environmentVariables )!{}]
+        [#if bootstraps[bootstrapName]?? ]
+            [#local bootstrap = bootstraps[bootstrapName]]
+            [#local configSets +=
+                getInitConfigUserBootstrap(bootstrapName, bootstrap, environmentVariables )!{}]
+        [/#if]
+        [@debug
+            message="Available Bootstraps"
+            context={
+                "Name" : bootstrapName,
+                "Bootstraps" : bootstraps,
+                "Raw" : blueprintObject.Bootstraps
+            }
+            enabled=true
+        /]
     [/#list]
 
     [#if deploymentSubsetRequired("iam", true) &&
