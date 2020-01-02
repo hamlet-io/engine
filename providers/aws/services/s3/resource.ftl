@@ -160,25 +160,25 @@
             [#local destKey = "Queue" ]
             [#local collectionKey = "QueueConfigurations" ]
             [#break]
-        
+
         [#case AWS_SNS_TOPIC_RESOURCE_TYPE ]
             [#local destKey = "Topic" ]
             [#local collectionKey = "TopicConfigurations" ]
             [#break]
-        
+
         [#case AWS_LAMBDA_FUNCTION_RESOURCE_TYPE ]
             [#local destKey = "Function" ]
             [#local collectionKey = "LambdaConfigurations"]
             [#break]
-        
+
         [#default]
-            [@fatal 
+            [@fatal
                 message="Unsupported destination resource type"
                 context={ "Id" : destId, "Type" : destResourceType }
             /]
     [/#switch]
 
-    [#return   
+    [#return
         [
             {
                 "Type" : collectionKey,
@@ -237,6 +237,7 @@
     destinationBucket
     enabled
     prefix
+    encryptReplica
 ]
     [#return
         {
@@ -285,7 +286,7 @@
     }
 ]
 
-[@addOutputMapping 
+[@addOutputMapping
     provider=AWS_PROVIDER
     resourceType=AWS_S3_RESOURCE_TYPE
     mappings=S3_OUTPUT_MAPPINGS
@@ -337,8 +338,8 @@
     [#list notifications as notification ]
         [#local notificationType = notification.Type ]
         [#local notificationTypeRules = notificationRules[ notificationType ]![]]
-        
-        [#local notificationRules = notificationRules + 
+
+        [#local notificationRules = notificationRules +
             {
                 notificationType : notificationTypeRules + [ notification["Notification"] ]
             }]
