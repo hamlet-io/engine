@@ -1,6 +1,6 @@
 [#ftl]
 
-[@addReference 
+[@addReference
     type=BOOTSTRAP_REFERENCE_TYPE
     pluralType="Bootstraps"
     properties=[
@@ -24,11 +24,11 @@
         },
         {
             "Names" : "Packages",
-            "SubObjects" : true, 
+            "SubObjects" : true,
             "Children" : [
                 {
                     "Names" : "Name",
-                    "Type" ; STRING_TYPE
+                    "Type" : STRING_TYPE
                 },
                 {
                     "Names" : "Version",

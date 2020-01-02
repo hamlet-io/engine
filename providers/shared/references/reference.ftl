@@ -34,7 +34,7 @@
 [#assign ALERTPROFILE_REFERENCE_TYPE = "AlertProfile" ]
 [#assign ALERTRULE_REFERENCE_TYPE = "AlertRule" ]
 [#assign BASELINEPROFILE_REFERENCE_TYPE = "BaselineProfile" ]
-[#assign BOOTSTRAP_REFERENCE_TYPE = "Boostrap" ]
+[#assign BOOTSTRAP_REFERENCE_TYPE = "Bootstrap" ]
 [#assign BOOTSTRAPPROFILE_REFERENCE_TYPE = "BootstrapProfile" ]
 [#assign CORSPROFILE_REFERENCE_TYPE = "CORSProfile" ]
 [#assign SCRIPTSTORE_REFERENCE_TYPE = "ScriptStore" ]

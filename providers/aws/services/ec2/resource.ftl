@@ -441,7 +441,7 @@
     ]
 [/#function]
 
-[#function getInitConfigUserBootstrap bootstrap environment={} ignoreErrors=false priority=7 ]
+[#function getInitConfigUserBootstrap boostrapName bootstrap environment={} ignoreErrors=false priority=7 ]
     [#local scriptStore = scriptStores[bootstrap.ScriptStore ]]
     [#local scriptStorePrefix = scriptStore.Destination.Prefix ]
 
@@ -469,14 +469,14 @@
         [/#if]
     [/#list]
 
-    [#local bootstrapDir = "/opt/codeontap/user/" + bootstrap.Id ]
+    [#local bootstrapDir = "/opt/codeontap/user/" + boostrapName ]
     [#local bootstrapFetchFile = bootstrapDir + "/fetch.sh" ]
     [#local bootstrapScriptsDir = bootstrapDir + "/scripts/" ]
     [#local bootstrapInitFile = bootstrapScriptsDir + bootstrap.InitScript!"init.sh" ]
 
     [#return
         {
-            "${priority}_UserBoot_" + bootstrap.Id : {
+            "${priority}_UserBoot_" + boostrapName : {
                 "files" : {
                     bootstrapFetchFile: {
                         "content" : {
