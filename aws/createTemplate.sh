@@ -452,6 +452,7 @@ function process_template_pass() {
     args+=("-r" "${composite,,}List=${!composite_var#/?/}")
   done
 
+  args+=("-g" "${GENERATION_DATA_DIR}")
   args+=("-v" "region=${region}")
   args+=("-v" "accountRegion=${account_region}")
   args+=("-v" "blueprint=${COMPOSITE_BLUEPRINT}")
