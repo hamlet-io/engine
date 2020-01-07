@@ -100,22 +100,15 @@ function succeed_or_fail() {
 }
 
 function register_resource_providers() {
+  local file="$1"; shift
 
-  providers=$(cat ${1} | jq -c --raw-output '.resources | map(.type | split("/")[0] ) | unique | .[]')
+  #providers_raw=$(cat ${file} | jq -c '.resources | map(.type | split("/")[0] ) | unique')
+  mapfile -t providers < <(cat ${file} | jq --raw-output '.resources | map(.type | split("/")[0]) | unique | .[]')
 
-  return_result=0
-
-  for ((i=0; i<${#providers[@]}; i++)); do
-    result=$(az provider register --namespace ${providers[i]})
-    if [[ -z "${result}" ]]; then
-      info "$(succeed_or_fail "succeed") ${providers[i]}"
-    else
-      info "$(succeed_or_fail "fail") ${providers[i]}"
-      return_result=1
-    fi
+  for i in "${!providers[@]}"; do
+    az provider register --namespace ${providers[$i]} > /dev/null || return $?
+    echo " $(succeed_or_fail "succeed") ${providers[$i]}"
   done
-
-  return ${return_result}
 }
 
 function construct_parameter_inputs() {
