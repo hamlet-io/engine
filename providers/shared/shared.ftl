@@ -71,8 +71,8 @@
                             "structure"  : {
                                 "length" : [
                                     [
-                                        matchTest.Path,
-                                        matchtTest.Count
+                                        legnthTest.Path,
+                                        legnthTest.Count
                                     ]
                                 ]
                             }

@@ -67,20 +67,42 @@
                                 "Type" : "AWS::ElasticLoadBalancingV2::LoadBalancer"
                             }
                         },
+                        "Exists" : [
+                            "Outputs.securityGroupXlistenerXelbXhttpslbXhttps"
+                        ],
                         "Match" : {
                             "LBName" : {
                                 "Path"  : "Resources.albXelbXhttpslb.Properties.Name",
                                 "Value" : "mockedup-int-elb-httpslb"
                             },
                             "HTTPAction" : {
-                                "Path" : "Resources.listenerRuleXelbXhttpslbXhttpX100.Properties.Actions[0].Type",
-                                "Value" : "redirect"
+                                "Path" : "Resources.listenerRuleXelbXhttpslbXhttpX100.Properties.Actions[0]",
+                                "Value" : {
+                                    "Type": "redirect",
+                                    "RedirectConfig": {
+                                        "Protocol": "HTTPS",
+                                        "Port": "443",
+                                        "Host": "#\{host}",
+                                        "Path": "/#\{path}",
+                                        "Query": "#\{query}",
+                                        "StatusCode": "HTTP_301"
+                                    }
+                                }
                             },
                             "HTTPSAction" : {
                                 "Path" : "Resources.listenerRuleXelbXhttpslbXhttpsX500.Properties.Actions[0].Type",
                                 "Value" : "forward"
                             }
-                        }
+                        },
+                        "Length" : {
+                            "listenerActions" : {
+                                "Path" : "Resources.listenerRuleXelbXhttpslbXhttpX100.Properties.Actions",
+                                "Count" : 1
+                            }
+                        },
+                        "NotEmpty" : [
+                            "Resources.listenerRuleXelbXhttpslbXhttpX100.Properties.Priority"
+                        ]
                     }
                 }
             },
