@@ -3,10 +3,12 @@
 [#include "common.ftl"]
 [#include "openapi.ftl"]
 
+[#-- Shared Provider Configurations --]
+[@includeSharedComponentConfiguration component="baseline" /]
+
 [#-- Temporary AWS stuff --]
 [#if commandLineOptions.Deployment.Provider.Name = "aws"]
     [@includeProviderConfiguration provider=AWS_PROVIDER /]
-    [@includeSharedComponentConfiguration component="baseline" /]
     [@includeProviderComponentDefinitionConfiguration provider="aws" component="baseline" /]
     [@includeProviderComponentConfiguration provider="aws" component="baseline" services="baseline" /]
     [@includeProviderComponentDefinitionConfiguration provider="aws" component="s3" /]
