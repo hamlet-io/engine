@@ -50,27 +50,27 @@
                         "Id" : formatDependentRoleId(esId),
                         "Type" : AWS_IAM_ROLE_RESOURCE_TYPE,
                         "IncludeInDeploymentState" : false
-                    } +
-                    attributeIfTrue(
-                        "lg",
-                        solution.Logging,
-                        {
-                            "Id" : formatLogGroupId(core.Id),
-                            "Name" : core.FullAbsolutePath,
-                            "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE,
-                            "IncludeInDeploymentState" : false
-                        }
-                    ) +
-                    attributeIfTrue(
-                        "sg",
-                        solution.VPCAccess,
-                        {
-                            "Id" : formatSecurityGroupId(core.Id),
-                            "Name" : core.FullName,
-                            "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
-                        }
-                    )
-                },
+                    }
+                } +
+                attributeIfTrue(
+                    "lg",
+                    solution.Logging,
+                    {
+                        "Id" : formatLogGroupId(core.Id),
+                        "Name" : core.FullAbsolutePath,
+                        "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE,
+                        "IncludeInDeploymentState" : false
+                    }
+                ) +
+                attributeIfTrue(
+                    "sg",
+                    solution.VPCAccess,
+                    {
+                        "Id" : formatSecurityGroupId(core.Id),
+                        "Name" : core.FullName,
+                        "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
+                    }
+                ),
                 "Attributes" : {
                     "REGION" : getExistingReference(esId, REGION_ATTRIBUTE_TYPE)!regionId,
                     "AUTH" : solution.Authentication,

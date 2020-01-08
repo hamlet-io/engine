@@ -14,6 +14,7 @@
     [#local vpcAccess = solution.VPCAccess]
     [#local port = "https" ]
 
+    [#local networkConfiguration = {} ]
     [#if vpcAccess ]
         [#local networkLink = getOccurrenceNetwork(occurrence).Link!{} ]
         [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
@@ -25,6 +26,14 @@
         [#local networkResources = networkLinkTarget.State.Resources ]
         [#local vpcId = networkResources["vpc"].Id ]
         [#local subnets = getSubnets(core.Tier, networkResources) ]
+
+        [#local sgId = resources["sg"].Id ]
+        [#local sgName = resources["sg"].Name ]
+
+        [#local networkConfiguration = {
+                        "SecurityGroupIds" : getReference(sgId),
+                        "SubnetIds" : subnets
+                }]
     [/#if]
 
     [#local esId = resources["es"].Id]
@@ -33,9 +42,6 @@
 
     [#local lgId = (resources["lg"].Id)!"" ]
     [#local lgName = (resources["lg"].Name)!"" ]
-
-    [#local sgId = (resources["sg"].Id)!"" ]
-    [#local sgName = (resources["sg"].Name)!""]
 
     [#local processorProfile = getProcessor(occurrence, "es")]
     [#local dataNodeCount = valueIfContent(
@@ -338,7 +344,7 @@
                                     "AvailabilityZoneCount" : zones?size
                                 }
                             },
-                            ( !solution.VPCAccess && dataNodeCount >= 1 || solution.VPCAccess && multiAZ),
+                            ( !solution.VPCAccess && dataNodeCount > 1 || solution.VPCAccess && multiAZ),
                             {
                                 "ZoneAwarenessEnabled" : false
                             }
@@ -388,10 +394,7 @@
                 attributeIfTrue(
                     "VPCOptions",
                     vpcAccess,
-                    {
-                        "SecurityGroupIds" : getReference(sgId),
-                        "SubnetIds" : subnets![]
-                    }
+                    networkConfiguration
                 )
             tags=getOccurrenceCoreTags(occurrence, "")
             outputs=ES_OUTPUT_MAPPINGS
