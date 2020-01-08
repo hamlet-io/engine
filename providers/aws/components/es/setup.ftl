@@ -44,9 +44,9 @@
     [#local lgName = (resources["lg"].Name)!"" ]
 
     [#local processorProfile = getProcessor(occurrence, "es")]
-    [#local dataNodeCount = valueIfContent(
+    [#local dataNodeCount = valueIfTrue(
                                 processorProfile.Count,
-                                processorProfile.Count,
+                                ( processorProfile.Count > 0 ),
                                 multiAZ?then(
                                     processorProfile.CountPerZone * zones?size,
                                     processorProfile.CountPerZone
