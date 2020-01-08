@@ -390,7 +390,7 @@
                     vpcAccess,
                     {
                         "SecurityGroupIds" : getReference(sgId),
-                        "SubnetIds" : subnets![])
+                        "SubnetIds" : subnets![]
                     }
                 )
             tags=getOccurrenceCoreTags(occurrence, "")
