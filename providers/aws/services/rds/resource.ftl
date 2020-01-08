@@ -79,6 +79,7 @@
     performanceInsights
     performanceInsightsRetention
     tags
+    caCertificate
     engineVersion=""
     clusterMember=false
     clusterId=""
@@ -116,7 +117,8 @@
             "DeleteAutomatedBackups" : deleteAutomatedBackups,
             "DBSubnetGroupName": getReference(subnetGroupId),
             "DBParameterGroupName": getReference(parameterGroupId),
-            "OptionGroupName": getReference(optionGroupId)
+            "OptionGroupName": getReference(optionGroupId),
+            "CACertificateIdentifier" : caCertificate
         } +
         valueIfTrue(
             {
