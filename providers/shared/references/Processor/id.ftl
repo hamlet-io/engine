@@ -44,8 +44,7 @@
             "Children" : [
                 {
                     "Names" : "Processor",
-                    "Type" : STRING_TYPE,
-                    "Mandatory" : true
+                    "Type" : STRING_TYPE
                 }
             ]
         },
@@ -54,8 +53,7 @@
             "Children" : [
                 {
                     "Names" : "Processor",
-                    "Type" : STRING_TYPE,
-                    "Mandatory" : true
+                    "Type" : STRING_TYPE
                 }
             ]
         },
@@ -64,8 +62,7 @@
             "Children" : [
                 {
                     "Names" : "Processor",
-                    "Type" : STRING_TYPE,
-                    "Mandatory" : true
+                    "Type" : STRING_TYPE
                 }
             ]
         },
@@ -74,8 +71,7 @@
             "Children" : [
                 {
                     "Names" : "Processor",
-                    "Type" : STRING_TYPE,
-                    "Mandatory" : true
+                    "Type" : STRING_TYPE
                 }
             ] +
             nodeCountChildConfiguration
@@ -85,8 +81,7 @@
             "Children" : [
                 {
                     "Names" : "Processor",
-                    "Type" : STRING_TYPE,
-                    "Mandatory" : true
+                    "Type" : STRING_TYPE
                 }
             ] +
             nodeCountChildConfiguration
@@ -96,8 +91,7 @@
             "Children" : [
                 {
                     "Names" : "Processor",
-                    "Type" : STRING_TYPE,
-                    "Mandatory" : true
+                    "Type" : STRING_TYPE
                 }
             ] +
             nodeCountChildConfiguration
@@ -107,8 +101,7 @@
             "Children" : [
                 {
                     "Names" : "Processor",
-                    "Type" : STRING_TYPE,
-                    "Mandatory" : true
+                    "Type" : STRING_TYPE
                 },
                 {
                     "Names" : "CountPerZone",
@@ -122,8 +115,7 @@
             "Children" : [
                 {
                     "Names" : [ "Processor", "DataNodeProcessor" ],
-                    "Type" : STRING_TYPE,
-                    "Mandatory" : true
+                    "Type" : STRING_TYPE
                 },
                 {
                     "Names" : [ "CountPerZone", "DataNodeCountPerZone" ],
@@ -140,8 +132,7 @@
                     "Children" : [
                         {
                             "Names" : "Processor",
-                            "Type" : STRING_TYPE,
-                            "Mandatory: true
+                            "Type" : STRING_TYPE
                         },
                         {
                             "Names" : "Count",
@@ -161,8 +152,7 @@
             "Children" : [
                 {
                     "Names" : "Processor",
-                    "Type" : STRING_TYPE,
-                    "Mandatory" : true
+                    "Type" : STRING_TYPE
                 },
                 {
                     "Names" : "DesiredCorePerZone",
