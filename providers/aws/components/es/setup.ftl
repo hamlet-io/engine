@@ -1,6 +1,6 @@
 [#ftl]
 [#macro aws_es_cf_genplan_solution occurrence ]
-    [@addDefaultGenerationPlan subsets=["template", "epilogue", "cli"] /]å
+    [@addDefaultGenerationPlan subsets=["template"] /]
 [/#macro]
 
 [#macro aws_es_cf_setup_solution occurrence ]
@@ -11,11 +11,48 @@
     [#local resources = occurrence.State.Resources]
     [#local roles = occurrence.State.Roles]
 
+    [#local vpcAccess = solution.VPCAccess]
+    [#local port = "https" ]
+
+    [#local networkConfiguration = {} ]
+    [#if vpcAccess ]
+        [#local networkLink = getOccurrenceNetwork(occurrence).Link!{} ]
+        [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
+        [#if ! networkLinkTarget?has_content ]
+            [@fatal message="Network could not be found" context=networkLink /]
+            [#return]
+        [/#if]
+        [#local networkConfiguration = networkLinkTarget.Configuration.Solution]
+        [#local networkResources = networkLinkTarget.State.Resources ]
+        [#local vpcId = networkResources["vpc"].Id ]
+        [#local subnets = getSubnets(core.Tier, networkResources) ]
+
+        [#local sgId = resources["sg"].Id ]
+        [#local sgName = resources["sg"].Name ]
+
+        [#local networkConfiguration = {
+                        "SecurityGroupIds" : getReference(sgId),
+                        "SubnetIds" : subnets
+                }]
+    [/#if]
+
     [#local esId = resources["es"].Id]
     [#local esName = resources["es"].Name]
     [#local esServiceRoleId = resources["servicerole"].Id]
 
-    [#local processorProfile = getProcessor(occurrence, "ElasticSearch")]
+    [#local lgId = (resources["lg"].Id)!"" ]
+    [#local lgName = (resources["lg"].Name)!"" ]
+
+    [#local processorProfile = getProcessor(occurrence, "es")]
+    [#local dataNodeCount = valueIfContent(
+                                processorProfile.Count,
+                                processorProfile.Count,
+                                multiAZ?then(
+                                    processorProfile.CountPerZone * zones?size,
+                                    processorProfile.CountPerZone
+                                )
+    )]
+
     [#local master = processorProfile.Master!{}]
 
     [#-- Baseline component lookup --]
@@ -28,7 +65,7 @@
     [#local esAuthentication = solution.Authentication]
 
     [#local cognitoIntegration = false ]
-    [#local cognitoCliConfig = {
+    [#local cognitoConfig = {
             "Enabled" : false,
             "RoleArn" : getExistingReference(esServiceRoleId, ARN_ATTRIBUTE_TYPE)
     } ]
@@ -65,20 +102,6 @@
     [/#list]
 
     [#local AccessPolicyStatements = [] ]
-
-    [#local esAccounts = getAWSAccountIds( solution.Accounts )]
-    [#local esAccountPrincipals = []]
-    [#local esGlobalAccountAccess = false ]
-
-    [#if esAccounts?seq_contains("*") ]
-        [#local esGlobalAccountAccess = true ]
-        [#local esAccountPrincipals = [ "*" ]]
-    [#else]
-        [#list esAccounts as esAccount ]
-            [#local esAccountPrincipals += [ formatAccountPrincipalArn( esAccount ) ]]
-        [/#list]
-    [/#if]
-
 
     [#if esAuthentication == "SIG4ANDIP" ]
 
@@ -141,25 +164,6 @@
         ]
     [/#if]
 
-    [#if (esAuthentication == "SIG4ANDIP" || esAuthentication == "SIG4ORIP" ) && ! esGlobalAccountAccess]
-        [#local AccessPolicyStatements += [
-                getPolicyStatement(
-                    "es:ESHttp*",
-                    "*",
-                    {
-                        "AWS" : "*"
-                    },
-                    {},
-                    false,
-                    {}
-                    {
-                        "AWS" : esAccountPrincipals
-                    }
-                )
-            ]
-        ]
-    [/#if]
-
     [#if esAuthentication == "IP" ]
         [#local AccessPolicyStatements +=
             [
@@ -200,14 +204,14 @@
                 [#case USERPOOL_COMPONENT_TYPE]
                     [#local cognitoIntegration = true ]
 
-                    [#local cognitoCliConfig +=
+                    [#local cognitoConfig +=
                         {
                             "UserPoolId" : linkTargetAttributes["USER_POOL"]
                         }]
                     [#break]
                 [#case FEDERATEDROLE_COMPONENT_TYPE ]
                     [#local cognitoIntegration = true ]
-                    [#local cognitoCliConfig +=
+                    [#local cognitoConfig +=
                         {
                             "IdentityPoolId" : getExistingReference(linkTargetResources["identitypool"].Id)
                         }]
@@ -225,14 +229,14 @@
                 /]
         [/#if]
 
-        [#if (cognitoCliConfig["IdentityPoolId"]!"")?has_content && (cognitoCliConfig["UserPoolId"]!"")?has_content ]
-            [#local cognitoCliConfig +=
+        [#if (cognitoConfig["IdentityPoolId"]!"")?has_content && (cognitoConfig["UserPoolId"]!"")?has_content ]
+            [#local cognitoConfig +=
                 {
                     "Enabled" : true
                 }
             ]
         [#else]
-            [#if deploymentSubsetRequired("cli", false)]
+            [#if deploymentSubsetRequired("es", false)]
                 [@fatal
                     message="Incomplete Cognito integration"
                     context=component
@@ -241,6 +245,16 @@
             [/#if]
         [/#if]
 
+    [/#if]
+
+    [#if solution.Logging ]
+        [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(lgId) ]
+            [@createLogGroup
+                id=lgId
+                name=lgName
+            /]
+
+        [/#if]
     [/#if]
 
     [#-- In order to permit updates to the security policy, don't name the domain. --]
@@ -281,6 +295,26 @@
             [/#list]
         [/#list]
 
+        [#if vpcAccess ]
+            [@createSecurityGroup
+                id=sgId
+                name=sgName
+                vpcId=vpcId
+                occurrence=occurrence
+            /]
+
+            [@createSecurityGroupIngress
+                id=formatDependentSecurityGroupIngressId(
+                            sgId,
+                            port
+                    )
+                port=port
+                cidr="0.0.0.0/0"
+                groupId=sgId
+            /]
+
+        [/#if]
+
         [@cfResource
             id=esId
             type="AWS::Elasticsearch::Domain"
@@ -290,21 +324,29 @@
                     "ElasticsearchClusterConfig" :
                         {
                             "InstanceType" : processorProfile.Processor,
-                            "ZoneAwarenessEnabled" : multiAZ,
-                            "InstanceCount" :
-                                multiAZ?then(
-                                    processorProfile.CountPerZone * zones?size,
-                                    processorProfile.CountPerZone
-                                )
+                            "InstanceCount" : dataNodeCount
                         } +
-                        master?has_content?then(
+                        valueIfTrue(
                             {
                                 "DedicatedMasterEnabled" : true,
                                 "DedicatedMasterCount" : master.Count,
                                 "DedicatedMasterType" : master.Processor
                             },
+                            ( master.Count > 0 ),
                             {
                                 "DedicatedMasterEnabled" : false
+                            }
+                        ) +
+                        valueIfTrue(
+                            {
+                                "ZoneAwarenessEnabled" : true,
+                                "ZoneAwarenessConfig" : {
+                                    "AvailabilityZoneCount" : zones?size
+                                }
+                            },
+                            (( !solution.VPCAccess && dataNodeCount > 1 ) || ( solution.VPCAccess && multiAZ )),
+                            {
+                                "ZoneAwarenessEnabled" : false
                             }
                         )
                 } +
@@ -335,57 +377,30 @@
                     "AccessPolicies",
                     AccessPolicyStatements,
                     getPolicyDocumentContent(AccessPolicyStatements)
+                ) +
+                attributeIfTrue(
+                    "CognitoOptions",
+                    cognitoIntegration,
+                    cognitoConfig
+                ) +
+                attributeIfTrue(
+                    "LogPublishingOptions",
+                    solution.Logging,
+                    {
+                        "Enabled" : true,
+                        "CloudWatchLogsLogGroupArn" : getReference(lgId, ARN_ATTRIBUTE_TYPE)
+                    }
+                ) +
+                attributeIfTrue(
+                    "VPCOptions",
+                    vpcAccess,
+                    networkConfiguration
                 )
             tags=getOccurrenceCoreTags(occurrence, "")
             outputs=ES_OUTPUT_MAPPINGS
-        /]
-    [/#if]
-
-    [#if deploymentSubsetRequired("cli", false)]
-
-        [#local esCliConfig =
-            valueIfTrue(
-                {
-                    "CognitoOptions" : cognitoCliConfig
-                },
-                cognitoCliConfig.Enabled,
-                {
-                    "CognitoOptions" : {
-                        "Enabled" : false
-                    }
-                }
-            )]
-
-        [@addCliToDefaultJsonOutput
-            id=esId
-            command=esUpdateCommand
-            content=esCliConfig
-        /]
-
-    [/#if]
-
-    [#if deploymentSubsetRequired("epilogue", false)]
-        [@addToDefaultBashScriptOutput
-            content= (getExistingReference(esId)?has_content)?then(
-                    [
-                        "case $\{STACK_OPERATION} in",
-                        "  create|update)",
-                        "       # Get cli config file",
-                        "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?",
-                        "       # Apply CLI level updates to ES Domain",
-                        "       info \"Applying cli level configurtion\""
-                        "       update_es_domain" +
-                        "       \"" + region + "\" " +
-                        "       \"" + getExistingReference(esId) + "\" " +
-                        "       \"$\{tmpdir}/cli-" +
-                        esId + "-" + esUpdateCommand + ".json\" || return $?"
-                        "   ;;",
-                        "   esac"
-                    ],
-                    [
-                        "warning \"Please run another update to complete the configuration\""
-                    ]
-                )
+            updatePolicy={
+                "EnableVersionUpgrade" : solution.AllowMajorVersionUpdates
+            }
         /]
     [/#if]
 [/#macro]

@@ -26,12 +26,6 @@
                 "Default" : "IP"
             },
             {
-                "Names" : "Accounts",
-                "Description" : "A list of accounts which will be permitted to access the ES index",
-                "Type" : ARRAY_OF_STRING_TYPE,
-                "Default" : [ "_environment" ]
-            },
-            {
                 "Names" : "IPAddressGroups",
                 "Description" : "A list of IP Address Groups which will be permitted to access the ES index",
                 "Type" : ARRAY_OF_STRING_TYPE,
@@ -87,6 +81,21 @@
                 "Names" : "Alerts",
                 "Subobjects" : true,
                 "Children" : alertChildrenConfiguration
+            },
+            {
+                "Names" : "Logging",
+                "Type" : BOOLEAN_TYPE,
+                "Default" : false
+            },
+            {
+                "Names" : "AllowMajorVersionUpdates",
+                "Type" : BOOLEAN_TYPE,
+                "Default" : true
+            },
+            {
+                "Names" : "VPCAccess",
+                "Type" : BOOLEAN_TYPE,
+                "Default" : false
             }
         ]
 /]

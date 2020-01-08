@@ -21,17 +21,13 @@
     [#local cmkKeyArn = getReference(cmkKeyId, ARN_ATTRIBUTE_TYPE)]
 
     [#local networkLink = getOccurrenceNetwork(occurrence).Link!{} ]
-
     [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
-
     [#if ! networkLinkTarget?has_content ]
         [@fatal message="Network could not be found" context=networkLink /]
         [#return]
     [/#if]
-
     [#local networkConfiguration = networkLinkTarget.Configuration.Solution]
     [#local networkResources = networkLinkTarget.State.Resources ]
-
     [#local vpcId = networkResources["vpc"].Id ]
 
     [#local auroraCluster = false]
@@ -191,10 +187,7 @@
         [/#if]
     [/#list]
 
-    [#local processorProfile = (getProcessor(occurrence, "RDS")?has_content)?then(
-                                getProcessor(occurrence, "RDS"),
-                                getProcessor(occurrence, DB_COMPONENT_TYPE )
-                            )]
+    [#local processorProfile = getProcessor(occurrence, "db" )]
     [#local securityProfile = getSecurityProfile(solution.Profiles.Security, "db" )]
     [#local requiredRDSCA = securityProfile["SSLCertificateAuthority"]!"COTFatal: SSLCertificateAuthority not found in security profile: " + solution.Profiles.Security ]
 
@@ -455,7 +448,7 @@
 
                     [#local processor = getProcessor(
                                             occurrence,
-                                            DB_COMPONENT_TYPE,
+                                            "db",
                                             solution.ProcessorProfile)]
                     [#local processorCounts = getProcessorCounts(processor, multiAZ ) ]
 
@@ -622,7 +615,7 @@
 
                                 [#local scheduleProcessor = getProcessor(
                                                                 occurrence,
-                                                                DB_COMPONENT_TYPE,
+                                                                "db",
                                                                 scalingPolicy.Scheduled.ProcessorProfile)]
                                 [#local scheduleProcessorCounts = getProcessorCounts(scheduleProcessor, multiAZ ) ]
                                 [#local scheduledActions += [
