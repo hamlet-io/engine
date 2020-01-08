@@ -344,7 +344,7 @@
                                     "AvailabilityZoneCount" : zones?size
                                 }
                             },
-                            ( !solution.VPCAccess && dataNodeCount > 1 || solution.VPCAccess && multiAZ),
+                            (( !solution.VPCAccess && dataNodeCount > 1 ) || ( solution.VPCAccess && multiAZ )),
                             {
                                 "ZoneAwarenessEnabled" : false
                             }
