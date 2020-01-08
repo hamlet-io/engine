@@ -715,6 +715,7 @@
                         availabilityZone=zones[0].AWSZone
                         encrypted=solution.Encrypted
                         kmsKeyId=cmkKeyId
+                        caCertificate=requiredRDSCA
                         masterUsername=rdsUsername
                         masterPassword=rdsPassword
                         databaseName=rdsDatabaseName
@@ -894,27 +895,6 @@
                     [
                         "}",
                         "reset_master_password || return $?"
-                    ],
-                []) +
-                (rdsCA != requiredRDSCA && !auroraCluster )?then(
-                    [
-                        "# Update RDS CA",
-                        "function update_rds_ca() {",
-                        "info \"Updating RDS CA ... \"",
-                        "rdsCAIdentifier=\"" + requiredRDSCA + "\"",
-                        "update_rds_ca_identifier" +
-                        " \"" + region + "\" " +
-                        " \"" + rdsFullName + "\" " +
-                        " \"$\{rdsCAIdentifier}\" || return $?"
-                    ] +
-                    pseudoStackOutputScript(
-                            "RDS CA Identifier",
-                            { formatId(rdsId, "ca") : requiredRDSCA },
-                            "ca"
-                    ) +
-                    [
-                        "}",
-                        "update_rds_ca || return $?"
                     ],
                 []) +
                 [
