@@ -678,6 +678,7 @@
                         parameterGroupId=rdsParameterGroupId
                         optionGroupId=rdsOptionGroupId
                         securityGroupId=rdsSecurityGroupId
+                        caCertificate=requiredRDSCA
                         allowMajorVersionUpgrade=solution.AllowMajorVersionUpgrade
                         autoMinorVersionUpgrade=solution.AutoMinorVersionUpgrade!RDSAutoMinorVersionUpgrade
                         deleteAutomatedBackups=solution.Backup.DeleteAutoBackups
