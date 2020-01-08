@@ -1,6 +1,6 @@
 [#ftl]
 [#macro aws_es_cf_genplan_solution occurrence ]
-    [@addDefaultGenerationPlan subsets=["template"] /]å
+    [@addDefaultGenerationPlan subsets=["template"] /]
 [/#macro]
 
 [#macro aws_es_cf_setup_solution occurrence ]
