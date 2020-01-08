@@ -44,7 +44,8 @@
             "Children" : [
                 {
                     "Names" : "Processor",
-                    "Type" : STRING_TYPE
+                    "Type" : STRING_TYPE,
+                    "Mandatory" : true
                 }
             ]
         },
@@ -53,7 +54,8 @@
             "Children" : [
                 {
                     "Names" : "Processor",
-                    "Type" : STRING_TYPE
+                    "Type" : STRING_TYPE,
+                    "Mandatory" : true
                 }
             ]
         },
@@ -62,7 +64,8 @@
             "Children" : [
                 {
                     "Names" : "Processor",
-                    "Type" : STRING_TYPE
+                    "Type" : STRING_TYPE,
+                    "Mandatory" : true
                 }
             ]
         },
@@ -71,7 +74,8 @@
             "Children" : [
                 {
                     "Names" : "Processor",
-                    "Type" : STRING_TYPE
+                    "Type" : STRING_TYPE,
+                    "Mandatory" : true
                 }
             ] +
             nodeCountChildConfiguration
@@ -81,7 +85,8 @@
             "Children" : [
                 {
                     "Names" : "Processor",
-                    "Type" : STRING_TYPE
+                    "Type" : STRING_TYPE,
+                    "Mandatory" : true
                 }
             ] +
             nodeCountChildConfiguration
@@ -91,7 +96,8 @@
             "Children" : [
                 {
                     "Names" : "Processor",
-                    "Type" : STRING_TYPE
+                    "Type" : STRING_TYPE,
+                    "Mandatory" : true
                 }
             ] +
             nodeCountChildConfiguration
@@ -101,11 +107,13 @@
             "Children" : [
                 {
                     "Names" : "Processor",
-                    "Type" : STRING_TYPE
+                    "Type" : STRING_TYPE,
+                    "Mandatory" : true
                 },
                 {
                     "Names" : "CountPerZone",
-                    "Type" : NUMBER_TYPE
+                    "Type" : NUMBER_TYPE,
+                    "Default" : 1
                 }
             ]
         },
@@ -114,22 +122,26 @@
             "Children" : [
                 {
                     "Names" : [ "Processor", "DataNodeProcessor" ],
-                    "Type" : STRING_TYPE
+                    "Type" : STRING_TYPE,
+                    "Mandatory" : true
                 },
                 {
                     "Names" : [ "CountPerZone", "DataNodeCountPerZone" ],
-                    "Type" : NUMBER_TYPE
+                    "Type" : NUMBER_TYPE,
+                    "Default" : 1
                 },
                 {
                     "Names" : [ "Count", "DataNodeCount" ],
-                    "Type" : NUMBER_TYPE
+                    "Type" : NUMBER_TYPE,
+                    "Default" : 0
                 },
                 {
                     "Names" : "Master",
                     "Children" : [
                         {
                             "Names" : "Processor",
-                            "Type" : STRING_TYPE
+                            "Type" : STRING_TYPE,
+                            "Mandatory: true
                         },
                         {
                             "Names" : "Count",
@@ -149,15 +161,18 @@
             "Children" : [
                 {
                     "Names" : "Processor",
-                    "Type" : STRING_TYPE
+                    "Type" : STRING_TYPE,
+                    "Mandatory" : true
                 },
                 {
                     "Names" : "DesiredCorePerZone",
-                    "Type" : NUMBER_TYPE
+                    "Type" : NUMBER_TYPE,
+                    "Default" : 1
                 },
                 {
                     "Names" : "DesiredTaskPerZone",
-                    "Type" : NUMBER_TYPE
+                    "Type" : NUMBER_TYPE,
+                    "Default" : 1
                 }
             ]
         }
