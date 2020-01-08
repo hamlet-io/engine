@@ -799,7 +799,7 @@
                 [/#list]
 
 
-                [#local processorProfile = getProcessor(subOccurrence, ECS_SERVICE_COMPONENT_TYPE )]
+                [#local processorProfile = getProcessor(subOccurrence, "service" )]
                 [#local processorCounts = getProcessorCounts(processorProfile, multiAZ, (solution.DesiredCount)!"" ) ]
 
                 [#local desiredCount = processorCounts.DesiredCount ]
@@ -972,7 +972,7 @@
 
                                 [#local scheduleProcessor = getProcessor(
                                                                 subOccurrence,
-                                                                ECS_SERVICE_COMPONENT_TYPE,
+                                                                "service",
                                                                 scalingPolicy.Scheduled.ProcessorProfile)]
                                 [#local scheduleProcessorCounts = getProcessorCounts(scheduleProcessor, multiAZ ) ]
                                 [#local scheduledActions += [

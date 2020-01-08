@@ -441,7 +441,7 @@
 
                         [#local scheduleProcessor = getProcessor(
                                                         occurrence,
-                                                        "ECS",
+                                                        "ComputeCluster",
                                                         scalingPolicy.Scheduled.ProcessorProfile)]
                         [#local scheduleProcessorCounts = getProcessorCounts(scheduleProcessor, multiAZ ) ]
                         [@createEc2AutoScalingSchedule

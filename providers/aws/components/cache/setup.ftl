@@ -82,7 +82,7 @@
                                             cacheSecurityGroupId,
                                             port)]
 
-    [#local processorProfile = getProcessor(occurrence, "ElastiCache")]
+    [#local processorProfile = getProcessor(occurrence, "cache")]
     [#local countPerZone = processorProfile.CountPerZone]
     [#local awsZones = [] ]
     [#list zones as zone]

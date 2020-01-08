@@ -66,10 +66,7 @@
     [#local logFileProfile = getLogFileProfile(occurrence, BASTION_COMPONENT_TYPE)]
     [#local bootstrapProfile = getBootstrapProfile(occurrence, BASTION_COMPONENT_TYPE)]
 
-    [#local processorProfile = (getProcessor(occurrence, "SSH")?has_content)?then(
-                                    getProcessor(occurrence, "SSH"),
-                                    getProcessor(occurrence, BASTION_COMPONENT_TYPE)
-                                )]
+    [#local processorProfile = getProcessor(occurrence, "bastion")]
 
     [#local processorProfile += {
                 "MaxCount" : 2,
