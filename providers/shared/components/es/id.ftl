@@ -74,6 +74,11 @@
                             "Names" : "Alert",
                             "Type" : STRING_TYPE,
                             "Default" : "default"
+                        },
+                        {
+                            "Names" : "Security",
+                            "Type" : STRING_TYPE,
+                            "Default" : "default"
                         }
                     ]
             },
