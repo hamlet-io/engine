@@ -8,7 +8,6 @@
 [/#macro]
 
 [#macro addScenario
-    id
     blueprint={}
     settingSets=[]
     stackOutputs=[]
@@ -16,30 +15,23 @@
 ]
 
     [#if blueprint?has_content ]
-        [@addBlueprint 
-            blueprint=blueprint 
+        [@addBlueprint
+            blueprint=blueprint
         /]
     [/#if]
 
     [#list settingSets as settingSet ]
-        [@addSettings 
-            type=settingSet.Type!"Settings" 
-            scope=settingSet.Scope!"Products" 
-            namespace=settingSet.Namespace!id
+        [@addSettings
+            type=settingSet.Type!"Settings"
+            scope=settingSet.Scope!"Products"
+            namespace=settingSet.Namespace
             settings=settingSet.Settings!{}
         /]
     [/#list]
 
-    [#list stackOutputs as stackOutput ]
-        [@addStackOutputs 
-            [
-                {
-                    "DeploymentUnit" : id!deploymentUnit
-                } +
-                stackOutput
-            ]
-        /]
-    [/#list]
+    [@addStackOutputs
+        outputs=stackOutputs
+    /]
 
     [#if commandLineOption?has_content ]
         [@addCommandLineOption options=commandLineOption /]

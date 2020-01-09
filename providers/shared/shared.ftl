@@ -4,8 +4,8 @@
 [#assign DEFAULT_DEPLOYMENT_FRAMEWORK = "default"]
 
 
-[#-- Default testplan --]
-[#macro shared_testplan occurrence ]
+[#-- Default testcase --]
+[#macro shared_testcase occurrence ]
     [#local solution = occurrence.Configuration.Solution ]
     [#local componentType = occurrence.Core.Type ]
 
@@ -32,8 +32,6 @@
     [#list testCaseNames as testCaseName ]
         [#if testCases[testCaseName]?? ]
             [#local testCase = testCases[testCaseName] ]
-
-            [@debug message="testCase" context=testCase enabled=true /]
 
             [#local tests = mergeObjects(
                 tests,

@@ -50,10 +50,10 @@
                                 [/#if]
                                 [#break]
 
-                            [#case "testplan" ]
-                                [#if invokeTestPlanMacro( occurrence, key, [ level ]) ]
+                            [#case "testcase" ]
+                                [#if invokeTestCaseMacro( occurrence, key, [ level ]) ]
                                     [@debug
-                                        message="Testplan Processing key:" + key + "..."
+                                        message="Test case Processing key:" + key + "..."
                                         enabled=false
                                     /]
                                 [/#if]

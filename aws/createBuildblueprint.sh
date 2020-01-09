@@ -35,8 +35,7 @@ PARAMETERS:
 (o) -o OUTPUT_DIR              is the directory where the outputs will be saved - defaults to the PRODUCT_STATE_DIR
 (o) -p GENERATION_PROVIDER     is the provider to for template generation
 (o) -f GENERATION_FRAMEWORK    is the output framework to use for template generation
-(o) -s GENERATION_SCENARIOS    is a comma seperated list of framework scenarios to load
-(o) -t GENERATION_TESTCASE     is the test case you would like to generate a template for
+(o) -s GENERATION_SUBPROVIDERS is a command seperated list of additional providers to include in the loading process
 (m) -u DEPLOYMENT_UNIT         is the deployment unit to be included in the template
 
   (m) mandatory, (o) optional, (d) deprecated

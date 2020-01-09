@@ -6,6 +6,12 @@
 
 [#assign includeOnceConfiguration = {} ]
 
+[#assign providers = combineEntities(
+                        [ commandLineOptions.Deployment.Provider.Name ],
+                        commandLineOptions.Deployment.Provider.SubProviders,
+                        UNIQUE_COMBINE_BEHAVIOUR
+                    )]
+
 [#-- Only load configuration once --]
 [#function isConfigurationIncluded configuration]
     [#local index = concatenate(configuration, "_")?lower_case]

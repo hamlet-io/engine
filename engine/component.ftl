@@ -254,12 +254,12 @@
         )]
 [/#function]
 
-[#function invokeTestPlanMacro occurrence resourceGroup qualifiers=[] ]
+[#function invokeTestCaseMacro occurrence resourceGroup qualifiers=[] ]
     [#return
         invokeComponentMacro(
             occurrence,
             resourceGroup,
-            "testplan",
+            "testcase",
             qualifiers,
             {},
             {},

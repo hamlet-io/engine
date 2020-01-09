@@ -189,7 +189,7 @@
     [/#if]
 
 
-    [#local subsets = combineEntities( subsets, [ "testplan" ], UNIQUE_COMBINE_BEHAVIOUR) ]
+    [#local subsets = combineEntities( subsets, [ "testcase" ], UNIQUE_COMBINE_BEHAVIOUR) ]
 
     [#list asArray(subsets) as subset]
         [#-- Each subset gets its own section --]
@@ -198,7 +198,7 @@
             [#case "genplan"]
                 [#local name = section + "-100" ]
                 [#break]
-            [#case "testplan"]
+            [#case "testcase"]
                 [#local name = section + "-200"]
                 [#break]
             [#case "pregeneration"]
@@ -294,7 +294,7 @@
 [@addGenPlanStepOutputMapping
     provider=SHARED_PROVIDER
     subsets=[
-        "testplan",
+        "testcase",
         "cli",
         "config",
         "parameters"

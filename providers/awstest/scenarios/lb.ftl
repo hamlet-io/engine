@@ -1,9 +1,10 @@
 [#ftl]
 
 [#-- Get stack output --]
-[#macro aws_scenario_lbhttps ]
+[#macro awstest_scenario_lb ]
+
+    [#-- HTTPS Load Balancer --]
     [@addScenario
-        id="lbhttps"
         blueprint={
             "Tiers" : {
                 "elb" : {

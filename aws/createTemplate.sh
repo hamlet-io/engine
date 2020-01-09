@@ -34,8 +34,7 @@ where
 (o) -d DEPLOYMENT_MODE         is the deployment mode the template will be generated for
 (o) -p GENERATION_PROVIDER     is the provider to for template generation
 (o) -f GENERATION_FRAMEWORK    is the output framework to use for template generation
-(o) -t GENERATION_TESTCASE     is the test case you would like to generate a template for
-(o) -s GENERATION_SCENARIOS    is a comma seperated list of framework scenarios to load
+(o) -s GENERATION_SUBPROVIDERS is a command seperated list of additional providers to include in the loading process
 
 (m) mandatory, (o) optional, (d) deprecated
 
@@ -61,7 +60,7 @@ EOF
 function options() {
 
   # Parse options
-  while getopts ":c:d:f:g:hi:l:o:p:q:r:s:t:u:z:" option; do
+  while getopts ":c:d:f:g:hi:l:o:p:q:r:s:u:z:" option; do
       case "${option}" in
           c) CONFIGURATION_REFERENCE="${OPTARG}" ;;
           d) DEPLOYMENT_MODE="${OPTARG}" ;;
@@ -74,8 +73,7 @@ function options() {
           p) GENERATION_PROVIDER="${OPTARG}" ;;
           q) REQUEST_REFERENCE="${OPTARG}" ;;
           r) REGION="${OPTARG}" ;;
-          s) GENERATION_SCENARIOS="${OPTARG}" ;;
-          t) GENERATION_TESTCASE="${OPTARG}" ;;
+          s) GENERATION_SUBPROVIDERS="${OPTARG}" ;;
           u) DEPLOYMENT_UNIT="${OPTARG}" ;;
           z) DEPLOYMENT_UNIT_SUBSET="${OPTARG}" ;;
           \?) fatalOption; return 1 ;;
@@ -92,9 +90,7 @@ function options() {
   GENERATION_INPUT_SOURCE="${GENERATION_INPUT_SOURCE:-${GENERATION_INPUT_SOURCE_DEFAULT}}"
 
   # Check level and deployment unit
-  if [[ -z "${GENERATION_TESTCASE}" ]]; then
-    ! isValidUnit "${LEVEL}" "${DEPLOYMENT_UNIT}" && fatal "Deployment unit/level not valid" &&  return 1
-  fi
+  ! isValidUnit "${LEVEL}" "${DEPLOYMENT_UNIT}" && fatal "Deployment unit/level not valid" &&  return 1
 
   # Ensure other mandatory arguments have been provided
   if [[ (-z "${REQUEST_REFERENCE}") || (-z "${CONFIGURATION_REFERENCE}") ]]; then
@@ -332,7 +328,7 @@ function process_template_pass() {
     ["cli"]="cli.json"
     ["parameters"]="parameters.json"
     ["config"]="config.json"
-    ["testplan"]="testplan.json"
+    ["testcase"]="testcase.json"
   )
 
   # Template pass specifics
@@ -446,17 +442,16 @@ function process_template_pass() {
 
   # Args common across all passes
   local args=()
-  [[ -n "${provider}" ]]                && args+=("-v" "provider=${provider}")
-  [[ -n "${deployment_framework}" ]]    && args+=("-v" "deploymentFramework=${deployment_framework}")
-  [[ -n "${GENERATION_MODEL}" ]]        && args+=("-v" "deploymentFrameworkModel=${GENERATION_MODEL}")
-  [[ -n "${output_type}" ]]             && args+=("-v" "outputType=${output_type}")
-  [[ -n "${output_format}" ]]           && args+=("-v" "outputFormat=${output_format}")
-  [[ -n "${deployment_unit}" ]]         && args+=("-v" "deploymentUnit=${deployment_unit}")
-  [[ -n "${resource_group}" ]]          && args+=("-v" "resourceGroup=${resource_group}")
-  [[ -n "${GENERATION_LOG_LEVEL}" ]]    && args+=("-v" "logLevel=${GENERATION_LOG_LEVEL}")
-  [[ -n "${GENERATION_INPUT_SOURCE}" ]] && args+=("-v" "inputSource=${GENERATION_INPUT_SOURCE}")
-  [[ -n "${GENERATION_SCENARIOS}" ]]    && args+=("-v" "scenarios=${GENERATION_SCENARIOS}")
-  [[ -n "${GENERATION_TESTCASE}" ]]     && args+=("-v" "testCase=${GENERATION_TESTCASE}")
+  [[ -n "${provider}" ]]                  && args+=("-v" "provider=${provider}")
+  [[ -n "${deployment_framework}" ]]      && args+=("-v" "deploymentFramework=${deployment_framework}")
+  [[ -n "${GENERATION_MODEL}" ]]          && args+=("-v" "deploymentFrameworkModel=${GENERATION_MODEL}")
+  [[ -n "${output_type}" ]]               && args+=("-v" "outputType=${output_type}")
+  [[ -n "${output_format}" ]]             && args+=("-v" "outputFormat=${output_format}")
+  [[ -n "${deployment_unit}" ]]           && args+=("-v" "deploymentUnit=${deployment_unit}")
+  [[ -n "${resource_group}" ]]            && args+=("-v" "resourceGroup=${resource_group}")
+  [[ -n "${GENERATION_LOG_LEVEL}" ]]      && args+=("-v" "logLevel=${GENERATION_LOG_LEVEL}")
+  [[ -n "${GENERATION_INPUT_SOURCE}" ]]   && args+=("-v" "inputSource=${GENERATION_INPUT_SOURCE}")
+  [[ -n "${GENERATION_SUBPROVIDERS}" ]]   && args+=("-v" "subProviders=${GENERATION_SUBPROVIDERS}")
 
   # Include the template composites
   # Removal of drive letter (/?/) is specifically for MINGW
