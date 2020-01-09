@@ -32,7 +32,11 @@
 
         [#local networkConfiguration = {
                         "SecurityGroupIds" : [ getReference(sgId) ],
-                        "SubnetIds" : subnets
+                        "SubnetIds" : valueIfTrue(
+                                        subnets,
+                                        multiAZ,
+                                        [ subnets[0] ]
+                        )
                 }]
     [/#if]
 
@@ -46,7 +50,7 @@
     [#local processorProfile = getProcessor(occurrence, "es")]
     [#local dataNodeCount = valueIfTrue(
                                 processorProfile.Count,
-                                ( processorProfile.Count > 0 ),
+                                (processorProfile.Count > 0 && processorProfile.CountPerZone > 0),
                                 multiAZ?then(
                                     processorProfile.CountPerZone * zones?size,
                                     processorProfile.CountPerZone
