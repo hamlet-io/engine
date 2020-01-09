@@ -31,7 +31,7 @@
         [#local sgName = resources["sg"].Name ]
 
         [#local networkConfiguration = {
-                        "SecurityGroupIds" : getReference(sgId),
+                        "SecurityGroupIds" : [ getReference(sgId) ],
                         "SubnetIds" : subnets
                 }]
     [/#if]
