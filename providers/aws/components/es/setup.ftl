@@ -1,6 +1,6 @@
 [#ftl]
 [#macro aws_es_cf_genplan_solution occurrence ]
-    [@addDefaultGenerationPlan subsets=["template"] /]
+    [@addDefaultGenerationPlan subsets=["prologue", "template"] /]
 [/#macro]
 
 [#macro aws_es_cf_setup_solution occurrence ]
@@ -11,8 +11,31 @@
     [#local resources = occurrence.State.Resources]
     [#local roles = occurrence.State.Roles]
 
+    [#local esId = resources["es"].Id]
+    [#local esName = resources["es"].Name]
+    [#local esServiceRoleId = resources["servicerole"].Id]
+
+    [#local lgId = (resources["lg"].Id)!"" ]
+    [#local lgName = (resources["lg"].Name)!"" ]
+
     [#local vpcAccess = solution.VPCAccess]
-    [#local port = "https" ]
+
+    [#local securityProfile = getSecurityProfile(solution.Profiles.Security, "es")]
+
+    [#local ports = []]
+    [#switch securityProfile.ProtocolPolicy!("COTFatal: Could not find Security profile - " + solution.Profiles.Security) ]
+        [#case "https-only" ]
+            [#local ports += [ "https" ] ]
+            [#break]
+
+        [#case "http-https" ]
+            [#local ports += [ "http", "https" ]]
+            [#break]
+
+        [#case "http-only" ]
+            [#local ports += [ "http"]]
+            [#break]
+    [/#switch]
 
     [#local networkConfiguration = {} ]
     [#if vpcAccess ]
@@ -31,21 +54,28 @@
         [#local sgName = resources["sg"].Name ]
 
         [#local networkConfiguration = {
-                        "SecurityGroupIds" : [ getReference(sgId) ],
-                        "SubnetIds" : valueIfTrue(
-                                        subnets,
-                                        multiAZ,
-                                        [ subnets[0] ]
-                        )
+                    "SecurityGroupIds" : [ getReference(sgId) ],
+                    "SubnetIds" : valueIfTrue(
+                                    subnets,
+                                    multiAZ,
+                                    [ subnets[0] ]
+                    )
                 }]
+
+        [#if deploymentSubsetRequired("prologue", false)]
+            [@addToDefaultBashScriptOutput
+                content=[
+                    "info \"ES Service Linked Role Setup\"",
+                    "if [[ -z \"$( aws --region \"" + regionId + "\" iam list-roles --path-prefix \"/aws-service-role/es.amazonaws.com/\" --query \"Roles[*].Arn\" --output text )\" ]]; then",
+                    "aws --region \"" + regionId + "\" iam create-service-linked-role --aws-service-name \"es.amazonaws.com\"",
+                    "else",
+                    "info \"Role Already exists\"",
+                    "fi"
+                ]
+            /]
+        [/#if]
     [/#if]
 
-    [#local esId = resources["es"].Id]
-    [#local esName = resources["es"].Name]
-    [#local esServiceRoleId = resources["servicerole"].Id]
-
-    [#local lgId = (resources["lg"].Id)!"" ]
-    [#local lgName = (resources["lg"].Name)!"" ]
 
     [#local processorProfile = getProcessor(occurrence, "es")]
     [#local dataNodeCount = valueIfTrue(
@@ -64,8 +94,6 @@
     [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
     [#local cmkKeyId = baselineComponentIds["Encryption"] ]
 
-    [#local esUpdateCommand = "updateESDomain" ]
-
     [#local esAuthentication = solution.Authentication]
 
     [#local cognitoIntegration = false ]
@@ -78,7 +106,7 @@
 
     [#local storageProfile = getStorage(occurrence, "ElasticSearch")]
     [#local volume = (storageProfile.Volumes["codeontap"])!{}]
-    [#local esCIDRs = getGroupCIDRs(solution.IPAddressGroups) ]
+    [#local esCIDRs = getGroupCIDRs(solution.IPAddressGroups, true, occurrence) ]
 
     [#if !esCIDRs?has_content && !(esAuthentication == "SIG4ORIP") ]
         [@fatal
@@ -127,66 +155,84 @@
         ]
     [/#if]
 
-    [#if ( esAuthentication == "SIG4ANDIP" || esAuthentication == "IP" ) && !esCIDRs?seq_contains("0.0.0.0/0") ]
-
-        [#local AccessPolicyStatements +=
-            [
-                getPolicyStatement(
-                    "es:ESHttp*",
-                    "*",
-                    {
-                        "AWS" : "*"
-                    },
-                    {
-                        "NotIpAddress" : {
-                            "aws:SourceIp": esCIDRs
+    [#if vpcAccess ]
+        [#-- VPC Level Access Policies can not include IP's - Security Group manages IP control--]
+        [#if esAuthentication == "IP" || esAuthentication == "SIG4ORIP" ]
+            [#local AccessPolicyStatements +=
+                [
+                    getPolicyStatement(
+                        "es:ESHttp*",
+                        "*",
+                        {
+                            "AWS": "*"
                         }
-                    },
-                    false
-                )
+                    )
+                ]
             ]
-            ]
-    [/#if]
+        [/#if]
+    [#else]
+        [#-- Public ES Index Access Control --]
+        [#if ( esAuthentication == "SIG4ANDIP" || esAuthentication == "IP" ) && !esCIDRs?seq_contains("0.0.0.0/0") ]
 
-    [#if esAuthentication == "SIG4ORIP" && esCIDRs?has_content ]
-        [#local AccessPolicyStatements +=
-            [
-                getPolicyStatement(
-                    "es:ESHttp*",
-                    "*",
-                    {
-                        "AWS": "*"
-                    },
-                    attributeIfContent(
-                        "IpAddress",
-                        esCIDRs,
+            [#local AccessPolicyStatements +=
+                [
+                    getPolicyStatement(
+                        "es:ESHttp*",
+                        "*",
                         {
-                            "aws:SourceIp": esCIDRs
-                        })
-                )
-            ]
-        ]
-    [/#if]
-
-    [#if esAuthentication == "IP" ]
-        [#local AccessPolicyStatements +=
-            [
-                getPolicyStatement(
-                    "es:ESHttp*",
-                    "*",
-                    {
-                        "AWS": "*"
-                    },
-                    attributeIfContent(
-                        "IpAddress",
-                        esCIDRs,
+                            "AWS" : "*"
+                        },
                         {
-                            "aws:SourceIp": esCIDRs
-                        })
-                )
-            ]
-        ]
+                            "NotIpAddress" : {
+                                "aws:SourceIp": esCIDRs
+                            }
+                        },
+                        false
+                    )
+                ]
+                ]
+        [/#if]
 
+        [#if esAuthentication == "SIG4ORIP" && esCIDRs?has_content ]
+            [#local AccessPolicyStatements +=
+                [
+                    getPolicyStatement(
+                        "es:ESHttp*",
+                        "*",
+                        {
+                            "AWS": "*"
+                        },
+                        attributeIfContent(
+                            "IpAddress",
+                            esCIDRs,
+                            {
+                                "aws:SourceIp": esCIDRs
+                            })
+                    )
+                ]
+            ]
+        [/#if]
+
+        [#if esAuthentication == "IP" ]
+            [#local AccessPolicyStatements +=
+                [
+                    getPolicyStatement(
+                        "es:ESHttp*",
+                        "*",
+                        {
+                            "AWS": "*"
+                        },
+                        attributeIfContent(
+                            "IpAddress",
+                            esCIDRs,
+                            {
+                                "aws:SourceIp": esCIDRs
+                            })
+                    )
+                ]
+            ]
+
+        [/#if]
     [/#if]
 
     [#list solution.Links?values as link]
@@ -307,15 +353,17 @@
                 occurrence=occurrence
             /]
 
-            [@createSecurityGroupIngress
-                id=formatDependentSecurityGroupIngressId(
-                            sgId,
-                            port
-                    )
-                port=port
-                cidr="0.0.0.0/0"
-                groupId=sgId
-            /]
+            [#list ports as port ]
+                [@createSecurityGroupIngress
+                    id=formatDependentSecurityGroupIngressId(
+                                sgId,
+                                port
+                        )
+                    port=port
+                    cidr=esCIDRs
+                    groupId=sgId
+                /]
+            [/#list]
 
         [/#if]
 
