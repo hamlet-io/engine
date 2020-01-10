@@ -33,8 +33,17 @@
             },
             {
                 "Names" : "AdvancedOptions",
-                "Type" : ARRAY_OF_STRING_TYPE,
-                "Default" : []
+                "Subobjects" : true,
+                "Children" : [
+                    {
+                        "Names" : "Id",
+                        "Type" : STRING_TYPE
+                    },
+                    {
+                        "Names" : "Value",
+                        "Type" : STRING_TYPE
+                    }
+                ]
             },
             {
                 "Names" : "Version",

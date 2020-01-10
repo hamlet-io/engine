@@ -125,7 +125,7 @@
     [/#if]
 
     [#local esAdvancedOptions = {} ]
-    [#list solution.AdvancedOptions as option]
+    [#list solution.AdvancedOptions as id,option]
         [#local esAdvancedOptions +=
             {
                 option.Id : option.Value
