@@ -1,12 +1,6 @@
 [#ftl]
 [#include "/bootstrap.ftl" ]
 
-[#-- Add tests to initialised test outputs --]
-[#if commandLineOptions.Input.TestCase?has_content &&
-        (commandLineOptions.Deployment.Unit.Subset!"") == "testplan" ]
-    [@addTestPlanToDefaultJsonOutput tests=testsList /]
-[/#if]
-
 [#-- Special processing --]
 [#switch getDeploymentUnit()]
     [#case "eip"]

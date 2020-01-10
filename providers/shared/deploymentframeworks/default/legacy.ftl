@@ -50,6 +50,15 @@
                                 [/#if]
                                 [#break]
 
+                            [#case "testplan" ]
+                                [#if invokeTestPlanMacro( occurrence, key, [ level ]) ]
+                                    [@debug
+                                        message="Testplan Processing key:" + key + "..."
+                                        enabled=false
+                                    /]
+                                [/#if]
+                                [#break]
+
                             [#default]
                                 [#if invokeSetupMacro(occurrence, key, [ level ] ) ]
                                     [@debug

@@ -105,7 +105,8 @@
                 },
                 {
                     "Names" : "CountPerZone",
-                    "Type" : NUMBER_TYPE
+                    "Type" : NUMBER_TYPE,
+                    "Default" : 1
                 }
             ]
         },
@@ -118,11 +119,13 @@
                 },
                 {
                     "Names" : [ "CountPerZone", "DataNodeCountPerZone" ],
-                    "Type" : NUMBER_TYPE
+                    "Type" : NUMBER_TYPE,
+                    "Default" : 1
                 },
                 {
                     "Names" : [ "Count", "DataNodeCount" ],
-                    "Type" : NUMBER_TYPE
+                    "Type" : NUMBER_TYPE,
+                    "Default" : 0
                 },
                 {
                     "Names" : "Master",
@@ -153,11 +156,13 @@
                 },
                 {
                     "Names" : "DesiredCorePerZone",
-                    "Type" : NUMBER_TYPE
+                    "Type" : NUMBER_TYPE,
+                    "Default" : 1
                 },
                 {
                     "Names" : "DesiredTaskPerZone",
-                    "Type" : NUMBER_TYPE
+                    "Type" : NUMBER_TYPE,
+                    "Default" : 1
                 }
             ]
         }

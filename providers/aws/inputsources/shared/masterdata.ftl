@@ -2138,6 +2138,9 @@
       },
       "db": {
         "SSLCertificateAuthority": "rds-ca-2019"
+      },
+      "es" : {
+        "ProtocolPolicy" : "https-only"
       }
     }
   },
