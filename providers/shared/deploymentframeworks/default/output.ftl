@@ -219,6 +219,9 @@
             [#case "config"]
                 [#local name = section + "-800"]
                 [#break]
+            [#case "parameters"]
+                [#local name = section + "-900"]
+                [#break]
         [/#switch]
 
         [#-- Unknown subset --]
@@ -293,7 +296,8 @@
     subsets=[
         "testplan",
         "cli",
-        "config"
+        "config",
+        "parameters"
     ]
     outputType=JSON_DEFAULT_OUTPUT_TYPE
     outputFormat=""
