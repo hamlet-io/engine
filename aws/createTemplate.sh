@@ -330,6 +330,7 @@ function process_template_pass() {
     ["template"]="template.json"
     ["epilogue"]="epilogue.sh"
     ["cli"]="cli.json"
+    ["parameters"]="parameters.json"
     ["config"]="config.json"
     ["testplan"]="testplan.json"
   )
