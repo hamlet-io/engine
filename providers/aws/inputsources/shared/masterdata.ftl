@@ -1301,8 +1301,12 @@
         "DesiredPerZone": 1
       },
       "ElasticSearch": {
-        "Processor": "m3.medium.elasticsearch",
-        "CountPerZone": 1
+        "Processor": "t2.medium.elasticsearch",
+        "CountPerZone": 1,
+        "Master" : {
+          "Processor" : "t2.small.elasticsearch",
+          "CountPerZone" : 0
+        }
       },
       "service": {
         "DesiredPerZone": 1,
