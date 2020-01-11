@@ -351,7 +351,7 @@
                     genPlanStepOutputMappings,
                     {
                         provider : {
-                            subset : { 
+                            subset : {
                                 "OutputType" : outputType,
                                 "OutputFormat" : outputFormat
                             }
@@ -411,18 +411,18 @@
 
     [#-- Determine the steps required --]
     [#list asArray(alternatives) as alternative]
-        [#local step = getGenPlanStepOutputMapping( commandLineOptions.Deployment.Provider.Name, subset) ]
+        [#local step = getGenPlanStepOutputMapping( (commandLineOptions.Deployment.Provider.Names)[0], subset) ]
         [#if ! step?has_content ]
             [#return {}]
         [/#if]
-        [#local step_name = [subset, alternative, commandLineOptions.Deployment.Provider.Name, commandLineOptions.Deployment.Framework.Name]?join("-") ]
+        [#local step_name = [subset, alternative, (commandLineOptions.Deployment.Provider.Names)[0], commandLineOptions.Deployment.Framework.Name]?join("-") ]
         [#local steps =
             mergeObjects(
                 steps,
                 {
                     subset : {
                         alternative : {
-                            commandLineOptions.Deployment.Provider.Name : {
+                            (commandLineOptions.Deployment.Provider.Names)[0] : {
                                 commandLineOptions.Deployment.Framework.Name : {
                                     "Name" : step_name
                                 } + step

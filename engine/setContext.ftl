@@ -7,7 +7,7 @@
 [@includeSharedComponentConfiguration component="baseline" /]
 
 [#-- Temporary AWS stuff --]
-[#if commandLineOptions.Deployment.Provider.Name = "aws"]
+[#if (commandLineOptions.Deployment.Provider.Names)?seq_contains("aws") ]
     [@includeProviderConfiguration provider=AWS_PROVIDER /]
     [@includeProviderComponentDefinitionConfiguration provider="aws" component="baseline" /]
     [@includeProviderComponentConfiguration provider="aws" component="baseline" services="baseline" /]
@@ -178,7 +178,7 @@
                 accountObject
         } ]
 
-    [#if commandLineOptions.Deployment.Provider.Name = "aws"]
+    [#if (commandLineOptions.Deployment.Provider.Names)?seq_contains("aws")]
         [#assign credentialsBucket = getExistingReference(formatAccountS3Id("credentials"))]
         [#assign codeBucket = getExistingReference(formatAccountS3Id("code")) ]
         [#assign registryBucket = getExistingReference(formatAccountS3Id("registry")) ]
@@ -330,7 +330,7 @@
             (tenantObject.PlacementProfiles)!{}
         ) ]
 
-    [#if commandLineOptions.Deployment.Provider.Name = "aws"]
+    [#if (commandLineOptions.Deployment.Provider.Names)?seq_contains("aws")]
     [#assign segmentSeed = getExistingReference(formatSegmentSeedId()) ]
 
 
@@ -355,7 +355,7 @@
                             ((segmentObject.SSH.Enabled)!(segmentObject.Bastion.Enabled)!true)]
     [#assign sshActive = sshEnabled &&
                             ((segmentObject.SSH.Active)!(segmentObject.Bastion.Active)!false)]
-    [#if commandLineOptions.Deployment.Provider.Name = "aws"]
+    [#if (commandLineOptions.Deployment.Provider.Names)?seq_contains("aws")]
         [#assign sshFromProxySecurityGroup = getExistingReference(formatSSHFromProxySecurityGroupId())]
     [/#if]
 

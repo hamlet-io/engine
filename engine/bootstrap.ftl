@@ -20,8 +20,7 @@
     option={
         "Deployment" : {
             "Provider" : {
-                "Name" : provider!"",
-                "SubProviders" : (subProviders?split(","))![]
+                "Names" : asArray( providers?split(",") )![]
             },
             "Framework" : {
                 "Name" : deploymentFramework!"",
@@ -155,7 +154,7 @@
 [#-- Include the shared provider --]
 [@includeProviderConfiguration provider=SHARED_PROVIDER /]
 
-[#list providers as provider ]
+[#list commandLineOptions.Deployment.Provider.Names as provider ]
     [#-- Load Input Sources --]
     [@includeBaseInputSourceConfiguration
         provider=provider
@@ -183,7 +182,7 @@
         scenarios=scenarioList
     /]
 
-    [#list providers as provider ]
+    [#list commandLineOptions.Deployment.Provider.Names as provider ]
         [@includeScenarioConfiguration
             provider=provider
             scenarios=scenarioList
@@ -205,7 +204,7 @@
 [/#if]
 
 [#-- Include any command line provider/input source --]
-[#list providers as provider ]
+[#list commandLineOptions.Deployment.Provider.Names as provider ]
     [@includeInputSourceConfiguration
         provider=provider
         inputSource="shared"
@@ -236,7 +235,7 @@
 [/#if]
 
 [#-- Include any command line provider/deployment framework --]
-[#list providers as provider]
+[#list commandLineOptions.Deployment.Provider.Names as provider]
     [@includeProviderConfiguration provider=provider /]
     [#if commandLineOptions.Deployment.Framework.Name?has_content]
         [@includeDeploymentFrameworkConfiguration

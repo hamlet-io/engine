@@ -261,7 +261,7 @@
                             "plan_steps+=(\"${step_name}\")",
                             "plan_subsets[\"${step_name}\"]=\"" + subset + "\"",
                             "plan_alternatives[\"${step_name}\"]=\"" + alternative + "\"",
-                            "plan_providers[\"${step_name}\"]=\"" + provider + "\"",
+                            "plan_providers[\"${step_name}\"]=\"" + (commandLineOptions.Deployment.Provider.Names)?join(",") + "\"",
                             "plan_deployment_frameworks[\"${step_name}\"]=\"" + deploymentFramework + "\"",
                             "plan_output_types[\"${step_name}\"]=\"" + value.OutputType + "\"",
                             "plan_output_formats[\"${step_name}\"]=\"" + value.OutputFormat + "\"",
