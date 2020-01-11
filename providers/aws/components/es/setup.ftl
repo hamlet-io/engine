@@ -382,7 +382,7 @@
                             {
                                 "DedicatedMasterEnabled" : true,
                                 "DedicatedMasterCount" : master.Count,
-                                "DedicatedMasterType" : master.Processor
+                                "DedicatedMasterType" : (master.Processor)!"COTFatal: No master processor type provided"
                             },
                             ( master.Count > 0 ),
                             {
