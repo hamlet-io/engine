@@ -680,28 +680,23 @@ function process_template() {
   local passes=("template")
   local template_alternatives=("primary")
   local cf_dir_default="${PRODUCT_STATE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"
-  local cf_dir="${OUTPUT_DIR:-${cf_dir_default}}"
 
   case "${level}" in
 
     unitlist)
       cf_dir_default="${PRODUCT_STATE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}"
-      cf_dir="${OUTPUT_DIR:-${cf_dir_default}}"
       ;;
 
     blueprint)
       cf_dir_default="${PRODUCT_STATE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}"
-      cf_dir="${OUTPUT_DIR:-${cf_dir_default}}"
       ;;
 
     buildblueprint)
       cf_dir_default="${PRODUCT_STATE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}"
-      cf_dir="${OUTPUT_DIR:-${cf_dir_default}}"
       ;;
 
     account)
       cf_dir_default="${ACCOUNT_STATE_DIR}/cf/shared"
-      cf_dir="${OUTPUT_DIR:-${cf_dir_default}}"
       ;;
 
     solution)
@@ -717,6 +712,37 @@ function process_template() {
       fatalCantProceed "\"${LEVEL}\" is not one of the known stack levels." && return 1
       ;;
   esac
+
+  # Handle >=v2.0.1 cmdb where du/placement subdirectories were introduced for state
+  #
+  # Assumption is that if files whose names contain the du are not present in
+  # the base cf_dir, then the du directory structure should be used
+  #
+  # This will start to cause the new structure to be created by default for new units,
+  # and will accommodate the cmdb update when it is performed.
+  case "${level}" in
+    unitlist|blueprint|buildblueprint)
+      # No subdirectories for deployment units
+      ;;
+    *)
+      readarray -t legacy_files < <(find "${cf_dir}" -mindepth 1 -maxdepth 1 -name "*${deployment_unit}*" )
+
+      if [[ (-d "${cf_dir_default}/${deployment_unit}") || "${#legacy_files[@]}" -eq 0 ]]; then
+        case "${region}" in
+          us-east-1)
+            local placement="global"
+            ;;
+          *)
+            local placement="default"
+            ;;
+        esac
+        local cf_dir_default="${cf_dir_default}/${deployment_unit}/${placement}"
+      fi
+      ;;
+  esac
+
+  # Permit an override
+  cf_dir="${OUTPUT_DIR:-${cf_dir_default}}"
 
   # Ensure the aws tree for the templates exists
   [[ ! -d ${cf_dir} ]] && mkdir -p ${cf_dir}

@@ -291,16 +291,19 @@ function assemble_composite_definitions() {
 
   # Gather the relevant definitions
   local restore_nullglob=$(shopt -p nullglob)
+  local restore_globstar=$(shopt -p globstar)
   shopt -s nullglob
+  shopt -s globstar
 
   local definitions_array=()
   [[ (-n "${ACCOUNT}") ]] &&
-      addToArray "definitions_array" "${ACCOUNT_STATE_DIR}"/cf/shared/defn*-definition.json
+      addToArray "definitions_array" "${ACCOUNT_STATE_DIR}"/cf/shared/**/defn*-definition.json
   [[ (-n "${PRODUCT}") && (-n "${REGION}") ]] &&
-      addToArray "definitions_array" "${PRODUCT_STATE_DIR}"/cf/shared/defn*-"${REGION}"*-definition.json
+      addToArray "definitions_array" "${PRODUCT_STATE_DIR}"/cf/shared/**/defn*-"${REGION}"*-definition.json
   [[ (-n "${ENVIRONMENT}") && (-n "${SEGMENT}") && (-n "${REGION}") ]] &&
-      addToArray "definitions_array" "${PRODUCT_STATE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"/*-definition.json
+      addToArray "definitions_array" "${PRODUCT_STATE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"/**/*-definition.json
 
+  ${restore_globstar}
   ${restore_nullglob}
 
   debug "DEFINITIONS=${definitions_array[*]}"
@@ -318,14 +321,17 @@ function assemble_composite_stack_outputs() {
 
   # Create the composite stack outputs
   local restore_nullglob=$(shopt -p nullglob)
+  local restore_globstar=$(shopt -p globstar)
   shopt -s nullglob
+  shopt -s globstar
 
   local stack_array=()
   [[ (-n "${ACCOUNT}") ]] &&
-      addToArray "stack_array" "${ACCOUNT_STATE_DIR}"/*/shared/acc*-stack.json
+      addToArray "stack_array" "${ACCOUNT_STATE_DIR}"/*/shared/**/acc*-stack.json
   [[ (-n "${ENVIRONMENT}") && (-n "${SEGMENT}") && (-n "${REGION}") ]] &&
-      addToArray "stack_array" "${PRODUCT_STATE_DIR}"/*/"${ENVIRONMENT}/${SEGMENT}"/*-stack.json
+      addToArray "stack_array" "${PRODUCT_STATE_DIR}"/*/"${ENVIRONMENT}/${SEGMENT}"/**/*-stack.json
 
+  ${restore_globstar}
   ${restore_nullglob}
 
   debug "STACK_OUTPUTS=${stack_array[*]}"
@@ -1500,6 +1506,88 @@ function upgrade_cmdb_repo_to_v2_0_0() {
   return $return_status
 }
 
+function upgrade_cmdb_repo_to_v2_0_1() {
+  # Reorganise state files into a directory tree based on deployment unit and placement
+  #
+  # The format of the state tree will follow the pattern
+  # state/{df}/{env}/{seg}/{du}/{placement}
+  #
+  # Delete definition files because their file name contains the occurrence name not the
+  # deployment unit. They will be regenerated into the correct dir on the next build.
+  local root_dir="$1";shift
+  local dry_run="$1";shift
+
+
+  pushTempDir "${FUNCNAME[0]}_$(fileName "${root_dir}")_XXXX"
+  local tmp_dir="$(getTopTempDir)"
+  local return_status=0
+
+  readarray -t state_dirs < <(find "${root_dir}" -type d -name "state" )
+  for state_dir in "${state_dirs[@]}"; do
+
+    readarray -t deployment_frameworks < <(find "${state_dir}" -mindepth 1 -maxdepth 1 -type d )
+    for df_dir in "${deployment_frameworks[@]}"; do
+      local deployment_framework="$(fileName "${df_dir}")"
+
+      debug "${dry_run}Checking ${deployment_framework} deployment framework ..."
+      readarray -t state_files < <(find "${df_dir}" -type f )
+      for state_file in "${state_files[@]}"; do
+
+        local state_filepath="$(filePath "${state_file}")"
+        local state_filename="$(fileName "${state_file}")"
+
+        if contains "${state_filename}" "([a-z0-9]+)-(.+)-([a-z][a-z0-9]+)-([a-z]{2}-[a-z]+-[1-9])(-pseudo)?-(.+)"; then
+          local stack_level="${BASH_REMATCH[1]}"
+          local stack_deployment_unit="${BASH_REMATCH[2]}"
+          local stack_account="${BASH_REMATCH[3]}"
+          local stack_region="${BASH_REMATCH[4]}"
+
+          case "${stack_level}" in
+            defn)
+              # Definition files are copied on every template creation
+              info "${dry_run}Deleting ${state_file} ..."
+              [[ -n "${dry_run}" ]] && continue
+              git_rm "${state_file}" || { return_status=1; }
+              ;;
+
+            *)
+              # Add deployment unit based subdirectories
+              if contains "${state_filepath}" "${stack_deployment_unit}"; then
+                debug "${dry_run}Ignoring ${state_file}, already moved ..."
+              else
+                #
+                case "${stack_region}" in
+                  us-east-1)
+                    local placement="global"
+                    ;;
+                  *)
+                    local placement="default"
+                    ;;
+                esac
+                local du_dir="${state_filepath}/${stack_deployment_unit}/${placement}"
+                info "${dry_run}Moving ${state_file} to ${du_dir} ..."
+                [[ -n "${dry_run}" ]] && continue
+                if [[ ! -d "${du_dir}" ]]; then
+                  mkdir -p "${du_dir}"
+                fi
+                git_mv "${state_file}" "${du_dir}" || { return_status=1; }
+              fi
+              ;;
+          esac
+        else
+          warn "${dry_run}Ignoring ${state_file}, doesn't match expected state filename format ..."
+        fi
+      done
+      [[ "${return_status}" -ne 0 ]] && break
+    done
+    [[ "${return_status}" -ne 0 ]] && break
+  done
+
+  popTempDir
+
+  return $return_status
+}
+
 declare -A gen3_compatability
 # Entry example:  ["2.0.0"]=">=7.0.0"
 gen3_compatability=()
@@ -1624,7 +1712,7 @@ function upgrade_cmdb() {
   local dry_run="$1";shift
   local maximum_version="${1:-v1.3.2}";shift
 
-  local upgrade_order=("v1.0.0" "v1.1.0" "v1.2.0" "v1.3.0" "v1.3.1" "v1.3.2" "v2.0.0")
+  local upgrade_order=("v1.0.0" "v1.1.0" "v1.2.0" "v1.3.0" "v1.3.1" "v1.3.2" "v2.0.0" "v2.0.1")
 
   debug "Maximum CMDB upgrade version required is ${maximum_version}"
 
