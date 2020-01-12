@@ -125,7 +125,7 @@
     [/#if]
 
     [#local esAdvancedOptions = {} ]
-    [#list solution.AdvancedOptions as option]
+    [#list solution.AdvancedOptions as id,option]
         [#local esAdvancedOptions +=
             {
                 option.Id : option.Value
@@ -382,7 +382,7 @@
                             {
                                 "DedicatedMasterEnabled" : true,
                                 "DedicatedMasterCount" : master.Count,
-                                "DedicatedMasterType" : master.Processor
+                                "DedicatedMasterType" : (master.Processor)!"COTFatal: No master processor type provided"
                             },
                             ( master.Count > 0 ),
                             {
