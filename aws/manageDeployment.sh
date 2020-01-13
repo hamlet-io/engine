@@ -111,58 +111,6 @@ function register_resource_providers() {
   done
 }
 
-function construct_parameter_inputs() {
-
-  # if composites haven't run yet, do so
-  [[ ! -e ${COMPOSITE_STACK_OUTPUTS} ]] &&
-    assemble_composite_stack_outputs
-
-  # temp files
-  arm_composite_stack_outputs="${tmp_dir}/arm_composite_stack_outputs"
-  #TODO(rossmurr4y): template parameter defaults - account for defaults using ARM functions.
-  #template_parameter_defaults="${tmp_dir}/template_parameter_defaults"
-  template_configs="${tmp_dir}/template_configs"
-  parameter_library="${tmp_dir}/parameter_library"
-
-  # Merge Composite Outputs + Template Config Files + Parameter Defaults into one lookup library
-  # Precedence: Composite Outputs > Template Configs > Default Values
-  jq 'to_entries | map({(.key): (.value.value)}) | .[]' < ${COMPOSITE_STACK_OUTPUTS} | jq -s 'add' > ${arm_composite_stack_outputs}
-  #TODO(rossmurr4y): template parameter defaults - account for defaults using ARM functions.
-  #jq '.parameters | map_values(select(has("defaultValue"))) | if . == null then {} else . end' < ${TEMPLATE} | jq 'to_entries | map({(.key): (.value.defaultValue)}) | .[]' | jq -s 'add' > ${template_parameter_defaults}
-  [[ -f ${CONFIG} ]] &&
-    jq '.parameters | to_entries | map({(.key): (.value.value)}) | .[]' < ${CONFIG} | jq -s 'add' > ${template_configs}
-
-  # Construct filter multiplier args
-  merge_filter_files=()
-  #TODO(rossmurr4y): template parameter defaults - account for defaults using ARM functions.
-  #if [[ -f ${template_parameter_defaults}  && $(cat "${template_parameter_defaults}") != "null" && $(cat "${template_parameter_defaults}") != "{}" ]]; then
-  #  merge_filter_files+=("${template_parameter_defaults}")
-  #fi
-  if [[ -f ${template_configs}  && $(cat "${template_configs}") != "null" && $(cat "${template_configs}") != "{}" ]]; then
-    merge_filter_files+=("${template_configs}")
-  fi
-  if [[ -f ${arm_composite_stack_outputs} && $(cat "${arm_composite_stack_outputs}") != "null" && $(cat "${arm_composite_stack_outputs}") != "[]" ]]; then
-   merge_filter_files+=("${arm_composite_stack_outputs}")
-  fi
-  jqMerge "${merge_filter_files[@]}" > ${parameter_library}
-
-  # from the parameter library, return only the ones required by template
-  arrayFromList template_required_parameters "$(jq '.parameters | keys | .[]' < ${TEMPLATE})"
-  output_parameter_json=('{}')
-  for parameter in ${template_required_parameters[@]}; do
-    output_parameter_json+=$(cat "${parameter_library}" | jq --argjson parameter "${parameter}" 'to_entries[] | select( .key == $parameter ) | { (.key) : {"value": (.value)}}' )
-  done
-  template_inputs=$(echo "${output_parameter_json}" | jq -s 'add')
-
-  #TODO(rossmurr4y): template parameter defaults - once parameter defaults are implimented
-  #                  we can compare the template required parameter count (minus any using
-  #                  ARM functions) with the with the number of items in template_inputs to
-  #                  provide more helpful error handling.
-
-  echo "${template_inputs}"
-  return 0
-}
-
 function wait_for_deployment_execution() {
 
   # Assign the object path to the deployment state.
@@ -241,19 +189,11 @@ function wait_for_deployment_execution() {
 
 function process_deployment() {
 
-  stripped_template_file="${tmp_dir}/stripped_template"
-  stripped_parameter_file="${tmp_dir}/stripped_parameters"
-
-  # Strip excess from the template + parameters
-  jq -c '.' < ${TEMPLATE} > "${stripped_template_file}"
-  stripped_parameters="$(construct_parameter_inputs)"
-  echo "${stripped_parameters}" | jq -c '.' > "${stripped_parameter_file}"
-
   exit_status=0
 
   # Register Resource Providers
   info "Registering Resource Providers."
-  register_resource_providers "${stripped_template_file}"
+  register_resource_providers "${TEMPLATE}"
 
   if [[ "${DEPLOYMENT_INITIATE}" = "true" ]]; then
 
@@ -270,40 +210,62 @@ function process_deployment() {
           fi
 
           # validate resource group level deployment
+          group_deployment_args=(
+            "resource-group ${RESOURCE_GROUP}"
+            "template-file ${TEMPLATE}"
+          )
+
+          if [[ -e ${PARAMETERS} ]]; then
+            # --parameters accepts a file in @<path> syntax
+            group_deployment_args=(
+              "${group_deployment_args[@]}"
+              "parameters @${PARAMETERS}"
+            )
+          fi
+
           info "Validating template..."
-          az group deployment validate \
-            --resource-group "${RESOURCE_GROUP}" \
-            --template-file "${stripped_template_file}" \
-            --parameters @"${stripped_parameter_file}" > /dev/null || return $?
+          az group deployment validate ${group_deployment_args[@]/#/--} > /dev/null || return $?
           info "Template is valid."
+
+          # add remaining deployment options
+          group_deployment_args=(
+            "${group_deployment_args[@]}"
+            "name ${DEPLOYMENT_NAME}"
+            "no-wait"
+          )
 
           # Execute the deployment to the resource group
           info "Starting deployment of ${DEPLOYMENT_NAME} to the Resource Group ${RESOURCE_GROUP}."
-          az group deployment create \
-            --resource-group "${RESOURCE_GROUP}" \
-            --name "${DEPLOYMENT_NAME}" \
-            --template-file "${stripped_template_file}" \
-            --parameters @"${stripped_parameter_file}" \
-            --no-wait > /dev/null || return $?
+          az group deployment create ${group_deployment_args[@]/#/--} > /dev/null || return $?
 
         elif [[ "${DEPLOYMENT_SCOPE}" == "subscription" ]]; then
 
+          subscription_deployment_args=(
+            "location ${REGION}"
+            "template-file ${TEMPLATE}"
+          )
+
+          if [[ -e ${PARAMETERS} ]]; then
+            subscription_deployment_args=(
+              "${subscription_deployment_args[@]}"
+              "parameters @${PARAMETERS}"
+            )
+          fi
+
           # validate subscription level deployment
           info "Validating template..."
-          az deployment validate \
-            --location "${REGION}" \
-            --template-file "${stripped_template_file}" \
-            --parameters @"${stripped_parameter_file}" > /dev/null || return $?
+          az deployment validate ${subscription_deployment_args[@]/#/--} > /dev/null || return $?
           info "Template is valid."
+
+          subscription_deployment_args=(
+            "${subscription_deployment_args[@]}"
+            "name ${DEPLOYMENT_NAME}"
+            "no-wait"
+          )
 
           # Execute the deployment to the subscription
           info "Starting deployment of ${DEPLOYMENT_NAME} to the subscription."
-          az deployment create \
-            --location "${REGION}" \
-            --name "${DEPLOYMENT_NAME}" \
-            --template-file "${stripped_template_file}" \
-            --parameters @"${stripped_parameter_file}" \
-            --no-wait > /dev/null || return $?
+          az deployment create ${subscription_deployment_args[@]/#/--} > /dev/null || return $?
 
         fi
 
