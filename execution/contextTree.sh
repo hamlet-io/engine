@@ -1543,7 +1543,7 @@ function upgrade_cmdb_repo_to_v2_0_1() {
             local result=$?
             ;;
           arm)
-            contains "${state_filename}" "([a-z0-9]+)-(.+)-([a-z][a-z0-9]+)-(eastus)(-pseudo)?-(.+)";
+            contains "${state_filename}" "([a-z0-9]+)-(.+)-([a-z][a-z0-9]+)-(eastus|australiaeast|australiasoutheast|australiacentral|australiacentral2)(-pseudo)?-(.+)";
             local result=$?
             ;;
           *)
