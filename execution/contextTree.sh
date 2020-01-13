@@ -1536,47 +1536,65 @@ function upgrade_cmdb_repo_to_v2_0_1() {
         local state_filepath="$(filePath "${state_file}")"
         local state_filename="$(fileName "${state_file}")"
 
-        if contains "${state_filename}" "([a-z0-9]+)-(.+)-([a-z][a-z0-9]+)-([a-z]{2}-[a-z]+-[1-9])(-pseudo)?-(.+)"; then
-          local stack_level="${BASH_REMATCH[1]}"
-          local stack_deployment_unit="${BASH_REMATCH[2]}"
-          local stack_account="${BASH_REMATCH[3]}"
-          local stack_region="${BASH_REMATCH[4]}"
+        # Filename format varies with deployment framework
+        case "${deployment_framework}" in
+          cf)
+            contains "${state_filename}" "([a-z0-9]+)-(.+)-([a-z][a-z0-9]+)-([a-z]{2}-[a-z]+-[1-9])(-pseudo)?-(.+)";
+            local result=$?
+            ;;
+          arm)
+            contains "${state_filename}" "([a-z0-9]+)-(.+)-([a-z][a-z0-9]+)-(eastus)(-pseudo)?-(.+)";
+            local result=$?
+            ;;
+          *)
+            debug "${dry_run}Ignoring ${deployment_framework} deployment framework ..."
+            continue
+            ;;
+        esac
 
-          case "${stack_level}" in
-            defn)
-              # Definition files are copied on every template creation
-              info "${dry_run}Deleting ${state_file} ..."
-              [[ -n "${dry_run}" ]] && continue
-              git_rm "${state_file}" || { return_status=1; }
-              ;;
-
-            *)
-              # Add deployment unit based subdirectories
-              if contains "${state_filepath}" "${stack_deployment_unit}"; then
-                debug "${dry_run}Ignoring ${state_file}, already moved ..."
-              else
-                #
-                case "${stack_region}" in
-                  us-east-1)
-                    local placement="global"
-                    ;;
-                  *)
-                    local placement="default"
-                    ;;
-                esac
-                local du_dir="${state_filepath}/${stack_deployment_unit}/${placement}"
-                info "${dry_run}Moving ${state_file} to ${du_dir} ..."
-                [[ -n "${dry_run}" ]] && continue
-                if [[ ! -d "${du_dir}" ]]; then
-                  mkdir -p "${du_dir}"
-                fi
-                git_mv "${state_file}" "${du_dir}" || { return_status=1; }
-              fi
-              ;;
-          esac
-        else
-          warn "${dry_run}Ignoring ${state_file}, doesn't match expected state filename format ..."
+        # Ignore files that don't match expected format
+        if [[ ${result} -ne 0 ]]; then
+          warn "${dry_run}Ignoring ${state_file}, doesn't match the expected state filename format for ${deployment_framework} ..."
+          continue
         fi
+
+        local stack_level="${BASH_REMATCH[1]}"
+        local stack_deployment_unit="${BASH_REMATCH[2]}"
+        local stack_account="${BASH_REMATCH[3]}"
+        local stack_region="${BASH_REMATCH[4]}"
+
+        case "${stack_level}" in
+          defn)
+            # Definition files are copied on every template creation
+            info "${dry_run}Deleting ${state_file} ..."
+            [[ -n "${dry_run}" ]] && continue
+            git_rm -f "${state_file}" || { return_status=1; }
+            ;;
+
+          *)
+            # Add deployment unit based subdirectories
+            if contains "${state_filepath}" "${stack_deployment_unit}"; then
+              debug "${dry_run}Ignoring ${state_file}, already moved ..."
+            else
+              #
+              case "${stack_region}" in
+                us-east-1)
+                  local placement="global"
+                  ;;
+                *)
+                  local placement="default"
+                  ;;
+              esac
+              local du_dir="${state_filepath}/${stack_deployment_unit}/${placement}"
+              info "${dry_run}Moving ${state_file} to ${du_dir} ..."
+              [[ -n "${dry_run}" ]] && continue
+              if [[ ! -d "${du_dir}" ]]; then
+                mkdir -p "${du_dir}"
+              fi
+              git_mv "${state_file}" "${du_dir}" || { return_status=1; }
+            fi
+            ;;
+        esac
       done
       [[ "${return_status}" -ne 0 ]] && break
     done
