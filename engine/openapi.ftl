@@ -301,7 +301,7 @@
         {
             "Names" : ["ContentHandling", "contentHandling"],
             "Type" : STRING_TYPE,
-            "Values" : ["CONVERT_TO_BINARY", "CONVERT_TO_TEXT"]
+            "Values" : ["", "CONVERT_TO_BINARY", "CONVERT_TO_TEXT"]
         },
         {
             "Names" : ["Requests"],
