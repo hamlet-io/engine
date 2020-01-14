@@ -12,6 +12,8 @@ GENERATION_PROVIDERS_DEFAULT="aws"
 GENERATION_FRAMEWORK_DEFAULT="cf"
 GENERATION_INPUT_SOURCE_DEFAULT="composite"
 
+arrayFromList GENERATION_PROVIDERS "${GENERATION_PROVIDERS}" ","
+
 function usage() {
   cat <<EOF
 
@@ -32,7 +34,7 @@ where
 (m) -u DEPLOYMENT_UNIT         is the deployment unit to be included in the template
 (o) -z DEPLOYMENT_UNIT_SUBSET  is the subset of the deployment unit required
 (o) -d DEPLOYMENT_MODE         is the deployment mode the template will be generated for
-(o) -p GENERATION_PROVIDERS     is a list of comma separated providers to load for template generation
+(o) -p GENERATION_PROVIDER     is a provider to load for template generation - multiple providers can be added with extra arguments
 (o) -f GENERATION_FRAMEWORK    is the output framework to use for template generation
 
 (m) mandatory, (o) optional, (d) deprecated
@@ -59,7 +61,7 @@ EOF
 function options() {
 
   # Parse options
-  while getopts ":c:d:f:g:hi:l:o:p:q:r:s:u:z:" option; do
+  while getopts ":c:d:f:g:hi:l:o:p:q:r:u:z:" option; do
       case "${option}" in
           c) CONFIGURATION_REFERENCE="${OPTARG}" ;;
           d) DEPLOYMENT_MODE="${OPTARG}" ;;
@@ -69,10 +71,9 @@ function options() {
           i) GENERATION_INPUT_SOURCE="${OPTARG}" ;;
           l) LEVEL="${OPTARG}" ;;
           o) OUTPUT_DIR="${OPTARG}" ;;
-          p) GENERATION_PROVIDERS="${OPTARG}" ;;
+          p) GENERATION_PROVIDERS+=("${OPTARG}") ;;
           q) REQUEST_REFERENCE="${OPTARG}" ;;
           r) REGION="${OPTARG}" ;;
-          s) GENERATION_SUBPROVIDERS="${OPTARG}" ;;
           u) DEPLOYMENT_UNIT="${OPTARG}" ;;
           z) DEPLOYMENT_UNIT_SUBSET="${OPTARG}" ;;
           \?) fatalOption; return 1 ;;
@@ -84,9 +85,13 @@ function options() {
   CONFIGURATION_REFERENCE="${CONFIGURATION_REFERENCE:-${CONFIGURATION_REFERENCE_DEFAULT}}"
   REQUEST_REFERENCE="${REQUEST_REFERENCE:-${REQUEST_REFERENCE_DEFAULT}}"
   DEPLOYMENT_MODE="${DEPLOYMENT_MODE:-${DEPLOYMENT_MODE_DEFAULT}}"
-  GENERATION_PROVIDERS="${GENERATION_PROVIDERS:-${GENERATION_PROVIDERS_DEFAULT}}"
   GENERATION_FRAMEWORK="${GENERATION_FRAMEWORK:-${GENERATION_FRAMEWORK_DEFAULT}}"
   GENERATION_INPUT_SOURCE="${GENERATION_INPUT_SOURCE:-${GENERATION_INPUT_SOURCE_DEFAULT}}"
+
+  if [[ "${#GENERATION_PROVIDERS[@]}" == "0" ]]; then
+    GENERATION_PROVIDERS+=("${GENERATION_PROVIDERS_DEFAULT}")
+  fi
+  GENERATION_PROVIDERS=$(listFromArray "GENERATION_PROVIDERS" ",")
 
   # Check level and deployment unit
   ! isValidUnit "${LEVEL}" "${DEPLOYMENT_UNIT}" && fatal "Deployment unit/level not valid" &&  return 1
