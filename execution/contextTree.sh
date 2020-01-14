@@ -1537,31 +1537,19 @@ function upgrade_cmdb_repo_to_v2_0_1() {
         local state_filename="$(fileName "${state_file}")"
 
         # Filename format varies with deployment framework
-        case "${deployment_framework}" in
-          cf)
-            contains "${state_filename}" "([a-z0-9]+)-(.+)-([a-z][a-z0-9]+)-([a-z]{2}-[a-z]+-[1-9])(-pseudo)?-(.+)";
-            local result=$?
-            ;;
-          arm)
-            contains "${state_filename}" "([a-z0-9]+)-(.+)-([a-z][a-z0-9]+)-(eastus|australiaeast|australiasoutheast|australiacentral|australiacentral2)(-pseudo)?-(.+)";
-            local result=$?
-            ;;
-          *)
-            debug "${dry_run}Ignoring ${deployment_framework} deployment framework ..."
-            continue
-            ;;
-        esac
+        if
+          contains "${state_filename}" "([a-z0-9]+)-(.+)-([a-z][a-z0-9]+)-([a-z]{2}-[a-z]+-[1-9])(-pseudo)?-(.+)" ||
+          contains "${state_filename}" "([a-z0-9]+)-(.+)-([a-z][a-z0-9]+)-(eastus|australiaeast|australiasoutheast|australiacentral|australiacentral2)(-pseudo)?-(.+)"; then
 
-        # Ignore files that don't match expected format
-        if [[ ${result} -ne 0 ]]; then
-          warn "${dry_run}Ignoring ${state_file}, doesn't match the expected state filename format for ${deployment_framework} ..."
+          local stack_level="${BASH_REMATCH[1]}"
+          local stack_deployment_unit="${BASH_REMATCH[2]}"
+          local stack_account="${BASH_REMATCH[3]}"
+          local stack_region="${BASH_REMATCH[4]}"
+
+        else
+          warn "${dry_run}Ignoring ${state_file}, doesn't match one of the expected state filename formats ..."
           continue
         fi
-
-        local stack_level="${BASH_REMATCH[1]}"
-        local stack_deployment_unit="${BASH_REMATCH[2]}"
-        local stack_account="${BASH_REMATCH[3]}"
-        local stack_region="${BASH_REMATCH[4]}"
 
         case "${stack_level}" in
           defn)
