@@ -7,9 +7,9 @@ trap 'exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 function options() {
 
   # Parse options
-  while getopts ":f:hi:o:p:t:" option; do
+  while getopts ":f:hi:o:p:" option; do
       case "${option}" in
-          f|i|o|p|s|t) TEMPLATE_ARGS="${TEMPLATE_ARGS} -${option} ${OPTARG}" ;;
+          f|i|o|p) TEMPLATE_ARGS="${TEMPLATE_ARGS} -${option} ${OPTARG}" ;;
           h) usage; return 1 ;;
           \?) fatalOption; return 1 ;;
       esac
@@ -37,7 +37,7 @@ PARAMETERS:
 (o) -i GENERATION_INPUT_SOURCE is the source of input data to use when generating the template
     -h                         shows this text
 (o) -o OUTPUT_DIR              is the directory where the outputs will be saved - defaults to the PRODUCT_STATE_DIR
-(o) -p GENERATION_PROVIDERS     is the provider to for template generation
+(o) -p GENERATION_PROVIDER     is a provider to load for template generation - multiple providers can be added with extra arguments
 (o) -f GENERATION_FRAMEWORK    is the output framework to use for template generation
 
   (m) mandatory, (o) optional, (d) deprecated
