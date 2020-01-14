@@ -1031,3 +1031,132 @@ are added.
     [/#if]
     [#return result ]
 [/#function]
+
+[#--------------------
+-- Cache management --
+----------------------]
+
+[#function initialiseCache]
+    [#return {} ]
+[/#function]
+
+[#-- Add content to a cache --]
+[#function addToCache cache contents... ]
+    [#return mergeObjects(cache, contents) ]
+[/#function]
+
+[#-- Add a specific section of the cache --]
+[#function addToCacheSection cache path=[] content={} ]
+    [#local cacheContent = content ]
+    [#list path?reverse as key]
+        [#local content = { key: cacheContent } ]
+    [/#list]
+
+    [#return addToCache(cache, cacheContent) ]
+[/#function]
+
+[#-- Clear one or more sections of a cache --]
+[#function clearCache cache paths={} ]
+    [#local result = {} ]
+
+    [#if paths?keys?size > 0]
+        [#-- Specific attributes provided for clearing --]
+        [#list cache as key,value]
+            [#if paths[key]??]
+                [#if paths[key]?has_content]
+                    [#-- Part of the cache to clear --]
+                    [#local subContent = clearCache(value, paths[key]) ]
+                    [#if subContent?has_content]
+                        [#local result += { key : subContent } ]
+                    [#else]
+                        [#-- No subcontent so remove the key --]
+                    [/#if]
+                [#else]
+                    [#-- The key and its contents are to be cleared --]
+                [/#if]
+            [#else]
+                [#-- Leave cache intact --]
+                [#local result += {key, value}]
+            [/#if]
+        [/#list]
+    [#else]
+        [#-- Clear the entire cache --]
+    [/#if]
+    [#return result]
+[/#function]
+
+[#-- Clear a specific section of the cache --]
+[#function clearCacheSection cache path=[] ]
+    [#local paths = {} ]
+    [#list path?reverse as key]
+        [#local paths = { key: paths } ]
+    [/#list]
+
+    [#return clearCache(cache, paths) ]
+[/#function]
+
+[#-- Get a specific section of the cache --]
+[#function getCacheSection cache path=[] ]
+    [#local result = cache ]
+    [#list path as key]
+        [#local result = result[key]!{} ]
+    [/#list]
+
+    [#return result ]
+[/#function]
+
+[#-------------------------
+-- Dictionary management --
+---------------------------]
+
+[#function initialiseDictionary]
+    [#return initialiseCache() ]
+[/#function]
+
+[#function addDictionaryEntry dictionary key=[] entry={} ]
+    [#return addToCacheSection(dictionary, key + ["Content"]) ]
+[/#function]
+
+[#function removeDictionaryEntry dictionary key=[] ]
+    [#return clearCacheSection(dictionary, key + ["Content"]) ]
+[/#function]
+
+[#function getDictionaryEntry dictionary key=[] ]
+    [#return getCacheSection(dictionary, key + ["Content"]) ]
+[/#function]
+
+[#--------------------
+-- Stack management --
+----------------------]
+
+[#function initialiseStack]
+    [#return [] ]
+[/#function]
+
+[#function pushOnStack stack content]
+    [#return [content] + stack ]
+[/#function]
+
+[#function isStackNotEmpty stack]
+    [#return stack?size > 0]
+[/#function]
+
+[#function isStackEmpty stack]
+    [#return !isStackNotEmpty(stack) ]
+[/#function]
+
+[#function popOffStack stack]
+    [#if isStackNotEmpty(stack)]
+        [#return stack[1..] ]
+    [/#if]
+    [@fatal message="Attempt to pop empty stack" /]
+    [#return [] ]
+[/#function]
+
+[#function getTopOfStack stack]
+    [#if isStackNotEmpty(stack)]
+        [#return stack[0] ]
+    [/#if]
+    [@fatal message="Attempt to get top of empty stack" /]
+    [#return {} ]
+[/#function]

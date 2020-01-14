@@ -6,12 +6,27 @@
 [#-- Command line options are used to control the engine so make sure we load them first --]
 [#include "inputdata/commandLineOptions.ftl" ]
 
+[#-- Support changes to the input context during processing e.g. link processing --]
+[#include "inputdata/context.ftl" ]
+
 [#-- Input data control --]
 [@addCommandLineOption
     option={
         "Input" : {
             "Source" : inputSource!"composite"
         }
+    }
+/]
+
+[#-- Starting input context --]
+[@pushInputsContext
+    {
+        "Tenant" : tenant!"",
+        "Account" : account!"",
+        "Region" : region!"",
+        "Product" : product!"",
+        "Environment" : environment!"",
+        "Segment" : segment!""
     }
 /]
 
@@ -71,30 +86,6 @@
     }
 /]
 
-[#-- Composite Inputs --]
-[@addCommandLineOption
-    option={
-        "Composites" : {
-            "Blueprint" : (blueprint!"")?has_content?then(
-                                blueprint?eval,
-                                {}
-            ),
-            "Settings" : (settings!"")?has_content?then(
-                                settings?eval,
-                                {}
-            ),
-            "Definitions" : (definitions!"")?has_content?then(
-                                definitions?eval,
-                                {}
-            ),
-            "StackOutputs" : (stackOutputs!"")?has_content?then(
-                                stackOutputs?eval,
-                                []
-            )
-        }
-    }
-/]
-
 [#-- Regions --]
 [@addCommandLineOption
     option={
@@ -137,6 +128,11 @@
 
 [#-- Output handling --]
 [#include "output.ftl" ]
+
+[#-- CMDB Handling --]
+[#if commandLineOptions.Input.Source == "composite"]
+    [#include "cmdb.ftl" ]
+[/#if]
 
 [#-- Include any base level input sources --]
 [@includeBaseInputSourceConfiguration

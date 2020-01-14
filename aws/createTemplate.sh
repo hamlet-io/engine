@@ -168,35 +168,9 @@ function options() {
             rm -rf "${CACHE_DIR}/composite_${composite}.ftl"
         done
     fi
-
-    # Assemble settings
-    export COMPOSITE_SETTINGS="${CACHE_DIR}/composite_settings.json"
-    if [[ (("${GENERATION_USE_CACHE}" != "true") &&
-            ("${GENERATION_USE_SETTINGS_CACHE}" != "true")) ||
-        (! -f "${COMPOSITE_SETTINGS}") ]]; then
-        debug "Generating composite settings ..."
-        assemble_settings "${GENERATION_DATA_DIR}" "${COMPOSITE_SETTINGS}" || return $?
-    fi
-
-    # Create the composite definitions
-    export COMPOSITE_DEFINITIONS="${CACHE_DIR}/composite_definitions.json"
-    if [[ (("${GENERATION_USE_CACHE}" != "true") &&
-            ("${GENERATION_USE_DEFINITIONS_CACHE}" != "true")) ||
-        (! -f "${COMPOSITE_DEFINITIONS}") ]]; then
-        assemble_composite_definitions || return $?
-    fi
-
-    # Create the composite stack outputs
-    export COMPOSITE_STACK_OUTPUTS="${CACHE_DIR}/composite_stack_outputs.json"
-    if [[ (("${GENERATION_USE_CACHE}" != "true") &&
-            ("${GENERATION_USE_STACK_OUTPUTS_CACHE}" != "true")) ||
-        (! -f "${COMPOSITE_STACK_OUTPUTS}") ]]; then
-        assemble_composite_stack_outputs || return $?
-    fi
-
   fi
 
-  # Specific intput control for mock input
+  # Specific input control for mock input
   if [[ "${GENERATION_INPUT_SOURCE}" == "mock" ]]; then
 
     if [[ -z "${OUTPUT_DIR}" ]]; then
@@ -254,8 +228,8 @@ function get_openapi_definition_file() {
 
   info "Saving ${openapi_definition} to ${definition_file} ..."
 
-  # Index via id to allow definitions to be combined into single composite
-  addJSONAncestorObjects "${openapi_definition}" "${id}" > "${openapi_file_dir}/definition.json" ||
+  # Index via account, region and id to allow definitions to be combined into single composite
+  addJSONAncestorObjects "${openapi_definition}" "${accountId}" "${region}" "${id}" > "${openapi_file_dir}/definition.json" ||
       { popTempDir; return 1; }
 
   cp "${openapi_file_dir}/definition.json" "${definition_file}" ||
@@ -465,16 +439,18 @@ function process_template_pass() {
   done
 
   args+=("-g" "${GENERATION_DATA_DIR}")
-  args+=("-v" "region=${region}")
   args+=("-v" "accountRegion=${account_region}")
-  args+=("-v" "blueprint=${COMPOSITE_BLUEPRINT}")
-  args+=("-v" "settings=${COMPOSITE_SETTINGS}")
-  args+=("-v" "definitions=${COMPOSITE_DEFINITIONS}")
-  args+=("-v" "stackOutputs=${COMPOSITE_STACK_OUTPUTS}")
   args+=("-v" "requestReference=${request_reference}")
   args+=("-v" "configurationReference=${configuration_reference}")
   args+=("-v" "deploymentMode=${DEPLOYMENT_MODE}")
   args+=("-v" "runId=${run_id}")
+
+  args+=("-v" "tenant=${TENANT}")
+  args+=("-v" "account=${ACCOUNT}")
+  args+=("-v" "region=${region}")
+  args+=("-v" "product=${PRODUCT}")
+  args+=("-v" "environment=${ENVIRONMENT}")
+  args+=("-v" "segment=${SEGMENT}")
 
   # Directory for temporary files
   local tmp_dir="$(getTopTempDir)"
@@ -599,7 +575,6 @@ function process_template_pass() {
         [[ "${differences_detected}" == "true" ]] &&
           . "${result_file}" ||
           . "${output_file}"
-        assemble_composite_definitions
       fi
       ;;
 

@@ -1,10 +1,10 @@
 [#ftl]
 
-[#---------------------------------------------------
+[#------------------------------------------------
 -- Public functions for stack output processing --
------------------------------------------------------]
+--------------------------------------------------]
 
-[#assign stackOutputsList = []]
+[#assign stackOutputsList = [] ]
 
 [#assign stackOutputConfiguration = {
     "Properties" : [
