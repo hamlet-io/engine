@@ -314,36 +314,6 @@ function assemble_composite_definitions() {
   sed 's/${/$\\{/g' < "${tmp_file}" > "${COMPOSITE_DEFINITIONS}"
 }
 
-function assemble_composite_stack_outputs() {
-
-  pushTempDir "${FUNCNAME[0]}_XXXXXX"
-  local tmp_dir="$(getTopTempDir)"
-
-  # Create the composite stack outputs
-  local restore_nullglob=$(shopt -p nullglob)
-  local restore_globstar=$(shopt -p globstar)
-  shopt -s nullglob
-  shopt -s globstar
-
-  local stack_array=()
-  [[ (-n "${ACCOUNT}") ]] &&
-      addToArray "stack_array" "${ACCOUNT_STATE_DIR}"/*/shared/**/acc*-stack.json
-  [[ (-n "${ENVIRONMENT}") && (-n "${SEGMENT}") && (-n "${REGION}") ]] &&
-      addToArray "stack_array" "${PRODUCT_STATE_DIR}"/*/"${ENVIRONMENT}/${SEGMENT}"/**/*${ACCOUNT}*-stack.json
-
-  ${restore_globstar}
-  ${restore_nullglob}
-
-  debug "STACK_OUTPUTS=${stack_array[*]}"
-
-  export COMPOSITE_STACK_OUTPUTS="${CACHE_DIR}/composite_stack_outputs.json"
-
-  getFilesAsJSON "${COMPOSITE_STACK_OUTPUTS}" "${stack_array[@]}"; return_status=$?
-
-  popTempDir
-  return ${return_status}
-}
-
 function getBluePrintParameter() {
   local patterns=("$@")
 

@@ -186,14 +186,6 @@ function options() {
         assemble_composite_definitions || return $?
     fi
 
-    # Create the composite stack outputs
-    export COMPOSITE_STACK_OUTPUTS="${CACHE_DIR}/composite_stack_outputs.json"
-    if [[ (("${GENERATION_USE_CACHE}" != "true") &&
-            ("${GENERATION_USE_STACK_OUTPUTS_CACHE}" != "true")) ||
-        (! -f "${COMPOSITE_STACK_OUTPUTS}") ]]; then
-        assemble_composite_stack_outputs || return $?
-    fi
-
   fi
 
   # Specific intput control for mock input
@@ -470,11 +462,16 @@ function process_template_pass() {
   args+=("-v" "blueprint=${COMPOSITE_BLUEPRINT}")
   args+=("-v" "settings=${COMPOSITE_SETTINGS}")
   args+=("-v" "definitions=${COMPOSITE_DEFINITIONS}")
-  args+=("-v" "stackOutputs=${COMPOSITE_STACK_OUTPUTS}")
   args+=("-v" "requestReference=${request_reference}")
   args+=("-v" "configurationReference=${configuration_reference}")
   args+=("-v" "deploymentMode=${DEPLOYMENT_MODE}")
   args+=("-v" "runId=${run_id}")
+
+  args+=("-v" "tenant=${TENANT}")
+  args+=("-v" "account=${ACCOUNT}")
+  args+=("-v" "product=${PRODUCT}")
+  args+=("-v" "environment=${ENVIRONMENT}")
+  args+=("-v" "segment=${SEGMENT}")
 
   # Directory for temporary files
   local tmp_dir="$(getTopTempDir)"

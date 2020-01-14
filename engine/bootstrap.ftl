@@ -18,6 +18,19 @@
 [#-- Deployment Details --]
 [@addCommandLineOption
     option={
+        "Scopes" : {
+            "Tenant" : tenant!"",
+            "Account" : account!"",
+            "Product" : product!"",
+            "Environment" : environment!"",
+            "Segment" : segment!""
+        }
+    }
+/]
+
+[#-- Deployment Details --]
+[@addCommandLineOption
+    option={
         "Deployment" : {
             "Provider" : {
                 "Names" : asArray( providers?split(",") )![]
@@ -86,10 +99,6 @@
             "Definitions" : (definitions!"")?has_content?then(
                                 definitions?eval,
                                 {}
-            ),
-            "StackOutputs" : (stackOutputs!"")?has_content?then(
-                                stackOutputs?eval,
-                                []
             )
         }
     }
@@ -137,6 +146,11 @@
 
 [#-- Output handling --]
 [#include "output.ftl" ]
+
+[#-- CMDB Handling --]
+[#if commandLineOptions.Input.Source == "composite"]
+    [#include "cmdb.ftl" ]
+[/#if]
 
 [#-- Include any base level input sources --]
 [@includeBaseInputSourceConfiguration
