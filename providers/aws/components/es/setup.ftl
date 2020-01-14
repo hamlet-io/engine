@@ -14,6 +14,7 @@
     [#local esId = resources["es"].Id]
     [#local esName = resources["es"].Name]
     [#local esServiceRoleId = resources["servicerole"].Id]
+    [#local esSnapshotRoleId = resources["snapshotrole"].Id]
 
     [#local lgId = (resources["lg"].Id)!"" ]
     [#local lgName = (resources["lg"].Name)!"" ]
@@ -78,14 +79,10 @@
 
 
     [#local processorProfile = getProcessor(occurrence, "es")]
-    [#local dataNodeCount = valueIfTrue(
-                                processorProfile.Count,
-                                (processorProfile.Count > 0 && processorProfile.CountPerZone > 0),
-                                multiAZ?then(
+    [#local dataNodeCount = multiAZ?then(
                                     processorProfile.CountPerZone * zones?size,
                                     processorProfile.CountPerZone
-                                )
-    )]
+                            )]
 
     [#local master = processorProfile.Master!{}]
 
@@ -305,6 +302,20 @@
             /]
 
         [/#if]
+    [/#if]
+
+    [#if deploymentSubsetRequired("iam", true && isPartOfCurrentDeploymentUnit(esSnapshotRoleId)) ]
+        [@createRole
+            id=esSnapshotRoleId
+            trustedServices=["es.amazonaws.com"]
+            policies=
+                [
+                    getPolicyDocument(
+                        s3AllPermission(baselineComponentIds["AppData"], getAppDataFilePrefix(occurrence)),
+                        "ESSnapshot"
+                    )
+                ]
+        /]
     [/#if]
 
     [#-- In order to permit updates to the security policy, don't name the domain. --]
