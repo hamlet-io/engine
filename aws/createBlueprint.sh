@@ -30,7 +30,7 @@ DESCRIPTION:
         ( tenant, account, product, solution, environment, segment )
 
 USAGE:
-  $(basename $0) -i GENERATION_INPUT_SOURCE -s GENERATION_SUBPROVIDERS
+  $(basename $0)
 
 PARAMETERS:
 
