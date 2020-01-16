@@ -36,6 +36,10 @@
         [#local solution = occurrence.Configuration.Solution]
         [#local esId = formatResourceId(AWS_ES_RESOURCE_TYPE, core.Id)]
         [#local esHostName = getExistingReference(esId, DNS_ATTRIBUTE_TYPE) ]
+        [#local esSnapshotRoleId = formatDependentRoleId(esId, "snapshotStore" ) ]
+
+        [#local baselineLinks = getBaselineLinks(occurrence, [ "AppData" ] )]
+        [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
 
         [#assign componentState =
             {
@@ -48,6 +52,11 @@
                     },
                     "servicerole" : {
                         "Id" : formatDependentRoleId(esId),
+                        "Type" : AWS_IAM_ROLE_RESOURCE_TYPE,
+                        "IncludeInDeploymentState" : false
+                    },
+                    "snapshotrole" : {
+                        "Id" : esSnapshotRoleId,
                         "Type" : AWS_IAM_ROLE_RESOURCE_TYPE,
                         "IncludeInDeploymentState" : false
                     }
@@ -77,7 +86,10 @@
                     "FQDN" : esHostName,
                     "URL" : "https://" + esHostName,
                     "KIBANA_URL" : "https://" + esHostName + "/_plugin/kibana/",
-                    "PORT" : 443
+                    "PORT" : 443,
+                    "SNAPSHOT_ROLE_ARN" : getExistingReference(esSnapshotRoleId, ARN_ATTRIBUTE_TYPE),
+                    "SNAPSHOT_BUCKET" : baselineComponentIds["AppData"],
+                    "SNAPSHOT_PATH" : getAppDataFilePrefix(occurrence)
                 },
                 "Roles" : {
                     "Outbound" : {

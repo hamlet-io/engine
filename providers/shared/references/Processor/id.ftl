@@ -123,11 +123,6 @@
                     "Default" : 1
                 },
                 {
-                    "Names" : [ "Count", "DataNodeCount" ],
-                    "Type" : NUMBER_TYPE,
-                    "Default" : 0
-                },
-                {
                     "Names" : "Master",
                     "Children" : [
                         {
