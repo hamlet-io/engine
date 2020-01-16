@@ -274,6 +274,8 @@
     [#local taskName = core.Name]
     [#local taskRoleId = formatDependentRoleId(taskId)]
 
+    [#local executionRoleId = formatDependentRoleId(taskId, "execution")]
+
     [#local lgId = formatDependentLogGroupId(taskId) ]
     [#local lgName = core.FullAbsolutePath ]
 
@@ -359,7 +361,7 @@
                 "executionRole",
                 solution.Engine == "fargate",
                 {
-                    "Id" : formatDependentRoleId(taskId, "execution"),
+                    "Id" : executionRoleId,
                     "Type" : AWS_IAM_ROLE_RESOURCE_TYPE,
                     "IncludeInDeploymentState" : false
                 }
@@ -380,10 +382,17 @@
                     }
                 },
                 "Outbound" : {
-                    "run" :  ecsTaskRunPermission(ecsId) +
+                    "run" :
+                        ecsTaskRunPermission(ecsId) +
                         solution.UseTaskRole?then(
                             iamPassRolePermission(
                                 getReference(taskRoleId, ARN_ATTRIBUTE_TYPE)
+                            ),
+                            []
+                        ) +
+                        (solution.Engine == "fargate")?then(
+                            iamPassRolePermission(
+                                getReference(executionRoleId, ARN_ATTRIBUTE_TYPE)
                             ),
                             []
                         )

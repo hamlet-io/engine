@@ -95,7 +95,11 @@
                     "Outbound" : {
                         "default" : "consume",
                         "consume" : esConsumePermission(esId),
-                        "datafeed" : esKinesesStreamPermission(esId)
+                        "datafeed" : esKinesesStreamPermission(esId),
+                        "snapshot" : esConsumePermission(esId) +
+                                        iamPassRolePermission(
+                                            getExistingReference(esSnapshotRoleId, ARN_ATTRIBUTE_TYPE)
+                                        )
                     },
                     "Inbound" : {
                     }
