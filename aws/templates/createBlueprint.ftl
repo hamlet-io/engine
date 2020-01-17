@@ -130,7 +130,8 @@
 [#-- Redefine the core processing macro --]
 [#macro processComponents level]
   [#if (commandLineOptions.Deployment.Unit.Subset!"") == "config" ]
-    [@addToDefaultJsonOutput content=getTenantBlueprint() /]
+    [@addToDefaultJsonOutput
+      content=mergeObjects(getTenantBlueprint() + logMessages) /]
   [/#if]
 [/#macro]
 

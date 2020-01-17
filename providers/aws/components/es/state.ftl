@@ -88,7 +88,7 @@
                     "KIBANA_URL" : "https://" + esHostName + "/_plugin/kibana/",
                     "PORT" : 443,
                     "SNAPSHOT_ROLE_ARN" : getExistingReference(esSnapshotRoleId, ARN_ATTRIBUTE_TYPE),
-                    "SNAPSHOT_BUCKET" : baselineComponentIds["AppData"],
+                    "SNAPSHOT_BUCKET" : getExistingReference(baselineComponentIds["AppData"]),
                     "SNAPSHOT_PATH" : getAppDataFilePrefix(occurrence)
                 },
                 "Roles" : {

@@ -44,7 +44,7 @@
 [#-- Redefine the core processing macro --]
 [#macro processComponents level]
   [#if (commandLineOptions.Deployment.Unit.Subset!"") == "config" ]
-    [@addToDefaultJsonOutput content=getComponentBuildBlueprint() /]
+    [@addToDefaultJsonOutput content=mergeObjects(getComponentBuildBlueprint(),logMessages) /]
   [/#if]
 [/#macro]
 
