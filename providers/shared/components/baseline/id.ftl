@@ -6,7 +6,7 @@
     [#return formatSegmentResourceId(SEED_RESOURCE_TYPE)]
 [/#function]
 
-[#function getBaselineComponentIds links cmk="cmk" ssh="ec2KeyPair" oai="originAccessId"]
+[#function getBaselineComponentIds links cmk="cmk" ssh="ec2KeyPair" oai="originAccessId" storage="bucket"]
     [#local ids = {}]
     [#list links as linkName, linkTarget ]
         [#if !linkTarget?has_content]
@@ -23,7 +23,7 @@
 
         [#switch linkTargetCore.Type]
             [#case BASELINE_DATA_COMPONENT_TYPE ]
-                [#local ids += { linkName, linkTargetResources["bucket"].Id }]
+                [#local ids += { linkName, linkTargetResources[storage].Id }]
                 [#break]
 
             [#case BASELINE_KEY_COMPONENT_TYPE ]
