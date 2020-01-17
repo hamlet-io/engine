@@ -54,56 +54,62 @@
                 "httpslb" : {
                     "OutputSuffix" : "template",
                     "Structural" : {
-                        "CFNResource" : {
-                            "httpListenerRule" : {
-                                "Name" : "listenerRuleXelbXhttpslbXhttpX100",
-                                "Type" : "AWS::ElasticLoadBalancingV2::ListenerRule"
-                            },
-                            "httpListener" : {
-                                "Name" : "listenerXelbXhttpslbXhttps",
-                                "Type" : "AWS::ElasticLoadBalancingV2::Listener"
-                            },
-                            "loadBalancer" : {
-                                "Name" : "albXelbXhttpslb",
-                                "Type" : "AWS::ElasticLoadBalancingV2::LoadBalancer"
-                            }
-                        },
-                        "Exists" : [
-                            "Outputs.securityGroupXlistenerXelbXhttpslbXhttps"
-                        ],
-                        "Match" : {
-                            "LBName" : {
-                                "Path"  : "Resources.albXelbXhttpslb.Properties.Name",
-                                "Value" : "mockedup-int-elb-httpslb"
-                            },
-                            "HTTPAction" : {
-                                "Path" : "Resources.listenerRuleXelbXhttpslbXhttpX100.Properties.Actions[0]",
-                                "Value" : {
-                                    "Type": "redirect",
-                                    "RedirectConfig": {
-                                        "Protocol": "HTTPS",
-                                        "Port": "443",
-                                        "Host": "#\{host}",
-                                        "Path": "/#\{path}",
-                                        "Query": "#\{query}",
-                                        "StatusCode": "HTTP_301"
-                                    }
+                        "CFN" : {
+                            "Resource" : {
+                                "httpListenerRule" : {
+                                    "Name" : "listenerRuleXelbXhttpslbXhttpX100",
+                                    "Type" : "AWS::ElasticLoadBalancingV2::ListenerRule"
+                                },
+                                "httpListener" : {
+                                    "Name" : "listenerXelbXhttpslbXhttps",
+                                    "Type" : "AWS::ElasticLoadBalancingV2::Listener"
+                                },
+                                "loadBalancer" : {
+                                    "Name" : "albXelbXhttpslb",
+                                    "Type" : "AWS::ElasticLoadBalancingV2::LoadBalancer"
                                 }
                             },
-                            "HTTPSAction" : {
-                                "Path" : "Resources.listenerRuleXelbXhttpslbXhttpsX500.Properties.Actions[0].Type",
-                                "Value" : "forward"
-                            }
+                            "Output" : [
+                                "securityGroupXlistenerXelbXhttpslbXhttps",
+                                "listenerRuleXelbXhttpslbXhttpsX500",
+                                "tgXdefaultXelbXhttpslbXhttps"
+                            ]
                         },
-                        "Length" : {
-                            "listenerActions" : {
-                                "Path" : "Resources.listenerRuleXelbXhttpslbXhttpX100.Properties.Actions",
-                                "Count" : 1
-                            }
-                        },
-                        "NotEmpty" : [
-                            "Resources.listenerRuleXelbXhttpslbXhttpX100.Properties.Priority"
-                        ]
+                        "JSON" : {
+                            "Match" : {
+                                "LBName" : {
+                                    "Path"  : "Resources.albXelbXhttpslb.Properties.Name",
+                                    "Value" : "mockedup-int-elb-httpslb"
+                                },
+                                "HTTPAction" : {
+                                    "Path" : "Resources.listenerRuleXelbXhttpslbXhttpX100.Properties.Actions[0]",
+                                    "Value" : {
+                                        "Type": "redirect",
+                                        "RedirectConfig": {
+                                            "Protocol": "HTTPS",
+                                            "Port": "443",
+                                            "Host": "#\{host}",
+                                            "Path": "/#\{path}",
+                                            "Query": "#\{query}",
+                                            "StatusCode": "HTTP_301"
+                                        }
+                                    }
+                                },
+                                "HTTPSAction" : {
+                                    "Path" : "Resources.listenerRuleXelbXhttpslbXhttpsX500.Properties.Actions[0].Type",
+                                    "Value" : "forward"
+                                }
+                            },
+                            "Length" : {
+                                "listenerActions" : {
+                                    "Path" : "Resources.listenerRuleXelbXhttpslbXhttpX100.Properties.Actions",
+                                    "Count" : 1
+                                }
+                            },
+                            "NotEmpty" : [
+                                "Resources.listenerRuleXelbXhttpslbXhttpX100.Properties.Priority"
+                            ]
+                        }
                     }
                 }
             },
