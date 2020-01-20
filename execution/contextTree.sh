@@ -1745,9 +1745,11 @@ function process_cmdb() {
 
     local cmdb_version_file="${cmdb_repo}/.cmdb"
     local current_version=""
+    local pin_version=""
 
     if [[ -f "${cmdb_version_file}" ]]; then
       current_version="$(jq -r ".Version.${action^} | select(.!=null)" < "${cmdb_version_file}")"
+      pin_version="$(jq -r ".Pin.${action^} | select(.!=null)" < "${cmdb_version_file}")"
       debug "Repo is at ${action,,} version ${current_version:-<not initialised>}"
     else
       echo -n "{}" > "${cmdb_version_file}"
@@ -1771,6 +1773,17 @@ function process_cmdb() {
       else
         debug "${action^} of repo "${cmdb_repo}" to ${version} is not required"
         continue
+      fi
+
+      # Check if version is pinned
+      if [[ -n "${pin_version}" ]]; then
+        local pin_check="$(semver_compare "${version}" "${pin_version}")"
+        if [[ "${pin_check}" == "1" ]]; then
+          warn "${action^} of repo "${cmdb_repo}" to ${version} prevented by pin version ${pin_version}"
+          continue
+        else
+          debug "${dry_run}${action^} of repo "${cmdb_repo}" to ${version} permitted by pin version ${pin_version} ..."
+        fi
       fi
 
       # Ensure current gen3 framework version is compatible with the upgrade
