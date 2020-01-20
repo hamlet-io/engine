@@ -1105,34 +1105,33 @@ is useful to see what the global settings are from a debug perspective
                             "200": {
                                 "description": "Default response for CORS method",
                                 "headers":
-                                    valueIfTrue(
+                                    (globalConfiguration.OpenAPI.MajorVersion gte 3)?then(
                                         {
                                             "Access-Control-Allow-Headers": {
-                                                "type": "string"
+                                                "schema" : {
+                                                    "type": "string"
+                                                }
                                             },
                                             "Access-Control-Allow-Methods": {
-                                                "type": "string"
+                                                "schema" : {
+                                                    "type": "string"
+                                                }
                                             },
                                             "Access-Control-Allow-Origin": {
-                                                "type": "string"
+                                                "schema" : {
+                                                    "type": "string"
+                                                }
                                             }
                                         },
-                                        globalConfiguration.OpenAPI.MajorVersion gte 3,
                                         {
                                             "Access-Control-Allow-Headers": {
-                                                "schema" : {
-                                                    "type": "string"
-                                                }
+                                                "type": "string"
                                             },
                                             "Access-Control-Allow-Methods": {
-                                                "schema" : {
-                                                    "type": "string"
-                                                }
+                                                "type": "string"
                                             },
                                             "Access-Control-Allow-Origin": {
-                                                "schema" : {
-                                                    "type": "string"
-                                                }
+                                                "type": "string"
                                             }
                                         }
                                     )
