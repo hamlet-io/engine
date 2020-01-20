@@ -753,6 +753,78 @@ function isValidUnit() {
   return ${result}
 }
 
+function formatUnitCFDir() {
+  local base_dir="${1,,}"; shift
+  local level="${1,,}"; shift
+  local unit="${1,,}"; shift
+  local placement="${1,,}"; shift
+  local region="${1,,}"; shift
+
+  # Determine placement by region if not explicitly provided
+  if [[ -z "${placement}" ]]; then
+    case "${region}" in
+      us-east-1)
+        local placement="global"
+        ;;
+      *)
+        local placement="default"
+        ;;
+    esac
+  fi
+
+  echo -n "${base_dir}/${unit}/${placement}"
+  return 0
+}
+
+function getUnitCFDir() {
+  local base_dir="${1,,}"; shift
+  local level="${1,,}"; shift
+  local unit="${1,,}"; shift
+  local placement="${1,,}"; shift
+  local region="${1,,}"; shift
+
+  # Check for legacy files that don't contain the deployment unit
+  case "${level}" in
+    account)
+      if [[
+          ("${unit}" == "s3") && (-f "${base_dir}/account-${region}-template.json") ]]; then
+        echo -n "${base_dir}" && return 0
+      fi
+      ;;
+
+    product)
+      if [[
+          ("${unit}" == "cmk") && (-f "${base_dir}/product-${region}-template.json") ]]; then
+        echo -n "${base_dir}" && return 0
+      fi
+      ;;
+
+    solution)
+      if [[-f "${base_dir}/solution-${region}-template.json" ]]; then
+        echo -n "${base_dir}" && return 0
+      fi
+      ;;
+
+    segment)
+      if [[
+          (!("${unit}" =~ cmk|cert|dns )) &&
+          (-f "${base_dir}/container-${region}-template.json") ]]; then
+        echo -n "${base_dir}" && return 0
+      fi
+      if [[
+          ("${unit}" == "cmk") &&
+          (
+            (-f "${base_dir}/seg-key-${region}-template.json") ||
+            (-f "${base_dir}/cont-key-${region}-template.json")
+          ) ]]; then
+        echo -n "${base_dir}" && return 0
+      fi
+      ;;
+  esac
+
+  formatUnitCFDir "${base_dir}" "${level}" "${unit}" "${placement}" "${region}"
+}
+
 # -- Upgrade CMDB --
 
 function upgrade_build_ref() {
@@ -1536,6 +1608,8 @@ function upgrade_cmdb_repo_to_v2_0_1() {
         local state_filepath="$(filePath "${state_file}")"
         local state_filename="$(fileName "${state_file}")"
 
+        local stack_deployment_unit=""
+
         # Filename format varies with deployment framework
         if
           contains "${state_filename}" "([a-z0-9]+)-(.+)-([a-z][a-z0-9]+)-([a-z]{2}-[a-z]+-[1-9])(-pseudo)?-(.+)" ||
@@ -1543,10 +1617,47 @@ function upgrade_cmdb_repo_to_v2_0_1() {
 
           local stack_level="${BASH_REMATCH[1]}"
           local stack_deployment_unit="${BASH_REMATCH[2]}"
-          local stack_account="${BASH_REMATCH[3]}"
           local stack_region="${BASH_REMATCH[4]}"
+        fi
 
-        else
+        if [[ -z "${stack_deployment_unit}" ]]; then
+          # Legacy account formats
+          if contains "${state_filename}" "account-([a-z][a-z0-9]+)-([a-z]{2}-[a-z]+-[1-9])-(.+)"; then
+            local stack_level="account"
+            local stack_deployment_unit="${BASH_REMATCH[1]}"
+            local stack_region="${BASH_REMATCH[2]}"
+          fi
+          if contains "${state_filename}" "account-([a-z]{2}-[a-z]+-[1-9])-(.+)"; then
+            local stack_level="account"
+            local stack_deployment_unit="s3"
+            local stack_region="${BASH_REMATCH[1]}"
+          fi
+        fi
+
+        if [[ -z "${stack_deployment_unit}" ]]; then
+          # Legacy product formats
+          if contains "${state_filename}" "product-([a-z]{2}-[a-z]+-[1-9])-(.+)"; then
+            local stack_level="product"
+            local stack_deployment_unit="cmk"
+            local stack_region="${BASH_REMATCH[1]}"
+          fi
+        fi
+
+        if [[ -z "${stack_deployment_unit}" ]]; then
+          # Legacy segment formats
+          if contains "${state_filename}" "seg-key-([a-z]{2}-[a-z]+-[1-9])-(.+)"; then
+            local stack_level="seg"
+            local stack_deployment_unit="cmk"
+            local stack_region="${BASH_REMATCH[1]}"
+          fi
+          if contains "${state_filename}" "cont-([a-z][a-z0-9]+)-([a-z]{2}-[a-z]+-[1-9])-(.+)"; then
+            local stack_level="seg"
+            local stack_deployment_unit="${BASH_REMATCH[1]}"
+            local stack_region="${BASH_REMATCH[2]}"
+          fi
+        fi
+
+        if [[ -z "${stack_deployment_unit}" ]]; then
           warn "${dry_run}Ignoring ${state_file}, doesn't match one of the expected state filename formats ..."
           continue
         fi
@@ -1564,16 +1675,7 @@ function upgrade_cmdb_repo_to_v2_0_1() {
             if contains "${state_filepath}" "${stack_deployment_unit}"; then
               debug "${dry_run}Ignoring ${state_file}, already moved ..."
             else
-              #
-              case "${stack_region}" in
-                us-east-1)
-                  local placement="global"
-                  ;;
-                *)
-                  local placement="default"
-                  ;;
-              esac
-              local du_dir="${state_filepath}/${stack_deployment_unit}/${placement}"
+              local du_dir=$(formatUnitCFDir "${state_filepath}" "${stack_level}" "${stack_deployment_unit}" "" "${stack_region}" )
               info "${dry_run}Moving ${state_file} to ${du_dir} ..."
               [[ -n "${dry_run}" ]] && continue
               if [[ ! -d "${du_dir}" ]]; then

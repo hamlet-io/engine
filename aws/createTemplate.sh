@@ -679,33 +679,23 @@ function process_template() {
   # Defaults
   local passes=("template")
   local template_alternatives=("primary")
-  local cf_dir_default="${PRODUCT_STATE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"
 
   case "${level}" in
 
-    unitlist)
-      cf_dir_default="${PRODUCT_STATE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}"
-      ;;
-
-    blueprint)
-      cf_dir_default="${PRODUCT_STATE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}"
-      ;;
-
-    buildblueprint)
-      cf_dir_default="${PRODUCT_STATE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}"
+    unitlist|blueprint|buildblueprint)
+      local cf_dir_default="${PRODUCT_STATE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}"
       ;;
 
     account)
-      cf_dir_default="${ACCOUNT_STATE_DIR}/cf/shared"
+      local cf_dir_default="${ACCOUNT_STATE_DIR}/cf/shared"
       ;;
 
-    solution)
+    product)
+      local cf_dir_default="${PRODUCT_STATE_DIR}/cf/shared"
       ;;
 
-    segment)
-      ;;
-
-    application)
+    solution|segment|application)
+      local cf_dir_default="${PRODUCT_STATE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"
       ;;
 
     *)
@@ -725,18 +715,10 @@ function process_template() {
       # No subdirectories for deployment units
       ;;
     *)
-      readarray -t legacy_files < <(find "${cf_dir}" -mindepth 1 -maxdepth 1 -name "*${deployment_unit}*" )
+      readarray -t legacy_files < <(find "${cf_dir_default}" -mindepth 1 -maxdepth 1 -name "*${deployment_unit}*" )
 
       if [[ (-d "${cf_dir_default}/${deployment_unit}") || "${#legacy_files[@]}" -eq 0 ]]; then
-        case "${region}" in
-          us-east-1)
-            local placement="global"
-            ;;
-          *)
-            local placement="default"
-            ;;
-        esac
-        local cf_dir_default="${cf_dir_default}/${deployment_unit}/${placement}"
+        local cf_dir_default=$(getUnitCFDir "${cf_dir_default}" "${level}" "${deployment_unit}" "" "${region}" )
       fi
       ;;
   esac
