@@ -47,6 +47,10 @@
                 {
                     "Names" : "Timeout",
                     "Type" : [ NUMBER_TYPE, STRING_TYPE ]
+                },
+                {
+                    "Names" : "SuccessCodes",
+                    "Type" : STRING_TYPE
                 }
             ]
         },
