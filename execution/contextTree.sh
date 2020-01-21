@@ -1780,7 +1780,7 @@ function process_cmdb() {
         local pin_check="$(semver_compare "${version}" "${pin_version}")"
         if [[ "${pin_check}" == "1" ]]; then
           warn "${action^} of repo "${cmdb_repo}" to ${version} prevented by pin version ${pin_version}"
-          continue
+          break
         else
           debug "${dry_run}${action^} of repo "${cmdb_repo}" to ${version} permitted by pin version ${pin_version} ..."
         fi
