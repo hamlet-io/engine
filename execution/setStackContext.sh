@@ -70,8 +70,6 @@ readarray -t legacy_files < <(find "${CF_DIR}" -mindepth 1 -maxdepth 1 -name "*$
 if [[ (-d "${CF_DIR}/${DEPLOYMENT_UNIT}") || "${#legacy_files[@]}" -eq 0 ]]; then
     CF_DIR=$(getUnitCFDir "${CF_DIR}" "${LEVEL}" "${DEPLOYMENT_UNIT}" "" "${REGION}" )
 fi
-;;
-
 
 case $LEVEL in
     account)
