@@ -612,6 +612,31 @@ behaviour.
     ]
 [/#function]
 
+[#function getCertificateDomains certificateObject]
+    [#return certificateObject.Domains![] ]
+[/#function]
+
+[#function getCertificatePrimaryDomain certificateObject]
+    [#list certificateObject.Domains as domain]
+        [#if isPrimaryDomain(domain) ]
+            [#return domain ]
+            [#break]
+        [/#if]
+    [/#list]
+    [#return {} ]
+[/#function]
+
+[#function getCertificateSecondaryDomains certificateObject]
+    [#local result = [] ]
+    [#list certificateObject.Domains as domain]
+        [#if isSecondaryDomain(domain) ]
+            [#local result += [domain] ]
+            [#break]
+        [/#if]
+    [/#list]
+    [#return result ]
+[/#function]
+
 [#function getHostName certificateObject occurrence]
 
     [#local core = occurrence.Core ]
