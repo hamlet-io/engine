@@ -754,7 +754,7 @@ function isValidUnit() {
 }
 
 function formatUnitCFDir() {
-  local base_dir="${1,,}"; shift
+  local base_dir="${1}"; shift
   local level="${1,,}"; shift
   local unit="${1,,}"; shift
   local placement="${1,,}"; shift
@@ -777,7 +777,7 @@ function formatUnitCFDir() {
 }
 
 function getUnitCFDir() {
-  local base_dir="${1,,}"; shift
+  local base_dir="${1}"; shift
   local level="${1,,}"; shift
   local unit="${1,,}"; shift
   local placement="${1,,}"; shift
