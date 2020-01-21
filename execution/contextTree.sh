@@ -800,7 +800,7 @@ function getUnitCFDir() {
       ;;
 
     solution)
-      if [[-f "${base_dir}/solution-${region}-template.json" ]]; then
+      if [[ -f "${base_dir}/solution-${region}-template.json" ]]; then
         echo -n "${base_dir}" && return 0
       fi
       ;;
