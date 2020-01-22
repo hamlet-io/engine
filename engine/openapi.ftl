@@ -4,11 +4,13 @@
     {
         "SecuritySchemes" : {
             "api_key": {
-                "Header" : "x-api-key"
+                "Header" : "x-api-key",
+                "Type" : "apiKey"
             },
             "sigv4": {
                 "Header" : "Authorization",
-                "AuthType": "awsSigv4"
+                "AuthType": "awsSigv4",
+                "Type" : "apiKey"
             }
         },
         "GatewayErrorReporting" : {
@@ -136,9 +138,9 @@
             "SubObjects" : true,
             "Children" : [
                 {
-                    "Names" : "Type",
+                    "Names" : ["Type", "type"],
                     "Type" : STRING_TYPE,
-                    "Values" : ["http", "apiKey", "oauth2", "openIdConnect"],
+                    "Values" : ["basic", "http", "apiKey", "oauth2", "openIdConnect"],
                     "Default" : "apiKey"
                 },
                 {
@@ -467,7 +469,7 @@
             [#case "apiKey"]
                 [#local scheme +=
                     {
-                        "name" : value.Header,
+                        "name" : value.Header!("COTFatal: No header specified for scheme " + key),
                         "in" : "header"
                     }
                 ]
