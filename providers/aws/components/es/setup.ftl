@@ -272,10 +272,10 @@
                                                             getExistingReference(baselineComponentIds["AppData"]),
                                                             getAppDataFilePrefix(occurrence) )]
 
-                        [#if deploymentSubsetRequired("prologue", false)]
+                        [#if deploymentSubsetRequired("epilogue", false)]
                             [@addToDefaultBashScriptOutput
                                 content=[
-                                    "info \"Syncing Snapshot repository\"",
+                                    "info \"Syncing snapshot repository....\"",
                                     "aws --region \""
                                         + regionId + "\" s3 sync --delete --only-show-errors "
                                         + registryS3Source + " " + snapshotS3Destination
