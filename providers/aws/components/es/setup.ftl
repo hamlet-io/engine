@@ -263,6 +263,27 @@
                             "IdentityPoolId" : getExistingReference(linkTargetResources["identitypool"].Id)
                         }]
                     [#break]
+
+                [#case DATASET_COMPONENT_TYPE]
+                    [#if linkTargetConfiguration.Solution.Engine == "s3" ]
+                        [#local registryS3Source = linkTargetAttributes["DATASET_LOCATION"]]
+                        [#local snapshotS3Destination = formatRelativePath(
+                                                            "s3://",
+                                                            getExistingReference(baselineComponentIds["AppData"]),
+                                                            getAppDataFilePrefix(occurrence) )]
+
+                        [#if deploymentSubsetRequired("epilogue", false)]
+                            [@addToDefaultBashScriptOutput
+                                content=[
+                                    "info \"Syncing snapshot repository....\"",
+                                    "aws --region \""
+                                        + regionId + "\" s3 sync --delete --only-show-errors "
+                                        + registryS3Source + " " + snapshotS3Destination
+                                ]
+                            /]
+                        [/#if]
+                    [/#if]
+                    [#break]
             [/#switch]
         [/#if]
     [/#list]
