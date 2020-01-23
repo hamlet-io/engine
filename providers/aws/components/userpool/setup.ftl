@@ -504,6 +504,7 @@
                         [#break]
 
                     [#case "external" ]
+                    [#case EXTERNALSERVICE_COMPONENT_TYPE ]
                         [#if linkTargetAttributes["AUTH_CALLBACK_URL"]?has_content ]
                             [#local callbackUrls += linkTargetAttributes["AUTH_CALLBACK_URL"]?split(",") ]
                         [/#if]
