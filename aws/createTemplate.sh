@@ -8,9 +8,11 @@ trap '. ${GENERATION_BASE_DIR}/execution/cleanupContext.sh' EXIT SIGHUP SIGINT S
 CONFIGURATION_REFERENCE_DEFAULT="unassigned"
 REQUEST_REFERENCE_DEFAULT="unassigned"
 DEPLOYMENT_MODE_DEFAULT="update"
-GENERATION_PROVIDER_DEFAULT="aws"
+GENERATION_PROVIDERS_DEFAULT="aws"
 GENERATION_FRAMEWORK_DEFAULT="cf"
 GENERATION_INPUT_SOURCE_DEFAULT="composite"
+
+arrayFromList GENERATION_PROVIDERS "${GENERATION_PROVIDERS}" ","
 
 function usage() {
   cat <<EOF
@@ -32,10 +34,8 @@ where
 (m) -u DEPLOYMENT_UNIT         is the deployment unit to be included in the template
 (o) -z DEPLOYMENT_UNIT_SUBSET  is the subset of the deployment unit required
 (o) -d DEPLOYMENT_MODE         is the deployment mode the template will be generated for
-(o) -p GENERATION_PROVIDER     is the provider to for template generation
+(o) -p GENERATION_PROVIDER     is a provider to load for template generation - multiple providers can be added with extra arguments
 (o) -f GENERATION_FRAMEWORK    is the output framework to use for template generation
-(o) -t GENERATION_TESTCASE     is the test case you would like to generate a template for
-(o) -s GENERATION_SCENARIOS    is a comma seperated list of framework scenarios to load
 
 (m) mandatory, (o) optional, (d) deprecated
 
@@ -44,7 +44,7 @@ DEFAULTS:
 CONFIGURATION_REFERENCE = "${CONFIGURATION_REFERENCE_DEFAULT}"
 REQUEST_REFERENCE       = "${REQUEST_REFERENCE_DEFAULT}"
 DEPLOYMENT_MODE         = "${DEPLOYMENT_MODE_DEFAULT}"
-GENERATION_PROVIDER     = "${GENERATION_PROVIDER_DEFAULT}"
+GENERATION_PROVIDERS    = "${GENERATION_PROVIDERS_DEFAULT}"
 GENERATION_FRAMEWORK    = "${GENERATION_FRAMEWORK_DEFAULT}"
 GENERATION_INPUT_SOURCE = "${GENRATION_INPUT_SOURCE_DEFAULT}"
 
@@ -61,7 +61,7 @@ EOF
 function options() {
 
   # Parse options
-  while getopts ":c:d:f:g:hi:l:o:p:q:r:s:t:u:z:" option; do
+  while getopts ":c:d:f:g:hi:l:o:p:q:r:u:z:" option; do
       case "${option}" in
           c) CONFIGURATION_REFERENCE="${OPTARG}" ;;
           d) DEPLOYMENT_MODE="${OPTARG}" ;;
@@ -71,11 +71,9 @@ function options() {
           i) GENERATION_INPUT_SOURCE="${OPTARG}" ;;
           l) LEVEL="${OPTARG}" ;;
           o) OUTPUT_DIR="${OPTARG}" ;;
-          p) GENERATION_PROVIDER="${OPTARG}" ;;
+          p) GENERATION_PROVIDERS+=("${OPTARG}") ;;
           q) REQUEST_REFERENCE="${OPTARG}" ;;
           r) REGION="${OPTARG}" ;;
-          s) GENERATION_SCENARIOS="${OPTARG}" ;;
-          t) GENERATION_TESTCASE="${OPTARG}" ;;
           u) DEPLOYMENT_UNIT="${OPTARG}" ;;
           z) DEPLOYMENT_UNIT_SUBSET="${OPTARG}" ;;
           \?) fatalOption; return 1 ;;
@@ -87,14 +85,16 @@ function options() {
   CONFIGURATION_REFERENCE="${CONFIGURATION_REFERENCE:-${CONFIGURATION_REFERENCE_DEFAULT}}"
   REQUEST_REFERENCE="${REQUEST_REFERENCE:-${REQUEST_REFERENCE_DEFAULT}}"
   DEPLOYMENT_MODE="${DEPLOYMENT_MODE:-${DEPLOYMENT_MODE_DEFAULT}}"
-  GENERATION_PROVIDER="${GENERATION_PROVIDER:-${GENERATION_PROVIDER_DEFAULT}}"
   GENERATION_FRAMEWORK="${GENERATION_FRAMEWORK:-${GENERATION_FRAMEWORK_DEFAULT}}"
   GENERATION_INPUT_SOURCE="${GENERATION_INPUT_SOURCE:-${GENERATION_INPUT_SOURCE_DEFAULT}}"
 
-  # Check level and deployment unit
-  if [[ -z "${GENERATION_TESTCASE}" ]]; then
-    ! isValidUnit "${LEVEL}" "${DEPLOYMENT_UNIT}" && fatal "Deployment unit/level not valid" &&  return 1
+  if [[ "${#GENERATION_PROVIDERS[@]}" == "0" ]]; then
+    GENERATION_PROVIDERS+=("${GENERATION_PROVIDERS_DEFAULT}")
   fi
+  GENERATION_PROVIDERS=$(listFromArray "GENERATION_PROVIDERS" ",")
+
+  # Check level and deployment unit
+  ! isValidUnit "${LEVEL}" "${DEPLOYMENT_UNIT}" && fatal "Deployment unit/level not valid" &&  return 1
 
   # Ensure other mandatory arguments have been provided
   if [[ (-z "${REQUEST_REFERENCE}") || (-z "${CONFIGURATION_REFERENCE}") ]]; then
@@ -267,7 +267,7 @@ function get_openapi_definition_file() {
 
 
 function process_template_pass() {
-  local provider="${1,,}"; shift
+  local providers="${1,,}"; shift
   local deployment_framework="${1,,}"; shift
   local output_type="${1,,}"; shift
   local output_format="${1,,}"; shift
@@ -299,7 +299,7 @@ function process_template_pass() {
   local template_composites=()
 
   # Define the possible passes
-  local pass_list=("genplan" "testplan" "pregeneration" "prologue" "template" "epilogue" "cli" "parameters" "config")
+  local pass_list=("genplan" "testcase" "pregeneration" "prologue" "template" "epilogue" "cli" "parameters" "config")
 
   # Initialise the components of the pass filenames
   declare -A pass_level_prefix
@@ -332,7 +332,7 @@ function process_template_pass() {
     ["cli"]="cli.json"
     ["parameters"]="parameters.json"
     ["config"]="config.json"
-    ["testplan"]="testplan.json"
+    ["testcase"]="testcase.json"
   )
 
   # Template pass specifics
@@ -446,17 +446,15 @@ function process_template_pass() {
 
   # Args common across all passes
   local args=()
-  [[ -n "${provider}" ]]                && args+=("-v" "provider=${provider}")
-  [[ -n "${deployment_framework}" ]]    && args+=("-v" "deploymentFramework=${deployment_framework}")
-  [[ -n "${GENERATION_MODEL}" ]]        && args+=("-v" "deploymentFrameworkModel=${GENERATION_MODEL}")
-  [[ -n "${output_type}" ]]             && args+=("-v" "outputType=${output_type}")
-  [[ -n "${output_format}" ]]           && args+=("-v" "outputFormat=${output_format}")
-  [[ -n "${deployment_unit}" ]]         && args+=("-v" "deploymentUnit=${deployment_unit}")
-  [[ -n "${resource_group}" ]]          && args+=("-v" "resourceGroup=${resource_group}")
-  [[ -n "${GENERATION_LOG_LEVEL}" ]]    && args+=("-v" "logLevel=${GENERATION_LOG_LEVEL}")
-  [[ -n "${GENERATION_INPUT_SOURCE}" ]] && args+=("-v" "inputSource=${GENERATION_INPUT_SOURCE}")
-  [[ -n "${GENERATION_SCENARIOS}" ]]    && args+=("-v" "scenarios=${GENERATION_SCENARIOS}")
-  [[ -n "${GENERATION_TESTCASE}" ]]     && args+=("-v" "testCase=${GENERATION_TESTCASE}")
+  [[ -n "${providers}" ]]                 && args+=("-v" "providers=${providers}")
+  [[ -n "${deployment_framework}" ]]      && args+=("-v" "deploymentFramework=${deployment_framework}")
+  [[ -n "${GENERATION_MODEL}" ]]          && args+=("-v" "deploymentFrameworkModel=${GENERATION_MODEL}")
+  [[ -n "${output_type}" ]]               && args+=("-v" "outputType=${output_type}")
+  [[ -n "${output_format}" ]]             && args+=("-v" "outputFormat=${output_format}")
+  [[ -n "${deployment_unit}" ]]           && args+=("-v" "deploymentUnit=${deployment_unit}")
+  [[ -n "${resource_group}" ]]            && args+=("-v" "resourceGroup=${resource_group}")
+  [[ -n "${GENERATION_LOG_LEVEL}" ]]      && args+=("-v" "logLevel=${GENERATION_LOG_LEVEL}")
+  [[ -n "${GENERATION_INPUT_SOURCE}" ]]   && args+=("-v" "inputSource=${GENERATION_INPUT_SOURCE}")
 
   # Include the template composites
   # Removal of drive letter (/?/) is specifically for MINGW
@@ -748,7 +746,7 @@ function process_template() {
 
   # First see if an generation plan can be generated
   process_template_pass \
-      "${GENERATION_PROVIDER}" \
+      "${GENERATION_PROVIDERS}" \
       "${GENERATION_FRAMEWORK}" \
       "script" \
       "bash" \

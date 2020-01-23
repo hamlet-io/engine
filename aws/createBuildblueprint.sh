@@ -7,9 +7,9 @@ trap 'exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 function options() {
 
   # Parse options
-  while getopts ":f:hi:o:p:s:t:u:" option; do
+  while getopts ":f:hi:o:p:u:" option; do
       case "${option}" in
-          f|i|o|p|s|t|u) TEMPLATE_ARGS="${TEMPLATE_ARGS} -${option} ${OPTARG}" ;;
+          f|i|o|p|u) TEMPLATE_ARGS="${TEMPLATE_ARGS} -${option} ${OPTARG}" ;;
           h) usage; return 1 ;;
           \?) fatalOption; return 1 ;;
       esac
@@ -30,13 +30,11 @@ USAGE:
 
 PARAMETERS:
 
+(o) -f GENERATION_FRAMEWORK    is the output framework to use for template generation
 (o) -i GENERATION_INPUT_SOURCE is the source of input data to use when generating the template
     -h                         shows this text
 (o) -o OUTPUT_DIR              is the directory where the outputs will be saved - defaults to the PRODUCT_STATE_DIR
-(o) -p GENERATION_PROVIDER     is the provider to for template generation
-(o) -f GENERATION_FRAMEWORK    is the output framework to use for template generation
-(o) -s GENERATION_SCENARIOS    is a comma seperated list of framework scenarios to load
-(o) -t GENERATION_TESTCASE     is the test case you would like to generate a template for
+(o) -p GENERATION_PROVIDER     is a provider to load for template generation - multiple providers can be added with extra arguments
 (m) -u DEPLOYMENT_UNIT         is the deployment unit to be included in the template
 
   (m) mandatory, (o) optional, (d) deprecated
@@ -61,7 +59,7 @@ OUTPUTS:
 
   - File
     - Name: blueprint.json
-    - Directory: "AUTOMATION_DATA_DIR" or "PRODUCT_INFRASTRUCTURE_DIR/cot/ENVIRONMENT/SEGMENT/"
+    - Directory: "OUTPUT_DIR" or "PRODUCT_INFRASTRUCTURE_DIR/cot/ENVIRONMENT/SEGMENT/"
 
 NOTES:
 

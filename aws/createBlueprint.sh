@@ -7,9 +7,9 @@ trap 'exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 function options() {
 
   # Parse options
-  while getopts ":f:hi:o:p:s:t:" option; do
+  while getopts ":f:hi:o:p:" option; do
       case "${option}" in
-          f|i|o|p|s|t) TEMPLATE_ARGS="${TEMPLATE_ARGS} -${option} ${OPTARG}" ;;
+          f|i|o|p) TEMPLATE_ARGS="${TEMPLATE_ARGS} -${option} ${OPTARG}" ;;
           h) usage; return 1 ;;
           \?) fatalOption; return 1 ;;
       esac
@@ -30,17 +30,15 @@ DESCRIPTION:
         ( tenant, account, product, solution, environment, segment )
 
 USAGE:
-  $(basename $0) -i GENERATION_INPUT_SOURCE -t GENERATION_TESTCASE -s GENERATION_SCENARIOS
+  $(basename $0)
 
 PARAMETERS:
 
 (o) -i GENERATION_INPUT_SOURCE is the source of input data to use when generating the template
     -h                         shows this text
 (o) -o OUTPUT_DIR              is the directory where the outputs will be saved - defaults to the PRODUCT_STATE_DIR
-(o) -p GENERATION_PROVIDER     is the provider to for template generation
+(o) -p GENERATION_PROVIDER     is a provider to load for template generation - multiple providers can be added with extra arguments
 (o) -f GENERATION_FRAMEWORK    is the output framework to use for template generation
-(o) -t GENERATION_TESTCASE     is the test case you would like to generate a template for
-(o) -s GENERATION_SCENARIOS    is a comma seperated list of framework scenarios to load
 
   (m) mandatory, (o) optional, (d) deprecated
 

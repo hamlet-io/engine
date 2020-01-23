@@ -4,8 +4,8 @@
 [#assign DEFAULT_DEPLOYMENT_FRAMEWORK = "default"]
 
 
-[#-- Default testplan --]
-[#macro shared_testplan occurrence ]
+[#-- Default testcase --]
+[#macro shared_testcase occurrence ]
     [#local solution = occurrence.Configuration.Solution ]
     [#local componentType = occurrence.Core.Type ]
 
@@ -33,29 +33,27 @@
         [#if testCases[testCaseName]?? ]
             [#local testCase = testCases[testCaseName] ]
 
-            [@debug message="testCase" context=testCase enabled=true /]
-
             [#local tests = mergeObjects(
                 tests,
                 {
                     testCaseName  : {
                         "filename" : testCase.OutputSuffix,
-                        "no_lint" : testCase.Tools.CFNLint,
-                        "no_vulnerability_check" : testCase.Tools.CFNNag
+                        "cfn_lint" : testCase.Tools.CFNLint,
+                        "cfn_nag"  : testCase.Tools.CFNNag
                     }
                 }
             )]
 
-            [#list (testCase.Structural.Match)!{} as id,matchTest ]
+            [#list (testCase.Structural.JSON.Match)!{} as id,matchTest ]
                 [#local tests = combineEntities(tests,
                     {
                         testCaseName : {
-                            "structure" : {
+                            "json_structure" : {
                                 "match" : [
-                                    [
-                                        matchTest.Path,
-                                        matchTest.Value
-                                    ]
+                                    {
+                                        "path" : matchTest.Path,
+                                        "value" : matchTest.Value
+                                    }
                                 ]
                             }
                         }
@@ -64,15 +62,17 @@
                 )]
             [/#list]
 
-            [#list (testCase.Structural.Length)!{} as id,legnthTest ]
+            [#list (testCase.Structural.JSON.Length)!{} as id,legnthTest ]
                 [#local tests = combineEntities(tests,
                     {
                         testCaseName : {
-                            "structure"  : {
+                            "json_structure"  : {
                                 "length" : [
                                     [
-                                        legnthTest.Path,
-                                        legnthTest.Count
+                                        {
+                                            "path" : legnthTest.Path,
+                                            "value" : legnthTest.Count
+                                        }
                                     ]
                                 ]
                             }
@@ -82,42 +82,60 @@
                 )]
             [/#list]
 
-            [#if testCase.Structural.Exists?has_content ]
+            [#if testCase.Structural.JSON.Exists?has_content ]
+                [#local existPaths = []]
+                [#list testCase.Structural.JSON.Exists as path ]
+                    [#local existPaths += [
+                            {
+                                "path" : path
+                            }
+                        ]
+                    ]
+                [/#list]
                 [#local tests = mergeObjects(
                     tests,
                     {
                         testCaseName  : {
-                            "structure" : {
-                                "exists" : testCase.Structural.Exists
+                            "json_structure" : {
+                                "exists" : existPaths
                             }
                         }
                     }
                 )]
             [/#if]
 
-            [#if testCase.Structural.NotEmpty?has_content ]
+            [#if testCase.Structural.JSON.NotEmpty?has_content ]
+                [#local notEmtpyPaths = []]
+                [#list testCase.Structural.JSON.NotEmpty as path ]
+                    [#local notEmtpyPaths += [
+                            {
+                                "path" : path
+                            }
+                        ]
+                    ]
+                [/#list]
                 [#local tests = mergeObjects(
                     tests,
                     {
                         testCaseName  : {
-                            "structure" : {
-                                "not_empty" : testCase.Structural.NotEmpty
+                            "json_structure" : {
+                                "not_empty" : notEmtpyPaths
                             }
                         }
                     }
                 )]
             [/#if]
 
-            [#list (testCase.Structural.CFNResource)!{} as id,CFNResourceTest ]
+            [#list (testCase.Structural.CFN.Resource)!{} as id,CFNResourceTest ]
                 [#local tests = combineEntities(tests,
                     {
                         testCaseName : {
-                            "structure"  : {
+                            "cfn_structure"  : {
                                 "resource" : [
-                                    [
-                                        CFNResourceTest.Name,
-                                        CFNResourceTest.Type
-                                    ]
+                                    {
+                                        "id" : CFNResourceTest.Name,
+                                        "type" : CFNResourceTest.Type
+                                    }
                                 ]
                             }
                         }
@@ -126,13 +144,22 @@
                 )]
             [/#list]
 
-            [#if testCase.Structural.CFNOutput?has_content ]
+            [#if testCase.Structural.CFN.Output?has_content ]
+                [#local cfnOutputPaths = []]
+                [#list testCase.Structural.CFN.Output as path ]
+                    [#local cfnOutputPaths += [
+                            {
+                                "id" : path
+                            }
+                        ]
+                    ]
+                [/#list]
                 [#local tests = mergeObjects(
                     tests,
                     {
                         testCaseName  : {
-                            "structure" : {
-                                "output" : testCase.Structural.CFNOutput
+                            "cfn_structure" : {
+                                "output" : cfnOutputPaths
                             }
                         }
                     }

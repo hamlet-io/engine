@@ -10,9 +10,7 @@
 [@addCommandLineOption
     option={
         "Input" : {
-            "Source" : inputSource!"composite",
-            "Scenarios" : (scenarios?split(","))![],
-            "TestCase" : testCase!""
+            "Source" : inputSource!"composite"
         }
     }
 /]
@@ -22,7 +20,7 @@
     option={
         "Deployment" : {
             "Provider" : {
-                "Name" : provider!""
+                "Names" : asArray( providers?split(",") )![]
             },
             "Framework" : {
                 "Name" : deploymentFramework!"",
@@ -156,32 +154,26 @@
 [#-- Include the shared provider --]
 [@includeProviderConfiguration provider=SHARED_PROVIDER /]
 
-[#-- Include any command line based input data source --]
-[#if commandLineOptions.Deployment.Provider.Name?has_content ]
+[#list commandLineOptions.Deployment.Provider.Names as provider ]
+    [#-- Load Input Sources --]
     [@includeBaseInputSourceConfiguration
-        provider=commandLineOptions.Deployment.Provider.Name
+        provider=provider
         inputSource="shared"
     /]
     [#if commandLineOptions.Input.Source?has_content]
         [@includeBaseInputSourceConfiguration
-            provider=commandLineOptions.Deployment.Provider.Name
+            provider=provider
             inputSource=commandLineOptions.Input.Source
         /]
     [/#if]
-[/#if]
 
-[#-- Include any command line provider --]
-[#if commandLineOptions.Deployment.Provider.Name?has_content ]
-    [@includeProviderConfiguration provider=commandLineOptions.Deployment.Provider.Name /]
-[/#if]
+   [#-- Include any command line provider --]
+   [@includeProviderConfiguration provider=provider /]
+[/#list]
+
 
 [#-- start the blueprint with the masterData --]
 [@addBlueprint blueprint=getMasterData() /]
-
-[#-- Set the scenarios provided via the CLI --]
-[@updateScenarioList
-    scenarioIds=commandLineOptions.Input.Scenarios
-/]
 
 [#-- Load Scenarios --]
 [#if scenarioList?has_content ]
@@ -190,12 +182,12 @@
         scenarios=scenarioList
     /]
 
-    [#if commandLineOptions.Deployment.Provider.Name?has_content ]
+    [#list commandLineOptions.Deployment.Provider.Names as provider ]
         [@includeScenarioConfiguration
-            provider=commandLineOptions.Deployment.Provider.Name
+            provider=provider
             scenarios=scenarioList
         /]
-    [/#if]
+    [/#list]
 [/#if]
 
 [#-- Include any shared input sources --]
@@ -212,18 +204,18 @@
 [/#if]
 
 [#-- Include any command line provider/input source --]
-[#if commandLineOptions.Deployment.Provider.Name?has_content ]
+[#list commandLineOptions.Deployment.Provider.Names as provider ]
     [@includeInputSourceConfiguration
-        provider=commandLineOptions.Deployment.Provider.Name
+        provider=provider
         inputSource="shared"
     /]
     [#if commandLineOptions.Input.Source?has_content]
         [@includeInputSourceConfiguration
-            provider=commandLineOptions.Deployment.Provider.Name
+            provider=provider
             inputSource=commandLineOptions.Input.Source
         /]
     [/#if]
-[/#if]
+[/#list]
 
 [#-- Set the context for templates processing --]
 [#include "setContext.ftl" ]
@@ -243,15 +235,15 @@
 [/#if]
 
 [#-- Include any command line provider/deployment framework --]
-[#if commandLineOptions.Deployment.Provider.Name?has_content ]
-    [@includeProviderConfiguration provider=commandLineOptions.Deployment.Provider.Name /]
+[#list commandLineOptions.Deployment.Provider.Names as provider]
+    [@includeProviderConfiguration provider=provider /]
     [#if commandLineOptions.Deployment.Framework.Name?has_content]
         [@includeDeploymentFrameworkConfiguration
-            provider=commandLineOptions.Deployment.Provider.Name
+            provider=provider
             deploymentFramework=commandLineOptions.Deployment.Framework.Name
         /]
     [/#if]
-[/#if]
+[/#list]
 
 [#-- Populate the model to be used --]
 [#assign model =
