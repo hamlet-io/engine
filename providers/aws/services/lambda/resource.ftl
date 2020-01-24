@@ -117,6 +117,11 @@
                             (settings.Tracing.Mode!"") == "active",
                             "PassThrough")
                 }
+            ) +
+            attributeIfTrue(
+                "ReservedConcurrentExecutions",
+                settings.ReservedExecutions >= 1,
+                settings.ReservedExecutions
             )
 
         outputs=LAMBDA_FUNCTION_OUTPUT_MAPPINGS
