@@ -301,7 +301,7 @@ function assemble_composite_definitions() {
   [[ (-n "${PRODUCT}") && (-n "${REGION}") ]] &&
       addToArray "definitions_array" "${PRODUCT_STATE_DIR}"/cf/shared/**/defn*-"${REGION}"*-definition.json
   [[ (-n "${ENVIRONMENT}") && (-n "${SEGMENT}") && (-n "${REGION}") ]] &&
-      addToArray "definitions_array" "${PRODUCT_STATE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"/**/*-definition.json
+      addToArray "definitions_array" "${PRODUCT_STATE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"/**/*${ACCOUNT}*-definition.json
 
   ${restore_globstar}
   ${restore_nullglob}
@@ -329,7 +329,7 @@ function assemble_composite_stack_outputs() {
   [[ (-n "${ACCOUNT}") ]] &&
       addToArray "stack_array" "${ACCOUNT_STATE_DIR}"/*/shared/**/acc*-stack.json
   [[ (-n "${ENVIRONMENT}") && (-n "${SEGMENT}") && (-n "${REGION}") ]] &&
-      addToArray "stack_array" "${PRODUCT_STATE_DIR}"/*/"${ENVIRONMENT}/${SEGMENT}"/**/*-stack.json
+      addToArray "stack_array" "${PRODUCT_STATE_DIR}"/*/"${ENVIRONMENT}/${SEGMENT}"/**/*${ACCOUNT}*-stack.json
 
   ${restore_globstar}
   ${restore_nullglob}
