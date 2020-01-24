@@ -941,6 +941,604 @@
             }
           }
         },
+        "WAFValueSets": {
+          "default": {
+            "badcookies": [
+              "bad-cookie"
+            ],
+            "badtokens": [
+              "bad-tokens"
+            ],
+            "loginpaths": [
+              "/login"
+            ],
+            "traversalpaths": [
+              "../",
+              "://"
+            ],
+            "adminpaths": [
+              "/admin"
+            ],
+            "adminips": [
+              "0.0.0.0/0"
+            ],
+            "phpquery": [
+              "_SERVER[",
+              "_ENV[",
+              "auto_prepend_file=",
+              "auto_append_file=",
+              "allow_url_include=",
+              "disable_functions=",
+              "open_basedir=",
+              "safe_mode="
+            ],
+            "phpuri": [
+              "php",
+              "/"
+            ],
+            "maxuri": 1024,
+            "maxquery": 1024,
+            "maxbody": 4096,
+            "maxcookie": 4093,
+            "csrfsize": 36,
+            "uristartswith": [
+              "/includes"
+            ],
+            "uriendswith": [
+              ".cfg",
+              ".conf",
+              ".config",
+              ".ini",
+              ".log",
+              ".bak",
+              ".backup"
+            ],
+            "blacklistedips": [],
+            "whitelistedips": [],
+            "sqlheaders": [
+              {
+                "Type": "HEADER",
+                "Data": "cookie"
+              },
+              {
+                "Type": "HEADER",
+                "Data": "authorization"
+              }
+            ],
+            "badcookieheaders": [
+              {
+                "Type": "HEADER",
+                "Data": "cookie"
+              }
+            ],
+            "badtokenheaders": [
+              {
+                "Type": "HEADER",
+                "Data": "authorization"
+              }
+            ],
+            "xssheaders": [
+              {
+                "Type": "HEADER",
+                "Data": "cookie"
+              }
+            ],
+            "csrfheaders": [
+              "x-csrf-token"
+            ]
+          }
+        },
+        "WAFConditions": {
+          "OWASP2017A1": {
+            "Type": "SqlInjectionMatch",
+            "Filters": [
+              {
+                "FieldsToMatch": [
+                  {
+                    "Type": "URI"
+                  },
+                  {
+                    "Type": "QUERY_STRING"
+                  },
+                  {
+                    "Type": "BODY"
+                  },
+                  "sqlheaders"
+                ],
+                "Transformations": [
+                  "URL_DECODE",
+                  "HTML_ENTITY_DECODE"
+                ]
+              }
+            ]
+          },
+          "OWASP2017A2-1": {
+            "Type": "ByteMatch",
+            "Description": "Bad cookies",
+            "Filters": [
+              {
+                "FieldsToMatch": {
+                  "Type": "HEADER",
+                  "Data": "cookie"
+                },
+                "Constraints": "CONTAINS",
+                "Targets": [
+                  "badcookies"
+                ],
+                "Transformations": [
+                  "URL_DECODE",
+                  "HTML_ENTITY_DECODE"
+                ]
+              }
+            ]
+          },
+          "OWASP2017A2-2": {
+            "Type": "ByteMatch",
+            "Description": "Bad tokens",
+            "Filters": [
+              {
+                "FieldsToMatch": {
+                  "Type": "HEADER",
+                  "Data": "authorisation"
+                },
+                "Constraints": "ENDS_WITH",
+                "Targets": [
+                  "badtokens"
+                ],
+                "Transformations": [
+                  "URL_DECODE",
+                  "HTML_ENTITY_DECODE"
+                ]
+              }
+            ]
+          },
+          "OWASP2017A2-3": {
+            "Type": "ByteMatch",
+            "Description": "Login rate limiting",
+            "Filters": [
+              {
+                "FieldsToMatch": {
+                  "Type": "URI"
+                },
+                "Constraints": "STARTS_WITH",
+                "Targets": [
+                  "loginpaths"
+                ],
+                "Transformations": [
+                  "URL_DECODE",
+                  "HTML_ENTITY_DECODE"
+                ]
+              }
+            ]
+          },
+          "OWASP2017A3": {
+            "Type": "XssMatch",
+            "Filters": [
+              {
+                "FieldsToMatch": [
+                  {
+                    "Type": "URI"
+                  },
+                  {
+                    "Type": "QUERY_STRING"
+                  },
+                  {
+                    "Type": "BODY"
+                  },
+                  "xssheaders"
+                ],
+                "Transformations": [
+                  "URL_DECODE",
+                  "HTML_ENTITY_DECODE"
+                ]
+              }
+            ]
+          },
+          "OWASP2017A4-1": {
+            "Type": "ByteMatch",
+            "Description": "Path traversal",
+            "Filters": [
+              {
+                "FieldsToMatch": [
+                  {
+                    "Type": "URI"
+                  },
+                  {
+                    "Type": "QUERY_STRING"
+                  }
+                ],
+                "Constraints": "CONTAINS",
+                "Targets": [
+                  "traversalpaths"
+                ],
+                "Transformations": [
+                  "URL_DECODE",
+                  "HTML_ENTITY_DECODE"
+                ]
+              }
+            ]
+          },
+          "OWASP2017A4-2": {
+            "Type": "ByteMatch",
+            "Description": "Admin Functions",
+            "Filters": [
+              {
+                "FieldsToMatch": {
+                  "Type": "URI"
+                },
+                "Constraints": "STARTS_WITH",
+                "Targets": [
+                  "adminpaths"
+                ],
+                "Transformations": "URL_DECODE"
+              }
+            ]
+          },
+          "OWASP2017A4-3": {
+            "Type": "IPMatch",
+            "Description": "Admin Functions",
+            "Filters": [
+              {
+                "Targets": [
+                  "adminips"
+                ]
+              }
+            ]
+          },
+          "OWASP2017A5-PHP": {
+            "Type": "ByteMatch",
+            "Description": "Insecure PHP Configuration",
+            "Filters": [
+              {
+                "FieldsToMatch": {
+                  "Type": "QUERY_STRING"
+                },
+                "Constraints": "CONTAINS",
+                "Targets": [
+                  "phpquery"
+                ],
+                "Transformations": "URL_DECODE"
+              },
+              {
+                "FieldsToMatch": {
+                  "Type": "URI"
+                },
+                "Constraints": "ENDS_WITH",
+                "Targets": [
+                  "phpuri"
+                ],
+                "Transformations": "URL_DECODE"
+              }
+            ]
+          },
+          "OWASP2017A7": {
+            "Type": "SizeConstraint",
+            "Description": "Basic size limits",
+            "Filters": [
+              {
+                "FieldsToMatch": {
+                  "Type": "URI"
+                },
+                "Sizes": [
+                  "maxuri"
+                ],
+                "Operators": [
+                  "GT"
+                ],
+                "Transformations": "NONE"
+              },
+              {
+                "FieldsToMatch": {
+                  "Type": "QUERY_STRING"
+                },
+                "Sizes": [
+                  "maxquery"
+                ],
+                "Operators": [
+                  "GT"
+                ],
+                "Transformations": "NONE"
+              },
+              {
+                "FieldsToMatch": {
+                  "Type": "BODY"
+                },
+                "Sizes": [
+                  "maxbody"
+                ],
+                "Operators": [
+                  "GT"
+                ],
+                "Transformations": "NONE"
+              },
+              {
+                "FieldsToMatch": {
+                  "Type": "HEADER",
+                  "Data": "cookie"
+                },
+                "Sizes": [
+                  "maxcookie"
+                ],
+                "Operators": [
+                  "GT"
+                ],
+                "Transformations": "NONE"
+              }
+            ]
+          },
+          "OWASP2017A8-1": {
+            "Type": "ByteMatch",
+            "Description": "CSRF Method",
+            "Filters": [
+              {
+                "FieldsToMatch": {
+                  "Type": "METHOD"
+                },
+                "Constraints": "EXACTLY",
+                "Targets": [
+                  "post"
+                ],
+                "Transformations": "LOWERCASE"
+              }
+            ]
+          },
+          "OWASP2017A8-2": {
+            "Type": "SizeConstraint",
+            "Description": "CSRF Size",
+            "Filters": [
+              {
+                "FieldsToMatch": [
+                  "csrfheaders"
+                ],
+                "Sizes": [
+                  "csrfsize"
+                ],
+                "Operators": [
+                  "EQ"
+                ],
+                "Transformations": "NONE"
+              }
+            ]
+          },
+          "OWASP2017A9": {
+            "Type": "ByteMatch",
+            "Description": "Known vulnerabilities",
+            "Filters": [
+              {
+                "FieldsToMatch": {
+                  "Type": "URI"
+                },
+                "Constraints": "STARTS_WITH",
+                "Targets": [
+                  "uristartswith"
+                ],
+                "Transformations": "LOWERCASE"
+              },
+              {
+                "FieldsToMatch": {
+                  "Type": "URI"
+                },
+                "Constraints": "ENDS_WITH",
+                "Targets": [
+                  "uriendswith"
+                ],
+                "Transformations": "LOWERCASE"
+              }
+            ]
+          },
+          "blacklist": {
+            "Type": "IPMatch",
+            "Description": "Blacklist",
+            "Filters": [
+              {
+                "Targets": [
+                  "blacklistedips"
+                ]
+              }
+            ]
+          },
+          "whitelist": {
+            "Type": "IPMatch",
+            "Description": "Whitelist",
+            "Filters": [
+              {
+                "Targets": [
+                  "whitelistedips"
+                ]
+              }
+            ]
+          }
+        },
+        "WAFRules": {
+          "OWASP2017A1": {
+            "Description": "SQL Injection protections",
+            "NameSuffix": "owasp-sql",
+            "Conditions": [
+              {
+                "Condition": "OWASP2017A1",
+                "Negated": false
+              }
+            ]
+          },
+          "OWASP2017A2": {
+            "Description": "Broken Tokens",
+            "NameSuffix": "owasp-tokens",
+            "Conditions": [
+              {
+                "Condition": "OWASP2017A2-1",
+                "Negated": false
+              },
+              {
+                "Condition": "OWASP2017A2-2",
+                "Negated": false
+              }
+            ]
+          },
+          "OWASP2017A3": {
+            "Description": "Cross Site Scripting protections",
+            "NameSuffix": "owasp-xss",
+            "Conditions": [
+              {
+                "Condition": "OWASP2017A3",
+                "Negated": false
+              }
+            ]
+          },
+          "OWASP2017A4-1": {
+            "Description": "Path Traversal",
+            "NameSuffix": "owasp-paths",
+            "Conditions": [
+              {
+                "Condition": "OWASP2017A4-1",
+                "Negated": false
+              }
+            ]
+          },
+          "OWASP2017A4-2": {
+            "Description": "Admin path protections",
+            "NameSuffix": "owasp-admin-paths",
+            "Conditions": [
+              {
+                "Condition": "OWASP2017A4-2",
+                "Negated": false
+              },
+              {
+                "Condition": "OWASP2017A4-3",
+                "Negated": true
+              }
+            ]
+          },
+          "OWASP2017A5-PHP": {
+            "Description": "PHP Specific protections",
+            "NameSuffix": "owasp-php",
+            "Conditions": [
+              {
+                "Condition": "OWASP2017A5-PHP",
+                "Negated": false
+              }
+            ]
+          },
+          "OWASP2017A7": {
+            "Description": "Size Constraints",
+            "NameSuffix": "owasp-size",
+            "Conditions": [
+              {
+                "Condition": "OWASP2017A7",
+                "Negated": false
+              }
+            ]
+          },
+          "OWASP2017A8": {
+            "Description": "CSRF Detection",
+            "NameSuffix": "owasp-csrf",
+            "Conditions": [
+              {
+                "Condition": "OWASP2017A8-1",
+                "Negated": false
+              },
+              {
+                "Condition": "OWASP2017A8-2",
+                "Negated": true
+              }
+            ]
+          },
+          "OWASP2017A9": {
+            "Description": "Known Vulnerabilities",
+            "NameSuffix": "owasp-vulnerabilities",
+            "Conditions": [
+              {
+                "Condition": "OWASP2017A9",
+                "Negated": false
+              }
+            ]
+          },
+          "blacklist": {
+            "Description": "Blacklist",
+            "NameSuffix": "blacklist",
+            "Conditions": [
+              {
+                "Condition": "blacklist",
+                "Negated": false
+              }
+            ]
+          },
+          "whitelist": {
+            "Description": "Whitelist",
+            "NameSuffix": "whitelist",
+            "Conditions": [
+              {
+                "Condition": "whitelist",
+                "Negated": false
+              }
+            ]
+          }
+        },
+        "WAFRuleGroups": {
+          "OWASP2017-Basic": {
+            "WAFRules": [
+              "OWASP2017A1",
+              "OWASP2017A3",
+              "OWASP2017A7",
+              "OWASP2017A9"
+            ]
+          }
+        },
+        "WAFProfiles": {
+          "OWASP2017": {
+            "Rules": [
+              {
+                "RuleGroup": "OWASP2017-Basic",
+                "Action": "BLOCK"
+              }
+            ],
+            "DefaultAction": "ALLOW"
+          },
+          "whitelist": {
+            "Rules": [
+              {
+                "Rule": "whitelist",
+                "Action": "ALLOW"
+              }
+            ],
+            "DefaultAction": "BLOCK"
+          }
+        },
+        "SecurityProfiles": {
+          "default": {
+            "lb": {
+              "application": {
+                "HTTPSProfile": "ELBSecurityPolicy-TLS-1-2-2017-01",
+                "WAFProfile": "OWASP2017",
+                "WAFValueSet": "default"
+              },
+              "classic": {
+                "HTTPSProfile": "ELBSecurityPolicy-2016-08"
+              }
+            },
+            "apigateway": {
+              "HTTPSProfile": "TLSv1",
+              "ProtocolPolicy": "redirect-to-https",
+              "WAFProfile": "OWASP2017",
+              "WAFValueSet": "default"
+            },
+            "spa": {
+              "HTTPSProfile": "TLSv1",
+              "WAFProfile": "OWASP2017",
+              "WAFValueSet": "default"
+            },
+            "cdn": {
+              "HTTPSProfile": "TLSv1",
+              "WAFProfile": "OWASP2017",
+              "WAFValueSet": "default"
+            },
+            "db": {
+              "SSLCertificateAuthority": "rds-ca-2019"
+            },
+            "es": {
+              "ProtocolPolicy": "https-only"
+            }
+          }
+        },
         "Bootstraps": {},
         "LogFilters": {
           "_all": {
