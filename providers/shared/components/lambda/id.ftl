@@ -187,6 +187,11 @@
             {
                 "Names" : "Tracing",
                 "Children" : tracingChildConfiguration
+            },
+            {
+                "Names" : "ReservedExecutions",
+                "Type" : NUMBER_TYPE,
+                "Default" : -1
             }
         ]
     parent=LAMBDA_COMPONENT_TYPE

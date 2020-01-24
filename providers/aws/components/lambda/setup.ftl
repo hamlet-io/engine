@@ -299,7 +299,8 @@
                     "KMSKeyId" : cmkKeyId,
                     "Name" : fnName,
                     "Description" : fnName,
-                    "Tracing" : solution.Tracing
+                    "Tracing" : solution.Tracing,
+                    "ReservedExecutions" : solution.ReservedExecutions
                 }
             roleId=roleId
             securityGroupIds=
