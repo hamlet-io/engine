@@ -458,7 +458,10 @@
                     valueIfTrue(
                         {
                             "RegionalCertificateArn":
-                                getArn(value["domain"].CertificateId, true, regionId),
+                                contentIfContent(
+                                    getArn(value["domain"].CertificateId, true, regionId)
+                                    "COTFatal: Could not find certificate " + value["domain"].CertificateId
+                                ),
                             "EndpointConfiguration" : {
                                 "Types" : [endpointType]
                             }
@@ -466,7 +469,10 @@
                         isRegionalEndpointType,
                         {
                             "CertificateArn":
-                                getArn(value["domain"].CertificateId, true, "us-east-1")
+                                contentIfContent(
+                                    getArn(value["domain"].CertificateId, true, "us-east-1"),
+                                    "COTFatal: Could not find certificate " + value["domain"].CertificateId
+                                )
                         }
                     )
                 outputs={}
