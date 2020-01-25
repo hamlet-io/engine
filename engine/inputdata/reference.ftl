@@ -24,12 +24,34 @@
     /]
 [/#macro]
 
-[#macro addReferenceData type data={} ]
-    [@internalMergeReferenceData
-        type=type
-        data=data
-    /]
+[#macro addReferenceData type base={} data={} ]
+    [#if base?has_content]
+        [@internalMergeReferenceData
+            type=type
+            data=base[(referenceConfiguration[type].Type.Plural)!""]!{}
+        /]
+    [#else]
+        [@internalMergeReferenceData
+            type=type
+            data=data
+        /]
+    [/#if]
 [/#macro]
+
+[#function getReferenceData type ignoreMissing=false]
+    [#local referenceConfig = referenceConfiguration[type]!{}]
+    [#if referenceConfig?has_content]
+        [#return (referenceData[(referenceConfig.Type.Plural)])!{} ]
+    [#else]
+        [#if !ignoreMissing]
+            [@fatal
+                message="Attempt to access data for unknown reference data type"
+                detail=type
+            /]
+        [/#if]
+        [#return {} ]
+    [/#if]
+[/#function]
 
 [#-------------------------------------------------------
 -- Internal support functions for component processing --
@@ -54,7 +76,7 @@
     [#if referenceConfig?has_content ]
         [#if data?has_content ]
             [#list data as id,content ]
-                [#assign referenceData = 
+                [#assign referenceData =
                     mergeObjects(
                         referenceData,
                         {
@@ -65,5 +87,10 @@
                     )]
             [/#list]
         [/#if]
+    [#else]
+        [@fatal
+            message="Attempt to add data for unknown reference data type"
+            detail=type
+        /]
     [/#if]
 [/#macro]

@@ -1,12 +1,12 @@
 [#ftl]
 
-[@addReference 
-    type=WAFRULE_REFERENCE_TYPE
-    pluralType="WAFRuleSets"
+[@addReference
+    type=WAFVALUESET_REFERENCE_TYPE
+    pluralType="WAFValueSets"
     properties=[
             {
                 "Type"  : "Description",
-                "Value" : "Web Application Firewall Rule" 
+                "Value" : "Web Application Firewall Rule"
             }
         ]
     attributes=[

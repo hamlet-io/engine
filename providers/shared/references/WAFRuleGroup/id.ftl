@@ -1,12 +1,12 @@
 [#ftl]
 
-[@addReference 
-    type=WAFRULE_REFERENCE_TYPE
+[@addReference
+    type=WAFRULEGROUP_REFERENCE_TYPE
     pluralType="WAFRuleGroup"
     properties=[
             {
                 "Type"  : "Description",
-                "Value" : "Web Application Firewall Rule" 
+                "Value" : "Web Application Firewall Rule"
             }
         ]
     attributes=[
