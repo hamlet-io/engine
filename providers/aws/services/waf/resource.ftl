@@ -213,11 +213,11 @@
 
 [#macro createWAFAclFromSecurityProfile id name metric wafSolution securityProfile occurrence={} regional=false]
     [#if wafSolution.OWASP]
-        [#local wafProfile = blueprintObject.WAFProfiles[securityProfile.WAFProfile!""]!{} ]
+        [#local wafProfile = wafProfiles[securityProfile.WAFProfile!""]!{} ]
     [#else]
         [#local wafProfile = {"Rules" : [], "DefaultAction" : "ALLOW"} ]
     [/#if]
-    [#local wafValueSet = blueprintObject.WAFValueSets[securityProfile.WAFValueSet!""]!{} ]
+    [#local wafValueSet = wafValueSets[securityProfile.WAFValueSet!""]!{} ]
 
     [#if getGroupCIDRs(wafSolution.IPAddressGroups, true, occurrence, true) ]
         [#local wafValueSet += {
@@ -236,7 +236,7 @@
             } ]
     [/#if]
 
-    [#local rules=getWAFProfileRules(wafProfile, blueprintObject.WAFRuleGroups, blueprintObject.WAFRules, blueprintObject.WAFConditions) ]
+    [#local rules=getWAFProfileRules(wafProfile, wafRuleGroups, wafRules, wafConditions) ]
     [@createWAFAcl
         id=id
         name=name

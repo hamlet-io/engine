@@ -782,82 +782,121 @@ are added.
             [/#if]
 
             [#if attribute.Children?has_content]
-                [#local childObjects = [] ]
+                [#-- There are three options for child content
+                     - array of children (Type = ARRAY_OF_OBJECT_TYPE)
+                     - children as subobjects (Subobjects = true)
+                     - direct children (the default)
+                --]
+
+                [#-- First determine if any child content has been provided --]
+                [#local childContent = [] ]
                 [#list candidates as object]
                     [#if object[providedName]??]
-                        [#local childObjects += [object[providedName]] ]
+                        [#local childContent += [object[providedName]] ]
                     [/#if]
                 [/#list]
-                [#if populateMissingChildren || childObjects?has_content]
-                    [#local attributeResult = {} ]
-                    [#if attribute.SubObjects ]
-                        [#local subobjectKeys = [] ]
-                        [#list childObjects as childObject]
-                            [#if childObject?is_hash]
-                              [#list childObject as key,value]
-                                  [#if value?is_hash]
-                                      [#local subobjectKeys += [key] ]
-                                  [#else]
-                                      [@fatal
-                                        message="Subobject content is not a hash"
-                                        context=childObject /]
-                                  [/#if]
-                              [/#list]
-                            [#else]
-                              [@fatal
-                                message="Child content is not a hash"
-                                context=childObject /]
-                            [/#if]
-                        [/#list]
-                        [#list subobjectKeys as subobjectKey ]
-                            [#if subobjectKey == "Configuration" ]
+
+                [#if populateMissingChildren || childContent?has_content]
+                    [#-- Something to work with --]
+
+                    [#if isArrayOfType(attribute.Types)]
+                        [#local attributeResult = [] ]
+                        [#-- Handle array of objects          --]
+                        [#-- TODO(mfl) Add duplicate handling --]
+                        [#list childContent as childArray]
+                            [#if !isOfType(childArray, attribute.Types)]
+                                [@fatal
+                                    message="One or more children not of an accepted type"
+                                    context=childArray /]
                                 [#continue]
                             [/#if]
-                            [#local subobjectValues = [] ]
-                            [#list childObjects as childObject ]
-                                [#local subobjectValues +=
-                                    [
-                                        childObject.Configuration!{},
-                                        childObject[subobjectKey]!{}
+                            [#list asArray(childArray) as childEntry]
+                                [#if childEntry?is_hash]
+                                    [#local attributeResult +=
+                                        [
+                                            getCompositeObject(attribute.Children, childEntry)
+                                        ]
                                     ]
-                                ]
+                                [#else]
+                                    [#-- Include non-object content --]
+                                    [#local attributeResult += [childEntry] ]
+                                [/#if]
                             [/#list]
-                            [#local attributeResult +=
-                                {
-                                  subobjectKey :
-                                        getCompositeObject(
-                                            [
-                                                {
-                                                    "Names" : "Id",
-                                                    "Mandatory" : true
-                                                },
-                                                {
-                                                    "Names" : "Name",
-                                                    "Mandatory" : true
-                                                }
-                                            ] +
-                                            attribute.Children,
-                                            [
-                                                {
-                                                    "Id" : subobjectKey,
-                                                    "Name" : subobjectKey
-                                                }
-                                            ] +
-                                            subobjectValues
-                                        )
-                                }
-                            ]
                         [/#list]
                     [#else]
-                        [#local attributeResult =
-                            populateMissingChildren?then(
-                                {
-                                    "Configured" : providedName?has_content
-                                },
-                                {}
-                            ) +
-                            getCompositeObject(attribute.Children, childObjects)
-                        ]
+                        [#local attributeResult = {} ]
+
+                        [#if attribute.SubObjects ]
+                            [#-- Handle subobjects --]
+                            [#local subobjectKeys = [] ]
+                            [#list childContent as childObject]
+                                [#if childObject?is_hash]
+                                    [#list childObject as key,value]
+                                        [#if value?is_hash]
+                                            [#local subobjectKeys += [key] ]
+                                        [#else]
+                                            [@fatal
+                                                message="Subobject content is not a hash"
+                                                context=childObject /]
+                                        [/#if]
+                                    [/#list]
+                                [#else]
+                                    [@fatal
+                                        message="Child content is not a hash"
+                                        context=childObject /]
+                                [/#if]
+                            [/#list]
+                            [#list subobjectKeys as subobjectKey ]
+                                [#if subobjectKey == "Configuration" ]
+                                    [#continue]
+                                [/#if]
+                                [#local subobjectValues = [] ]
+                                [#list childContent as childObject ]
+                                    [#local subobjectValues +=
+                                        [
+                                            childObject.Configuration!{},
+                                            childObject[subobjectKey]!{}
+                                        ]
+                                    ]
+                                [/#list]
+                                [#local attributeResult +=
+                                    {
+                                    subobjectKey :
+                                            getCompositeObject(
+                                                [
+                                                    {
+                                                        "Names" : "Id",
+                                                        "Mandatory" : true
+                                                    },
+                                                    {
+                                                        "Names" : "Name",
+                                                        "Mandatory" : true
+                                                    }
+                                                ] +
+                                                attribute.Children,
+                                                [
+                                                    {
+                                                        "Id" : subobjectKey,
+                                                        "Name" : subobjectKey
+                                                    }
+                                                ] +
+                                                subobjectValues
+                                            )
+                                    }
+                                ]
+                            [/#list]
+                        [#else]
+                            [#-- Handle direct children --]
+                            [#local attributeResult =
+                                populateMissingChildren?then(
+                                    {
+                                        "Configured" : providedName?has_content
+                                    },
+                                    {}
+                                ) +
+                                getCompositeObject(attribute.Children, childContent)
+                            ]
+                        [/#if]
                     [/#if]
                     [#local result += { attribute.Names[0] : attributeResult } ]
                 [/#if]

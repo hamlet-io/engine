@@ -414,7 +414,7 @@
 
     [#-- Check component not already seen --]
     [#if !isConfigurationIncluded([provider, "r", referenceType, "id"])]
-        [#list ["id", "name"] as level]
+        [#list ["id", "name", "reference"] as level]
             [#-- aws/references/logFile/id.ftl --]
             [#local templates += [[provider, "references", referenceType, level]] ]
         [/#list]

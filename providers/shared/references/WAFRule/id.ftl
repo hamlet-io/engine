@@ -1,12 +1,12 @@
 [#ftl]
 
-[@addReference 
+[@addReference
     type=WAFRULE_REFERENCE_TYPE
     pluralType="WAFRules"
     properties=[
             {
                 "Type"  : "Description",
-                "Value" : "Web Application Firewall Rule" 
+                "Value" : "Web Application Firewall Rule"
             }
         ]
     attributes=[
@@ -16,7 +16,7 @@
         },
         {
             "Names" : "Conditions",
-            "Subobjects" : true,
+            "Type" : ARRAY_OF_OBJECT_TYPE,
             "Children" : [
                 {
                     "Names" : "Condition",
