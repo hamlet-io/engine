@@ -378,8 +378,8 @@
                             ) +
                             valueIfTrue(
                                 [
-                                    "   info \"Removing old ssh pseduo stack output\"",
-                                    "   legacy_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE/\"-baseline-\"/\"-cmk-\"}\")-keypair-pseudo-stack.json\"",
+                                    "   info \"Removing old ssh pseudo stack output\"",
+                                    "   legacy_pseudo_stack_file=\"$\{CF_DIR/\"baseline\"/\"cmk\"}/$(fileBase \"$\{BASH_SOURCE/\"-baseline-\"/\"-cmk-\"}\")-keypair-pseudo-stack.json\"",
                                     "   if [ -f \"$\{legacy_pseudo_stack_file}\" ]; then",
                                     "       rm -f \"$\{legacy_pseudo_stack_file}\"",
                                     "   fi"
@@ -462,14 +462,18 @@
                                     [
                                         "case $\{STACK_OPERATION} in",
                                         "  delete)",
-                                        "  delete_oai_credentials" + " " +
-                                            "\"" + regionId + "\" " +
-                                            "\"" + legacyOAIName + "\" || return $?",
-                                        "  rm -f \"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-pseudo-stack.json\"",
+                                        "    delete_oai_credentials" + " " +
+                                               "\"" + regionId + "\" " +
+                                               "\"" + legacyOAIName + "\" || return $?",
+                                        "    rm -f \"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-pseudo-stack.json\"",
                                         "    ;;",
                                         "  create|update)",
-                                        "    info \"Removing old oai pseduo stack output\"",
-                                        "    legacy_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE/\"-baseline-\"/\"-cmk-\"}\")-pseudo-stack.json\"",
+                                        "    info \"Removing legacy oai credential\"",
+                                        "    delete_oai_credentials" + " " +
+                                               "\"" + regionId + "\" " +
+                                               "\"" + legacyOAIName + "\" || return $?",
+                                        "    info \"Removing legacy oai pseudo stack output\"",
+                                        "    legacy_pseudo_stack_file=\"$\{CF_DIR/\"baseline\"/\"cmk\"}/$(fileBase \"$\{BASH_SOURCE/\"-baseline-\"/\"-cmk-\"}\")-pseudo-stack.json\"",
                                         "    if [ -f \"$\{legacy_pseudo_stack_file}\" ]; then",
                                         "       rm -f \"$\{legacy_pseudo_stack_file}\"",
                                         "    fi",
