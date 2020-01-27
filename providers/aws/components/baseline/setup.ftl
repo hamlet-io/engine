@@ -379,7 +379,7 @@
                             valueIfTrue(
                                 [
                                     "   info \"Removing old ssh pseudo stack output\"",
-                                    "   legacy_pseudo_stack_file=\"$(fileBase \"$\{BASH_SOURCE/-epilogue/}\")",
+                                    "   legacy_pseudo_stack_file=\"$(fileBase \"$\{BASH_SOURCE/-epilogue/}\")\"",
                                     "   legacy_pseudo_stack_filepath=\"$\{CF_DIR/baseline/cmk}/$\{legacy_pseudo_stack_file/-baseline-/-cmk-}-keypair-pseudo-stack.json\"",
                                     "   if [ -f \"$\{legacy_pseudo_stack_filepath}\" ]; then",
                                     "       rm -f \"$\{legacy_pseudo_stack_filepath}\"",
@@ -476,7 +476,7 @@
                                                "\"" + regionId + "\" " +
                                                "\"" + legacyOAIName + "\" || return $?",
                                         "    info \"Removing legacy oai pseudo stack output\"",
-                                        "    legacy_pseudo_stack_file=\"$(fileBase \"$\{BASH_SOURCE/-epilogue/}\")",
+                                        "    legacy_pseudo_stack_file=\"$(fileBase \"$\{BASH_SOURCE/-epilogue/}\")\"",
                                         "    legacy_pseudo_stack_filepath=\"$\{CF_DIR/baseline/cmk}/$\{legacy_pseudo_stack_file/-baseline-/-cmk-}-pseudo-stack.json\"",
                                         "    if [ -f \"$\{legacy_pseudo_stack_filepath}\" ]; then",
                                         "       rm -f \"$\{legacy_pseudo_stack_filepath}\"",
