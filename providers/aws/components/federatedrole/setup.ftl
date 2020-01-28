@@ -48,8 +48,8 @@
                 [#case USERPOOL_CLIENT_COMPONENT_TYPE ]
                 [#case USERPOOL_COMPONENT_TYPE ]
 
-                    [#local userPoolName = linkTargetAttributes["USERPOOL_NAME"]!"" ]
-                    [#local userPoolClient = linkTargetAttributes["USERPOOL_CLIENTID"]!"" ]
+                    [#local userPoolName = linkTargetAttributes["USER_POOL_NAME"]!"" ]
+                    [#local userPoolClient = linkTargetAttributes["CLIENT"]!"" ]
 
                     [#local federationProviders +=
                                 {
