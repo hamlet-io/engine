@@ -180,6 +180,10 @@
             ["arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"],
             ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"]
         ) +
+        (solution.Tracing.Configured)?then(
+            ["arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"],
+            []
+        ) +
         _context.ManagedPolicy ]
 
     [#local linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
