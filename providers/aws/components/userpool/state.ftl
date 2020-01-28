@@ -11,13 +11,13 @@
 
         [#local attrClientId = occurrence.State.Attributes["USERPOOL_CLIENTID"]!"" ]
 
-        [#local attrUIBaseURL = occurrence.State.Attributes["USERPOOL_BASE_URL"]!"" ]        
+        [#local attrUIBaseURL = occurrence.State.Attributes["USERPOOL_BASE_URL"]!"" ]
         [#local attrUIFQDN = attrUIBaseURL?remove_beginning("https://")?remove_ending("/")]
         [#local attrUIInternalBaseUrl = attrUIBaseURL ]
         [#local attrUIInternalFQDN = attrUIFQDN ]
 
         [#local attrLbAuthHeader =  occurrence.State.Attributes["USERPOOL_AUTHORIZATION_HEADER"]!"Authorization"]
-    
+
         [#assign componentState =
             baseState +
             {
@@ -73,7 +73,7 @@
                                     getExistingReference(defaultUserPoolClientId),
                                     "")]
 
-        [#local attrUIBaseURL = userPoolCustomBaseUrl!userPoolBaseUrl ]        
+        [#local attrUIBaseURL = userPoolCustomBaseUrl!userPoolBaseUrl ]
         [#local attrUIFQDN = userPoolCustomDomainName!userPoolFQDN ]
         [#local attrUIInternalBaseUrl = userPoolBaseUrl ]
         [#local attrUIInternalFQDN = userPoolFQDN ]
@@ -133,7 +133,7 @@
         ]
     [/#if]
 
-    [#assign componentState += 
+    [#assign componentState +=
         {
             "Attributes" : {
                 "USER_POOL" : attrUserPoolId,
@@ -145,7 +145,7 @@
                 "UI_BASE_URL" : attrUIBaseURL,
                 "UI_FQDN" : attrUIFQDN,
                 "API_AUTHORIZATION_HEADER" : attrLbAuthHeader
-            } + 
+            } +
             attributeIfContent(
                 "CLIENT",
                 attrClientId
@@ -178,9 +178,10 @@
                     "Type" : AWS_COGNITO_USERPOOL_CLIENT_RESOURCE_TYPE
                 }
             },
-            "Attributes" : parentAttributes + 
+            "Attributes" :
+            parentAttributes +
             {
-                "CLIENT" : getReference(userPoolClientId),
+                "CLIENT" : getExistingReference(userPoolClientId),
                 "LB_OAUTH_SCOPE" : (solution.OAuth.Scopes)?join(", ")
             },
             "Roles" : {
