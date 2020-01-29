@@ -123,7 +123,7 @@
     ]
 [/#function]
 
-[#function getAutScalingRDSClusterResourceId clusterId ]
+[#function getAutoScalingRDSClusterResourceId clusterId ]
     [#return
         {
             "Fn::Join" : [
@@ -131,6 +131,20 @@
                 [
                     "cluster",
                     getReference(clusterId)
+                ]
+            ]
+        }
+    ]
+[/#function]
+
+[#function getAutoScalingLambdaResourceId lambdaAliasId ]
+    [#return
+        {
+            "Fn::Join" : [
+                ":",
+                [
+                    "function",
+                    getReference(lambdaAliasId)
                 ]
             ]
         }
