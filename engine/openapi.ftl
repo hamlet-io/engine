@@ -1156,7 +1156,7 @@ is useful to see what the global settings are from a debug perspective
                         }
                     ) +
                     valueIfTrue(
-                        optionsSecurity
+                        optionsSecurity,
                         globalConfiguration.OptionsSecurity == "UseVerb",
                         {}
                     )
