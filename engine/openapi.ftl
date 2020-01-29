@@ -144,8 +144,14 @@
                     "Default" : "apiKey"
                 },
                 {
-                    "Names" : "Header",
+                    "Names" : ["Header", "name"],
                     "Type" : STRING_TYPE
+                },
+                {
+                    "Names" : ["In", "in"],
+                    "Type" : STRING_TYPE,
+                    "Values" : ["header", "query", "cookie"],
+                    "Default" : "header"
                 },
                 {
                     "Names" : "AuthType",
@@ -470,7 +476,7 @@
                 [#local scheme +=
                     {
                         "name" : value.Header!("COTFatal: No header specified for scheme " + key),
-                        "in" : "header"
+                        "in" : value.In
                     }
                 ]
                 [#local Authorizer = value.Authorizer!{} ]
