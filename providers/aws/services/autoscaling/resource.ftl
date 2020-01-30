@@ -123,7 +123,7 @@
     ]
 [/#function]
 
-[#function getAutScalingRDSClusterResourceId clusterId ]
+[#function getAutoScalingRDSClusterResourceId clusterId ]
     [#return
         {
             "Fn::Join" : [

@@ -151,7 +151,7 @@
 
     [#local rdsPreDeploySnapshotId = formatName(
                                         rdsFullName,
-                                        commandLineOptions.Run.Id,
+                                        (commandLineOptions.Run.Id)?split('')?reverse?join(''),
                                         "pre-deploy")]
 
     [#local rdsTags = getOccurrenceCoreTags(occurrence, rdsFullName)]
@@ -258,6 +258,7 @@
                         "info \"Checking Snapshot Encryption... \"",
                         "encrypt_snapshot" +
                         " \"" + region + "\" " +
+                        " \"" + hostType + "\" " +
                         " \"" + rdsPreDeploySnapshotId + "\" " +
                         " \"" + cmkKeyArn + "\" || return $?",
                         "}",
@@ -637,7 +638,7 @@
                         id=scalingTargetId
                         minCount=processorCounts.MinCount
                         maxCount=processorCounts.MaxCount
-                        scalingResourceId=getAutScalingRDSClusterResourceId(rdsId)
+                        scalingResourceId=getAutoScalingRDSClusterResourceId(rdsId)
                         scalableDimension="rds:cluster:ReadReplicaCount"
                         resourceType=serviceResourceType
                         scheduledActions=scheduledActions
