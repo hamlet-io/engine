@@ -236,6 +236,12 @@
             "Names" : ["Options"],
             "Type" : [BOOLEAN_TYPE],
             "Default" : true
+        },
+        {
+            "Names" : ["OptionsSecurity"],
+            "Type" : STRING_TYPE,
+            "Values" : [ "UseVerb", "disabled" ],
+            "Default" : "UseVerb"
         }
     ]
 ]
@@ -1155,7 +1161,11 @@ is useful to see what the global settings are from a debug perspective
                             "Type" : "mock-cors"
                         }
                     ) +
-                    optionsSecurity
+                    valueIfTrue(
+                        optionsSecurity,
+                        globalConfiguration.OptionsSecurity == "UseVerb",
+                        {}
+                    )
                 }
             ]
         [/#if]
