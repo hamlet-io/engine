@@ -4,9 +4,8 @@
     [#local core = occurrence.Core]
 
     [#if core.External!false]
-        [#local id = baseState.Attributes["ARN"]!"" ]
+        [#local id = occurrence.State.Attributes["ARN"]!"" ]
         [#assign componentState =
-            baseState +
             valueIfContent(
                 {
                     "Roles" : {
