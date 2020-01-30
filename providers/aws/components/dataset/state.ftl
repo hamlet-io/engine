@@ -121,7 +121,9 @@
 
                     [#case ES_COMPONENT_TYPE]
                         [#local attributes += {
-                            "DATASET_MASTER_LOCATION" : "s3://" + linkTargetAttributes["SNAPSHOT_BUCKET"] + formatAbsolutePath(linkTargetAttributes["SNAPSHOT_PATH"])
+                            "DATASET_MASTER_LOCATION" : "s3://" + linkTargetAttributes["SNAPSHOT_BUCKET"] + formatAbsolutePath(linkTargetAttributes["SNAPSHOT_PATH"]),
+                            "DATASET_PREFIX" : linkTargetAttributes["SNAPSHOT_PATH"],
+                            "NAME" : linkTargetAttributes["SNAPSHOT_BUCKET"]
                         }]
                         [#local producePolicy += s3ProducePermission(
                                                     linkTargetAttributes["SNAPSHOT_BUCKET"],
