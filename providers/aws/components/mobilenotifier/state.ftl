@@ -47,7 +47,7 @@
     [#local lgFailureId = formatMobileNotifierLogGroupId(engine, name, true) ]
     [#local lgFailureName = formatMobileNotifierLogGroupName(engine, name, true)]
 
-    [#local region = getExistingReference(id, REGION_ATTRIBUTE_TYPE)!regionId ]
+    [#local region = contentIfContent(getExistingReference(id, REGION_ATTRIBUTE_TYPE), regionId) ]
 
     [#local logMetrics = {} ]
     [#list solution.LogMetrics as name,logMetric ]
@@ -117,7 +117,7 @@
             "Roles" : {
                 "Inbound" : {
                     "logwatch" : {
-                        "Principal" : { "Service" : "logs." + region + ".amazonaws.com"},
+                        "Principal" : "logs." + region + ".amazonaws.com",
                         "LogGroupIds" : [ lgId, lgFailureId ]
                     }
                 },
