@@ -23,7 +23,18 @@
         },
         {
             "Names" : "Port",
-            "Type" : NUMBER_TYPE
+            "Children" : [
+                {
+                    "Names" : "Http",
+                    "Type" : NUMBER_TYPE,
+                    "Default" : 80
+                },
+                {
+                    "Names" : "Https",
+                    "Type" : NUMBER_TYPE,
+                    "Default" : 443
+                }
+            ]
         },
         {
             "Names" : "HealthCheck",
