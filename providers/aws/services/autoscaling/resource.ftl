@@ -137,20 +137,6 @@
     ]
 [/#function]
 
-[#function getAutoScalingLambdaResourceId lambdaAliasId ]
-    [#return
-        {
-            "Fn::Join" : [
-                ":",
-                [
-                    "function",
-                    getReference(lambdaAliasId)
-                ]
-            ]
-        }
-    ]
-[/#function]
-
 [#function getAutoScalingAppStepPolicy
     adjustmentType
     cooldown
