@@ -80,7 +80,7 @@
                     "Engine" : engine,
                     "Type" : AWS_SNS_PLATFORMAPPLICATION_RESOURCE_TYPE,
                     "Monitored" : true
-                } + 
+                } +
                 attributeIfTrue(
                     "Deployed",
                     ( engine == MOBILENOTIFIER_SMS_ENGINE),
@@ -117,7 +117,7 @@
             "Roles" : {
                 "Inbound" : {
                     "logwatch" : {
-                        "Principal" : "logs." + region + ".amazonaws.com",
+                        "Principal" : { "Service" : "logs." + region + ".amazonaws.com"},
                         "LogGroupIds" : [ lgId, lgFailureId ]
                     }
                 },
