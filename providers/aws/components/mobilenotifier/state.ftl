@@ -10,7 +10,7 @@
         ) ]
 [/#function]
 
-[#macro aws_mobilenotifier_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_mobilenotifier_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
@@ -32,7 +32,7 @@
     ]
 [/#macro]
 
-[#macro aws_mobilenotifierplatform_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_mobilenotifierplatform_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 

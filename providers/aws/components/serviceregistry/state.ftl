@@ -1,6 +1,6 @@
 [#ftl]
 
-[#macro aws_serviceregistry_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_serviceregistry_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
@@ -28,7 +28,7 @@
     ]
 [/#macro]
 
-[#macro aws_serviceregistryservice_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_serviceregistryservice_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 

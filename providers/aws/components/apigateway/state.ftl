@@ -57,7 +57,7 @@ configured and Mode 4 is used if CloudFront is not configured. No mappings are
 created in either case.
 --]
 
-[#macro aws_apigateway_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_apigateway_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 

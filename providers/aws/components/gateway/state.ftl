@@ -1,6 +1,6 @@
 [#ftl]
 
-[#macro aws_gateway_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_gateway_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
     [#local engine = solution.Engine ]
@@ -107,7 +107,7 @@
     ]
 [/#macro]
 
-[#macro aws_gatewaydestination_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_gatewaydestination_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 

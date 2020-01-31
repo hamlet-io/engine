@@ -1,5 +1,5 @@
 [#ftl]
-[#macro aws_cache_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_cache_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
 
     [#local id = formatResourceId(AWS_CACHE_RESOURCE_TYPE, core.Id) ]

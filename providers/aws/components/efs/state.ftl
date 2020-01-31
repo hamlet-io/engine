@@ -1,6 +1,6 @@
 [#ftl]
 
-[#macro aws_efs_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_efs_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
 
     [#local id = formatEFSId( core.Tier, core.Component, occurrence) ]
@@ -41,7 +41,7 @@
     ]
 [/#macro]
 
-[#macro aws_efsmount_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_efsmount_cf_state occurrence parent={} ]
     [#local configuration = occurrence.Configuration.Solution]
 
     [#local efsId = parent.State.Attributes["EFS"] ]

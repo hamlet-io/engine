@@ -1,6 +1,6 @@
 [#ftl]
 
-[#macro aws_lb_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_lb_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution ]
 
@@ -49,7 +49,7 @@
     ]
 [/#macro]
 
-[#macro aws_lbport_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_lbport_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 

@@ -1,6 +1,6 @@
 [#ftl]
 
-[#macro shared_externalservice_default_state occurrence parent={} baseState={}  ]
+[#macro shared_externalservice_default_state occurrence parent={} ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 

@@ -243,7 +243,7 @@
         ]
 
         [#-- Attempt to invoke state macro for resource group --]
-        [#if invokeStateMacro(occurrence, key, parentOccurrence, state)]
+        [#if invokeStateMacro(occurrence, key, parentOccurrence)]
             [#local state = mergeObjects(state, componentState) ]
         [#else]
             [@debug

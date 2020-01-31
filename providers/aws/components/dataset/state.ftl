@@ -3,7 +3,7 @@
 [#-- Resources --]
 [#assign DATASET_S3_SNAPSHOT_RESOURCE_TYPE = "s3Snapshot" ]
 
-[#macro aws_dataset_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_dataset_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution ]
     [#local buildReference = getOccurrenceBuildReference(occurrence, true ) ]

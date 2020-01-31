@@ -1,5 +1,5 @@
 [#ftl]
-[#macro aws_bastion_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_bastion_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 

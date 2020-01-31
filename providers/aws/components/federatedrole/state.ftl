@@ -1,12 +1,12 @@
 [#ftl]
 
-[#macro aws_federatedrole_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_federatedrole_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
 
     [#local identityPoolId = formatResourceId(AWS_COGNITO_IDENTITYPOOL_RESOURCE_TYPE, core.Id)]
     [#local identityPoolName = replaceAlphaNumericOnly(core.FullName, "X") ]
 
-    [#assign componentState = 
+    [#assign componentState =
         {
             "Resources" : {
                 "identitypool" : {
@@ -32,10 +32,10 @@
 
 [/#macro]
 
-[#macro aws_federatedroleassignment_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_federatedroleassignment_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
 
-    [#assign componentState = 
+    [#assign componentState =
         {
             "Resources" : {
                 "role" : {
