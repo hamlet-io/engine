@@ -30,6 +30,7 @@
     "Tenants" : [
       {
         "Id" : tenantObject.Id,
+        "Name" : (tenantObject.Name)!tenantObject.Id,
         "Configuration" : tenantObject,
         "Domains" : domains,
         "Products" : getProductBlueprint()
@@ -44,6 +45,7 @@
   [#local result= [
       {
         "Id" : productObject.Id,
+        "Name" : (productObject.Name)!productObject.Id,
         "Configuration" : productObject,
         "Environments" : getEnvironmentBlueprint()
       }
@@ -55,6 +57,7 @@
   [#local result= [
       {
         "Id" : environmentObject.Id,
+        "Name" : (environmentObject.Name)!environmentObject.Id,
         "Configuration" : environmentObject,
         "Segments" : getSegmentBlueprint()
       }
@@ -66,6 +69,7 @@
   [#local result=[
       {
         "Id" : segmentObject.Id,
+        "Name" : (segmentObject.Name)!segmentObject.Id,
         "Configuration" : segmentObject,
         "Account" : accountObject,
         "Solution" : solutionObject,
@@ -81,6 +85,7 @@
     [#local result += [
         {
             "Id" : tier.Id,
+            "Name" : (tier.Name)!tier.Id,
             "Configuration" : {
               "Id": tier.Id,
               "Name": (tier.Name)!"",
@@ -100,7 +105,7 @@
     [#local component =
       {
           "Id" : id,
-          "Name" : id
+          "Name" : (value.Name)!id
       } + value ]
 
     [#if component?is_hash]
@@ -116,8 +121,7 @@
       [/#list]
 
       [#local result += [
-        {
-          "Id" : id,
+        component + {
           "Type" : componentType,
           "Occurrences" : cleanedOccurrences
         } ] ]
