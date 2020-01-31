@@ -82,11 +82,11 @@
         {
             "Id" : tier.Id,
             "Configuration" : {
-              "Description": tier.Description,
-              "Network": tier.Network,
-              "Title": tier.Title,
               "Id": tier.Id,
-              "Name": tier.Name
+              "Name": (tier.Name)!"",
+              "Title": (tier.Title)!"",
+              "Description": (tier.Description)!"",
+              "Network": tier.Network
             },
             "Components" :  getComponentBlueprint(tier)
         }]]
