@@ -10,7 +10,9 @@
         [#local component =
             {
                 "Id" : id,
-                "Name" : id
+                "Name" : (value.Name)!"",
+                "Description" : (value.Description)!"",
+                "Title" : (value.Title)!""
             } + value ]
 
         [#if component?is_hash]
