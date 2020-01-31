@@ -50,8 +50,18 @@
             {
                 "Names" : "Port",
                 "Description" : "The port used to access the SPA content.",
-                "Type" : STRING_TYPE,
-                "Default" : "https"
+                "Children" : [
+                    {
+                        "Names" : "HTTP",
+                        "Type" : STRING_TYPE,
+                        "Default" : "http"
+                    },
+                    {
+                        "Names" : "HTTPS",
+                        "Type" : STRING_TYPE,
+                        "Default" : "https"
+                    }
+                ]
             }
         ]
 /]
