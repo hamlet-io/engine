@@ -148,13 +148,14 @@ else
 fi
 
 # Search through the blueprint to find the cluster and the task
-COMPONENT_BLUEPRINT="$(getJSONValue "${ENV_BLUEPRINT}" ".Tenants[] | objects | select(.Configuration.Name==\"${TENANT}\") \
-                                    | .Products[] | objects | select(.Configuration.Name==\"${PRODUCT}\") \
-                                    | .Environments[] | objects | select(.Configuration.Name==\"${ENVIRONMENT}\") \
-                                    | .Segments[] | objects | select(.Configuration.Name==\"${SEGMENT}\") \
-                                    | .Tiers[] | objects | select(.Configuration.Name==\"${TIER}\") \
-                                    | .Components[] | objects | select(.Id==\"${COMPONENT}\") \
-                                    | .Occurrences[] | objects | \
+COMPONENT_BLUEPRINT="$(getJSONValue "${ENV_BLUEPRINT}" \
+                                    " .Tenants[]        | objects | select(.Name==\"${TENANT}\") \
+                                    | .Products[]       | objects | select(.Name==\"${PRODUCT}\") \
+                                    | .Environments[]   | objects | select(.Name==\"${ENVIRONMENT}\") \
+                                    | .Segments[]       | objects | select(.Name==\"${SEGMENT}\") \
+                                    | .Tiers[]          | objects | select(.Name==\"${TIER}\") \
+                                    | .Components[]     | objects | select(.Name==\"${COMPONENT}\") \
+                                    | .Occurrences[]    | objects | \
                                             select(.Core.Component.RawName==\"${COMPONENT}\" \
                                                 and .Core.Component.Instance.Name==${COMPONENT_INSTANCE} \
                                                 and .Core.Component.Version.Name==${COMPONENT_VERSION} \
