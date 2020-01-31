@@ -107,9 +107,9 @@
                     "SubnetIds" : getReferences(subnetIds)
                 }
             ) +
-            attributeIfContent(
+            attributeIfTrue(
                 "TracingConfig",
-                settings.Tracing.Mode!"",
+                settings.Tracing.Configured && settings.Tracing.Enabled && (settings.Tracing.Mode)?has_content,
                 {
                     "Mode" :
                         valueIfTrue(

@@ -323,7 +323,7 @@
                 attributeIfContent("Variables", stageVariables) +
                 attributeIfTrue(
                     "TracingEnabled",
-                    ((solution.Tracing.Mode)!"") == "active",
+                    solution.Tracing.Configured && solution.Tracing.Enabled && ((solution.Tracing.Mode!"") == "active"),
                     true)
             outputs={}
             dependencies=deployId
