@@ -187,6 +187,7 @@ if [[ "${GENERATION_INPUT_SOURCE}" == "composite" ]]; then
             "${PRODUCT_DIR}"/domains*.json \
             "${PRODUCT_DIR}"/ipaddressgroups*.json \
             "${PRODUCT_DIR}"/countrygroups*.json \
+            "${PRODUCT_DIR}"/profiles*.json \
             "${PRODUCT_DIR}"/product.json
 
         addToArrayHead "blueprint_array" \
@@ -197,6 +198,7 @@ if [[ "${GENERATION_INPUT_SOURCE}" == "composite" ]]; then
             "${TENANT_DIR}"/domains*.json \
             "${TENANT_DIR}"/ipaddressgroups*.json \
             "${TENANT_DIR}"/countrygroups*.json \
+            "${TENANT_DIR}"/profiles*.json \
             "${TENANT_DIR}"/tenant.json
 
         debug "BLUEPRINT=${blueprint_array[*]}"
