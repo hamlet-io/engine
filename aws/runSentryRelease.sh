@@ -29,11 +29,11 @@ Upload sourcemap files to sentry for a specific release for SPA and mobile apps.
 to get the configuration file location. Sentry cli configuration is read from the configuration file, but for the expo
 SENTRY_SOURCE_MAP_S3_URL and SENTRY_URL_PREFIX are set in the runExpoPublish script and passed as chain properties.
 
-Usage: $(basename $0) -m SENTRY_SOURCE_MAP_S3_URL -r SENTRY_RELEASE -s -d DEPLOYMENT_UNIT
+Usage: $(basename $0) -m SENTRY_SOURCE_MAP_S3_URL -r SENTRY_RELEASE -s -u DEPLOYMENT_UNIT
 
 where
 
-(m) -d DEPLOYMENT_UNIT              deployment unit for a build blueprint
+(m) -u DEPLOYMENT_UNIT              deployment unit for a build blueprint
     -h                              shows this text
 (o) -m SENTRY_SOURCE_MAP_S3_URL     s3 link to sourcemap files
 (o) -p SENTRY_URL_PREFIX            prefix for sourcemap files
@@ -55,9 +55,6 @@ function options() {
     # Parse options
     while getopts ":d:hm:p:r:s" opt; do
         case $opt in
-            m)
-                DEPLOYMENT_UNIT="${OPTARG}"
-                ;;
             h)
                 usage
                 ;;
@@ -72,6 +69,9 @@ function options() {
                 ;;
             s)
                 RUN_SETUP="true"
+                ;;
+            u)
+                DEPLOYMENT_UNIT="${OPTARG}"
                 ;;
             \?)
                 fatalOption
