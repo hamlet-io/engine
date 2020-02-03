@@ -132,14 +132,14 @@ COMPONENT_BLUEPRINT="$(getJSONValue "${ENV_BLUEPRINT}" \
                                     | .Components[]     | objects | select(.Name==\"${COMPONENT}\") \
                                     | .Occurrences[]    | objects | \
                                             select( \
-                                                .Core.Type=="ecs" \
+                                                .Core.Type==\"ecs\" \
                                                 and .Core.Component.RawName==\"${COMPONENT}\" \
                                                 and .Core.Instance.Name==\"${COMPONENT_INSTANCE}\" \
                                                 and .Core.Version.Name==\"${COMPONENT_VERSION}\" \
                                             ) \
                                     | .Occurrences[] | objects | \
                                             select( \
-                                                .Core.Type=="task" \
+                                                .Core.Type==\"task\" \
                                                 and .Core.Component.RawName==\"${TASK}\" \
                                                 and .Core.Instance.Name==\"${INSTANCE}\" \
                                                 and .Core.Version.Name==\"${VERSION}\" \
