@@ -138,7 +138,7 @@ COMPONENT_BLUEPRINT="$(getJSONValue "${ENV_BLUEPRINT}" \
                                                 and .Core.Version.Name==\"${COMPONENT_VERSION}\"} \
                                             ) \
                                     | .Occurrences[] | objects | \
-                                            select(
+                                            select( \
                                                 .Core.Type=="task" \
                                                 and .Core.Component.RawName==\"${TASK}\" \
                                                 and .Core.Instance.Name==\"${INSTANCE}\" \
