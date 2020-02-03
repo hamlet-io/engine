@@ -131,7 +131,7 @@ COMPONENT_BLUEPRINT="$(getJSONValue "${ENV_BLUEPRINT}" \
                                     | .Tiers[]          | objects | select(.Name==\"${TIER}\") \
                                     | .Components[]     | objects | select(.Name==\"${COMPONENT}\") \
                                     | .Occurrences[]    | objects | \
-                                            select(
+                                            select( \
                                                 .Core.Type=="ecs" \
                                                 and .Core.Component.RawName==\"${COMPONENT}\" \
                                                 and .Core.Instance.Name==\"${COMPONENT_INSTANCE}\" \
