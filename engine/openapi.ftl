@@ -968,7 +968,7 @@ is useful to see what the global settings are from a debug perspective
                         "contentHandling",
                         configuration.ContentHandling
                     ) +
-                    requests
+                    configuration.Requests
                 }
             ]
             [#break]
@@ -977,12 +977,20 @@ is useful to see what the global settings are from a debug perspective
             [#local result +=
                 {
                     "x-amazon-apigateway-integration" : {
-                        "type": "mock"
+                        "type": "mock",
+                        "responses" :
+                            {
+                                "default" : {
+                                    "statusCode" : "200"
+                                }
+                            } +
+                            configuration.Responses
                     } +
                     attributeIfContent(
                         "contentHandling",
                         configuration.ContentHandling
-                    )
+                    ) +
+                    configuration.Requests
                 }
             ]
             [#break]
