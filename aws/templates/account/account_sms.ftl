@@ -37,15 +37,17 @@
     [#-- Need to run the unit twice or use an IAM unit so the role can be included in the CLI --]
     [#if deploymentSubsetRequired("cli", false) ]
 
-        [#assign smsSettings = getAccountSettings() ]
+        [#-- TODO(mfl): Remove use of internal function when accounts support refactored --]
+        [#-- It is a hack for now                                                        --]
+        [#assign smsSettings = internalCreateAccountSettings() ]
         [#assign successSamplingRate =
             contentIfContent(
-                getSetting(smsSettings, ["SMS", "SUCCESS", "SAMPLING", "RATE"], true).Value,
+                (smsSettings["SMS_SUCCESS_SAMPLING_RATE"].Value)!"",
                 "100"
             ) ]
         [#assign smsType =
             contentIfContent(
-                getSetting(smsSettings, ["SMS", "DEFAULT", "TYPE"], true).Value,
+                (smsSettings["SMS_DEFAULT_TYPE"].Value)!"",
                 "Transactional"
             ) ]
         [@addCliToDefaultJsonOutput
@@ -59,11 +61,11 @@
                     } +
                     attributeIfContent(
                         "MonthlySpendLimit",
-                        getSetting(smsSettings, ["SMS", "MONTHLY", "SPEND", "LIMIT"], true).Value
+                        (smsSettings["SMS_MONTHLY_SPEND_LIMIT"].Value)!""
                     ) +
                     attributeIfContent(
                         "DefaultSenderID",
-                        getSetting(smsSettings, ["SMS", "SENDER", "ID"], true).Value
+                        (smsSettings["SMS_SENDER_ID"].Value)!""
                     ) +
                     attributeIfContent(
                         "DeliveryStatusIAMRole",
