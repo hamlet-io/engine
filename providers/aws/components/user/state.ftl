@@ -1,6 +1,6 @@
 [#ftl]
 
-[#macro aws_user_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_user_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 

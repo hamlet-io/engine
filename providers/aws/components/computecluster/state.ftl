@@ -1,6 +1,6 @@
 [#ftl]
 
-[#macro aws_computecluster_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_computecluster_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution ]
     [#local buildReference = getOccurrenceBuildReference(occurrence) ]

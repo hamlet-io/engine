@@ -1,6 +1,6 @@
 [#ftl]
 
-[#macro aws_userpool_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_userpool_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
 
     [#if core.External!false]
@@ -19,7 +19,6 @@
         [#local attrLbAuthHeader =  occurrence.State.Attributes["USERPOOL_AUTHORIZATION_HEADER"]!"Authorization"]
 
         [#assign componentState =
-            baseState +
             {
                 "Roles" : {
                     "Inbound" : {
@@ -154,7 +153,7 @@
     ]
 [/#macro]
 
-[#macro aws_userpoolclient_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_userpoolclient_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
@@ -191,7 +190,7 @@
         }]
 [/#macro]
 
-[#macro aws_userpoolauthprovider_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_userpoolauthprovider_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
 
     [#local authProviderId = formatResourceId(AWS_COGNITO_USERPOOL_AUTHPROVIDER_RESOURCE_TYPE, core.Id)]

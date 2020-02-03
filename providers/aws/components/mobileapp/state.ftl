@@ -3,7 +3,7 @@
 [#-- Resources --]
 [#assign COT_MOBILEAPP_RESOURCE_TYPE = "mobileapp"]
 
-[#macro aws_mobileapp_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_mobileapp_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 

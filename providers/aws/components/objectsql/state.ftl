@@ -1,6 +1,6 @@
 [#ftl]
 
-[#macro aws_objectsql_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_objectsql_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
 
     [#local workGroupId = formatResourceId(AWS_ATHENA_WORKGROUP_RESOURCE_TYPE, core.Id)]
@@ -29,8 +29,8 @@
                 "Inbound" : {},
                 "Outbound" : {
                     "default" : "consume",
-                    "consume" : 
-                        athenaConsumePermission(workGroupId) + 
+                    "consume" :
+                        athenaConsumePermission(workGroupId) +
                         s3AllPermission(baselineComponentIds["AppData"], getAppDataFilePrefix(occurrence))
                }
             }

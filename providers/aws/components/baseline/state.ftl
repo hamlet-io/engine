@@ -1,7 +1,7 @@
 [#ftl]
 [#assign LOCAL_SSH_PRIVATE_KEY_RESOURCE_TYPE = "sshPrivKey" ]
 
-[#macro aws_baseline_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_baseline_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
@@ -36,7 +36,7 @@
     ]
 [/#macro]
 
-[#macro aws_baselinedata_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_baselinedata_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
@@ -99,7 +99,7 @@
     ]
 [/#macro]
 
-[#macro aws_baselinekey_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_baselinekey_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 

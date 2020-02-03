@@ -2,7 +2,7 @@
 
 [#-- Resources --]
 
-[#macro aws_network_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_network_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
@@ -138,7 +138,7 @@
     ]
 [/#macro]
 
-[#macro aws_networkroute_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_networkroute_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
@@ -198,7 +198,7 @@
     ]
 [/#macro]
 
-[#macro aws_networkacl_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_networkacl_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 

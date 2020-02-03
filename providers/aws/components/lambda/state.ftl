@@ -1,6 +1,6 @@
 [#ftl]
 
-[#macro aws_lambda_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_lambda_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
 
     [#assign componentState =
@@ -21,7 +21,7 @@
     ]
 [/#macro]
 
-[#macro aws_function_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_function_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution ]
 

@@ -1,6 +1,6 @@
 [#ftl]
 
-[#macro aws_sqs_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_sqs_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
 
     [#if core.External!false]

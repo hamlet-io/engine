@@ -167,7 +167,7 @@
     [#return profile[key]!{} ]
 [/#function]
 
-[#function invokeComponentMacro occurrence resourceGroup type qualifiers=[] parent={} baseState={} includeShared=false ]
+[#function invokeComponentMacro occurrence resourceGroup type qualifiers=[] parent={} includeShared=false ]
     [#local placement = (occurrence.State.ResourceGroups[resourceGroup].Placement)!{} ]
     [#if placement?has_content]
         [#local macroOptions = [] ]
@@ -209,11 +209,10 @@
         [/#if]
         [#local macro = getFirstDefinedDirective(macroOptions)]
         [#if macro?has_content]
-            [#if parent?has_content || baseState?has_content]
+            [#if parent?has_content ]
                 [@(.vars[macro])
                     occurrence=occurrence
-                    parent=parent
-                    baseState=baseState /]
+                    parent=parent /]
             [#else]
                 [@(.vars[macro])
                     occurrence=occurrence /]
@@ -237,7 +236,6 @@
             resourceGroup,
             "setup",
             qualifiers,
-            {},
             {}
         )]
 [/#function]
@@ -249,7 +247,6 @@
             resourceGroup,
             "genplan",
             qualifiers,
-            {},
             {}
         )]
 [/#function]
@@ -261,21 +258,19 @@
             resourceGroup,
             "testcase",
             qualifiers,
-            {},
-            {},
+            {}
             true
         )]
 [/#function]
 
-[#function invokeStateMacro occurrence resourceGroup parent={} baseState={} ]
+[#function invokeStateMacro occurrence resourceGroup parent={} ]
     [#return
         invokeComponentMacro(
             occurrence,
             resourceGroup,
             "state",
             [],
-            parent,
-            baseState
+            parent
         )]
 [/#function]
 

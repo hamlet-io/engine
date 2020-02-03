@@ -1,12 +1,11 @@
 [#ftl]
 
-[#macro aws_es_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_es_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
 
     [#if core.External!false]
-        [#local esId = baseState.Attributes["ES_DOMAIN_ARN"]!"COTFatal: Could not find ARN" ]
+        [#local esId = occurrence.State.Attributes["ES_DOMAIN_ARN"]!"COTFatal: Could not find ARN" ]
         [#assign componentState =
-            baseState +
             valueIfContent(
                 {
                     "Resources" : {

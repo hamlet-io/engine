@@ -1,6 +1,6 @@
 [#ftl]
 
-[#macro aws_topic_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_topic_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
@@ -36,7 +36,7 @@
     ]
 [/#macro]
 
-[#macro aws_topicsubscription_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_topicsubscription_cf_state occurrence parent={} ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 

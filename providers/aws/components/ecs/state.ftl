@@ -21,7 +21,7 @@
                 source)]
 [/#function]
 
-[#macro aws_ecs_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_ecs_cf_state occurrence parent={} ]
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
 
@@ -145,7 +145,7 @@
     ]
 [/#macro]
 
-[#macro aws_service_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_service_cf_state occurrence parent={} ]
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
 
@@ -263,7 +263,7 @@
     ]
 [/#macro]
 
-[#macro aws_task_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_task_cf_state occurrence parent={} ]
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
 
