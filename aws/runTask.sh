@@ -122,31 +122,6 @@ info "Generating blueprint to find details..."
 ${GENERATION_DIR}/createBlueprint.sh >/dev/null || exit $?
 ENV_BLUEPRINT="${PRODUCT_STATE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}/blueprint.json"
 
-# allow for undefined instance and versions
-if [[ -n "${COMPONENT_INSTANCE}" ]]; then
-    COMPONENT_INSTANCE="\"${COMPONENT_INSTANCE}\""
-else
-    COMPONENT_INSTANCE="null"
-fi
-
-if [[ -n "${COMPONENT_VERSION}" ]]; then
-    COMPONENT_VERSION="\"${COMPONENT_VERSION}\""
-else
-    COMPONENT_VERSION="null"
-fi
-
-if [[ -n "${INSTANCE}" ]]; then
-    INSTANCE="\"${INSTANCE}\""
-else
-    INSTANCE="null"
-fi
-
-if [[ -n "${VERSION}" ]]; then
-    VERSION="\"${VERSION}\""
-else
-    VERSION="null"
-fi
-
 # Search through the blueprint to find the cluster and the task
 COMPONENT_BLUEPRINT="$(getJSONValue "${ENV_BLUEPRINT}" \
                                     " .Tenants[]        | objects | select(.Name==\"${TENANT}\") \
@@ -156,14 +131,18 @@ COMPONENT_BLUEPRINT="$(getJSONValue "${ENV_BLUEPRINT}" \
                                     | .Tiers[]          | objects | select(.Name==\"${TIER}\") \
                                     | .Components[]     | objects | select(.Name==\"${COMPONENT}\") \
                                     | .Occurrences[]    | objects | \
-                                            select(.Core.Component.RawName==\"${COMPONENT}\" \
-                                                and .Core.Component.Instance.Name==${COMPONENT_INSTANCE} \
-                                                and .Core.Component.Version.Name==${COMPONENT_VERSION} \
+                                            select(
+                                                .Core.Type=="ecs" \
+                                                and .Core.Component.RawName==\"${COMPONENT}\" \
+                                                and .Core.Instance.Name==\"${COMPONENT_INSTANCE}\" \
+                                                and .Core.Version.Name==\"${COMPONENT_VERSION}\"} \
                                             ) \
                                     | .Occurrences[] | objects | \
-                                            select(.Core.Component.RawName==\"${TASK}\" \
-                                                and .Core.Component.Instance.Name==${INSTANCE} \
-                                                and .Core.Component.Version.Name==${VERSION} \
+                                            select(
+                                                .Core.Type=="task" \
+                                                and .Core.Component.RawName==\"${TASK}\" \
+                                                and .Core.Instance.Name==\"${INSTANCE}\" \
+                                                and .Core.Version.Name==\"${VERSION}\" \
                                             )")"
 
 CLUSTER_ARN="$( echo "${COMPONENT_BLUEPRINT}" | jq -r '.State.Attributes.ECSHOST' )"
