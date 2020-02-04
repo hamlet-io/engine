@@ -34,6 +34,12 @@
         value?has_content?then(value,content)) ]
 [/#function]
 
+[#function numberAttributeIfContent attribute content]
+    [#return attributeIfContent(
+        attribute,
+        content?has_content?then(content?number, content))]
+[/#function]
+
 [#------------------------
 -- Powers of 2 handling --
 --------------------------]
