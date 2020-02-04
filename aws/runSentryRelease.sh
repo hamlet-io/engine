@@ -53,7 +53,7 @@ EOF
 function options() {
 
     # Parse options
-    while getopts ":d:hm:p:r:s" opt; do
+    while getopts ":hm:p:r:su:" opt; do
         case $opt in
             h)
                 usage
