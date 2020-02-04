@@ -10,7 +10,7 @@
         [#local component =
             {
                 "Id" : id,
-                "Name" : (value.Name)!"",
+                "Name" : (id)!"",
                 "Description" : (value.Description)!"",
                 "Title" : (value.Title)!""
             } + value ]
