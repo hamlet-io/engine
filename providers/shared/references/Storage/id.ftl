@@ -1,18 +1,18 @@
 [#ftl]
 
-[@addReference 
+[@addReference
     type=STORAGE_REFERENCE_TYPE
     pluralType="Storage"
     properties=[
             {
                 "Type"  : "Description",
-                "Value" : "A block volume storage configuration" 
+                "Value" : "A block volume storage configuration"
             }
         ]
     attributes=[
         {
             "Names" : "*",
-            "Children" : [ 
+            "Children" : [
                 {
                     "Names" : "Volumes",
                     "Subobjects" : true,
@@ -26,6 +26,15 @@
                             "Names" : "Size",
                             "Type" : NUMBER_TYPE,
                             "Mandatory" : true
+                        },
+                        {
+                            "Names":  "Type",
+                            "Type" : STRING_TYPE,
+                            "Default" : "gp2"
+                        },
+                        {
+                            "Names" : "Iops",
+                            "Type" : NUMBER_TYPE
                         }
                     ]
                 }
