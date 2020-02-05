@@ -442,13 +442,13 @@
                     {
                         "EBSEnabled" : true,
                         "VolumeSize" : volume.Size,
-                        "VolumeType" :
-                            volume.Type?has_content?then(
-                                volume.Type,
-                                "gp2"
-                            )
+                        "VolumeType" : volume.Type
                     } +
-                    attributeIfContent("Iops", volume.Iops!"")) +
+                    attributeIfTrue(
+                        "Iops",
+                        volume.Type == "io1",
+                        volume.Iops!"COTFatal: Iops not defined for provisioned iops storage")
+                ) +
                 attributeIfTrue(
                     "EncryptionAtRestOptions",
                     solution.Encrypted,
