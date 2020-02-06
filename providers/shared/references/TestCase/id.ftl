@@ -13,7 +13,7 @@
         {
             "Names" : "OutputSuffix",
             "Type" : STRING_TYPE,
-            "Values" : [ "template" ]
+            "Values" : [ "template.json", "config.json", "cli.json" ]
         },
         {
             "Names" : "Structural",

@@ -24,7 +24,8 @@
                 },
                 "Output" : {
                     "Type" : outputType!"",
-                    "Format" : outputFormat!""
+                    "Format" : outputFormat!"",
+                    "Prefix" : outputPrefix!""
                 },
                 "Unit" : {
                     "Name" : deploymentUnit!"",

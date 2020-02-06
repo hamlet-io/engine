@@ -52,7 +52,7 @@
             },
             "TestCases" : {
                 "httpslb" : {
-                    "OutputSuffix" : "template",
+                    "OutputSuffix" : "template.json",
                     "Structural" : {
                         "CFN" : {
                             "Resource" : {

@@ -496,7 +496,10 @@ function process_template_pass() {
   if [[ ! -f "${cf_dir}/${output_filename}" ]]; then
     # Include account prefix
     local output_filename="${output_prefix_with_account}${pass_alternative_prefix}${output_suffix}"
+    local output_prefix="${output_prefix_with_account}"
   fi
+  args+=("-v" "outputPrefix=${output_prefix}")
+
   local template_result_file="${tmp_dir}/${output_filename}"
   local output_file="${cf_dir}/${output_filename}"
   local result_file="${results_dir}/${output_filename}"

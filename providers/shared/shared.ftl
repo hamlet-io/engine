@@ -37,7 +37,13 @@
                 tests,
                 {
                     testCaseName  : {
-                        "filename" : testCase.OutputSuffix,
+                        "filename" : concatenate(
+                                        [
+                                            commandLineOptions.Deployment.Output.Prefix,
+                                            testCase.OutputSuffix
+                                        ],
+                                        ""
+                                    ),
                         "cfn_lint" : testCase.Tools.CFNLint,
                         "cfn_nag"  : testCase.Tools.CFNNag
                     }
@@ -68,12 +74,10 @@
                         testCaseName : {
                             "json_structure"  : {
                                 "length" : [
-                                    [
                                         {
                                             "path" : legnthTest.Path,
                                             "value" : legnthTest.Count
                                         }
-                                    ]
                                 ]
                             }
                         }
