@@ -493,6 +493,39 @@ behaviour.
     [/#if]
 [/#function]
 
+
+[#-- Primary is used on component attributes --]
+[#assign DOMAIN_ROLE_PRIMARY="primary" ]
+
+[#-- Secondaries allow a smooth transition from one domain to another --]
+[#assign DOMAIN_ROLE_SECONDARY="secondary" ]
+
+[#-- Names --]
+[#function formatHostDomainName host parts style=""]
+    [#local result =
+        formatDomainName(
+            formatName(host),
+            parts
+        )]
+    [#switch style]
+        [#case "hyphenated"]
+            [#return result?replace(".", "-")]
+            [#break]
+        [#default]
+            [#return result]
+    [/#switch]
+
+[/#function]
+
+[#-- Resources --]
+[#function isPrimaryDomain domainObject]
+    [#return domainObject.Role == DOMAIN_ROLE_PRIMARY ]
+[/#function]
+
+[#function isSecondaryDomain domainObject]
+    [#return domainObject.Role == DOMAIN_ROLE_SECONDARY ]
+[/#function]
+
 [#function getDomainObjects certificateObject qualifiers...]
     [#local result = [] ]
     [#local primaryNotSeen = true]

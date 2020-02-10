@@ -46,6 +46,22 @@
                 "Description" : "The path appended to files that will be used for config",
                 "Type" : STRING_TYPE,
                 "Default" : "config"
+            },
+            {
+                "Names" : "Port",
+                "Description" : "The port used to access the SPA content.",
+                "Children" : [
+                    {
+                        "Names" : "HTTP",
+                        "Type" : STRING_TYPE,
+                        "Default" : "http"
+                    },
+                    {
+                        "Names" : "HTTPS",
+                        "Type" : STRING_TYPE,
+                        "Default" : "https"
+                    }
+                ]
             }
         ]
 /]
