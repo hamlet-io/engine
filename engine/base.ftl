@@ -34,10 +34,11 @@
         value?has_content?then(value,content)) ]
 [/#function]
 
-[#function numberAttributeIfContent attribute content]
-    [#return attributeIfContent(
+[#function numberAttributeIfContent attribute content value={}]
+    [#return attributeIfTrue(
         attribute,
-        content?has_content?then(content?number, content))]
+        content?has_content,
+        value?has_content?then(value?number, content?number))]
 [/#function]
 
 [#------------------------
