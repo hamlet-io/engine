@@ -1,4 +1,3 @@
-
 [#ftl]
 
 [#-- Intial seeding of settings data based on input data --]
