@@ -271,6 +271,7 @@ function process_template_pass() {
   local deployment_framework="${1,,}"; shift
   local output_type="${1,,}"; shift
   local output_format="${1,,}"; shift
+  local output_suffix="${1,,}"; shift
   local level="${1,,}"; shift
   local deployment_unit="${1,,}"; shift
   local resource_group="${1,,}"; shift
@@ -309,7 +310,6 @@ function process_template_pass() {
   declare -A pass_account_prefix
   declare -A pass_region_prefix
   declare -A pass_description
-  declare -A pass_suffix
 
   # Defaults
   for p in "${pass_list[@]}"; do
@@ -322,18 +322,6 @@ function process_template_pass() {
     pass_description["${p}"]="${p}"
 
   done
-
-  pass_suffix=(
-    ["genplan"]="genplan.sh"
-    ["pregeneration"]="pregeneration.sh"
-    ["prologue"]="prologue.sh"
-    ["template"]="template.json"
-    ["epilogue"]="epilogue.sh"
-    ["cli"]="cli.json"
-    ["parameters"]="parameters.json"
-    ["config"]="config.json"
-    ["testcase"]="testcase.json"
-  )
 
   # Template pass specifics
   pass_deployment_unit_subset["template"]="${deployment_unit_subset}"
@@ -365,7 +353,7 @@ function process_template_pass() {
 
       pass_level_prefix["config"]="blueprint"
       pass_description["config"]="blueprint"
-      pass_suffix["config"]=".json"
+      output_suffix=".json"
       ;;
 
     buildblueprint)
@@ -379,7 +367,7 @@ function process_template_pass() {
 
       pass_level_prefix["config"]="build_blueprint-"
       pass_description["config"]="buildblueprint"
-      pass_suffix["config"]=".json"
+      output_suffix=".json"
       ;;
 
     account)
@@ -504,11 +492,14 @@ function process_template_pass() {
     pass_alternative_prefix="${pass_alternative}-"
   fi
 
-  local output_filename="${output_prefix}${pass_alternative_prefix}${pass_suffix[${pass}]}"
+  local output_filename="${output_prefix}${pass_alternative_prefix}${output_suffix}"
   if [[ ! -f "${cf_dir}/${output_filename}" ]]; then
     # Include account prefix
-    local output_filename="${output_prefix_with_account}${pass_alternative_prefix}${pass_suffix[${pass}]}"
+    local output_filename="${output_prefix_with_account}${pass_alternative_prefix}${output_suffix}"
+    local output_prefix="${output_prefix_with_account}"
   fi
+  args+=("-v" "outputPrefix=${output_prefix}")
+
   local template_result_file="${tmp_dir}/${output_filename}"
   local output_file="${cf_dir}/${output_filename}"
   local result_file="${results_dir}/${output_filename}"
@@ -750,6 +741,7 @@ function process_template() {
       "${GENERATION_FRAMEWORK}" \
       "script" \
       "bash" \
+      "genplan.sh" \
       "${level}" \
       "${deployment_unit}" \
       "${resource_group}" \
@@ -783,6 +775,7 @@ function process_template() {
       "${plan_deployment_frameworks[${step}]}" \
       "${plan_output_types[${step}]}" \
       "${plan_output_formats[${step}]}" \
+      "${plan_output_suffixes[${step}]}" \
       "${level}" \
       "${deployment_unit}" \
       "${resource_group}" \

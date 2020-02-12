@@ -345,20 +345,19 @@
 
 [#assign genPlanStepOutputMappings = {} ]
 
-[#macro addGenPlanStepOutputMapping provider subsets outputType outputFormat]
-    [#list subsets as subset ]
-        [#assign genPlanStepOutputMappings = mergeObjects(
-                    genPlanStepOutputMappings,
-                    {
-                        provider : {
-                            subset : {
-                                "OutputType" : outputType,
-                                "OutputFormat" : outputFormat
-                            }
+[#macro addGenPlanStepOutputMapping provider subset outputType outputFormat outputSuffix]
+    [#assign genPlanStepOutputMappings = mergeObjects(
+                genPlanStepOutputMappings,
+                {
+                    provider : {
+                        subset : {
+                            "OutputType" : outputType,
+                            "OutputFormat" : outputFormat,
+                            "OutputSuffix" : outputSuffix
                         }
                     }
-            )]
-    [/#list]
+                }
+        )]
 [/#macro]
 
 [#-- Output mappings object is extended dynamically by each resource type --]

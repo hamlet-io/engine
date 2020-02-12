@@ -3,109 +3,6 @@
 [#-- Core helper routines --]
 [#include "base.ftl" ]
 
-[#-- Command line options are used to control the engine so make sure we load them first --]
-[#include "inputdata/commandLineOptions.ftl" ]
-
-[#-- Input data control --]
-[@addCommandLineOption
-    option={
-        "Input" : {
-            "Source" : inputSource!"composite"
-        }
-    }
-/]
-
-[#-- Deployment Details --]
-[@addCommandLineOption
-    option={
-        "Deployment" : {
-            "Provider" : {
-                "Names" : asArray( providers?split(",") )![]
-            },
-            "Framework" : {
-                "Name" : deploymentFramework!"",
-                "Model" : deploymentFrameworkModel!"legacy"
-            },
-            "Output" : {
-                "Type" : outputType!"",
-                "Format" : outputFormat!""
-            },
-            "Unit" : {
-                "Name" : deploymentUnit!"",
-                "Subset" : deploymentUnitSubset!"",
-                "Alternative" : alternative!""
-            },
-            "ResourceGroup" : {
-                "Name" : resourceGroup!""
-            },
-            "Mode" : deploymentMode!""
-        }
-    }
-/]
-
-[#-- Logging Details --]
-[@addCommandLineOption
-    option={
-        "Logging" : {
-            "Level" : logLevel!""
-        }
-    }
-/]
-
-[#-- RunId details --]
-[@addCommandLineOption
-    option={
-        "Run" : {
-            "Id" : runId!""
-        }
-    }
-/]
-
-[#-- Reference metadata --]
-[@addCommandLineOption
-    option={
-        "References" : {
-            "Request" : requestReference!"",
-            "Configuration" : configurationReference!""
-        }
-    }
-/]
-
-[#-- Composite Inputs --]
-[@addCommandLineOption
-    option={
-        "Composites" : {
-            "Blueprint" : (blueprint!"")?has_content?then(
-                                blueprint?eval,
-                                {}
-            ),
-            "Settings" : (settings!"")?has_content?then(
-                                settings?eval,
-                                {}
-            ),
-            "Definitions" : (definitions!"")?has_content?then(
-                                definitions?eval,
-                                {}
-            ),
-            "StackOutputs" : (stackOutputs!"")?has_content?then(
-                                stackOutputs?eval,
-                                []
-            )
-        }
-    }
-/]
-
-[#-- Regions --]
-[@addCommandLineOption
-    option={
-        "Regions" : {
-            "Segment" : region!"",
-            "Account" : accountRegion!""
-        }
-    }
-/]
-
-
 [#if !deploymentFrameworkModel??]
     [#assign deploymentFrameworkModel = "legacy"]
 [/#if]
@@ -114,6 +11,7 @@
 [#include "logging.ftl" ]
 
 [#-- Input data handling --]
+[#include "inputdata/commandLineOptions.ftl" ]
 [#include "inputdata/masterdata.ftl" ]
 [#include "inputdata/blueprint.ftl" ]
 [#include "inputdata/reference.ftl" ]
@@ -143,6 +41,21 @@
     provider=SHARED_PROVIDER
     inputSource="shared"
 /]
+
+[#-- setup logging --]
+[#if commandLineOptions.Logging.Level?has_content]
+    [#if commandLineOptions.Logging.Level?is_number]
+        [#assign currentLogLevel = commandLineOptions.Logging.Level]
+    [/#if]
+    [#if commandLineOptions.Logging.Level?is_string]
+        [#list logLevelDescriptions as value]
+            [#if commandLineOptions.Logging.Level?lower_case?starts_with(value)]
+                [#assign currentLogLevel = value?index]
+                [#break]
+            [/#if]
+        [/#list]
+    [/#if]
+[/#if]
 
 [#if commandLineOptions.Input.Source?has_content]
     [@includeBaseInputSourceConfiguration
