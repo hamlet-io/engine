@@ -17,8 +17,7 @@ pipeline {
     stages {
         stage('Generate test cases') {
             steps {
-                sh '''#!/usr
-                /bin/env bash
+                sh '''#!/usr/bin/env bash
                 ${GENERATION_DIR}/createTemplate.sh -i mock -p aws -p awstest -o ~/cot_tests/ -l unitlist
                 UNIT_LIST="$(jq -r '.DeploymentUnits[]' < ~/cot_tests/unitlistconfig.json)"
 
