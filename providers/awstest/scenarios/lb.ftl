@@ -110,6 +110,10 @@
                                 "Resources.listenerRuleXelbXhttpslbXhttpX100.Properties.Priority"
                             ]
                         }
+                    },
+                    "Tools" : {
+                        "CFNLint" : true,
+                        "CFNNag" : true
                     }
                 }
             },
