@@ -21,7 +21,7 @@ pipeline {
                 ${GENERATION_DIR}/createTemplate.sh -i mock -p aws -p awstest -o ~/cot_tests/ -l unitlist
                 UNIT_LIST="$(jq -r '.DeploymentUnits[]' < ~/cot_tests/unitlistconfig.json)"
 
-                for $unit in $UNIT_LIST
+                for unit in "${UNIT_LIST}"
                 do
                     echo "Running template for $unit"
                     ${GENERATION_DIR}/createTemplate.sh -i mock -p aws -p awstest -o ~/cot_tests/ -l segment -u $unit
