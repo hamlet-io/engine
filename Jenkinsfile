@@ -15,7 +15,7 @@ pipeline {
     }
 
     stages {
-        stage('Run AWS Template Steps') {
+        stage('Run AWS Template Tests') {
             steps {
                 sh '''#!/usr/bin/env bash
                 ${WORKSPACE}/test/aws/run_aws_template_tests.sh
