@@ -30,13 +30,21 @@
 
     [#local tests = {} ]
     [#list testCaseNames as testCaseName ]
+        [#local testCaseFullName = concatenate(
+                                        [
+                                            (solution.DeploymentUnits),
+                                            (occurrence.Core.ShortTypedName),
+                                            testCaseName
+                                        ],
+                                        "_"
+                                    )?replace("-", "_")]
         [#if testCases[testCaseName]?? ]
             [#local testCase = testCases[testCaseName] ]
 
             [#local tests = mergeObjects(
                 tests,
                 {
-                    testCaseName  : {
+                    testCaseFullName  : {
                         "filename" : concatenate(
                                         [
                                             commandLineOptions.Deployment.Output.Prefix,
@@ -53,7 +61,7 @@
             [#list (testCase.Structural.JSON.Match)!{} as id,matchTest ]
                 [#local tests = combineEntities(tests,
                     {
-                        testCaseName : {
+                        testCaseFullName : {
                             "json_structure" : {
                                 "match" : [
                                     {
@@ -71,7 +79,7 @@
             [#list (testCase.Structural.JSON.Length)!{} as id,legnthTest ]
                 [#local tests = combineEntities(tests,
                     {
-                        testCaseName : {
+                        testCaseFullName : {
                             "json_structure"  : {
                                 "length" : [
                                         {
@@ -99,7 +107,7 @@
                 [#local tests = mergeObjects(
                     tests,
                     {
-                        testCaseName  : {
+                        testCaseFullName  : {
                             "json_structure" : {
                                 "exists" : existPaths
                             }
@@ -121,7 +129,7 @@
                 [#local tests = mergeObjects(
                     tests,
                     {
-                        testCaseName  : {
+                        testCaseFullName  : {
                             "json_structure" : {
                                 "not_empty" : notEmtpyPaths
                             }
@@ -133,7 +141,7 @@
             [#list (testCase.Structural.CFN.Resource)!{} as id,CFNResourceTest ]
                 [#local tests = combineEntities(tests,
                     {
-                        testCaseName : {
+                        testCaseFullName : {
                             "cfn_structure"  : {
                                 "resource" : [
                                     {
@@ -161,7 +169,7 @@
                 [#local tests = mergeObjects(
                     tests,
                     {
-                        testCaseName  : {
+                        testCaseFullName  : {
                             "cfn_structure" : {
                                 "output" : cfnOutputPaths
                             }

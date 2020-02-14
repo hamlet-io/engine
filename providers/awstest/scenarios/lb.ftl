@@ -111,12 +111,19 @@
                             ]
                         }
                     }
+                },
+                "validation" : {
+                    "OutputSuffix" : "template.json",
+                    "Tools" : {
+                        "CFNLint" : true,
+                        "CFNNag" : true
+                    }
                 }
             },
             "TestProfiles" : {
                 "Component" : {
                     "lb" : {
-                        "TestCases" : [ "httpslb" ]
+                        "TestCases" : [ "httpslb", "validation" ]
                     }
                 }
             }
