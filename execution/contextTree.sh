@@ -1850,7 +1850,7 @@ function cleanup_cmdb() {
   local dry_run="$1";shift
   local maximum_version="${1:-v1.1.1}";shift
 
-  local upgrade_order=("v1.0.0" "v1.1.0" "v1.1.1")
+  local upgrade_order=("v1.0.0" "v1.1.0" "v1.1.1" "v2.0.0")
 
   debug "Maximum CMDB cleanup version required is ${maximum_version}"
 
