@@ -25,6 +25,7 @@
             [#local registryPrefix = formatRelativePath(
                                                 getRegistryPrefix("dataset", occurrence),
                                                 productName,
+                                                getOccurrenceBuildScopeExtension(occurrence),
                                                 getOccurrenceBuildUnit(occurrence))]
             [#local datasetPrefix = formatRelativePath(solution.Prefix)]
 

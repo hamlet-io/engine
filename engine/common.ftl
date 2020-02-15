@@ -910,6 +910,7 @@ behaviour.
               formatRelativePath(
                 getRegistryPrefix(registry, occurrence),
                 product,
+                getOccurrenceBuildScopeExtension(occurrence),
                 getOccurrenceBuildUnit(occurrence),
                 getOccurrenceBuildReference(occurrence)) + " " +
                 "\"$\{tmpdir}\" || return $?",

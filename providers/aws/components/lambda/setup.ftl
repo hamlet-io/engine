@@ -76,7 +76,9 @@
             "S3Bucket" : getRegistryEndPoint("lambda", fn),
             "S3Key" :
                 formatRelativePath(
-                    getRegistryPrefix("lambda", fn) + productName,
+                    getRegistryPrefix("lambda", fn),
+                    productName,
+                    getOccurrenceBuildScopeExtension(fn),
                     getOccurrenceBuildUnit(fn),
                     getOccurrenceBuildReference(fn),
                     "lambda.zip"

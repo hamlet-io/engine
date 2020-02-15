@@ -25,6 +25,7 @@
     [#local codeSrcPrefix = formatRelativePath(
                                 getRegistryPrefix("scripts", occurrence),
                                     productName,
+                                    getOccurrenceBuildScopeExtension(occurrence),
                                     getOccurrenceBuildUnit(occurrence),
                                     getOccurrenceBuildReference(occurrence))]
 

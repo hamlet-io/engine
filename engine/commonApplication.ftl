@@ -676,7 +676,10 @@
                 "RegistryEndPoint" : getRegistryEndPoint("docker", task),
                 "Image" :
                     formatRelativePath(
-                        productName,
+                        formatName(
+                            productName,
+                            getOccurrenceBuildScopeExtension(task)
+                        ),
                         formatName(
                             getOccurrenceBuildUnit(task),
                             getOccurrenceBuildReference(task)
