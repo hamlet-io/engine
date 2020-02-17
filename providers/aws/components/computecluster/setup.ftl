@@ -101,6 +101,7 @@
             getRegistryEndPoint("scripts", occurrence),
             getRegistryPrefix("scripts", occurrence),
             productName,
+            getOccurrenceBuildScopeExtension(occurrence),
             getOccurrenceBuildUnit(occurrence),
             getOccurrenceBuildReference(occurrence)
             ) ]
@@ -163,7 +164,9 @@
                         s3ReadPermission(
                             formatRelativePath(
                                 getRegistryEndPoint("scripts", occurrence),
-                                getRegistryPrefix("scripts", occurrence) ) )+
+                                getRegistryPrefix("scripts", occurrence)
+                            )
+                        ) +
                         s3ListPermission(codeBucket) +
                         s3ReadPermission(codeBucket) +
                         s3ListPermission(operationsBucket) +

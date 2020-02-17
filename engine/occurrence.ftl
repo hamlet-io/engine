@@ -32,6 +32,17 @@
         ) ]
 [/#function]
 
+[#function getOccurrenceBuildScopeExtension occurrence ]
+    [#local extension = ""]
+    [#switch getOccurrenceSettingValue(occurrence, "BUILD_SCOPE", true)]
+        [#case "segment"]
+            [#local extension = segmentName]
+            [#break]
+    [/#switch]
+
+    [#return extension]
+[/#function]
+
 [#function getOccurrenceNetwork occurrence]
     [#return getTierNetwork(occurrence.Core.Tier.Id)]
 [/#function]
@@ -471,6 +482,7 @@
     [#local occurrenceBuildCommit = occurrenceBuild.COMMIT!{} ]
     [#local occurrenceBuildTag = occurrenceBuild.TAG!{} ]
     [#local occurrenceBuildFormats = occurrenceBuild.FORMATS!{} ]
+    [#local occurrenceBuildScope = occurrenceBuild.SCOPE!{} ]
 
     [#-- Reference could be a deployment unit or a component --]
     [#if occurrenceBuild.REFERENCE?has_content]
@@ -499,27 +511,19 @@
     [#return
         attributeIfContent(
             "BUILD_FORMATS",
-            valueIfContent(
-                occurrenceBuildFormats,
-                occurrenceBuildFormats,
-                occurrenceBuild.FORMATS!{}
-            )
+            contentIfContent(occurrenceBuildFormats, occurrenceBuild.FORMATS!{})
         ) +
         attributeIfContent(
             "BUILD_REFERENCE",
-            valueIfContent(
-                occurrenceBuildCommit,
-                occurrenceBuildCommit,
-                occurrenceBuild.COMMIT!{}
-            )
+            contentIfContent(occurrenceBuildCommit, occurrenceBuild.COMMIT!{})
+        ) +
+        attributeIfContent(
+            "BUILD_SCOPE",
+            contentIfContent(occurrenceBuildScope, occurrenceBuild.SCOPE!{})
         ) +
         attributeIfContent(
             "APP_REFERENCE",
-            valueIfContent(
-                occurrenceBuildTag,
-                occurrenceBuildTag,
-                occurrenceBuild.TAG!{}
-            )
+            contentIfContent(occurrenceBuildTag, occurrenceBuild.TAG!{})
         ) +
         attributeIfContent(
             "BUILD_UNIT",

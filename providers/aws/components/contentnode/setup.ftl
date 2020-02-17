@@ -50,7 +50,9 @@
                                     regionId + " " +
                                     getRegistryEndPoint("contentnode", occurrence) + " " +
                                     formatRelativePath(
-                                        getRegistryPrefix("contentnode", occurrence) + productName,
+                                        getRegistryPrefix("contentnode", occurrence),
+                                        productName,
+                                        getOccurrenceBuildScopeExtension(occurrence),
                                         getOccurrenceBuildUnit(occurrence),
                                         getOccurrenceBuildReference(occurrence)) + " " +
                                     "   \"$\{tmpdir}\" || return $?",
