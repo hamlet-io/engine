@@ -709,8 +709,8 @@ behaviour.
     [/#list]
     [#return
         valueIfTrue(
-            certificateObject.Host,
-            certificateObject.Host?has_content && (!(includes.Host)),
+            certificateObject.Host!"",
+            certificateObject.Host?has_content && (!(includes.Host!true)),
             formatName(parts)
         )
     ]
