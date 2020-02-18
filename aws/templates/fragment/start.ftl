@@ -1,3 +1,3 @@
 [#ftl]
-[@debug message="Fragment Id" context=fragmentId enabled=false /]
+[@debug message="Fragment Id" context=fragmentId enabled=true /]
 [#switch fragmentId]
