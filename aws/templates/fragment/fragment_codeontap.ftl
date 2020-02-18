@@ -6,7 +6,7 @@
     [#assign dockerStageDir = settings["DOCKER_STAGE_DIR"]!"/tmp/docker-build" ]
     [#assign dockerHostDaemon = settings["DOCKER_HOST_DAEMON"]!"/var/run/docker.sock"]
     [#assign jenkinsAgentImage = settings["DOCKER_AGENT_IMAGE"]!"gen3"]
-    [#assign awsAgentAutomationRole = settings["AWS_AUTOMATION_ROLE_NAME"]!"codeontap-automation" ]
+    [#assign awsAgentAutomationRole = settings["AWS_AUTOMATION_ROLE"]!"codeontap-automation" ]
 
     [@Attributes image=jenkinsAgentImage /]
 
@@ -17,6 +17,7 @@
 
     [@Settings {
         "AWS_AUTOMATION_USER" : "ROLE",
+        "AWS_AUTOMATION_ROLE" : awsAgentAutomationRole,
         "DOCKER_STAGE_DIR" : dockerStageDir
     }/]
 
