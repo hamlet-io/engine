@@ -647,8 +647,7 @@
 [#assign hostNameChildConfiguration = [
     {
         "Names" : "Host",
-        "Type" : STRING_TYPE,
-        "Default" : ""
+        "Type" : STRING_TYPE
     },
     {
         "Names" : "HostParts",
