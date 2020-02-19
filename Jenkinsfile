@@ -16,7 +16,6 @@ pipeline {
         stage('Run AWS Template Tests') {
             agent {
                 label 'codeontaplatest'
-                beforeAgent true
             }
             steps {
                 sh '''#!/usr/bin/env bash
