@@ -238,15 +238,17 @@ if [[ "${GENERATION_INPUT_SOURCE}" == "composite" ]]; then
         ("${ACCOUNT}" != "${BLUEPRINT_ACCOUNT}") ]] &&
             fatalCantProceed "Blueprint account of ${BLUEPRINT_ACCOUNT} doesn't match expected value of ${ACCOUNT}" && exit 1
 
-    [[ (-n "${PRODUCT}") &&
-        ("${BLUEPRINT_PRODUCT}" != "Product") &&
-        ("${PRODUCT}" != "${BLUEPRINT_PRODUCT}") ]] &&
+    if [[ -n "${PRODUCT}" ]]; then
+        [[ ("${BLUEPRINT_PRODUCT}" != "Product") && ("${PRODUCT}" != "${BLUEPRINT_PRODUCT}") ]] &&
             fatalCantProceed "Blueprint product of ${BLUEPRINT_PRODUCT} doesn't match expected value of ${PRODUCT}" && exit 1
 
-    [[ (-n "${SEGMENT}") &&
-        ("${BLUEPRINT_SEGMENT}" != "Segment") &&
-        ("${SEGMENT}" != "${BLUEPRINT_SEGMENT}") ]] &&
-            fatalCantProceed "Blueprint segment of ${BLUEPRINT_SEGMENT} doesn't match expected value of ${SEGMENT}" && exit 1
+        # Only check the segment if we have a product defined
+        # SEGMENT can be set as a result of automation defaulting
+        [[ (-n "${SEGMENT}") &&
+            ("${BLUEPRINT_SEGMENT}" != "Segment") &&
+            ("${SEGMENT}" != "${BLUEPRINT_SEGMENT}") ]] &&
+                fatalCantProceed "Blueprint segment of ${BLUEPRINT_SEGMENT} doesn't match expected value of ${SEGMENT}" && exit 1
+    fi
 
 fi
 
