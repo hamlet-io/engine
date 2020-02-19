@@ -353,7 +353,7 @@ function process_template_pass() {
 
       pass_level_prefix["config"]="blueprint"
       pass_description["config"]="blueprint"
-      output_suffix=".json"
+      [[ ${pass} == "config" ]] && output_suffix=".json"
       ;;
 
     buildblueprint)
@@ -367,7 +367,6 @@ function process_template_pass() {
 
       pass_level_prefix["config"]="build_blueprint-"
       pass_description["config"]="buildblueprint"
-      output_suffix=".json"
       ;;
 
     account)

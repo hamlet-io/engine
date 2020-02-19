@@ -9,6 +9,7 @@ BASE64_REGEX="^[A-Za-z0-9+/=\n]\+$"
 # Defaults
 CRYPTO_OPERATION_DEFAULT="decrypt"
 CRYPTO_FILENAME_DEFAULT="credentials.json"
+PREFIX_DEFAULT="base64"
 
 tmp_dir="$(getTempDir "cote_crypto_XXX")"
 
@@ -17,7 +18,13 @@ function usage() {
 
 Manage cryptographic operations using KMS
 
-Usage: $(basename $0) -e -d -n -f CRYPTO_FILE -p JSON_PATH -t CRYPTO_TEXT -a ALIAS -k KEYID -b -u -v -q
+Usage: $(basename $0) -e -d -n -b -u -v -q
+                        -f CRYPTO_FILE
+                        -p JSON_PATH
+                        -t CRYPTO_TEXT
+                        -a ALIAS
+                        -k KEYID
+                        -x PREFIX
 
 where
 
@@ -34,6 +41,7 @@ where
 (o) -t CRYPTO_TEXT  is the plaintext or ciphertext to be processed
     -u              update the attribute at JSON_PATH (if provided), or replace CRYPTO_FILE with operation result
     -v              result is base64 decoded (visible)
+(o) -x              prefix (without colon) to prepend with colon separator to cyphertext if encrypting
 
 (m) mandatory, (o) optional, (d) deprecated
 
@@ -41,6 +49,7 @@ DEFAULTS:
 
 OPERATION = ${CRYPTO_OPERATION_DEFAULT}
 FILENAME = ${CRYPTO_FILENAME_DEFAULT}
+PREFIX = ${PREFIX_DEFAULT}
 
 NOTES:
 
@@ -75,7 +84,7 @@ EOF
 
 function options() {
     # Parse options
-    while getopts ":a:bdef:hk:np:qt:uv" opt; do
+    while getopts ":a:bdef:hk:np:qt:uvx:" opt; do
         case $opt in
             a)
                 ALIAS="${OPTARG}"
@@ -116,6 +125,9 @@ function options() {
             v)
                 CRYPTO_VISIBLE="true"
                 ;;
+            x)
+                PREFIX="${OPTARG}"
+                ;;
             \?)
                 fatalOption
                 ;;
@@ -155,10 +167,12 @@ function main() {
         info "Finding Segment CMK..."
         ${GENERATION_DIR}/createBuildblueprint.sh -u baseline -o "${tmp_dir}/" >/dev/null || return $?
 
+        BUILD_BLUEPRINT="${tmp_dir}/build_blueprint-baseline-config.json"
+
         case "${LOCATION}" in
             "segment")
 
-                arrayFromList "KEY_IDS" "$(jq -r '.Occurrence.Occurrences[] | select( .Core.Type == "baselinekey" and .Configuration.Solution.Engine == "cmk" ) | .State.Attributes.ARN' < ${tmp_dir}/build_blueprint-baseline-.json)"
+                arrayFromList "KEY_IDS" "$(jq -r '.Occurrence.Occurrences[] | select( .Core.Type == "baselinekey" and .Configuration.Solution.Engine == "cmk" ) | .State.Attributes.ARN' < ${BUILD_BLUEPRINT})"
 
                 if [[ "$(arraySize "KEY_IDS" )" > 1 ]]; then
                     fatal "Multiple keys found - please run again using the -k parameter"
@@ -171,7 +185,7 @@ function main() {
 
             "account"|"root"|"integrator")
 
-                KEYID="$(jq -r '.Occurrence.Occurrences[] | select( .Core.Type == "baselinekey" and .Configuration.Solution.Engine == "cmk-account" ) | .State.Attributes.ARN' < ${tmp_dir}/build_blueprint-baseline-.json)"
+                KEYID="$(jq -r '.Occurrence.Occurrences[] | select( .Core.Type == "baselinekey" and .Configuration.Solution.Engine == "cmk-account" ) | .State.Attributes.ARN' < ${BUILD_BLUEPRINT})"
 
                 ;;
         esac
@@ -180,6 +194,8 @@ function main() {
             fatal "No key material available"
             return 255
         fi
+
+        debug "Key to be used is ${KEYID}"
     fi
 
     # Location base file search
@@ -203,6 +219,7 @@ function main() {
     for F in "${FILES[@]}"; do
         if [[ -f "${F}" ]]; then
             TARGET_FILE="${F}"
+            debug "Target file is ${TARGET_FILE}"
             break
         fi
     done
@@ -215,12 +232,15 @@ function main() {
             return 255
         fi
 
-        # Handle dash in attribute name
         PATH_PARTS=(${JSON_PATH//./ })
+
+        # Use jq [] syntax to handle dash in parts
         ESCAPED_JSON_PATH="."
         for PATH_PART in "${PATH_PARTS[@]}"; do
             ESCAPED_JSON_PATH="${ESCAPED_JSON_PATH}[\"${PATH_PART}\"]"
         done
+
+        debug "jq path in file is ${ESCAPED_JSON_PATH}"
 
         # Default cipherdata to that in the element
         JSON_TEXT=$(jq -r "${ESCAPED_JSON_PATH} | select (.!=null)" < "${TARGET_FILE}")
@@ -239,10 +259,10 @@ function main() {
         fi
     fi
 
-    # Strip any explicit indication of base64 encoding
-    if [[ $(grep "^base64:" <<< "${CRYPTO_TEXT}") ]]; then
-        CRYPTO_DECODE="true"
-        CRYPTO_TEXT="${CRYPTO_TEXT#base64:}"
+    # Strip any explicit prefix indication of encoding/encryption engine
+    if [[ $(grep "^${PREFIX}:" <<< "${CRYPTO_TEXT}") ]]; then
+        [[ "${PREFIX,,}" == "base64" ]] && CRYPTO_DECODE="true"
+        CRYPTO_TEXT="${CRYPTO_TEXT#${PREFIX}:}"
     fi
 
     ciphertext_src="${tmp_dir}/ciphertext.src"
@@ -297,9 +317,9 @@ function main() {
         if [[ "${CRYPTO_UPDATE}" == "true" ]]; then
             if [[ -n "${JSON_PATH}" ]]; then
                 if [[ "${CRYPTO_OPERATION}" == "encrypt" ]]; then
-                    CRYPTO_TEXT="base64:${CRYPTO_TEXT}"
+                    CRYPTO_TEXT="${PREFIX:+${PREFIX}:}${CRYPTO_TEXT}"
                 fi
-                jq --indent 4 "${JSON_PATH}=\"${CRYPTO_TEXT}\"" < "${TARGET_FILE}"  > "${tmp_dir}/${CRYPTO_FILENAME_DEFAULT}"
+                jq --indent 4 "${ESCAPED_JSON_PATH}=\"${CRYPTO_TEXT}\"" < "${TARGET_FILE}"  > "${tmp_dir}/${CRYPTO_FILENAME_DEFAULT}"
                 RESULT=$?
                 if [[ "${RESULT}" -eq 0 ]]; then
                     mv "${tmp_dir}/${CRYPTO_FILENAME_DEFAULT}" "${TARGET_FILE}"
