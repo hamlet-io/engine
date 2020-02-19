@@ -97,11 +97,18 @@
     [#local attributeList = valueIfContent(asArray(attributes), attributes, linkAttributes?keys) ]
     [#if linkAttributes?has_content]
         [#list attributeList as attribute]
-            [#local result =
-                addVariableToContext(
-                    result,
-                    name + valueIfTrue("_" + attribute, !rawName, ""),
-                    (linkAttributes[attribute?upper_case])!"") ]
+            [#local variableName = name + valueIfTrue("_" + attribute, !rawName, "") ]
+            [#if (linkAttributes[attribute?upper_case])??]
+                [#local result =
+                    addVariableToContext(
+                        result,
+                        variableName,
+                        linkAttributes[attribute?upper_case]) ]
+            [#else]
+                [#if !ignoreIfNotDefined]
+                   [#local result = addVariableToContext(result, variableName, "COTFatal: Attribute " + attribute?upper_case + " not found for link " + link) ]
+                [/#if]
+            [/#if]
         [/#list]
     [#else]
         [#if requireLinkAttributes ]
