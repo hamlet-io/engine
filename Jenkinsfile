@@ -16,6 +16,7 @@ pipeline {
         stage('Run AWS Template Tests') {
             agent {
                 label 'codeontaplatest'
+                beforeAgent true
             }
             steps {
                 sh '''#!/usr/bin/env bash
@@ -27,10 +28,9 @@ pipeline {
         stage('Trigger Docker Build') {
             when {
                 branch 'master'
+                beforeAgent true
             }
-
             agent none
-
             steps {
                 build (
                     job: '../docker-image-build/master'
