@@ -7,15 +7,14 @@ pipeline {
 
     agent none
 
-    environment {
-        GENERATION_DIR="${WORKSPACE}/aws"
-        GENERATION_BASE_DIR="${WORKSPACE}"
-    }
-
     stages {
         stage('Run AWS Template Tests') {
             agent {
                 label 'codeontaplatest'
+            }
+            environment {
+                GENERATION_DIR="${WORKSPACE}/aws"
+                GENERATION_BASE_DIR="${WORKSPACE}"
             }
             steps {
                 sh '''#!/usr/bin/env bash
