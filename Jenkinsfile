@@ -33,7 +33,7 @@ pipeline {
             agent none
             steps {
                 build (
-                    job: '../docker-image-build/master'
+                    job: '../docker-gen3/master'
                 )
             }
         }
