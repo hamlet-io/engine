@@ -8,10 +8,6 @@
             "Regions" : {
                 "Segment" : "ap-southeast-2",
                 "Account" : "ap-southeast-2"
-            },
-            "References" : {
-                "Request" : "SRVREQ01",
-                "Configuration" : "configRef_v123"
             }
         }
     /]

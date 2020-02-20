@@ -13,7 +13,7 @@
                 }
             },
             "Account": {
-                "Region": "ap-southeast-2",
+                "Region": "mock-region-1",
                 "Domain": "mock",
                 "Audit": {
                     "Offline": 90,
@@ -25,7 +25,7 @@
             },
             "Product": {
                 "Id": "mockedup",
-                "Region": "ap-southeast-2",
+                "Region": "mock-region-1",
                 "Domain": "mockedup",
                 "Profiles": {
                     "Placement": "default"
@@ -61,5 +61,3 @@
         }
     /]
 [/#macro]
-
-
