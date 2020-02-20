@@ -1,6 +1,6 @@
 [#ftl]
 
-[@addReference 
+[@addReference
     type=ALERTRULE_REFERENCE_TYPE
     pluralType="AlertRules"
     properties=[
@@ -14,7 +14,7 @@
             "Names" : "Severity",
             "Type" : STRING_TYPE,
             "Values" : [ "debug", "info", "warn", "error", "fatal"],
-            "Mandatory" : true     
+            "Mandatory" : true
         },
         {
             "Names" : "Destinations",
@@ -22,7 +22,7 @@
                 {
                     "Names" : "Links",
                     "SubObjects" : true,
-                    "Children" : linkChildConfiguration
+                    "Children" : linkChildrenConfiguration
                 }
             ]
         }

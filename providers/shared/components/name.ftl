@@ -12,20 +12,6 @@
     [#return name?split(".")]
 [/#function]
 
-[#function formatPath absolute parts...]
-    [#return
-        absolute?then("/","") +
-        concatenate(parts, "/")]
-[/#function]
-
-[#function formatAbsolutePath parts...]
-    [#return formatPath(true, parts)]
-[/#function]
-
-[#function formatRelativePath parts...]
-    [#return formatPath(false, parts)]
-[/#function]
-
 [#function formatNameExtension extensions...]
     [#return formatName(extensions)]
 [/#function]

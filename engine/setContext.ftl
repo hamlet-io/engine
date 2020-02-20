@@ -8,7 +8,6 @@
 
 [#-- Temporary AWS stuff --]
 [#if (commandLineOptions.Deployment.Provider.Names)?seq_contains("aws") ]
-    [@includeProviderConfiguration provider=AWS_PROVIDER /]
     [@includeProviderComponentDefinitionConfiguration provider="aws" component="baseline" /]
     [@includeProviderComponentConfiguration provider="aws" component="baseline" services="baseline" /]
     [@includeProviderComponentDefinitionConfiguration provider="aws" component="s3" /]
@@ -24,115 +23,89 @@
 [#assign segmentQualifiers = [] ]
 
 [#-- Testing --]
-[@includeSharedReferenceConfiguration referenceType=TESTCASE_REFERENCE_TYPE /]
 [@addReferenceData type=TESTCASE_REFERENCE_TYPE base=blueprintObject /]
 [#assign testCases = getReferenceData(TESTCASE_REFERENCE_TYPE) ]
 
-[@includeSharedReferenceConfiguration referenceType=TESTPROFILE_REFERENCE_TYPE /]
 [@addReferenceData type=TESTPROFILE_REFERENCE_TYPE base=blueprintObject /]
 [#assign testProfiles = getReferenceData(TESTPROFILE_REFERENCE_TYPE) ]
 
 [#-- Regions --]
-[@includeSharedReferenceConfiguration referenceType=REGION_REFERENCE_TYPE /]
 [@addReferenceData type=REGION_REFERENCE_TYPE base=blueprintObject /]
 [#assign regions = getReferenceData(REGION_REFERENCE_TYPE) ]
 
 [#-- Categories --]
-[@includeSharedReferenceConfiguration referenceType=CATEGORY_REFERENCE_TYPE /]
 [@addReferenceData type=CATEGORY_REFERENCE_TYPE base=blueprintObject /]
 [#assign categories = getReferenceData(CATEGORY_REFERENCE_TYPE) ]
 
 [#-- Environments --]
-[@includeSharedReferenceConfiguration referenceType=ENVIRONMENT_REFERENCE_TYPE /]
 [@addReferenceData type=ENVIRONMENT_REFERENCE_TYPE base=blueprintObject /]
 [#assign environments = getReferenceData(ENVIRONMENT_REFERENCE_TYPE) ]
 
 [#-- Storage Profiles --]
-[@includeSharedReferenceConfiguration referenceType=STORAGE_REFERENCE_TYPE /]
 [@addReferenceData type=STORAGE_REFERENCE_TYPE base=blueprintObject /]
 [#assign storage = getReferenceData(STORAGE_REFERENCE_TYPE) ]
 
 [#-- Processor Profiles --]
-[@includeSharedReferenceConfiguration referenceType=PROCESSOR_REFERENCE_TYPE /]
 [@addReferenceData type=PROCESSOR_REFERENCE_TYPE base=blueprintObject /]
 [#assign processors = getReferenceData(PROCESSOR_REFERENCE_TYPE) ]
 
 [#-- Ports --]
-[@includeSharedReferenceConfiguration referenceType=PORT_REFERENCE_TYPE /]
 [@addReferenceData type=PORT_REFERENCE_TYPE base=blueprintObject /]
 [#assign ports = getReferenceData(PORT_REFERENCE_TYPE) ]
 
 [#-- PortMappings --]
-[@includeSharedReferenceConfiguration referenceType=PORTMAPPING_REFERENCE_TYPE /]
 [@addReferenceData type=PORTMAPPING_REFERENCE_TYPE base=blueprintObject /]
 [#assign portMappings = getReferenceData(PORTMAPPING_REFERENCE_TYPE) ]
 
 [#-- Log Files --]
-[@includeSharedReferenceConfiguration referenceType=LOGFILE_REFERENCE_TYPE /]
 [@addReferenceData type=LOGFILE_REFERENCE_TYPE base=blueprintObject /]
 [#assign logFiles = getReferenceData(LOGFILE_REFERENCE_TYPE) ]
 
 [#-- Log File Groups --]
-[@includeSharedReferenceConfiguration referenceType=LOGFILEGROUP_REFERENCE_TYPE /]
 [@addReferenceData type=LOGFILEGROUP_REFERENCE_TYPE base=blueprintObject /]
 [#assign logFileGroups = getReferenceData(LOGFILEGROUP_REFERENCE_TYPE) ]
 
 [#-- Log File Profiles --]
-[@includeSharedReferenceConfiguration referenceType=LOGFILEPROFILE_REFERENCE_TYPE /]
 [@addReferenceData type=LOGFILEPROFILE_REFERENCE_TYPE base=blueprintObject /]
 [#assign logFileProfiles = getReferenceData(LOGFILEPROFILE_REFERENCE_TYPE) ]
 
 [#-- CORS Profiles --]
-[@includeSharedReferenceConfiguration referenceType=CORSPROFILE_REFERENCE_TYPE /]
 [@addReferenceData type=CORSPROFILE_REFERENCE_TYPE base=blueprintObject /]
 [#assign CORSProfiles = getReferenceData(CORSPROFILE_REFERENCE_TYPE) ]
 
 [#-- Script Stores --]
-[@includeSharedReferenceConfiguration referenceType=SCRIPTSTORE_REFERENCE_TYPE /]
 [@addReferenceData type=SCRIPTSTORE_REFERENCE_TYPE base=blueprintObject /]
 [#assign scriptStores = getReferenceData(SCRIPTSTORE_REFERENCE_TYPE) ]
 
 [#-- Bootstraps --]
-[@includeSharedReferenceConfiguration referenceType=BOOTSTRAP_REFERENCE_TYPE /]
 [@addReferenceData type=BOOTSTRAP_REFERENCE_TYPE base=blueprintObject /]
 [#assign bootstraps = getReferenceData(BOOTSTRAP_REFERENCE_TYPE, true) ]
 
 [#-- Bootstrap Profiles--]
-[@includeSharedReferenceConfiguration referenceType=BOOTSTRAPPROFILE_REFERENCE_TYPE /]
 [@addReferenceData type=BOOTSTRAPPROFILE_REFERENCE_TYPE base=blueprintObject /]
 [#assign bootstrapProfiles = getReferenceData(BOOTSTRAPPROFILE_REFERENCE_TYPE, true) ]
 
 [#-- Security Profiles --]
-[@includeSharedReferenceConfiguration referenceType=SECURITYPROFILE_REFERENCE_TYPE /]
 [@addReferenceData type=SECURITYPROFILE_REFERENCE_TYPE base=blueprintObject /]
 [#assign securityProfiles = getReferenceData(SECURITYPROFILE_REFERENCE_TYPE) ]
 
 [#-- Baseline Profiles --]
-[@includeSharedReferenceConfiguration referenceType=BASELINEPROFILE_REFERENCE_TYPE /]
 [@addReferenceData type=BASELINEPROFILE_REFERENCE_TYPE base=blueprintObject /]
 [#assign baselineProfiles = getReferenceData(BASELINEPROFILE_REFERENCE_TYPE) ]
 
 [#-- Log Filters --]
-[@includeSharedReferenceConfiguration referenceType=LOGFILTER_REFERENCE_TYPE /]
 [@addReferenceData type=LOGFILTER_REFERENCE_TYPE base=blueprintObject /]
 [#assign logFilters = getReferenceData(LOGFILTER_REFERENCE_TYPE) ]
 
 [#-- Network Endpoint Groups --]
-[@includeSharedReferenceConfiguration referenceType=NETWORKENDPOINTGROUP_REFERENCE_TYPE /]
 [@addReferenceData type=NETWORKENDPOINTGROUP_REFERENCE_TYPE base=blueprintObject /]
 [#assign networkEndpointGroups = getReferenceData(NETWORKENDPOINTGROUP_REFERENCE_TYPE) ]
 
 [#-- Virtual Machine Image Profiles --]
-[@includeSharedReferenceConfiguration referenceType=VIRTUAL_MACHINE_IMAGE_REFERENCE_TYPE /]
 [@addReferenceData type=VIRTUAL_MACHINE_IMAGE_REFERENCE_TYPE base=blueprintObject /]
 [#assign vmImageProfiles = getReferenceData(VIRTUAL_MACHINE_IMAGE_REFERENCE_TYPE) ]
 
 [#-- WAF --]
-[@includeSharedReferenceConfiguration referenceType=WAFPROFILE_REFERENCE_TYPE /]
-[@includeSharedReferenceConfiguration referenceType=WAFRULEGROUP_REFERENCE_TYPE /]
-[@includeSharedReferenceConfiguration referenceType=WAFRULE_REFERENCE_TYPE /]
-[@includeSharedReferenceConfiguration referenceType=WAFCONDITION_REFERENCE_TYPE /]
-[@includeSharedReferenceConfiguration referenceType=WAFVALUESET_REFERENCE_TYPE /]
 [@addReferenceData type=WAFPROFILE_REFERENCE_TYPE base=blueprintObject /]
 [@addReferenceData type=WAFRULEGROUP_REFERENCE_TYPE base=blueprintObject /]
 [@addReferenceData type=WAFRULE_REFERENCE_TYPE base=blueprintObject /]
@@ -537,13 +510,10 @@
 [/#function]
 
 [#-- Country Groups --]
-[@includeSharedReferenceConfiguration referenceType=COUNTRYGROUP_REFERENCE_TYPE /]
 [@addReferenceData type=COUNTRYGROUP_REFERENCE_TYPE base=blueprintObject /]
 [#assign countryGroups = getReferenceData(COUNTRYGROUP_REFERENCE_TYPE, true) ]
 
 [#-- IP Address Groups - "global" is default --]
-[@includeSharedReferenceConfiguration referenceType=IPADDRESSGROUP_REFERENCE_TYPE /]
-
 [#if blueprintObject.IPAddressGroups?has_content ]
     [@addReferenceData type=IPADDRESSGROUP_REFERENCE_TYPE
         data=getEffectiveIPAddressGroups(blueprintObject.IPAddressGroups)

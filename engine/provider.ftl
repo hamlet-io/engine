@@ -4,214 +4,150 @@
 
 [#assign SHARED_PROVIDER = "shared"]
 
-[#assign includeOnceConfiguration = {} ]
+[#assign providerDictionary = [] ]
+[#assign providerMarkers = [] ]
 
 [#-- Only load configuration once --]
 [#function isConfigurationIncluded configuration]
-    [#local index = concatenate(configuration, "_")?lower_case]
-    [#if includeOnceConfiguration[index]??]
+    [#if getDictionaryEntry(providerDictionary, configuration)?has_content]
         [#return true]
     [/#if]
-    [#assign includeOnceConfiguration += {index:{}}]
+    [#assign providerDictionary = addDictionaryEntry(providerDictionary, configuration, {"Present" : true}) ]
     [#return false]
 [/#function]
 
-[#macro includeProviderConfiguration provider ]
-    [#-- Check provider not already seen --]
-    [#if isConfigurationIncluded(provider)]
-        [#return]
-    [/#if]
+[#function findProviderMarkers ]
 
-    [#local templates = [] ]
+    [#-- Determine the providers available --]
+    [#local markers =
+        getPluginTree(
+            "/",
+            {
+                "Regex" : [r"provider\.ftl"],
+                "AddEndingWildcard" : false,
+                "MinDepth" : 2,
+                "MaxDepth" : 2
+            }
+        )
+    ]
 
-    [#-- aws/aws.ftl --]
-    [#list [provider] as level]
-        [#local templates += [[provider, level]] ]
-    [/#list]
+    [#-- Order providers --]
+    [#return markers?sort_by("Path") ]
 
-    [#-- aws/services/service.ftl --]
-    [#list ["service", "id", "name", "policy", "resource"] as level]
-        [#local templates += [[provider, "services", level]] ]
-    [/#list]
+[/#function]
 
-    [#-- aws/components/component.ftl --]
-    [#list ["component", "id", "name"] as level]
-        [#local templates += [[provider, "components", level]] ]
-    [/#list]
-
-    [#-- aws/references/reference.ftl --]
-    [#list ["reference" ] as level ]
-        [#local templates += [[provider, "references", level]] ]
-    [/#list]
-
-    [#-- aws/resourcegroups/resourcegroup.ftl --]
-    [#list ["resourcegroup", "id", "name"] as level]
-        [#local templates += [[provider, "resourcegroups", level]] ]
-    [/#list]
-
-    [#-- aws/deploymentframeworks/output.ftl --]
-    [#list ["output", "model"] as level]
-        [#local templates += [[provider, "deploymentframeworks", level]] ]
-    [/#list]
-
-    [@includeTemplates templates=templates /]
+[#macro initialiseProviders]
+    [#assign providerDictionary = initialiseDictionary() ]
+    [#assign providerMarkers = findProviderMarkers()  ]
 [/#macro]
 
-[#macro includeDeploymentFrameworkConfiguration provider deploymentFramework ]
+[#-- Determine what providers have been configured --]
+[#-- Include their input sources                   --]
+[#macro includeProviders providers... ]
 
-    [#-- Check deployment framework not already seen --]
-    [#if isConfigurationIncluded([provider, deploymentFramework])]
-        [#return]
-    [/#if]
+    [#-- Process each requested provider --]
+    [#list asFlattenedArray(providers) as provider]
 
-    [#local templates = [] ]
-
-    [#-- aws/deploymentframeworks/cf/output.ftl --]
-    [#list ["output", "model"] as level]
-        [#local templates += [[provider, "deploymentframeworks", deploymentFramework, level]] ]
-    [/#list]
-
-    [@includeTemplates templates=templates /]
-[/#macro]
-
-[#macro includeScenarioConfiguration provider scenarios ]
-    [#list scenarios as scenario ]
-        [#if isConfigurationIncluded([provider, "scenario", scenario]) ]
-            [#return]
+        [#-- Already loaded? --]
+        [#if isConfigurationIncluded([provider]) ]
+            [#continue]
         [/#if]
 
-        [#local templates = []]
-        [#list ["scenario"] as level ]
-            [#-- aws/scenarios/lb-https.ftl --]
-            [#local templates+= [[ provider, "scenarios", scenario]] ]
-        [/#list]
+        [#-- Find the provider marker --]
+        [#list providerMarkers as providerMarker ]
 
-        [@includeTemplates templates=templates /]
-
-        [#-- load in the scenarios --]
-        [#list [ "scenario" ] as level ]
-            [#local scenarioMacroOptions =
-                [
-                    [ provider, "scenario", scenario ]
-                ]]
-
-            [#local scenarioMacro = getFirstDefinedDirective(scenarioMacroOptions)]
-            [#if scenarioMacro?has_content ]
-                [@(.vars[scenarioMacro]) /]
-            [#else]
-                [@debug
-                    message="Unable to invoke any of the setting scenario macro options"
-                    context=scenarioMacroOptions
-                    enabled=false
-                /]
+            [#if providerMarker.Path?keep_after_last("/") != provider]
+                [#continue]
             [/#if]
+
+            [@internalIncludeProviderConfiguration providerMarker /]
+
+            [#-- Determine the input sources for the provider --]
+            [#local inputSources =
+                internalGetPluginFiles(
+                    [providerMarker.Path, "inputsources"],
+                    [
+                        ["[^/]+"]
+                    ]
+                )
+            ]
+
+            [#list inputSources as inputSource]
+                [@internalIncludeTemplatesInDirectory inputSource /]
+            [/#list]
         [/#list]
-
     [/#list]
 [/#macro]
 
-[#macro includeTestCaseConfiguration provider testCase ]
-    [#if isConfigurationIncluded([provider, "testcase" testCase]) ]
-        [#return]
-    [/#if]
+[#macro includeCoreProviderConfiguration providers... ]
 
-    [#local templates = []]
-    [#list ["testcase"] as level ]
-        [#-- aws/testcases/lb-https.ftl --]
-        [#local templates+= [[ provider, "testcases", testCase]] ]
-    [/#list]
+    [#-- Process each requested provider --]
+    [#list asFlattenedArray(providers) as provider]
 
-    [@includeTemplates templates=templates /]
-
-    [#-- load in the testCases --]
-    [#list [ "testcase" ] as level ]
-        [#local testCaseMacroOptions =
-            [
-                [ provider, "testcase", testCase ]
-            ]]
-
-        [#local testCaseMacro = getFirstDefinedDirective(testCaseMacroOptions)]
-        [#if testCaseMacro?has_content ]
-            [@(.vars[testCaseMacro]) /]
-        [#else]
-            [@debug
-                message="Unable to invoke any of the setting test case macro options"
-                context=testCaseMacroOptions
-                enabled=false
-            /]
+        [#-- Already loaded? --]
+        [#if isConfigurationIncluded([provider, "core"]) ]
+            [#continue]
         [/#if]
-    [/#list]
-[/#macro]
 
-[#macro includeBaseInputSourceConfiguration provider inputSource ]
-    [#-- Check inputsource configuration not already seen --]
-    [#if isConfigurationIncluded([provider, "baseinput", inputSource]) ]
-        [#return]
-    [/#if]
+        [#-- Process each provider --]
+        [#list providerMarkers as providerMarker ]
 
-    [#local templates = [] ]
-    [#-- aws/inputsources/default/setting.ftl --]
-    [#list [ "commandlineoption", "masterdata" ] as level ]
-        [#local templates += [
-            [ provider, "inputsources", inputSource, level ]
-        ]]
-    [/#list]
+            [#if providerMarker.Path?keep_after_last("/") != provider]
+                [#continue]
+            [/#if]
 
-    [@includeTemplates templates=templates /]
+            [#-- Determine the deployment frameworks for the provider --]
+            [#local directories =
+                internalGetPluginFiles(
+                    [providerMarker.Path, "deploymentframeworks"],
+                    [
+                        ["[^/]+"]
+                    ]
+                )
+            ]
+            [#local deploymentFrameworks = [] ]
+            [#list directories as directory]
+                [#if directory.IsDirectory!false ]
+                    [#local deploymentFrameworks += [directory.Filename] ]
+                    [@internalIncludeTemplatesInDirectory
+                        directory,
+                        ["output", "model"]
+                    /]
+                [/#if]
+            [/#list]
 
-    [#-- seed in data provided at the inputsources level for provider and inputSource --]
-    [#list [ "commandlineoption", "masterdata" ] as level ]
-        [#local seedMacroOptions =
-            [
-                [ provider, "input", inputSource, level, "seed" ]
-            ]]
+            [#-- Determine the reference data for the provider --]
+            [#local directories =
+                internalGetPluginFiles(
+                    [providerMarker.Path, "references"],
+                    [
+                        ["[^/]+"]
+                    ]
+                )
+            ]
+            [#list directories as directory]
+                [@internalIncludeTemplatesInDirectory
+                    directory,
+                    ["id", "name", "reference"]
+                /]
+            [/#list]
 
-        [#local seedMacro = getFirstDefinedDirective(seedMacroOptions)]
-        [#if seedMacro?has_content ]
-            [@(.vars[seedMacro]) /]
-        [#else]
-            [@debug
-                message="Unable to invoke any of the setting seed macro options"
-                context=seedMacroOptions
-                enabled=false
-            /]
-        [/#if]
-    [/#list]
-[/#macro]
+            [#-- Determine the global resource groups for the provider --]
+            [#local directories =
+                internalGetPluginFiles(
+                    [providerMarker.Path, "resourcegroups"],
+                    [
+                        ["[^/]+"]
+                    ]
+                )
+            ]
+            [#list directories as directory]
+                    [@internalIncludeProviderResourceGroupConfiguration directory.File deploymentFrameworks /]
+            [/#list]
 
-[#macro includeInputSourceConfiguration provider inputSource ]
-    [#-- Check inputsource configuration not already seen --]
-    [#if isConfigurationIncluded([provider, "input", inputSource]) ]
-        [#return]
-    [/#if]
-
-    [#local templates = [] ]
-    [#-- aws/inputsources/shared/setting.ftl --]
-    [#list [ "blueprint", "stackoutput", "setting", "definition" ] as level ]
-        [#local templates += [
-            [ provider, "inputsources", inputSource, level ]
-        ]]
-    [/#list]
-
-    [@includeTemplates templates=templates /]
-
-    [#-- seed in data provided at the inputsources level for provider and inputSource --]
-    [#list [ "blueprint", "stackoutput", "setting", "definition"  ] as level ]
-        [#local seedMacroOptions =
-            [
-                [ provider, "input", inputSource, level, "seed" ]
-            ]]
-
-        [#local seedMacro = getFirstDefinedDirective(seedMacroOptions)]
-        [#if seedMacro?has_content ]
-            [@(.vars[seedMacro]) /]
-        [#else]
-            [@debug
-                message="Unable to invoke any of the input seed macro options"
-                context=seedMacroOptions
-                enabled=false
-            /]
-        [/#if]
+            [#-- Determine the scenarios for the provider --]
+            [@internalIncludeTemplatesInDirectory [providerMarker.Path, "scenarios"] /]
+        [/#list]
     [/#list]
 [/#macro]
 
@@ -326,6 +262,19 @@
         [#local templates += [[provider, "components", component, resourceGroup, deploymentFramework, level]] ]
     [/#list]
 
+    [@includeTemplates templates=templates /]
+
+[/#macro]
+
+[#macro includeProviderResourceGroupConfiguration provider resourceGroup deploymentFramework]
+
+    [#-- Check resource group not already seen --]
+    [#if isConfigurationIncluded([provider, resourceGroup, deploymentFramework])]
+        [#return]
+    [/#if]
+
+    [#local templates = [] ]
+
     [#-- Shared resourcegroup configuration --]
     [#if resourceGroup != DEFAULT_RESOURCE_GROUP ]
         [#list ["id", "name", "setup", "state", deploymentFramework] as level]
@@ -408,21 +357,153 @@
     [/#list]
 [/#macro]
 
-[#macro includeProviderReferenceDefinitionConfiguration provider referenceType ]
+[#------------------------------------------------------
+-- Internal support functions for provider processing --
+--------------------------------------------------------]
 
-    [#local templates = [] ]
+[#-- Base function for listing directories or files in the plugin file system --]
+[#function internalGetPluginFiles path alternatives options={} ]
 
-    [#-- Check component not already seen --]
-    [#if !isConfigurationIncluded([provider, "r", referenceType, "id"])]
-        [#list ["id", "name", "reference"] as level]
-            [#-- aws/references/logFile/id.ftl --]
-            [#local templates += [[provider, "references", referenceType, level]] ]
-        [/#list]
+    [#-- Ignore empty paths --]
+    [#if !path?has_content]
+        [#return [] ]
     [/#if]
 
-    [@includeTemplates templates=templates /]
+    [#-- Construct alternate paths and anchor to the end of the string --]
+    [#local regex = [] ]
+    [#list alternatives as alternative]
+        [#local alternativePath = formatRelativePath(alternative) ]
+        [#if alternativePath?has_content]
+            [#local regex += [ alternativePath  ] ]
+        [/#if]
+    [/#list]
+
+    [#-- Find matches --]
+    [#return
+        getPluginTree(
+            formatAbsolutePath(path),
+            {
+                "AddStartingWildcard" : false,
+                "AddEndingWildcard" : false,
+                "MinDepth" : 1,
+                "MaxDepth" : 1
+
+            } +
+            options +
+            attributeIfContent("Regex", regex)
+        )
+    ]
+
+[/#function]
+
+[#-- Include any templates in a list of files                    --]
+[#-- Optionally restrict the templates loaded and the load order --]
+[#macro internalIncludePluginTemplates files targets=[] ]
+    [#if targets?has_content]
+        [#list targets as target]
+            [#list files as file]
+                [#if file.IsTemplate!false]
+                    [#if target?lower_case == file.Filename?lower_case?keep_before_last(".")]
+                        [#include file.File]
+                        [#break]
+                    [/#if]
+                [/#if]
+            [/#list]
+        [/#list]
+    [#else]
+        [#list files as file]
+            [#if file.IsTemplate!false]
+                [#include file.File]
+            [/#if]
+        [/#list]
+    [/#if]
 [/#macro]
 
-[#macro includeSharedReferenceConfiguration referenceType ]
-    [@includeProviderReferenceDefinitionConfiguration SHARED_PROVIDER referenceType /]
+[#-- Include the provided files (if found) in the provider order --]
+[#-- Directory may either be a string or a file object from getPluginTree --]
+[#macro internalIncludeTemplatesInDirectory directory targets=[] ]
+
+    [#local startingDirectory = directory]
+
+    [#-- Check it is a directory --]
+    [#if directory?is_hash]
+        [#if directory.IsDirectory!false]
+            [#local startingDirectory = directory.File ]
+        [#else]
+            [#-- Not a directory so ignore the file --]
+            [#return]
+        [/#if]
+    [/#if]
+
+    [#-- See what is there --]
+    [#local files =
+        internalGetPluginFiles(
+            startingDirectory,
+            [
+                [r"[^/]+.ftl"]
+            ]
+        )
+    ]
+
+    [@internalIncludePluginTemplates files targets /]
+[/#macro]
+
+
+[#macro internalIncludeProviderConfiguration providerMarker ]
+
+    [#-- aws/provider*.ftl --]
+    [#include providerMarker.File /]
+
+    [#-- aws/services/service.ftl --]
+    [@internalIncludeTemplatesInDirectory
+        [providerMarker.Path, "services"],
+        ["service", "id", "name", "policy", "resource"]
+    /]
+
+    [#-- aws/components/component.ftl --]
+    [@internalIncludeTemplatesInDirectory
+        [providerMarker.Path, "components"],
+        ["component", "id", "name"]
+    /]
+
+    [#-- aws/references/reference.ftl --]
+    [@internalIncludeTemplatesInDirectory
+        [providerMarker.Path, "references"],
+        ["reference" ]
+    /]
+
+    [#-- aws/resourcegroups/resourcegroup.ftl --]
+    [@internalIncludeTemplatesInDirectory
+        [providerMarker.Path, "resourcegroups"],
+        ["resourcegroup", "id", "name"]
+    /]
+
+    [#-- aws/deploymentframeworks/output.ftl --]
+    [@internalIncludeTemplatesInDirectory
+        [providerMarker.Path, "deploymentframeworks"],
+        ["output", "model"]
+    /]
+
+    [#-- aws/scenarios/scenario.ftl --]
+    [@internalIncludeTemplatesInDirectory
+        [providerMarker.Path, "scenarios"],
+        ["scenario"]
+    /]
+
+[/#macro]
+
+[#macro internalIncludeProviderResourceGroupConfiguration resourceGroupDirectory deploymentFrameworks=[] ]
+
+    [@internalIncludeTemplatesInDirectory
+        resourceGroupDirectory,
+        ["id", "name", "setup", "state"] + deploymentFrameworks
+    /]
+
+    [#-- Per deployment framework config --]
+    [#list deploymentFrameworks as deploymentFramework]
+        [@internalIncludeTemplatesInDirectory
+            [resourceGroupDirectory, deploymentFramework],
+            ["id", "name", "setup", "state"]
+        /]
+    [/#list]
 [/#macro]
