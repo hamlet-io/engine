@@ -1,6 +1,6 @@
 [#ftl]
 [#macro aws_ecs_cf_genplan_solution occurrence ]
-    [@addDefaultGenerationPlan subsets="template" /]
+    [@addDefaultGenerationPlan subsets=[ "prologue", "template", "cli", "epilogue" ] /]
 [/#macro]
 
 [#macro aws_ecs_cf_setup_solution occurrence ]
@@ -21,8 +21,22 @@
     [#local ecsLogGroupName = resources["lg"].Name ]
     [#local ecsInstanceLogGroupId = resources["lgInstanceLog"].Id]
     [#local ecsInstanceLogGroupName = resources["lgInstanceLog"].Name]
+    [#local ecsOnDemandCapacityProviderId = resources["ecsCapacityProviderOnDemand"].Id]
+
+    [#local cliAutoScaleGroupId = formatId(ecsAutoScaleGroupId, "cli" ) ]
+    [#local cliECSClusterId = formatId(ecsId, "cli") ]
+
+    [#local commandUpdateAutoScaleGroup = "updateAutoScaleGroup" ]
+
     [#local defaultLogDriver = solution.LogDriver ]
     [#local fixedIP = solution.FixedIP ]
+    [#local computeProvider = solution.ComputeProvider]
+
+    [#local cliRequired = false ]
+
+    [#if computeProvider == "ec2OnDemand" ]
+        [#local cliRequired = true ]
+    [/#if]
 
     [#local hibernate = solution.Hibernate.Enabled && isOccurrenceDeployed(occurrence)]
 
@@ -173,6 +187,21 @@
         [@createLogGroup
             id=ecsInstanceLogGroupId
             name=ecsInstanceLogGroupName /]
+    [/#if]
+
+    [#if deploymentSubsetRequired("prologue", false)]
+        [@addToDefaultBashScriptOutput
+            content=[
+                " case $\{STACK_OPERATION} in",
+                "   create|update)",
+                "       create_iam_service_linked_role" +
+                "       \"" + region + "\" " +
+                "       \"ecs.amazonaws.com\" " +
+                "       || return $?",
+                "       ;;",
+                " esac"
+            ]
+        /]
     [/#if]
 
     [#local configSets +=
@@ -487,6 +516,84 @@
             keyPairId=sshKeyPairId
         /]
     [/#if]
+
+    [#if deploymentSubsetRequired("cli", false) && cliRequired ]
+
+        [#if computeProvider == "ec2OnDemand" ]
+
+            [#-- Enable instance scale in protection -- ]
+            [#-- aws autoscaling update-auto-scaling-group --auto-scaling-group-name my-asg --new-instances-protected-from-scale-in --]
+            [@addCliToDefaultJsonOutput
+                id=cliAutoScaleGroupId
+                command=commandUpdateAutoScaleGroup
+                content=
+                    {
+                        "NewInstancesProtectedFromScaleIn" : true
+                    }
+            /]
+
+        [/#if]
+    [/#if]
+
+
+    [#if deploymentSubsetRequired("epilogue", false) && cliRequired ]
+
+        [@addToDefaultBashScriptOutput
+            content=[
+                " case $\{STACK_OPERATION} in",
+                "   create|update)",
+                "       info \"Getting Basic ECS Cluster details..\"",
+                "       # Get cli config file",
+                "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?",
+                "       # Get ASG Name",
+                "       export asgName=\"$(get_cloudformation_stack_output" +
+                "       \"" + region + "\" " +
+                "       \"$\{STACK_NAME}\" " +
+                "       \"" + ecsAutoScaleGroupId + "\" " +
+                "       || return $?)\"",
+                "       export asgArn=\"$(get_ec2_autoscalegroup_arn" +
+                "       \"" + region + "\" " +
+                "       \"$\{asgName}\" " +
+                "       || return $? )\"",
+                "       export ecsClusterArn=\"$(get_cloudformation_stack_output" +
+                "       \"" + region + "\" " +
+                "       \"$\{STACK_NAME}\" " +
+                "       \"" + ecsId + "\" " +
+                "       \"arn\" " +
+                "       || return $?)\"",
+                "       ;;",
+                " esac"
+            ]
+        /]
+
+        [#if computeProvider == "ec2OnDemand" ]
+            [@addToDefaultBashScriptOutput
+                content=[
+                    " case $\{STACK_OPERATION} in",
+                    "   create|update)",
+                    "       info \"Setting up OnDemand Ec2 Scaling\"",
+                    "       update_ec2_autoscalegroup" +
+                    "       \"" + region + "\" " +
+                    "       \"$\{asgName}\" " +
+                    "       \"$\{tmpdir}/cli-" + cliAutoScaleGroupId + "-" + commandUpdateAutoScaleGroup + ".json\" " +
+                    "       || return $?",
+                    "       create_ecs_capacity_provider" +
+                    "       \"" + region + "\" " +
+                    "       \"$\{asgName}\" " +
+                    "       \"$\{asgArn}\" " +
+                    "       || return $?",
+                    "       update_ecs_cluster_capacity_providers" +
+                    "       \"" + region + "\" " +
+                    "       \"$\{ecsClusterArn}\" " +
+                    "       \"$\{asgName}\" " +
+                    "       || return $?",
+                    "       ;;",
+                    " esac"
+                ]
+            /]
+        [/#if]
+    [/#if]
+
 [/#macro]
 
 [#macro aws_ecs_cf_genplan_application occurrence ]

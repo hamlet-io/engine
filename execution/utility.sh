@@ -593,9 +593,9 @@ function split_cli_file() {
   local cli_file="$1"; shift
   local outdir="$1"; shift
 
-  for resource in $( jq -r 'keys[]' <"${cli_file}" ) ; do
-    for command in $( jq -r ".$resource | keys[]"<"${cli_file}" ); do
-        jq ".${resource}.${command}" >"${outdir}/cli-${resource}-${command}.json" <"${cli_file}"
+  for resource in $( jq -r 'keys[]' < "${cli_file}" ) ; do
+    for command in $( jq -r ".$resource | keys[]" < "${cli_file}" ); do
+        jq ".${resource}.${command}" > "${outdir}/cli-${resource}-${command}.json" <"${cli_file}"
     done
   done
 }
@@ -787,6 +787,17 @@ function manage_iam_userpassword() {
       ;;
   esac
   return 0
+}
+
+function create_iam_service_linked_role() {
+    local region="$1"; shift
+    local serviceName="$1"; shift
+
+    if [[ -z "$( aws --region "${region}" iam list-roles --path-prefix "/aws-service-role/${serviceName}/" --query "Roles[*].Arn" --output text )" ]]; then
+      aws --region "${region}" iam create-service-linked-role --aws-service-name "${serviceName}"
+    else
+      info "Service linked role ${serviceName} already exists"
+    fi
 }
 
 # -- CloudWatch Events --
@@ -1176,6 +1187,22 @@ function delete_dynamodb_items() {
   done
 }
 
+#-- Ec2 --
+function get_ec2_autoscalegroup_arn() {
+  local region="$1"; shift
+  local groupName="$1"; shift
+
+  aws --region "${region}" autoscaling describe-auto-scaling-groups --auto-scaling-group-names "${groupName}" --query "AutoScalingGroups[*].AutoScalingGroupARN" --output text || return $?
+}
+
+function update_ec2_autoscalegroup() {
+  local region="$1"; shift
+  local groupName="$1"; shift
+  local configfile="$1"; shift
+
+  aws --region "${region}" autoscaling update-auto-scaling-group --auto-scaling-group-name "${groupName}" --cli-input-json "file://${configfile}" || return $?
+}
+
 #-- ECS --
 function create_ecs_scheduled_task() {
   local region="$1"; shift
@@ -1196,6 +1223,34 @@ function create_ecs_scheduled_task() {
   create_cloudwatch_event "${region}" "${ruleName}" "${eventRoleId}" "${ruleConfigFile}" "${arnLookupConfigFile}"  || return $?
 
   return 0
+}
+
+function create_ecs_capacity_provider() {
+  local region="$1"; shift
+  local name="$1"; shift
+  local autoScalingGroupArn="$1"; shift
+
+  capacity_provider_arn="$(aws --region ${region} ecs describe-capacity-providers --capacity-providers "${name}"  --query "capacityProviders[*].capacityProviderArn" --output text || return $?)"
+
+  if [[ -z "${capacity_provider_arn}"  ]]; then
+    info "Creating capacity provider ${name}..."
+    aws --region "${region}" ecs create-capacity-provider --name "${name}" \
+    --auto-scaling-group-provider "autoScalingGroupArn=\"${autoScalingGroupArn}\",managedScaling={status=\"ENABLED\",targetCapacity=100,minimumScalingStepSize=1,maximumScalingStepSize=1},managedTerminationProtection=\"ENABLED\"" || return $?
+  else
+    info "Capacity provider ${name} already exists"
+    aws --region ${region} ecs describe-capacity-providers --capacity-providers "${name}" ||return $?
+  fi
+
+}
+
+function update_ecs_cluster_capacity_providers() {
+  local region="$1"; shift
+  local clusterArn="$1"; shift
+  local capacityProviderName="$1"; shift
+
+  aws --region "${region}" ecs put-cluster-capacity-providers --cluster "${clusterArn}" \
+          --capacity-providers "${capacityProviderName}" \
+          --default-capacity-provider-strategy "capacityProvider=\"${capacityProviderName}\",weight=1,base=0" || return $?
 }
 
 # -- ElasticSearch --

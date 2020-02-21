@@ -228,6 +228,12 @@
                 "Names" : "Role",
                 "Description" : "Server configuration role",
                 "Default" : ""
+            },
+            {
+                "Names" : "ComputeProvider",
+                "Description" : "The default compute provider for the cluster",
+                "Values" : [ "ec2", "ec2OnDemand" ],
+                "Default" : "ec2"
             }
         ]
 /]
