@@ -66,12 +66,14 @@
         [#if deploymentSubsetRequired("prologue", false)]
             [@addToDefaultBashScriptOutput
                 content=[
-                    "info \"ES Service Linked Role Setup\"",
-                    "if [[ -z \"$( aws --region \"" + regionId + "\" iam list-roles --path-prefix \"/aws-service-role/es.amazonaws.com/\" --query \"Roles[*].Arn\" --output text )\" ]]; then",
-                    "aws --region \"" + regionId + "\" iam create-service-linked-role --aws-service-name \"es.amazonaws.com\"",
-                    "else",
-                    "info \"Role Already exists\"",
-                    "fi"
+                    " case $\{STACK_OPERATION} in",
+                    "   create|update)",
+                    "       create_iam_service_linked_role" +
+                    "       \"" + region + "\" " +
+                    "       \"es.amazonaws.com\" " +
+                    "       || return $?",
+                    "       ;;",
+                    " esac"
                 ]
             /]
         [/#if]

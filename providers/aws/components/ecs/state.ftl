@@ -85,6 +85,17 @@
         [/#list]
     [/#if]
 
+    [#local computeProvider = {}]
+    [#if solution.ComputeProvider == "ec2OnDemand" ]
+        [#local computeProvider += {
+                "ecsCapacityProviderOnDemand" : {
+                    "Id" : formatResourceId(AWS_ECS_CAPACIITY_PROVIDER_RESOURCE_TYPE, core.Id, 'OnDemand'),
+                    "Type" : AWS_ECS_CAPACIITY_PROVIDER_RESOURCE_TYPE
+                }
+            }
+        ]
+    [/#if]
+
     [#-- TODO(mfl): Use formatDependentRoleId() for roles --]
     [#assign componentState =
         {
@@ -133,7 +144,8 @@
                 }
             } +
             attributeIfContent("logMetrics", logMetrics) +
-            autoScaling,
+            autoScaling +
+            computeProvider,
             "Attributes" : {
                 "ARN" : getExistingReference(clusterId, ARN_ATTRIBUTE_TYPE)
             },
