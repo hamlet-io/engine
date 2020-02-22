@@ -517,8 +517,12 @@
             "BUILD_REFERENCE",
             contentIfContent(occurrenceBuildCommit, occurrenceBuild.COMMIT!{})
         ) +
-        attributeIfContent(
+        attributeIfTrue(
             "BUILD_SCOPE",
+            occurrenceBuildScope?has_content || occurrenceBuild.SCOPE?has_content,
+            {
+                "Internal" : true
+            } +
             contentIfContent(occurrenceBuildScope, occurrenceBuild.SCOPE!{})
         ) +
         attributeIfContent(
