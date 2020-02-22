@@ -597,6 +597,11 @@
 
         [#list solution.Publishers as id,publisher ]
 
+            [#-- Skip any disabled publishers --]
+            [#if !publisher.Enabled ]
+                [#continue]
+            [/#if]
+
             [#local publisherLinks = getLinkTargets(occurrence, publisher.Links )]
 
             [#local publisherPath = getContentPath( occurrence, publisher.Path )]

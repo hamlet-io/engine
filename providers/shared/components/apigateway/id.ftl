@@ -159,6 +159,11 @@ object.
                 "Subobjects" : true,
                 "Children" : [
                     {
+                        "Names" : "Enabled",
+                        "Type" : BOOLEAN_TYPE,
+                        "Default" : true
+                    },
+                    {
                         "Names" : "Links",
                         "Subobjects" : true,
                         "Children" : linkChildrenConfiguration
