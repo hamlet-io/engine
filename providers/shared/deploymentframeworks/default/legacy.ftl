@@ -398,18 +398,31 @@
                     [#-- Determine the required attributes now the provider specific configuration is in place --]
                     [#local attributes = constructOccurrenceAttributes(occurrence) ]
 
-                    [#-- Apply deployment profile overrides --]
-                    [#local occurrenceContexts +=
-                        [
-                            (getDeploymentProfile(profiles.Deployment, commandLineOptions.Deployment.Mode)["*"])!{},
-                            (getDeploymentProfile(profiles.Deployment, commandLineOptions.Deployment.Mode)[type])!{}
-                        ]
-                    ]
-
+                    [#-- Apply deployment and policy profile overrides                  --]
+                    [#-- To allow deployment profiles to be overriden by the occurrence --]
+                    [#-- configuration, use reordered occurrence contexts now that the  --]
+                    [#-- deployment profiles are known                                  --]
+                    [#local deploymentProfile = getDeploymentProfile(profiles.Deployment, commandLineOptions.Deployment.Mode) ]
+                    [#local policyProfile = getPolicyProfile(commandLineOptions.Deployment.Mode) ]
                     [#local occurrence +=
                         {
                             "Configuration" : {
-                                "Solution" : getCompositeObject(attributes, occurrenceContexts)
+                                "Solution" :
+                                    getCompositeObject(
+                                        attributes,
+                                        parentContexts,
+                                        (deploymentProfile["*"])!{},
+                                        (deploymentProfile[type])!{},
+                                        valueIfTrue(
+                                            [component, typeObject],
+                                            tier?has_content,
+                                            typeObject
+                                        ),
+                                        instance,
+                                        version,
+                                        (policyProfile["*"])!{},
+                                        (policyProfile[type])!{}
+                                    )
                             }
                         }
                     ]
@@ -432,7 +445,8 @@
                         [#-- attribute or directly under the subcomponent object.    --]
                         [#-- To cater for the latter case, any default configuration --]
                         [#-- must be under a "Configuration" attribute to avoid the  --]
-                        [#-- configuration being treated as subcomponent instances.  --]
+                        [#-- configuration attributes being treated as subcomponent  --]
+                        [#-- instances.                                              --]
                         [#local subComponentInstances = {} ]
                         [#if ((typeObject[subComponent.Component])!{})?is_hash ]
                             [#local subComponentInstances =
@@ -447,10 +461,26 @@
 
                         [#list subComponentInstances as key,subComponentInstance ]
                             [#if subComponentInstance?is_hash ]
-                                [#if
-                                    (!((typeObject[subComponent.Component].Components)?has_content)) &&
-                                    (key == "Configuration") ]
-                                    [#continue]
+                                [#local subOccurrenceContexts = occurrenceContexts ]
+                                [#if (typeObject[subComponent.Component].Components)?has_content ]
+                                    [#-- Configuration attributes at same level as Components attribute --]
+                                    [#local subOccurrenceContexts +=
+                                        [
+                                            typeObject[subComponent.Component]
+                                        ]
+                                    ]
+                                [#else]
+                                    [#if key == "Configuration" ]
+                                        [#-- Skip the Configuration element --]
+                                        [#continue]
+                                    [#else]
+                                        [#-- Add in any shared configuration --]
+                                        [#local subOccurrenceContexts +=
+                                            [
+                                                typeObject[subComponent.Component].Configuration!{}
+                                            ]
+                                        ]
+                                    [/#if]
                                 [/#if]
                                 [#local
                                     subOccurrences +=
@@ -462,11 +492,7 @@
                                                 subComponentInstance,
                                             {},
                                             occurrence,
-                                            occurrenceContexts +
-                                                [
-                                                    typeObject[subComponent.Component],
-                                                    typeObject[subComponent.Component].Configuration!{}
-                                                ],
+                                            subOccurrenceContexts,
                                             subComponent.Type
                                         )
                                 ]

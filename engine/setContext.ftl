@@ -210,35 +210,6 @@
     [#return AWSAccountIds ]
 [/#function]
 
-[#-- Deployment Profiles --]
-[#--  Tenant DeploymentProfiles override standard DeploymentProfiles and Account DeploymentProfiles override this result --]
-[#assign deploymentProfiles = {} ]
-[#assign tieredDeploymentProfiles = mergeObjects( blueprintObject.DeploymentProfiles, (tenantObject.DeploymentProfiles)!{} ) ]
-[#assign tieredDeploymentProfiles = mergeObjects( tieredDeploymentProfiles, (accountObject.DeploymentProfiles)!{} )]
-
-[#list tieredDeploymentProfiles as name,deploymentProfile ]
-    [#if deploymentProfile?is_hash ]
-        [#list deploymentProfile.Modes as mode,modeProfile ]
-            [#if modeProfile?is_hash ]
-                [#list modeProfile as type,config ]
-                    [#assign deploymentProfiles =
-                        mergeObjects(
-                            deploymentProfiles,
-                            {
-                                name : {
-                                    "Modes" : {
-                                        mode : {
-                                            type?lower_case : config
-                                        }
-                                    }
-                                }
-                            })]
-                [/#list]
-            [/#if]
-        [/#list]
-    [/#if]
-[/#list]
-
 [#-- Products --]
 [#assign products = (blueprintObject.Products)!{} ]
 [#assign productObject = (blueprintObject.Product)!(products[product])!{} ]
@@ -263,6 +234,59 @@
     [#assign segmentQualifiers += [productName, productId] ]
 
 [/#if]
+
+[#function forceProfileComponentTypesToLowerCase profiles]
+    [#local result = {} ]
+    [#list profiles as name,profile ]
+        [#if profile?is_hash ]
+            [#list profile.Modes as mode,modeProfile ]
+                [#if modeProfile?is_hash ]
+                    [#list modeProfile as type,config ]
+                        [#local result =
+                            mergeObjects(
+                                result,
+                                {
+                                    name : {
+                                        "Modes" : {
+                                            mode : {
+                                                type?lower_case : config
+                                            }
+                                        }
+                                    }
+                                }
+                            )
+                        ]
+                    [/#list]
+                [/#if]
+            [/#list]
+        [/#if]
+    [/#list]
+    [#return result]
+[/#function]
+
+[#-- Deployment Profiles use the standard CMDB override mechanism --]
+[#-- Deployment profiles for tenant and account are provided for  --]
+[#-- backwards compatability                                      --]
+[#assign deploymentProfiles =
+    forceProfileComponentTypesToLowerCase(
+        mergeObjects(
+            blueprintObject.DeploymentProfiles!{},
+            tenantObject.DeploymentProfiles!{},
+            accountObject.DeploymentProfiles!{}
+        )
+    )
+]
+
+[#-- Policy Profiles reflect the desired enforcement hierarchy --]
+[#assign policyProfiles =
+    forceProfileComponentTypesToLowerCase(
+        mergeObjects(
+            productObject.PolicyProfiles!{},
+            accountObject.PolicyProfiles!{},
+            tenantObject.PolicyProfiles!{}
+        )
+    )
+]
 
 [#-- Segments --]
 [#assign segments = (blueprintObject.Segments)!{} ]
