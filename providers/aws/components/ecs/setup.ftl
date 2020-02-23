@@ -21,7 +21,6 @@
     [#local ecsLogGroupName = resources["lg"].Name ]
     [#local ecsInstanceLogGroupId = resources["lgInstanceLog"].Id]
     [#local ecsInstanceLogGroupName = resources["lgInstanceLog"].Name]
-    [#local ecsOnDemandCapacityProviderId = resources["ecsCapacityProviderOnDemand"].Id]
 
     [#local cliAutoScaleGroupId = formatId(ecsAutoScaleGroupId, "cli" ) ]
     [#local cliECSClusterId = formatId(ecsId, "cli") ]
@@ -36,6 +35,7 @@
 
     [#if computeProvider == "ec2OnDemand" ]
         [#local cliRequired = true ]
+        [#local ecsOnDemandCapacityProviderId = resources["ecsCapacityProviderOnDemand"].Id]
     [/#if]
 
     [#local hibernate = solution.Hibernate.Enabled && isOccurrenceDeployed(occurrence)]
@@ -565,7 +565,9 @@
                 " esac"
             ]
         /]
-
+        
+        [#-- asgName is used as a capacity provider name as the capacity providers can't be updated or deleted at the moment --]
+        [#-- change to ecsOnDemandCapacityProviderId when update/delete is supported--]
         [#if computeProvider == "ec2OnDemand" ]
             [@addToDefaultBashScriptOutput
                 content=[
