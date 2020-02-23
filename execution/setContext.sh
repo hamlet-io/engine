@@ -180,7 +180,8 @@ if [[ "${GENERATION_INPUT_SOURCE}" == "composite" ]]; then
             "${blueprint_alternate_dir}"/solution*.json \
             "${blueprint_alternate_dir}"/domains*.json \
             "${blueprint_alternate_dir}"/ipaddressgroups*.json \
-            "${blueprint_alternate_dir}"/countrygroups*.json
+            "${blueprint_alternate_dir}"/countrygroups*.json \
+            "${blueprint_alternate_dir}"/profiles*.json
         done
 
         [[ -n "${PRODUCT_DIR}" ]] && addToArrayHead "blueprint_array" \
