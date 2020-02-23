@@ -579,7 +579,7 @@
                     "       || return $?",
                     "       create_ecs_capacity_provider" +
                     "       \"" + region + "\" " +
-                    "       \"" + ecsOnDemandCapacityProviderId + "\" " +
+                    "       \"$\{asgName}\" " +
                     "       \"$\{asgArn}\" " +
                     "       || return $?",
                     "       update_ecs_cluster_capacity_providers" +
