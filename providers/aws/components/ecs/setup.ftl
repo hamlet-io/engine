@@ -21,7 +21,6 @@
     [#local ecsLogGroupName = resources["lg"].Name ]
     [#local ecsInstanceLogGroupId = resources["lgInstanceLog"].Id]
     [#local ecsInstanceLogGroupName = resources["lgInstanceLog"].Name]
-    [#local ecsOnDemandCapacityProviderId = resources["ecsCapacityProviderOnDemand"].Id]
 
     [#local cliAutoScaleGroupId = formatId(ecsAutoScaleGroupId, "cli" ) ]
     [#local cliECSClusterId = formatId(ecsId, "cli") ]
@@ -36,6 +35,7 @@
 
     [#if computeProvider == "ec2OnDemand" ]
         [#local cliRequired = true ]
+        [#local ecsOnDemandCapacityProviderId = resources["ecsCapacityProviderOnDemand"].Id]
     [/#if]
 
     [#local hibernate = solution.Hibernate.Enabled && isOccurrenceDeployed(occurrence)]
@@ -579,7 +579,7 @@
                     "       || return $?",
                     "       create_ecs_capacity_provider" +
                     "       \"" + region + "\" " +
-                    "       \"$\{asgName}\" " +
+                    "       \"" + ecsOnDemandCapacityProviderId + "\" " +
                     "       \"$\{asgArn}\" " +
                     "       || return $?",
                     "       update_ecs_cluster_capacity_providers" +
