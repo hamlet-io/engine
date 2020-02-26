@@ -169,11 +169,15 @@
 
     [#list occurrence.Occurrences![] as subOccurrence]
 
+        [@debug message="Suboccurrence" context=subOccurrence enabled=false /]
+
         [#local core = subOccurrence.Core ]
         [#local solution = subOccurrence.Configuration.Solution ]
         [#local resources = subOccurrence.State.Resources ]
 
-        [@debug message="Suboccurrence" context=subOccurrence enabled=false /]
+        [#if !(solution.Enabled!false)]
+            [#continue]
+        [/#if]
 
         [#if core.Type == NETWORK_ROUTE_TABLE_COMPONENT_TYPE]
 
