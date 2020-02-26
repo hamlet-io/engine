@@ -157,6 +157,10 @@
             [#local solution = subOccurrence.Configuration.Solution ]
             [#local resources = subOccurrence.State.Resources ]
 
+            [#if !(solution.Enabled!false)]
+                [#continue]
+            [/#if]
+
             [#-- Determine the IP whitelisting required --]
             [#local destinationIPAddressGroups = solution.IPAddressGroups ]
             [#local cidrs = getGroupCIDRs(destinationIPAddressGroups, true, subOccurrence)]
