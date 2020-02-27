@@ -338,6 +338,14 @@
     outputSuffix="config.json"
 /]
 
+[@addGenPlanStepOutputMapping
+    provider=SHARED_PROVIDER
+    subset="parameters"
+    outputType=JSON_DEFAULT_OUTPUT_TYPE
+    outputFormat=""
+    outputSuffix="parameters.json"
+/]
+
 [#------------------------------------------------------------
 -- internal support functions for default output processing --
 --------------------------------------------------------------]
