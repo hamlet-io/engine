@@ -158,7 +158,91 @@
     /]
 [/#macro]
 
-[#-- GENPLAN --]
+[#-- Contract --]
+[#assign CONTRACT_EXECUTION_MODE_SERIAL = "serial" ]
+[#assign CONTRACT_EXECUTION_MODE_PARALLEL = "parallel" ]
+
+[@initialiseJsonOutput name="stages" /]
+[@initialiseJsonOutput name="steps" /]
+
+[#macro default_output_contract level="" include=""]
+    [#-- Resources --]
+    [#if include?has_content]
+        [#include include?ensure_starts_with("/")]
+    [#else]
+        [@processComponents level /]
+    [/#if]
+
+    [#local outputStages = getOutputContent("stages")]
+    [#local outputSteps = getOutputContent("steps")]
+
+    [#local contractStages = []]
+
+    [#if getOutputContent("stages")?has_content || logMessages?has_content ]
+        [#list getOutputContent("stages") as stage ]
+            [#local stageSteps = []]
+            [#list outputSteps[stage.Id]![] as id,step ]
+                [#local stageSteps = combineEntities(
+                                        stageSteps,
+                                        {
+                                            "Id" : id
+                                        } + step,
+                                        APPEND_COMBINE_BEHAVIOUR
+                )]
+            [/#list]
+
+
+            [#local contractStages = combineEntities(
+                                        contractStages,
+                                        [
+                                            stage +
+                                            {
+                                                "Steps" : stageSteps
+                                            }
+                                        ]
+            )]
+        [/#list]
+            [@toJSON
+                {
+                    "Metadata" : {
+                        "Id" : getOutputContent("contract"),
+                        "Prepared" : .now?iso_utc,
+                        "RunId" : commandLineOptions.Run.Id,
+                        "RequestReference" : commandLineOptions.References.Request,
+                        "ConfigurationReference" : commandLineOptions.References.Configuration
+                    },
+                    "Stages" : contractStages
+                } +
+                attributeIfContent("COTMessages", logMessages)
+            /]
+    [/#if]
+    [@serialiseOutput name=JSON_DEFAULT_OUTPUT_TYPE /]
+[/#macro]
+
+[#macro contractStage id executionMode ]
+    [@mergeWithJsonOutput
+        name="stages"
+        content=[
+            {
+                "Id" : id,
+                "ExecutionMode" : executionMode
+            }
+        ]
+    /]
+[/#macro]
+
+[#macro contractStep id stageId taskType parameters ]
+    [@mergeWithJsonOutput
+        name="steps"
+        content={
+            stageId : {
+                id : getTask(taskType, parameters)
+            }
+        }
+    /]
+[/#macro]
+
+[#-- GenerationContract --]
 
 [#-- Genplans leverage the general script output but add JSON based sections --]
 [#-- to order steps and ensure steps aren't repeated.                        --]
@@ -167,85 +251,53 @@
 [#-- Genplan header - named to come after script header but before genplan content --]
 [#assign HEADER_GENPLAN_DEFAULT_OUTPUT_SECTION="100header"]
 
-[#macro addDefaultGenerationPlan subsets=[] alternatives=["primary"]  section="default" ]
+[#macro addDefaultGenerationPlan subsets=[] alternatives=["primary"] ]
 
-    [#-- First ensure we have captured the gen plan header --]
-    [#if !isOutputSection(SCRIPT_DEFAULT_OUTPUT_TYPE, HEADER_GENPLAN_DEFAULT_OUTPUT_SECTION)]
-        [@addOutputSection
-            name=SCRIPT_DEFAULT_OUTPUT_TYPE
-            section=HEADER_GENPLAN_DEFAULT_OUTPUT_SECTION
-            initialContent=
-                [
-                    "local plan_steps=()",
-                    "declare -A plan_subsets",
-                    "declare -A plan_alternatives",
-                    "declare -A plan_providers",
-                    "declare -A plan_deployment_frameworks",
-                    "declare -A plan_output_types",
-                    "declare -A plan_output_formats",
-                    "declare -A plan_output_suffixes",
-                    "#"
-                ]
+    [#-- create the contract stage for the pregeneration step --]
+    [#-- This will include an extra step for running the pregeneration task --]
+    [#if subsets?seq_contains("pregeneration") ]
+        [#local stageId = "pregeneration" ]
+        [@contractStage
+            id=stageId
+            executionMode=CONTRACT_EXECUTION_MODE_SERIAL
         /]
+
+        [@contractStep
+            id=formatId(stageId, "generation")
+            stageId=stageId
+            task="core_create_template"
+            parameters=
+                getGenerationContractStepParameters(
+                    "pregeneration",
+                    "pregeneration",
+                    (commandLineOptions.Deployment.Provider.Names)[0]
+                )
+        /]
+
+        [#local subsets = removeValueFromArray(subsets, "pregeneration")]
     [/#if]
 
-
-    [#local subsets = combineEntities( subsets, [ "testcase" ], UNIQUE_COMBINE_BEHAVIOUR) ]
-
-    [#list asArray(subsets) as subset]
-        [#-- Each subset gets its own section --]
-        [#local name = "" ]
-        [#switch subset]
-            [#case "genplan"]
-                [#local name = section + "-100" ]
-                [#break]
-            [#case "testcase"]
-                [#local name = section + "-200"]
-                [#break]
-            [#case "pregeneration"]
-                [#local name = section + "-300"]
-                [#break]
-            [#case "prologue"]
-                [#local name = section + "-400"]
-                [#break]
-            [#case "template"]
-                [#local name = section + "-500"]
-                [#break]
-            [#case "epilogue"]
-                [#local name = section + "-600"]
-                [#break]
-            [#case "cli"]
-                [#local name = section + "-700"]
-                [#break]
-            [#case "config"]
-                [#local name = section + "-800"]
-                [#break]
-            [#case "parameters"]
-                [#local name = section + "-900"]
-                [#break]
-        [/#switch]
-
-        [#-- Unknown subset --]
-        [#if !name?has_content]
-            [#continue]
-        [/#if]
-
-        [#-- Create section if not already defined --]
-        [#if !isOutputSection(SCRIPT_DEFAULT_OUTPUT_TYPE, name)]
-            [@addOutputSection
-                name=SCRIPT_DEFAULT_OUTPUT_TYPE
-                section=name
-                initialContent={}
-                converter="genplan_script_output_converter"
-            /]
-        [/#if]
-
-        [#-- Now add the steps --]
-        [@mergeWithJsonOutput
-            name=SCRIPT_DEFAULT_OUTPUT_TYPE
-            content=getGenerationPlanSteps(subset, alternatives)
-            section=name
+    [#-- create the contract stages --]
+    [#list alternatives as alternative ]
+        [#local stageId = formatId("generation", alternative) ]
+        [@contractStage
+            id=stageId
+            executionMode=CONTRACT_EXECUTION_MODE_PARALLEL
         /]
+
+        [#list subsets as subset ]
+            [@contractStep
+                id=formatId(stageId, subset)
+                stageId=stageId
+                task="core_create_template"
+                parameters=
+                    getGenerationContractStepParameters(
+                        subset,
+                        alternative,
+                        (commandLineOptions.Deployment.Provider.Names)[0]
+                    )
+            /]
+        [/#list]
     [/#list]
 [/#macro]
 

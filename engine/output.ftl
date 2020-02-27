@@ -434,6 +434,20 @@
     [#return steps]
 [/#function]
 
+[#function getGenerationContractStepParameters subset alternative provider ]
+    [#local outputMappings = getGenPlanStepOutputMapping(
+                                (commandLineOptions.Deployment.Provider.Names)[0],
+                                subset
+                            )]
+    [#return {
+        "subset" : subset,
+        "alternative"   : alternative,
+        "outputType"    : outputMappings["OutputType"],
+        "outputFormat"  : outputMappings["OutputFormat"],
+        "outputSuffix"  : outputMappings["OutputSuffix"]
+    }]
+[/#function]
+
 [#----------------------------------------------------
 -- Internal support functions for output generation --
 ------------------------------------------------------]

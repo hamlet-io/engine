@@ -738,9 +738,9 @@ function process_template() {
   process_template_pass \
       "${GENERATION_PROVIDERS}" \
       "${GENERATION_FRAMEWORK}" \
-      "script" \
-      "bash" \
-      "genplan.sh" \
+      "contract" \
+      "" \
+      "generation-contract.json" \
       "${level}" \
       "${deployment_unit}" \
       "${resource_group}" \
