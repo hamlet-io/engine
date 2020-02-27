@@ -16,6 +16,9 @@
 [#include "inputdata/definition.ftl" ]
 [#include "inputdata/seed.ftl" ]
 
+[#-- Task loading --]
+[#includ "task.ftl" ]
+
 [#-- Scenerio Loading --]
 [#include "scenario.ftl" ]
 [#include "testcase.ftl" ]
