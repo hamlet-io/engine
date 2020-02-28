@@ -688,6 +688,45 @@ function addJSONAncestorObjects() {
   runJQ "${pattern}" < "${file}"
 }
 
+# -- Contract manipulation --
+function getTasksFromContract() {
+    local contractFile="$1"; shift
+    local taskOutputFile="$1"; shift
+    local paramSeperator="$1"; shift
+
+    pushTempDir "${FUNCNAME[0]}_XXXXXX"
+    local tmp_dir="$(getTopTempDir)"
+    local tmp_file="$( getTempFile "XXXXXX" "${tmp_dir}" )"
+
+    if [[ ! -f "${contractFile}" ]]; then
+        fatal "Could not find contract file ${contractFile}"
+        return 255
+    fi
+
+    arrayFromList stage_list "$( jq -r '.Stages[].Id' < "${contractFile}" || return $?)"
+    for stageIndex in "${!stage_list[@]}"; do
+        arrayFromList stage_steps_list "$( jq -r --arg stageIndex "${stageIndex}" '.Stages[$stageIndex | tonumber].Steps[].Id' < "${contractFile}" || return $? )"
+        for stepIndex in "${!stage_steps_list[@]}"; do
+            parameters="$( jq -r --arg seperator "${paramSeperator}" --arg stageIndex "${stageIndex}" --arg stepIndex "${stepIndex}" \
+                            '[.Stages[$stageIndex | tonumber ].Steps[$stepIndex | tonumber].Parameters | to_entries[] | "\(.value)" ] | join($seperator )' < "${contractFile}" || return $?)"
+            taskType="$( jq -r --arg stageIndex "${stageIndex}" --arg stepIndex "${stepIndex}" \
+                            '.Stages[$stageIndex | tonumber ].Steps[$stepIndex | tonumber].Type' < "${contractFile}" || return $?)"
+
+            echo -e "${taskType} ${parameters}" >> "${tmp_file}"
+        done
+    done
+
+    if [[ -s "${tmp_file}" ]]; then
+        if [[ ! -d "$( filePath "${taskOutputFile}" )" ]]; then
+            mkdir -p "$( filePath "${taskOutputFile}" )"
+        fi
+        cp "${tmp_file}" "${taskOutputFile}"
+    fi
+
+    popTempDir
+    return
+}
+
 # -- KMS --
 function decrypt_kms_string() {
   local region="$1"; shift

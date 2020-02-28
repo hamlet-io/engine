@@ -272,6 +272,8 @@ function process_template_pass() {
   local output_type="${1,,}"; shift
   local output_format="${1,,}"; shift
   local output_suffix="${1,,}"; shift
+  local pass="${1,,}"; shift
+  local pass_alternative="${1,,}"; shift
   local level="${1,,}"; shift
   local deployment_unit="${1,,}"; shift
   local resource_group="${1,,}"; shift
@@ -284,8 +286,6 @@ function process_template_pass() {
   local deployment_mode="${1}"; shift
   local cf_dir="${1}"; shift
   local run_id="${1,,}"; shift
-  local pass="${1,,}"; shift
-  local pass_alternative="${1,,}"; shift
 
   # Filename parts
   local level_prefix="${level}-"
@@ -741,6 +741,8 @@ function process_template() {
       "contract" \
       "" \
       "generation-contract.json" \
+      "genplan" \
+      "" \
       "${level}" \
       "${deployment_unit}" \
       "${resource_group}" \
@@ -752,29 +754,33 @@ function process_template() {
       "${configuration_reference}" \
       "${deployment_mode}" \
       "${cf_dir}" \
-      "${run_id}" \
-      "genplan" \
-      ""
+      "${run_id}"
   local result=$?
 
   if [[ ( ${result} == 0 ) || ( ${result} == 255 ) ]]; then
-    local execution_plan="${results_dir}/${results_list[0]}"
-    info "Adjusting for generation plan ${execution_plan} ..."
-    willLog "debug" && cat ${execution_plan}
-    . ${execution_plan}
+    local generation_contract="${results_dir}/${results_list[0]}"
+    info "Generating documents from generation contract ${generation_contract}"
+    willLog "debug" && cat ${generation_contract}
+
+    local task_list_file="$( getTempFile "XXXXXX" "${tmp_dir}" )"
+    getTasksFromContract "${generation_contract}" "${task_list_file}" ";"
+
+    local process_template_tasks_file="$( getTempFile "XXXXXX" "${tmp_dir}" )"
+    cat "${task_list_file}" | grep "^process_template_pass" > "${process_template_tasks_file}"
+    readarray -t process_template_tasks_list < "${process_template_tasks_file}"
   else
     # Need execution plan to define template framework and format
     fatalCantProceed "No execution plan." && return 1
   fi
 
   # Perform each pass/alternative combination
-  for step in "${plan_steps[@]}"; do
+  for step in "${process_template_tasks_list[@]}"; do
+
+    task_parameter_string="${step#"process_template_pass "}"
+    arrayFromList task_parameters "${task_parameter_string}" ";"
+
     process_template_pass \
-      "${plan_providers[${step}]}" \
-      "${plan_deployment_frameworks[${step}]}" \
-      "${plan_output_types[${step}]}" \
-      "${plan_output_formats[${step}]}" \
-      "${plan_output_suffixes[${step}]}" \
+      "${task_parameters[@]}" \
       "${level}" \
       "${deployment_unit}" \
       "${resource_group}" \
@@ -786,9 +792,7 @@ function process_template() {
       "${configuration_reference}" \
       "${deployment_mode}" \
       "${cf_dir}" \
-      "${run_id}" \
-      "${plan_subsets[${step}]}" \
-      "${plan_alternatives[${step}]}"
+      "${run_id}"
 
     local result=$?
     case ${result} in
