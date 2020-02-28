@@ -264,7 +264,7 @@
 [#macro addDefaultGenerationContract subsets=[] alternatives=["primary"] ]
 
     [#local requiredSubsets = [ "testcase" ]]
-    [#local subsets = combineEntities( defaultSubsets, asArray( requiredSubsets ), UNIQUE_COMBINE_BEHAVIOUR )]
+    [#local subsets = combineEntities( requiredSubsets, asArray( subsets ), UNIQUE_COMBINE_BEHAVIOUR )]
 
     [#local alternatives = asArray(alternatives) ]
 
