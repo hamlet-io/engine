@@ -41,10 +41,10 @@
 
                     [#list occurrence.State.ResourceGroups as key,value]
                         [#switch commandLineOptions.Deployment.Unit.Subset ]
-                            [#case "genplan" ]
-                                [#if invokeGenPlanMacro(occurrence, key, [ level ] ) ]
+                            [#case "generationcontract" ]
+                                [#if invokeGenerationContractMacro(occurrence, key, [ level ] ) ]
                                     [@debug
-                                        message="Genplan Processing key:" + key + "..."
+                                        message="generationcontract Processing key:" + key + "..."
                                         enabled=false
                                     /]
                                 [/#if]

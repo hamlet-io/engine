@@ -1,6 +1,6 @@
 [#ftl]
-[#macro aws_lambda_cf_genplan_application occurrence ]
-    [@addDefaultGenerationPlan subsets=["prologue", "template", "config"] /]
+[#macro aws_lambda_cf_generationcontract_application occurrence ]
+    [@addDefaultGenerationContract subsets=["prologue", "template", "config"] /]
 [/#macro]
 
 [#macro aws_lambda_cf_setup_application occurrence ]
@@ -15,8 +15,8 @@
 [#macro aws_functionxx_cf_application occurrence ]
     [@debug message="Entering" context=occurrence enabled=false /]
 
-    [#if deploymentSubsetRequired("genplan", false)]
-        [@addDefaultGenerationPlan subsets=["prologue", "template", "config"] /]
+    [#if deploymentSubsetRequired("generationcontract", false)]
+        [@addDefaultGenerationContract subsets=["prologue", "template", "config"] /]
         [#return]
     [/#if]
 

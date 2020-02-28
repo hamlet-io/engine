@@ -1,6 +1,6 @@
 [#ftl]
-[#macro aws_network_cf_genplan_segment occurrence ]
-    [@addDefaultGenerationPlan subsets="template" /]
+[#macro aws_network_cf_generationcontract_segment occurrence ]
+    [@addDefaultGenerationContract subsets="template" /]
 [/#macro]
 
 [#macro aws_network_cf_setup_segment occurrence ]

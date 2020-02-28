@@ -243,7 +243,7 @@
 
 [#-- Add Output Step mappings for each output --]
 
-[@addGenPlanStepOutputMapping
+[@addGenerationContractStepOutputMapping
     provider=AWS_PROVIDER
     subset="template"
     outputType=AWS_OUTPUT_RESOURCE_TYPE

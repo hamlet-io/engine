@@ -1,14 +1,14 @@
 [#ftl]
-[#macro aws_spa_cf_genplan_solution occurrence ]
-    [@addDefaultGenerationPlan subsets=[] /]
+[#macro aws_spa_cf_generationcontract_solution occurrence ]
+    [@addDefaultGenerationContract subsets=[] /]
     [@error
         message="Solution SPA Deprecation"
         context="Solution SPA has been replaced with the CDN component - please remove this unit from you solution level units"
     /]
 [/#macro]
 
-[#macro aws_spa_cf_genplan_application occurrence  ]
-    [@addDefaultGenerationPlan subsets=["prologue", "config", "epilogue" ] /]
+[#macro aws_spa_cf_generationcontract_application occurrence  ]
+    [@addDefaultGenerationContract subsets=["prologue", "config", "epilogue" ] /]
 [/#macro]
 
 [#macro aws_spa_cf_setup_application occurrence  ]

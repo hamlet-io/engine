@@ -1,6 +1,6 @@
 [#ftl]
-[#macro aws_objectsql_cf_genplan_solution occurrence ]
-    [@addDefaultGenerationPlan subsets=["cli", "prologue"] /]
+[#macro aws_objectsql_cf_generationcontract_solution occurrence ]
+    [@addDefaultGenerationContract subsets=["cli", "prologue"] /]
 [/#macro]
 
 [#macro aws_objectsql_cf_setup_solution occurrence ]

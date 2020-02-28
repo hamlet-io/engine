@@ -260,14 +260,11 @@
 
 [#-- GenerationContract --]
 
-[#-- Genplans leverage the general script output but add JSON based sections --]
-[#-- to order steps and ensure steps aren't repeated.                        --]
-[#-- Genplan sections have their own converter to convert the JSON to text   --]
+[#-- Generation Contracts create a contract document which outlines what documents need to be generated --]
+[#macro addDefaultGenerationContract subsets=[] alternatives=["primary"] ]
 
-[#-- Genplan header - named to come after script header but before genplan content --]
-[#assign HEADER_GENPLAN_DEFAULT_OUTPUT_SECTION="100header"]
-
-[#macro addDefaultGenerationPlan subsets=[] alternatives=["primary"] ]
+    [#local subsets = asArray(subsets) ]
+    [#local alternatives = asArray(alternatives) ]
 
     [#-- create the contract stage for the pregeneration step --]
     [#-- This will include an extra step for running the pregeneration task --]
@@ -319,48 +316,12 @@
     [/#list]
 [/#macro]
 
-[#function genplan_script_output_converter args=[] ]
-    [#local result = [] ]
-    [#list args[0] as subset, subsetValue]
-        [#list subsetValue as alternative, alternativeValue]
-            [#list alternativeValue as provider, providerValue]
-                [#list providerValue as deploymentFramework, value]
-                    [#local step_name = value.Name]
-                    [#local result +=
-                        [
-                            "## ${step_name} ##",
-                            "plan_steps+=(\"${step_name}\")",
-                            "plan_subsets[\"${step_name}\"]=\"" + subset + "\"",
-                            "plan_alternatives[\"${step_name}\"]=\"" + alternative + "\"",
-                            "plan_providers[\"${step_name}\"]=\"" + (commandLineOptions.Deployment.Provider.Names)?join(",") + "\"",
-                            "plan_deployment_frameworks[\"${step_name}\"]=\"" + deploymentFramework + "\"",
-                            "plan_output_types[\"${step_name}\"]=\"" + value.OutputType + "\"",
-                            "plan_output_formats[\"${step_name}\"]=\"" + value.OutputFormat + "\"",
-                            "plan_output_suffixes[\"${step_name}\"]=\"" + value.OutputSuffix + "\"",
-                            "#"
-                        ] ]
-                [/#list]
-            [/#list]
-        [/#list]
-    [/#list]
-    [#return result]
-[/#function]
-
-
 [#-- Initialise the possible outputs to make sure they are available to all steps --]
 [@initialiseDefaultScriptOutput format=BASH_DEFAULT_OUTPUT_FORMAT /]
 [@initialiseJsonOutput name=JSON_DEFAULT_OUTPUT_TYPE /]
 
 [#-- Add Output Step mappings for each output --]
-[@addGenPlanStepOutputMapping
-    provider=SHARED_PROVIDER
-    subset="genplan"
-    outputType=SCRIPT_DEFAULT_OUTPUT_TYPE
-    outputFormat=getOutputFormat(SCRIPT_DEFAULT_OUTPUT_TYPE)
-    outputSuffix="genplan.sh"
-/]
-
-[@addGenPlanStepOutputMapping
+[@addGenerationContractStepOutputMapping
     provider=SHARED_PROVIDER
     subset="pregeneration"
     outputType=SCRIPT_DEFAULT_OUTPUT_TYPE
@@ -368,7 +329,7 @@
     outputSuffix="pregeneration.sh"
 /]
 
-[@addGenPlanStepOutputMapping
+[@addGenerationContractStepOutputMapping
     provider=SHARED_PROVIDER
     subset="prologue"
     outputType=SCRIPT_DEFAULT_OUTPUT_TYPE
@@ -376,7 +337,7 @@
     outputSuffix="prologue.sh"
 /]
 
-[@addGenPlanStepOutputMapping
+[@addGenerationContractStepOutputMapping
     provider=SHARED_PROVIDER
     subset="epilogue"
     outputType=SCRIPT_DEFAULT_OUTPUT_TYPE
@@ -384,7 +345,7 @@
     outputSuffix="epilogue.sh"
 /]
 
-[@addGenPlanStepOutputMapping
+[@addGenerationContractStepOutputMapping
     provider=SHARED_PROVIDER
     subset="testcase"
     outputType=JSON_DEFAULT_OUTPUT_TYPE
@@ -392,7 +353,7 @@
     outputSuffix="testcase.json"
 /]
 
-[@addGenPlanStepOutputMapping
+[@addGenerationContractStepOutputMapping
     provider=SHARED_PROVIDER
     subset="cli"
     outputType=JSON_DEFAULT_OUTPUT_TYPE
@@ -400,7 +361,7 @@
     outputSuffix="cli.json"
 /]
 
-[@addGenPlanStepOutputMapping
+[@addGenerationContractStepOutputMapping
     provider=SHARED_PROVIDER
     subset="config"
     outputType=JSON_DEFAULT_OUTPUT_TYPE
@@ -408,7 +369,7 @@
     outputSuffix="config.json"
 /]
 
-[@addGenPlanStepOutputMapping
+[@addGenerationContractStepOutputMapping
     provider=SHARED_PROVIDER
     subset="parameters"
     outputType=JSON_DEFAULT_OUTPUT_TYPE

@@ -240,12 +240,12 @@
         )]
 [/#function]
 
-[#function invokeGenPlanMacro occurrence resourceGroup qualifiers=[] ]
+[#function invokeGenContractMacro occurrence resourceGroup qualifiers=[] ]
     [#return
         invokeComponentMacro(
             occurrence,
             resourceGroup,
-            "genplan",
+            "generationcontract",
             qualifiers,
             {}
         )]

@@ -1,6 +1,6 @@
 [#ftl]
-[#macro aws_mobilenotifier_cf_genplan_solution occurrence ]
-    [@addDefaultGenerationPlan subsets=["prologue", "template", "epilogue", "cli"] /]
+[#macro aws_mobilenotifier_cf_generationcontract_solution occurrence ]
+    [@addDefaultGenerationContract subsets=["prologue", "template", "epilogue", "cli"] /]
 [/#macro]
 
 [#macro aws_mobilenotifier_cf_setup_solution occurrence ]

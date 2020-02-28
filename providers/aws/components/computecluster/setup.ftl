@@ -1,6 +1,6 @@
 [#ftl]
-[#macro aws_computecluster_cf_genplan_application occurrence ]
-    [@addDefaultGenerationPlan subsets="template" /]
+[#macro aws_computecluster_cf_generationcontract_application occurrence ]
+    [@addDefaultGenerationContract subsets="template" /]
 [/#macro]
 
 [#macro aws_computecluster_cf_setup_application occurrence ]

@@ -1,6 +1,6 @@
 [#ftl]
-[#macro aws_lb_cf_genplan_solution occurrence ]
-    [@addDefaultGenerationPlan subsets=["prologue", "template"] /]
+[#macro aws_lb_cf_generationcontract_solution occurrence ]
+    [@addDefaultGenerationContract subsets=["prologue", "template"] /]
 [/#macro]
 
 [#macro aws_lb_cf_setup_solution occurrence ]

@@ -1,8 +1,8 @@
 [#-- SMS --]
 [#if getDeploymentUnit()?contains("sms") || (allDeploymentUnits!false) ]
     [#assign cloudWatchRoleId = formatAccountRoleId("sms","cloudwatch")]
-    [#if deploymentSubsetRequired("genplan", false)]
-        [@addDefaultGenerationPlan subsets=["epilogue", "cli"] /]
+    [#if deploymentSubsetRequired("generationcontract", false)]
+        [@addDefaultGenerationContract subsets=["epilogue", "cli"] /]
     [/#if]
 
     [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(cloudWatchRoleId)]
@@ -102,4 +102,3 @@
         /]
     [/#if]
 [/#if]
-

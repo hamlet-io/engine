@@ -1,6 +1,6 @@
 [#ftl]
-[#macro aws_s3_cf_genplan_solution occurrence ]
-    [@addDefaultGenerationPlan subsets="template" /]
+[#macro aws_s3_cf_generationcontract_solution occurrence ]
+    [@addDefaultGenerationContract subsets="template" /]
 [/#macro]
 
 [#macro aws_s3_cf_setup_solution occurrence ]

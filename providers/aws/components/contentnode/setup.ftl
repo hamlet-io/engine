@@ -1,6 +1,6 @@
 [#ftl]
-[#macro aws_contentnode_cf_genplan_application occurrence ]
-    [@addDefaultGenerationPlan subsets="prologue" /]
+[#macro aws_contentnode_cf_generationcontract_application occurrence ]
+    [@addDefaultGenerationContract subsets="prologue" /]
 [/#macro]
 
 [#macro aws_contentnode_cf_setup_application occurrence ]

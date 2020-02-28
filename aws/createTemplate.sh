@@ -300,7 +300,7 @@ function process_template_pass() {
   local template_composites=()
 
   # Define the possible passes
-  local pass_list=("genplan" "testcase" "pregeneration" "prologue" "template" "epilogue" "cli" "parameters" "config")
+  local pass_list=("generationcontract" "testcase" "pregeneration" "prologue" "template" "epilogue" "cli" "parameters" "config")
 
   # Initialise the components of the pass filenames
   declare -A pass_level_prefix
@@ -741,7 +741,7 @@ function process_template() {
       "contract" \
       "" \
       "generation-contract.json" \
-      "genplan" \
+      "generationcontract" \
       "" \
       "${level}" \
       "${deployment_unit}" \

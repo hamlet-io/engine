@@ -1,6 +1,6 @@
 [#ftl]
 [#macro aws_ec2_cf_solution occurrence ]
-    [@addDefaultGenerationPlan subsets="template" /]
+    [@addDefaultGenerationContract subsets="template" /]
 [/#macro]
 
 [#macro aws_ec2_cf_solution occurrence ]
