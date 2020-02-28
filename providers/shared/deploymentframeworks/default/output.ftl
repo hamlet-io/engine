@@ -179,64 +179,80 @@
     [#local contractStages = []]
 
     [#if getOutputContent("stages")?has_content || logMessages?has_content ]
-        [#list getOutputContent("stages") as stage ]
+
+        [#list (getOutputContent("stages")?values)?sort_by("Priority") as stage ]
+
             [#local stageSteps = []]
-            [#list outputSteps[stage.Id]![] as id,step ]
-                [#local stageSteps = combineEntities(
-                                        stageSteps,
-                                        {
-                                            "Id" : id
-                                        } + step,
-                                        APPEND_COMBINE_BEHAVIOUR
+            [#if outputSteps[stage.Id]?has_content ]
+                [#list (outputSteps[stage.Id]?values)?sort_by("Priority") as step ]
+                    [#local stageSteps = combineEntities(
+                                            stageSteps,
+                                            [
+                                                {
+                                                    "Id" : step.Id,
+                                                    "Type" : step.Type,
+                                                    "Parameters"  : step.Parameters
+                                                }
+                                            ],
+                                            APPEND_COMBINE_BEHAVIOUR
+                    )]
+                [/#list]
+
+
+                [#local contractStages = combineEntities(
+                                            contractStages,
+                                            [
+                                                {
+                                                    "Id" : stage.Id,
+                                                    "ExecutionMode" : stage.ExecutionMode,
+                                                    "Steps" : stageSteps
+                                                }
+                                            ],
+                                            APPEND_COMBINE_BEHAVIOUR
                 )]
-            [/#list]
-
-
-            [#local contractStages = combineEntities(
-                                        contractStages,
-                                        [
-                                            stage +
-                                            {
-                                                "Steps" : stageSteps
-                                            }
-                                        ]
-            )]
+            [/#if]
         [/#list]
-            [@toJSON
-                {
-                    "Metadata" : {
-                        "Id" : getOutputContent("contract"),
-                        "Prepared" : .now?iso_utc,
-                        "RunId" : commandLineOptions.Run.Id,
-                        "RequestReference" : commandLineOptions.References.Request,
-                        "ConfigurationReference" : commandLineOptions.References.Configuration
-                    },
-                    "Stages" : contractStages
-                } +
-                attributeIfContent("COTMessages", logMessages)
-            /]
+
+        [@toJSON
+            {
+                "Metadata" : {
+                    "Id" : getOutputContent("contract"),
+                    "Prepared" : .now?iso_utc,
+                    "RunId" : commandLineOptions.Run.Id,
+                    "RequestReference" : commandLineOptions.References.Request,
+                    "ConfigurationReference" : commandLineOptions.References.Configuration
+                },
+                "Stages" : contractStages
+            } +
+            attributeIfContent("COTMessages", logMessages)
+        /]
     [/#if]
     [@serialiseOutput name=JSON_DEFAULT_OUTPUT_TYPE /]
 [/#macro]
 
-[#macro contractStage id executionMode ]
+[#macro contractStage id executionMode priority=100 ]
     [@mergeWithJsonOutput
         name="stages"
-        content=[
-            {
+        content={
+            id : {
                 "Id" : id,
+                "Priority" : 100,
                 "ExecutionMode" : executionMode
             }
-        ]
+        }
     /]
 [/#macro]
 
-[#macro contractStep id stageId taskType parameters ]
+[#macro contractStep id stageId taskType parameters priority=100  ]
     [@mergeWithJsonOutput
         name="steps"
         content={
             stageId : {
-                id : getTask(taskType, parameters)
+                id : {
+                    "Id" : id,
+                    "Priority" : priority
+                } +
+                getTask(taskType, parameters)
             }
         }
     /]
@@ -260,12 +276,14 @@
         [@contractStage
             id=stageId
             executionMode=CONTRACT_EXECUTION_MODE_SERIAL
+            priority=10
         /]
 
         [@contractStep
             id=formatId(stageId, "generation")
             stageId=stageId
-            task="core_create_template"
+            taskType=PROCESS_TEMPLATE_PASS_TASK_TYPE
+            priority=10
             parameters=
                 getGenerationContractStepParameters(
                     "pregeneration",
@@ -289,7 +307,7 @@
             [@contractStep
                 id=formatId(stageId, subset)
                 stageId=stageId
-                task="core_create_template"
+                taskType=PROCESS_TEMPLATE_PASS_TASK_TYPE
                 parameters=
                     getGenerationContractStepParameters(
                         subset,
