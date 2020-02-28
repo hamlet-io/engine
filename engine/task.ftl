@@ -19,12 +19,20 @@
 
 [#function getTask type parameters ]
     [#local taskConfig = (taskConfiguration[type])!{} ]
-    [#if data?has_content ]
+
+    [#local attributes =
+        [
+            "InhibitEnabled"
+        ] +
+        taskConfig.Attributes
+    ]
+
+    [#if taskConfig?has_content ]
         [#return
             {
                 "Type" : type,
                 "Parameters" : getCompositeObject(
-                                    taskConfig.Attributes,
+                                    attributes,
                                     parameters
                                 )
             }
@@ -43,9 +51,9 @@
 
 [#-- Helper macro - not for general use --]
 [#macro internalMergeTaskConfiguration type configuration]
-    [#assign referenceConfiguration =
+    [#assign taskConfiguration =
         mergeObjects(
-            referenceConfiguration,
+            taskConfiguration,
             {
                 type : configuration
             }

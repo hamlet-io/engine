@@ -132,6 +132,22 @@
                 /]
             [/#list]
 
+            [#-- Determine the tasks for the provider --]
+            [#local directories =
+                internalGetPluginFiles(
+                    [providerMarker.Path, "tasks"],
+                    [
+                        ["[^/]+"]
+                    ]
+                )
+            ]
+            [#list directories as directory]
+                [@internalIncludeTemplatesInDirectory
+                    directory,
+                    ["id", "name", "task"]
+                /]
+            [/#list]
+
             [#-- Determine the global resource groups for the provider --]
             [#local directories =
                 internalGetPluginFiles(
@@ -470,6 +486,12 @@
     [@internalIncludeTemplatesInDirectory
         [providerMarker.Path, "references"],
         ["reference" ]
+    /]
+
+    [#-- aws/references/reference.ftl --]
+    [@internalIncludeTemplatesInDirectory
+        [providerMarker.Path, "tasks"],
+        ["task" ]
     /]
 
     [#-- aws/resourcegroups/resourcegroup.ftl --]

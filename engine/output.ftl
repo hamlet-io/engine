@@ -440,11 +440,13 @@
                                 subset
                             )]
     [#return {
-        "subset" : subset,
-        "alternative"   : alternative,
+        "provider"      : (commandLineOptions.Deployment.Provider.Names)?join(","),
+        "framework"     : commandLineOptions.Deployment.Framework.Name,
         "outputType"    : outputMappings["OutputType"],
         "outputFormat"  : outputMappings["OutputFormat"],
-        "outputSuffix"  : outputMappings["OutputSuffix"]
+        "outputSuffix"  : outputMappings["OutputSuffix"],
+        "subset"        : subset,
+        "alternative"   : alternative
     }]
 [/#function]
 
