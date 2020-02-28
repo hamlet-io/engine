@@ -240,7 +240,7 @@
         )]
 [/#function]
 
-[#function invokeGenContractMacro occurrence resourceGroup qualifiers=[] ]
+[#function invokeGenerationContractMacro occurrence resourceGroup qualifiers=[] ]
     [#return
         invokeComponentMacro(
             occurrence,
