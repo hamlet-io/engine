@@ -263,7 +263,9 @@
 [#-- Generation Contracts create a contract document which outlines what documents need to be generated --]
 [#macro addDefaultGenerationContract subsets=[] alternatives=["primary"] ]
 
-    [#local subsets = asArray(subsets) ]
+    [#local requiredSubsets = [ "testcase" ]]
+    [#local subsets = combineEntities( defaultSubsets, asArray( requiredSubsets ), UNIQUE_COMBINE_BEHAVIOUR )]
+
     [#local alternatives = asArray(alternatives) ]
 
     [#-- create the contract stage for the pregeneration step --]
