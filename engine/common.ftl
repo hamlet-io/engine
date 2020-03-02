@@ -428,11 +428,12 @@ behaviour.
     [#-- Get the total list of deployment profiles --]
     [#local deploymentProfileNames =
         getUniqueArrayElements(
-            occurrenceProfiles,
-            (environmentObject.Profiles.Deployment)![],
-            (productObject.Profiles.Deployment)![],
+            (tenantObject.Profiles.Deployment)![],
             (accountObject.Profiles.Deployment)![],
-            (tenantObject.Profiles.Deployment)![]
+            (productObject.Profiles.Deployment)![],
+            (environmentObject.Profiles.Deployment)![],
+            (segmentObject.Profiles.Deployment)![],
+            occurrenceProfiles
         ) ]
 
     [#local deploymentProfile = {} ]
@@ -441,6 +442,24 @@ behaviour.
     [/#list]
 
     [#return mergeObjects( (deploymentProfile.Modes["*"])!{}, (deploymentProfile.Modes[deploymentMode])!{})  ]
+[/#function]
+
+[#function getPolicyProfile deploymentMode ]
+
+    [#-- Get the total list of deployment profiles --]
+    [#local policyProfileNames =
+        getUniqueArrayElements(
+            (productObject.Profiles.Policy)![],
+            (accountObject.Profiles.Policy)![],
+            (tenantObject.Profiles.Policy)![]
+        ) ]
+
+    [#local policyProfile = {} ]
+    [#list policyProfileNames as policyProfileName ]
+        [#local policyProfile = mergeObjects( policyProfile, (policyProfiles[policyProfileName])!{} )]
+    [/#list]
+
+    [#return mergeObjects( (policyProfile.Modes["*"])!{}, (policyProfile.Modes[deploymentMode])!{})  ]
 [/#function]
 
 [#function getPlacementProfile occurrenceProfile qualifiers...]
