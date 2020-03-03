@@ -26,7 +26,8 @@
                 "Regex" : [r"provider\.ftl"],
                 "AddEndingWildcard" : false,
                 "MinDepth" : 2,
-                "MaxDepth" : 2
+                "MaxDepth" : 2,
+                "FilenameGlob" : r"provider.ftl"
             }
         )
     ]
@@ -37,6 +38,7 @@
 [/#function]
 
 [#macro initialiseProviders]
+    [#local result = initialisePluginFileSystem() ]
     [#assign providerDictionary = initialiseDictionary() ]
     [#assign providerMarkers = findProviderMarkers()  ]
 [/#macro]
@@ -451,7 +453,7 @@
 
 [#macro internalIncludeProviderConfiguration providerMarker ]
 
-    [#-- aws/provider*.ftl --]
+    [#-- aws/provider.ftl --]
     [#include providerMarker.File /]
 
     [#-- aws/services/service.ftl --]
