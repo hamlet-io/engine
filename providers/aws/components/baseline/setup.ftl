@@ -378,10 +378,11 @@
                             ) +
                             valueIfTrue(
                                 [
-                                    "   info \"Removing old ssh pseudo stack output\"",
+                                    "   info \"Removing old ssh pseudo stack output ...\"",
                                     "   legacy_pseudo_stack_file=\"$(fileBase \"$\{BASH_SOURCE}\")\"",
                                     "   legacy_pseudo_stack_filepath=\"$\{CF_DIR/baseline/cmk}/$\{legacy_pseudo_stack_file/-baseline-/-cmk-}-keypair-pseudo-stack.json\"",
                                     "   if [ -f \"$\{legacy_pseudo_stack_filepath}\" ]; then",
+                                    "       info \"Deleting $\{legacy_pseudo_stack_filepath} ...\"",
                                     "       rm -f \"$\{legacy_pseudo_stack_filepath}\"",
                                     "   else",
                                     "       warn \"Unable to locate pseudo stack file $\{legacy_pseudo_stack_filepath}\"",
@@ -471,23 +472,25 @@
                                         "    rm -f \"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-pseudo-stack.json\"",
                                         "    ;;",
                                         "  create|update)",
-                                        "    info \"Removing legacy oai credential\"",
-                                        "    if is_oai_credential_used" + " " +
+                                        "    info \"Removing legacy oai credential ...\"",
+                                        "    used=$(is_oai_credential_used" + " " +
                                                "\"" + regionId + "\" " +
-                                               "\"" + legacyOAIName + "\"; then",
-                                        "      warn \"Legacy OAI in use - it will need to be manually deleted ...\"",
+                                               "\"" + legacyOAIName + "\" ) || return $?",
+                                        "    if [[ \"$\{used}\" == \"true\" ]]; then",
+                                        "      warn \"Legacy OAI in use - rerun the baseline unit to remove it once it is no longer in use ...\"",
                                         "    else",
                                         "      delete_oai_credentials" + " " +
                                                  "\"" + regionId + "\" " +
                                                  "\"" + legacyOAIName + "\" || return $?",
-                                        "    fi",
-                                        "    info \"Removing legacy oai pseudo stack output\"",
-                                        "    legacy_pseudo_stack_file=\"$(fileBase \"$\{BASH_SOURCE}\")\"",
-                                        "    legacy_pseudo_stack_filepath=\"$\{CF_DIR/baseline/cmk}/$\{legacy_pseudo_stack_file/-baseline-/-cmk-}-pseudo-stack.json\"",
-                                        "    if [ -f \"$\{legacy_pseudo_stack_filepath}\" ]; then",
-                                        "       rm -f \"$\{legacy_pseudo_stack_filepath}\"",
-                                        "    else",
-                                        "       warn \"Unable to locate pseudo stack file $\{legacy_pseudo_stack_filepath}\"",
+                                        "      info \"Removing legacy oai pseudo stack output\"",
+                                        "      legacy_pseudo_stack_file=\"$(fileBase \"$\{BASH_SOURCE}\")\"",
+                                        "      legacy_pseudo_stack_filepath=\"$\{CF_DIR/baseline/cmk}/$\{legacy_pseudo_stack_file/-baseline-/-cmk-}-pseudo-stack.json\"",
+                                        "      if [ -f \"$\{legacy_pseudo_stack_filepath}\" ]; then",
+                                        "         info \"Deleting $\{legacy_pseudo_stack_filepath} ...\"",
+                                        "         rm -f \"$\{legacy_pseudo_stack_filepath}\"",
+                                        "      else",
+                                        "         warn \"Unable to locate pseudo stack file $\{legacy_pseudo_stack_filepath}\"",
+                                        "      fi",
                                         "    fi",
                                         "    ;;",
                                         " esac"

@@ -1635,25 +1635,24 @@ function is_oai_credential_used() {
   local region="$1"; shift
   local name="$1"; shift
 
-  local oai_status_file="$( getTempFile oai_used_XXXXXX.json)"
-  local oai_id=
-  local oai_etag=
-
   # Check for existing identity
-  aws --region "${region}" cloudfront list-cloud-front-origin-access-identities > "${oai_status_file}" || return $?
-  oai_id=$(jq -r ".CloudFrontOriginAccessIdentityList.Items[] | select(.Comment==\"${name}\") | .Id" < "${oai_status_file}") || return $?
+  oai_id=$(aws --region "${region}" cloudfront list-cloud-front-origin-access-identities \
+  --query "CloudFrontOriginAccessIdentityList.Items[?Comment==\'${name}\'].Id" --output text) || return $?
 
   # check if used if present
   if [[ -n "${oai_id}" ]]; then
-    oai_ids=$(aws --region "${region}" cloudfront list-distributions --query "DistributionList.Items[].Origins.Items[].S3OriginConfig.OriginAccessIdentity" --output text)
+    oai_ids=$(aws --region "${region}" cloudfront list-distributions --query "DistributionList.Items[].Origins.Items[].S3OriginConfig.OriginAccessIdentity" --output text) || return $?
     if [[ -n "${oai_ids}" ]]; then
-      contains "${oai_ids}" "${oai_id}"
-      return $?
+      if contains "${oai_ids}" "${oai_id}"; then
+        echo "true"
+        return 0
+      fi
     fi
   fi
 
   # Not in use
-  return 1
+  echo "false"
+  return 0
 }
 
 # -- RDS --

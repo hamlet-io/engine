@@ -1,6 +1,6 @@
 [#ftl]
 
-[@addReference 
+[@addReference
     type=ENVIRONMENT_REFERENCE_TYPE
     pluralType="Environments"
     properties=[
@@ -63,6 +63,10 @@
                         {
                             "Names" : "Enabled",
                             "Type" : BOOLEAN_TYPE
+                        },
+                        {
+                            "Names" : "Expiration",
+                            "Type" : NUMBER_TYPE
                         }
                     ]
                 },
@@ -113,7 +117,7 @@
         },
         {
             "Names" : "DomainBehaviours",
-            "Children" : [ 
+            "Children" : [
                 {
                     "Names" : "Segment",
                     "Type" : STRING_TYPE
