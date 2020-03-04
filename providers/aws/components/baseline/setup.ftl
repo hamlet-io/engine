@@ -472,9 +472,15 @@
                                         "    ;;",
                                         "  create|update)",
                                         "    info \"Removing legacy oai credential\"",
-                                        "    delete_oai_credentials" + " " +
+                                        "    if is_oai_credential_used" + " " +
                                                "\"" + regionId + "\" " +
-                                               "\"" + legacyOAIName + "\" || return $?",
+                                               "\"" + legacyOAIName + "\"; then",
+                                        "      warn \"Legacy OAI in use - it will need to be manually deleted ...\"",
+                                        "    else",
+                                        "      delete_oai_credentials" + " " +
+                                                 "\"" + regionId + "\" " +
+                                                 "\"" + legacyOAIName + "\" || return $?",
+                                        "    fi",
                                         "    info \"Removing legacy oai pseudo stack output\"",
                                         "    legacy_pseudo_stack_file=\"$(fileBase \"$\{BASH_SOURCE}\")\"",
                                         "    legacy_pseudo_stack_filepath=\"$\{CF_DIR/baseline/cmk}/$\{legacy_pseudo_stack_file/-baseline-/-cmk-}-pseudo-stack.json\"",

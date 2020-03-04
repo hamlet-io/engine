@@ -1631,6 +1631,31 @@ function delete_oai_credentials() {
   return 0
 }
 
+function is_oai_credential_used() {
+  local region="$1"; shift
+  local name="$1"; shift
+
+  local oai_status_file="$( getTempFile oai_used_XXXXXX.json)"
+  local oai_id=
+  local oai_etag=
+
+  # Check for existing identity
+  aws --region "${region}" cloudfront list-cloud-front-origin-access-identities > "${oai_status_file}" || return $?
+  oai_id=$(jq -r ".CloudFrontOriginAccessIdentityList.Items[] | select(.Comment==\"${name}\") | .Id" < "${oai_status_file}") || return $?
+
+  # check if used if present
+  if [[ -n "${oai_id}" ]]; then
+    oai_ids=$(aws --region "${region}" cloudfront list-distributions --query "DistributionList.Items[].Origins.Items[].S3OriginConfig.OriginAccessIdentity" --output text)
+    if [[ -n "${oai_ids}" ]]; then
+      contains "${oai_ids}" "${oai_id}"
+      return $?
+    fi
+  fi
+
+  # Not in use
+  return 1
+}
+
 # -- RDS --
 
 function add_tag_rds_resource() {
