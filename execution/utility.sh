@@ -1637,7 +1637,7 @@ function is_oai_credential_used() {
 
   # Check for existing identity
   oai_id=$(aws --region "${region}" cloudfront list-cloud-front-origin-access-identities \
-  --query "CloudFrontOriginAccessIdentityList.Items[?Comment==\'${name}\'].Id" --output text) || return $?
+  --query "CloudFrontOriginAccessIdentityList.Items[?Comment=='${name}'].Id" --output text) || return $?
 
   # check if used if present
   if [[ -n "${oai_id}" ]]; then
