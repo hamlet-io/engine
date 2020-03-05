@@ -34,7 +34,6 @@
 
     [#local smsVerification = false]
     [#local userPoolTriggerConfig = {}]
-    [#local userPoolManualTriggerConfig = {}]
     [#local smsConfig = {}]
     [#local authProviders = []]
 
@@ -163,7 +162,6 @@
             [#case LAMBDA_FUNCTION_COMPONENT_TYPE]
 
                 [#-- Cognito Userpool Event Triggers --]
-                [#-- TODO: When all Cognito Events are available via Cloudformation update the userPoolManualTriggerConfig to userPoolTriggerConfig --]
                 [#switch link.Name?lower_case]
                     [#case "createauthchallenge"]
                         [#local userPoolTriggerConfig +=
@@ -230,7 +228,7 @@
                         ]
                         [#break]
                     [#case "pretokengeneration"]
-                        [#local userPoolManualTriggerConfig +=
+                        [#local userPoolTriggerConfig +=
                             attributeIfContent (
                                 "PreTokenGeneration",
                                 linkTargetAttributes.ARN
@@ -238,7 +236,7 @@
                         ]
                         [#break]
                     [#case "usermigration"]
-                        [#local userPoolManualTriggerConfig +=
+                        [#local userPoolTriggerConfig +=
                             attributeIfContent (
                                 "UserMigration",
                                 linkTargetAttributes.ARN
@@ -249,13 +247,6 @@
             [#break]
         [/#switch]
     [/#list]
-
-    [#local userPoolManualTriggerString = [] ]
-    [#list userPoolManualTriggerConfig as key,value ]
-        [#local userPoolManualTriggerString += [ key + "=" + value ]]
-    [/#list]
-
-    [#local userPoolManualTriggerString = userPoolManualTriggerString?join(",")]
 
     [#-- Initialise epilogue script with common parameters --]
     [#if deploymentSubsetRequired("epilogue", false)]
@@ -665,64 +656,6 @@
             /]
 
         [/#if]
-
-        [#local userpoolConfig = {
-            "UserPoolId": getExistingReference(userPoolId),
-            "Policies": getUserPoolPasswordPolicy(
-                    solution.PasswordPolicy.MinimumLength,
-                    solution.PasswordPolicy.Lowercase,
-                    solution.PasswordPolicy.Uppsercase,
-                    solution.PasswordPolicy.Numbers,
-                    solution.PasswordPolicy.SpecialCharacters,
-                    solution.UnusedAccountTimeout),
-            "MfaConfiguration": mfaConfig,
-            "UserPoolTags": getOccurrenceCoreTags(
-                                occurrence,
-                                userPoolName,
-                                ""
-                                false,
-                                true),
-            "AdminCreateUserConfig": getUserPoolAdminCreateUserConfig(
-                                            solution.AdminCreatesUser,
-                                            getUserPoolInviteMessageTemplate(
-                                                emailInviteMessage,
-                                                emailInviteSubject,
-                                                smsInviteMessage))
-        } +
-        attributeIfContent(
-            "SmsVerificationMessage",
-            smsVerificationMessage
-        ) +
-        attributeIfContent(
-            "EmailVerificationMessage",
-            emailVerificationMessage
-        ) +
-        attributeIfContent(
-            "EmailVerificationSubject",
-            emailVerificationSubject
-        ) +
-        attributeIfContent(
-            "SmsConfiguration",
-            smsConfig
-        ) +
-        attributeIfTrue(
-            "AutoVerifiedAttributes",
-            (solution.VerifyEmail || smsVerification),
-            getUserPoolAutoVerification(solution.VerifyEmail, smsVerification)
-        ) +
-        attributeIfTrue(
-            "LambdaConfig",
-            (userPoolTriggerConfig?has_content || userPoolManualTriggerConfig?has_content ),
-            userPoolTriggerConfig + userPoolManualTriggerConfig
-        )]
-
-        [#if userPoolManualTriggerConfig?has_content ]
-            [@addCliToDefaultJsonOutput
-                id=userPoolId
-                command=userPoolUpdateCommand
-                content=userpoolConfig
-            /]
-        [/#if]
     [/#if]
 
     [#if deploymentSubsetRequired("prologue", false)]
@@ -834,23 +767,6 @@
                 ) +
                 (userPoolClientEpilogue?has_content)?then(
                     userPoolClientEpilogue,
-                    []
-                ) +
-                [#-- Some Userpool Lambda triggers are not available via Cloudformation but are available via CLI --]
-                (userPoolManualTriggerConfig?has_content)?then(
-                    [
-                        "case $\{STACK_OPERATION} in",
-                        "  create|update)"
-                        "       # Add Manual Cognito Triggers",
-                        "       info \"Adding Cognito Triggers that are not part of cloudformation\"",
-                        "       update_cognito_userpool" +
-                        "       \"" + region + "\" " +
-                        "       \"$\{userPoolId}\" " +
-                        "       \"$\{tmpdir}/cli-" +
-                                    userPoolId + "-" + userPoolUpdateCommand + ".json\" || return $?",
-                        "       ;;",
-                        "esac"
-                    ],
                     []
                 )
         /]
