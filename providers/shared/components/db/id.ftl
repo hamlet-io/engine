@@ -39,6 +39,10 @@
                 "Mandatory" : true
             },
             {
+                "Names" : "EngineMinorVersion",
+                "Type" : STRING_TYPE
+            },
+            {
                 "Names" : "Port",
                 "Type" : STRING_TYPE
             },

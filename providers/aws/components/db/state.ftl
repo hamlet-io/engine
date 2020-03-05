@@ -4,8 +4,8 @@
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
-    [#local engine = occurrence.Configuration.Solution.Engine]
-    [#local engineVersion = occurrence.Configuration.Solution.EngineVersion]
+    [#local engine = solution.Engine]
+    [#local engineVersion = solution.EngineVersion]
 
     [#local auroraCluster = false ]
 

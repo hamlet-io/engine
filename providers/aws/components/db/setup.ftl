@@ -33,8 +33,21 @@
     [#local auroraCluster = false]
 
     [#local engine = solution.Engine]
+    [#local majorVersion = solution.EngineVersion]
+
+    [#-- If a minor version is provided, assume engine version is the major version --]
+    [#-- Also disable minor version upgrades --]
+    [#local minorVersion = solution.EngineMinorVersion!""]
+    [#local autoMinorVersionUpgrade =
+        (!minorVersion?has_content) &&
+        (solution.AutoMinorVersionUpgrade!RDSAutoMinorVersionUpgrade) ]
+
+    [#-- Default is that engine version = major version --]
+    [#local engineVersion = majorVersion]
+
     [#switch engine]
         [#case "mysql"]
+            [#local engineVersion = concatenate([majorVersion, minorVersion],".")]
             [#local port = solution.Port!"mysql" ]
             [#if (ports[port].Port)?has_content]
                 [#local port = ports[port].Port ]
@@ -92,8 +105,6 @@
     [#local rdsParameterGroupId = resources["parameterGroup"].Id ]
     [#local rdsParameterGroupFamily = resources["parameterGroup"].Family ]
     [#local rdsOptionGroupId = resources["optionGroup"].Id ]
-
-    [#local engineVersion = solution.EngineVersion]
 
     [#local rdsSecurityGroupId = resources["securityGroup"].Id ]
     [#local rdsSecurityGroupIngressId = formatDependentSecurityGroupIngressId(
@@ -326,7 +337,7 @@
             properties=
                 {
                     "EngineName": engine,
-                    "MajorEngineVersion": engineVersion,
+                    "MajorEngineVersion": majorVersion,
                     "OptionGroupDescription" : rdsFullName,
                     "OptionConfigurations" : [
                     ]
@@ -681,7 +692,7 @@
                         securityGroupId=rdsSecurityGroupId
                         caCertificate=requiredRDSCA
                         allowMajorVersionUpgrade=solution.AllowMajorVersionUpgrade
-                        autoMinorVersionUpgrade=solution.AutoMinorVersionUpgrade!RDSAutoMinorVersionUpgrade
+                        autoMinorVersionUpgrade=autoMinorVersionUpgrade
                         deleteAutomatedBackups=solution.Backup.DeleteAutoBackups
                         clusterMember=true
                         clusterId=rdsId
@@ -721,7 +732,7 @@
                         optionGroupId=rdsOptionGroupId
                         securityGroupId=rdsSecurityGroupId
                         allowMajorVersionUpgrade=solution.AllowMajorVersionUpgrade
-                        autoMinorVersionUpgrade=solution.AutoMinorVersionUpgrade!RDSAutoMinorVersionUpgrade
+                        autoMinorVersionUpgrade=autoMinorVersionUpgrade
                         deleteAutomatedBackups=solution.Backup.DeleteAutoBackups
                         deletionPolicy=deletionPolicy
                         updateReplacePolicy=updateReplacePolicy
