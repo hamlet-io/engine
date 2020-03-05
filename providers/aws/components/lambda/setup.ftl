@@ -490,7 +490,7 @@
                 ] +
                 [
                     "# Release ENIs",
-                    "info \"Realising ENIs ... \"",
+                    "info \"Releasing ENIs ... \"",
                     "release_enis" +
                     " \"" + region + "\" " +
                     " \"" + fnName + "\" || return $?"
