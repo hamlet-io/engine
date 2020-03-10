@@ -344,9 +344,9 @@ behaviour.
 
     [#return
         {
-            "MaxCount"      : maxCount!0,
-            "MinCount"      : minCount!0,
-            "DesiredCount"  : desiredCount!0
+            "MaxCount"      : maxCount?has_content?then(maxCount?number, 0 ),
+            "MinCount"      : minCount?has_content?then(minCount?number, 0 ),
+            "DesiredCount"  : desiredCount?has_content?then(desiredCount?number, 0 )
         }
     ]
 [/#function]
