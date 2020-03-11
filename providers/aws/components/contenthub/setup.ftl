@@ -1,6 +1,6 @@
 [#ftl]
-[#macro aws_contenthub_cf_genplan_solution occurrence ]
-    [@addDefaultGenerationPlan subsets="prologue" /]
+[#macro aws_contenthub_cf_generationcontract_solution occurrence ]
+    [@addDefaultGenerationContract subsets="prologue" /]
 [/#macro]
 
 [#macro aws_contenthub_cf_setup_solution occurrence ]

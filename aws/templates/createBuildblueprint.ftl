@@ -52,9 +52,9 @@
   [/#if]
 [/#macro]
 
-[#if (commandLineOptions.Deployment.Unit.Subset!"") == "genplan" ]
+[#if (commandLineOptions.Deployment.Unit.Subset!"") == "generationcontract" ]
   [@initialiseDefaultScriptOutput format=commandLineOptions.Deployment.Output.Format /]
-  [@addDefaultGenerationPlan subsets="config" /]
+  [@addDefaultGenerationContract subsets="config" /]
 [/#if]
 
 [@generateOutput

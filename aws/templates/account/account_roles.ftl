@@ -1,7 +1,7 @@
 [#-- Account level roles --]
 [#if getDeploymentUnit()?contains("roles")  || (allDeploymentUnits!false) ]
-    [#if deploymentSubsetRequired("genplan", false)]
-        [@addDefaultGenerationPlan subsets="template" /]
+    [#if deploymentSubsetRequired("generationcontract", false)]
+        [@addDefaultGenerationContract subsets="template" /]
     [/#if]
 
     [#if deploymentSubsetRequired("roles", true)]
@@ -47,4 +47,3 @@
         /]
     [/#if]
 [/#if]
-

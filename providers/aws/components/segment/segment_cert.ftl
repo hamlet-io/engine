@@ -1,6 +1,6 @@
 [#ftl]
-[#macro aws_cert_cf_genplan_segment occurrence ]
-    [@addDefaultGenerationPlan subsets="template" /]
+[#macro aws_cert_cf_generationcontract_segment occurrence ]
+    [@addDefaultGenerationContract subsets="template" /]
 [/#macro]
 
 [#macro aws_cert_cf_setup_segment occurrence ]

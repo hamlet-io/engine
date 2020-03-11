@@ -1,6 +1,6 @@
 [#ftl]
-[#macro aws_ecs_cf_genplan_solution occurrence ]
-    [@addDefaultGenerationPlan subsets=[ "prologue", "template", "cli", "epilogue" ] /]
+[#macro aws_ecs_cf_generationcontract_solution occurrence ]
+    [@addDefaultGenerationContract subsets=[ "prologue", "template", "cli", "epilogue" ] /]
 [/#macro]
 
 [#macro aws_ecs_cf_setup_solution occurrence ]
@@ -598,8 +598,8 @@
 
 [/#macro]
 
-[#macro aws_ecs_cf_genplan_application occurrence ]
-    [@addDefaultGenerationPlan subsets=["prologue", "template", "epilogue", "cli"] /]å
+[#macro aws_ecs_cf_generationcontract_application occurrence ]
+    [@addDefaultGenerationContract subsets=["prologue", "template", "epilogue", "cli"] /]å
 [/#macro]
 
 [#macro aws_ecs_cf_setup_application occurrence ]

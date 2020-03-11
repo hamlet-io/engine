@@ -158,139 +158,172 @@
     /]
 [/#macro]
 
-[#-- GENPLAN --]
+[#-- Contract --]
+[#assign CONTRACT_EXECUTION_MODE_SERIAL = "serial" ]
+[#assign CONTRACT_EXECUTION_MODE_PARALLEL = "parallel" ]
 
-[#-- Genplans leverage the general script output but add JSON based sections --]
-[#-- to order steps and ensure steps aren't repeated.                        --]
-[#-- Genplan sections have their own converter to convert the JSON to text   --]
+[@initialiseJsonOutput name="stages" /]
+[@initialiseJsonOutput name="steps" /]
 
-[#-- Genplan header - named to come after script header but before genplan content --]
-[#assign HEADER_GENPLAN_DEFAULT_OUTPUT_SECTION="100header"]
-
-[#macro addDefaultGenerationPlan subsets=[] alternatives=["primary"]  section="default" ]
-
-    [#-- First ensure we have captured the gen plan header --]
-    [#if !isOutputSection(SCRIPT_DEFAULT_OUTPUT_TYPE, HEADER_GENPLAN_DEFAULT_OUTPUT_SECTION)]
-        [@addOutputSection
-            name=SCRIPT_DEFAULT_OUTPUT_TYPE
-            section=HEADER_GENPLAN_DEFAULT_OUTPUT_SECTION
-            initialContent=
-                [
-                    "local plan_steps=()",
-                    "declare -A plan_subsets",
-                    "declare -A plan_alternatives",
-                    "declare -A plan_providers",
-                    "declare -A plan_deployment_frameworks",
-                    "declare -A plan_output_types",
-                    "declare -A plan_output_formats",
-                    "declare -A plan_output_suffixes",
-                    "#"
-                ]
-        /]
+[#macro default_output_contract level="" include=""]
+    [#-- Resources --]
+    [#if include?has_content]
+        [#include include?ensure_starts_with("/")]
+    [#else]
+        [@processComponents level /]
     [/#if]
 
+    [#local outputStages = getOutputContent("stages")]
+    [#local outputSteps = getOutputContent("steps")]
 
-    [#local subsets = combineEntities( subsets, [ "testcase" ], UNIQUE_COMBINE_BEHAVIOUR) ]
+    [#local contractStages = []]
 
-    [#list asArray(subsets) as subset]
-        [#-- Each subset gets its own section --]
-        [#local name = "" ]
-        [#switch subset]
-            [#case "genplan"]
-                [#local name = section + "-100" ]
-                [#break]
-            [#case "testcase"]
-                [#local name = section + "-200"]
-                [#break]
-            [#case "pregeneration"]
-                [#local name = section + "-300"]
-                [#break]
-            [#case "prologue"]
-                [#local name = section + "-400"]
-                [#break]
-            [#case "template"]
-                [#local name = section + "-500"]
-                [#break]
-            [#case "epilogue"]
-                [#local name = section + "-600"]
-                [#break]
-            [#case "cli"]
-                [#local name = section + "-700"]
-                [#break]
-            [#case "config"]
-                [#local name = section + "-800"]
-                [#break]
-            [#case "parameters"]
-                [#local name = section + "-900"]
-                [#break]
-        [/#switch]
+    [#if getOutputContent("stages")?has_content || logMessages?has_content ]
 
-        [#-- Unknown subset --]
-        [#if !name?has_content]
-            [#continue]
-        [/#if]
+        [#list (getOutputContent("stages")?values)?sort_by("Priority") as stage ]
 
-        [#-- Create section if not already defined --]
-        [#if !isOutputSection(SCRIPT_DEFAULT_OUTPUT_TYPE, name)]
-            [@addOutputSection
-                name=SCRIPT_DEFAULT_OUTPUT_TYPE
-                section=name
-                initialContent={}
-                converter="genplan_script_output_converter"
-            /]
-        [/#if]
+            [#local stageSteps = []]
+            [#if outputSteps[stage.Id]?has_content ]
+                [#list (outputSteps[stage.Id]?values)?sort_by("Priority") as step ]
+                    [#local stageSteps = combineEntities(
+                                            stageSteps,
+                                            [
+                                                {
+                                                    "Id" : step.Id,
+                                                    "Type" : step.Type,
+                                                    "Parameters"  : step.Parameters
+                                                }
+                                            ],
+                                            APPEND_COMBINE_BEHAVIOUR
+                    )]
+                [/#list]
 
-        [#-- Now add the steps --]
-        [@mergeWithJsonOutput
-            name=SCRIPT_DEFAULT_OUTPUT_TYPE
-            content=getGenerationPlanSteps(subset, alternatives)
-            section=name
+
+                [#local contractStages = combineEntities(
+                                            contractStages,
+                                            [
+                                                {
+                                                    "Id" : stage.Id,
+                                                    "ExecutionMode" : stage.ExecutionMode,
+                                                    "Steps" : stageSteps
+                                                }
+                                            ],
+                                            APPEND_COMBINE_BEHAVIOUR
+                )]
+            [/#if]
+        [/#list]
+
+        [@toJSON
+            {
+                "Metadata" : {
+                    "Id" : getOutputContent("contract"),
+                    "Prepared" : .now?iso_utc,
+                    "RunId" : commandLineOptions.Run.Id,
+                    "RequestReference" : commandLineOptions.References.Request,
+                    "ConfigurationReference" : commandLineOptions.References.Configuration
+                },
+                "Stages" : contractStages
+            } +
+            attributeIfContent("COTMessages", logMessages)
         /]
-    [/#list]
+    [/#if]
+    [@serialiseOutput name=JSON_DEFAULT_OUTPUT_TYPE /]
 [/#macro]
 
-[#function genplan_script_output_converter args=[] ]
-    [#local result = [] ]
-    [#list args[0] as subset, subsetValue]
-        [#list subsetValue as alternative, alternativeValue]
-            [#list alternativeValue as provider, providerValue]
-                [#list providerValue as deploymentFramework, value]
-                    [#local step_name = value.Name]
-                    [#local result +=
-                        [
-                            "## ${step_name} ##",
-                            "plan_steps+=(\"${step_name}\")",
-                            "plan_subsets[\"${step_name}\"]=\"" + subset + "\"",
-                            "plan_alternatives[\"${step_name}\"]=\"" + alternative + "\"",
-                            "plan_providers[\"${step_name}\"]=\"" + (commandLineOptions.Deployment.Provider.Names)?join(",") + "\"",
-                            "plan_deployment_frameworks[\"${step_name}\"]=\"" + deploymentFramework + "\"",
-                            "plan_output_types[\"${step_name}\"]=\"" + value.OutputType + "\"",
-                            "plan_output_formats[\"${step_name}\"]=\"" + value.OutputFormat + "\"",
-                            "plan_output_suffixes[\"${step_name}\"]=\"" + value.OutputSuffix + "\"",
-                            "#"
-                        ] ]
-                [/#list]
-            [/#list]
+[#macro contractStage id executionMode priority=100 ]
+    [@mergeWithJsonOutput
+        name="stages"
+        content={
+            id : {
+                "Id" : id,
+                "Priority" : 100,
+                "ExecutionMode" : executionMode
+            }
+        }
+    /]
+[/#macro]
+
+[#macro contractStep id stageId taskType parameters priority=100  ]
+    [@mergeWithJsonOutput
+        name="steps"
+        content={
+            stageId : {
+                id : {
+                    "Id" : id,
+                    "Priority" : priority
+                } +
+                getTask(taskType, parameters)
+            }
+        }
+    /]
+[/#macro]
+
+[#-- GenerationContract --]
+
+[#-- Generation Contracts create a contract document which outlines what documents need to be generated --]
+[#macro addDefaultGenerationContract subsets=[] alternatives=["primary"] ]
+
+    [#local requiredSubsets = [ "testcase" ]]
+    [#local subsets = combineEntities( requiredSubsets, asArray( subsets ), UNIQUE_COMBINE_BEHAVIOUR )]
+
+    [#local alternatives = asArray(alternatives) ]
+
+    [#-- create the contract stage for the pregeneration step --]
+    [#-- This will include an extra step for running the pregeneration task --]
+    [#if subsets?seq_contains("pregeneration") ]
+        [#local stageId = "pregeneration" ]
+        [@contractStage
+            id=stageId
+            executionMode=CONTRACT_EXECUTION_MODE_SERIAL
+            priority=10
+        /]
+
+        [@contractStep
+            id=formatId(stageId, "generation")
+            stageId=stageId
+            taskType=PROCESS_TEMPLATE_PASS_TASK_TYPE
+            priority=10
+            parameters=
+                getGenerationContractStepParameters(
+                    "pregeneration",
+                    "pregeneration",
+                    (commandLineOptions.Deployment.Provider.Names)[0]
+                )
+        /]
+
+        [#local subsets = removeValueFromArray(subsets, "pregeneration")]
+    [/#if]
+
+    [#-- create the contract stages --]
+    [#list alternatives as alternative ]
+        [#local stageId = formatId("generation", alternative) ]
+        [@contractStage
+            id=stageId
+            executionMode=CONTRACT_EXECUTION_MODE_PARALLEL
+        /]
+
+        [#list subsets as subset ]
+            [@contractStep
+                id=formatId(stageId, subset)
+                stageId=stageId
+                taskType=PROCESS_TEMPLATE_PASS_TASK_TYPE
+                parameters=
+                    getGenerationContractStepParameters(
+                        subset,
+                        alternative,
+                        (commandLineOptions.Deployment.Provider.Names)[0]
+                    )
+            /]
         [/#list]
     [/#list]
-    [#return result]
-[/#function]
-
+[/#macro]
 
 [#-- Initialise the possible outputs to make sure they are available to all steps --]
 [@initialiseDefaultScriptOutput format=BASH_DEFAULT_OUTPUT_FORMAT /]
 [@initialiseJsonOutput name=JSON_DEFAULT_OUTPUT_TYPE /]
 
 [#-- Add Output Step mappings for each output --]
-[@addGenPlanStepOutputMapping
-    provider=SHARED_PROVIDER
-    subset="genplan"
-    outputType=SCRIPT_DEFAULT_OUTPUT_TYPE
-    outputFormat=getOutputFormat(SCRIPT_DEFAULT_OUTPUT_TYPE)
-    outputSuffix="genplan.sh"
-/]
-
-[@addGenPlanStepOutputMapping
+[@addGenerationContractStepOutputMapping
     provider=SHARED_PROVIDER
     subset="pregeneration"
     outputType=SCRIPT_DEFAULT_OUTPUT_TYPE
@@ -298,7 +331,7 @@
     outputSuffix="pregeneration.sh"
 /]
 
-[@addGenPlanStepOutputMapping
+[@addGenerationContractStepOutputMapping
     provider=SHARED_PROVIDER
     subset="prologue"
     outputType=SCRIPT_DEFAULT_OUTPUT_TYPE
@@ -306,7 +339,7 @@
     outputSuffix="prologue.sh"
 /]
 
-[@addGenPlanStepOutputMapping
+[@addGenerationContractStepOutputMapping
     provider=SHARED_PROVIDER
     subset="epilogue"
     outputType=SCRIPT_DEFAULT_OUTPUT_TYPE
@@ -314,7 +347,7 @@
     outputSuffix="epilogue.sh"
 /]
 
-[@addGenPlanStepOutputMapping
+[@addGenerationContractStepOutputMapping
     provider=SHARED_PROVIDER
     subset="testcase"
     outputType=JSON_DEFAULT_OUTPUT_TYPE
@@ -322,7 +355,7 @@
     outputSuffix="testcase.json"
 /]
 
-[@addGenPlanStepOutputMapping
+[@addGenerationContractStepOutputMapping
     provider=SHARED_PROVIDER
     subset="cli"
     outputType=JSON_DEFAULT_OUTPUT_TYPE
@@ -330,7 +363,7 @@
     outputSuffix="cli.json"
 /]
 
-[@addGenPlanStepOutputMapping
+[@addGenerationContractStepOutputMapping
     provider=SHARED_PROVIDER
     subset="config"
     outputType=JSON_DEFAULT_OUTPUT_TYPE
@@ -338,7 +371,7 @@
     outputSuffix="config.json"
 /]
 
-[@addGenPlanStepOutputMapping
+[@addGenerationContractStepOutputMapping
     provider=SHARED_PROVIDER
     subset="parameters"
     outputType=JSON_DEFAULT_OUTPUT_TYPE

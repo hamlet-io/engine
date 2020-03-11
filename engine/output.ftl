@@ -337,17 +337,12 @@
     [/#if]
 [/#macro]
 
-[#-- GENPLAN --]
+[#-- Generation Contracts --]
+[#assign generationcontractStepOutputMappings = {} ]
 
-[#-- Genplans leverage the general script output but add JSON based sections --]
-[#-- to order steps and ensure steps aren't repeated.                        --]
-[#-- Genplan sections have their own converter to convert the JSON to text   --]
-
-[#assign genPlanStepOutputMappings = {} ]
-
-[#macro addGenPlanStepOutputMapping provider subset outputType outputFormat outputSuffix]
-    [#assign genPlanStepOutputMappings = mergeObjects(
-                genPlanStepOutputMappings,
+[#macro addGenerationContractStepOutputMapping provider subset outputType outputFormat outputSuffix]
+    [#assign generationcontractStepOutputMappings = mergeObjects(
+                generationcontractStepOutputMappings,
                 {
                     provider : {
                         subset : {
@@ -389,49 +384,33 @@
     [/#if]
 [/#function]
 
-[#function getGenPlanStepOutputMapping provider subset ]
-    [#if ((genPlanStepOutputMappings[provider][subset])!{})?has_content ]
-        [#return genPlanStepOutputMappings[provider][subset]]
+[#function getGenerationContractStepOutputMapping provider subset ]
+    [#if ((generationcontractStepOutputMappings[provider][subset])!{})?has_content ]
+        [#return generationcontractStepOutputMappings[provider][subset]]
     [/#if]
 
-    [#if ((genPlanStepOutputMappings[SHARED_PROVIDER][subset])!{})?has_content ]
-        [#return genPlanStepOutputMappings[SHARED_PROVIDER][subset]]
+    [#if ((generationcontractStepOutputMappings[SHARED_PROVIDER][subset])!{})?has_content ]
+        [#return generationcontractStepOutputMappings[SHARED_PROVIDER][subset]]
     [/#if]
 
     [#return {}]
 [/#function]
 
-[#function getGenerationPlanSteps subset alternatives]
 
-    [#-- Determine the script format --]
-    [#local outputFormat = getOutputFormat(SCRIPT_DEFAULT_OUTPUT_TYPE) ]
-
-    [#local steps = {} ]
-
-    [#-- Determine the steps required --]
-    [#list asArray(alternatives) as alternative]
-        [#local step = getGenPlanStepOutputMapping( (commandLineOptions.Deployment.Provider.Names)[0], subset) ]
-        [#if ! step?has_content ]
-            [#return {}]
-        [/#if]
-        [#local step_name = [subset, alternative, (commandLineOptions.Deployment.Provider.Names)[0], commandLineOptions.Deployment.Framework.Name]?join("-") ]
-        [#local steps =
-            mergeObjects(
-                steps,
-                {
-                    subset : {
-                        alternative : {
-                            (commandLineOptions.Deployment.Provider.Names)[0] : {
-                                commandLineOptions.Deployment.Framework.Name : {
-                                    "Name" : step_name
-                                } + step
-                            }
-                        }
-                    }
-                }
-            ) ]
-    [/#list]
-    [#return steps]
+[#function getGenerationContractStepParameters subset alternative provider ]
+    [#local outputMappings = getGenerationContractStepOutputMapping(
+                                (commandLineOptions.Deployment.Provider.Names)[0],
+                                subset
+                            )]
+    [#return {
+        "provider"      : (commandLineOptions.Deployment.Provider.Names)?join(","),
+        "framework"     : commandLineOptions.Deployment.Framework.Name,
+        "outputType"    : outputMappings["OutputType"],
+        "outputFormat"  : outputMappings["OutputFormat"],
+        "outputSuffix"  : outputMappings["OutputSuffix"],
+        "subset"        : subset,
+        "alternative"   : alternative
+    }]
 [/#function]
 
 [#----------------------------------------------------

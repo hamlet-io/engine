@@ -3,8 +3,8 @@
 
     [#if accountObject.Seed?has_content]
 
-        [#if deploymentSubsetRequired("genplan", false)]
-            [@addDefaultGenerationPlan subsets="template" /]
+        [#if deploymentSubsetRequired("generationcontract", false)]
+            [@addDefaultGenerationContract subsets="template" /]
         [/#if]
 
         [#if deploymentSubsetRequired("audit", true)]

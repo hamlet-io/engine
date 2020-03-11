@@ -1,6 +1,6 @@
 [#ftl]
-[#macro aws_mobileapp_cf_genplan_application occurrence ]
-    [@addDefaultGenerationPlan subsets=["prologue", "config"] /]
+[#macro aws_mobileapp_cf_generationcontract_application occurrence ]
+    [@addDefaultGenerationContract subsets=["prologue", "config"] /]
 [/#macro]
 
 [#macro aws_mobileapp_cf_setup_application occurrence ]

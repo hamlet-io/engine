@@ -1,6 +1,6 @@
 [#ftl]
-[#macro aws_datapipeline_cf_genplan_application occurrence ]
-    [@addDefaultGenerationPlan subsets=["prologue", "template", "epilogue", "cli", "config"] /]
+[#macro aws_datapipeline_cf_generationcontract_application occurrence ]
+    [@addDefaultGenerationContract subsets=["prologue", "template", "epilogue", "cli", "config"] /]
 [/#macro]
 
 [#macro aws_datapipeline_cf_setup_application occurrence ]

@@ -1,6 +1,6 @@
 [#ftl]
-[#macro aws_baseline_cf_genplan_segment occurrence ]
-    [@addDefaultGenerationPlan subsets=["prologue", "template", "epilogue"] /]
+[#macro aws_baseline_cf_generationcontract_segment occurrence ]
+    [@addDefaultGenerationContract subsets=["prologue", "template", "epilogue"] /]
 [/#macro]
 
 [#macro aws_baseline_cf_setup_segment occurrence ]

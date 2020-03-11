@@ -1,8 +1,8 @@
 [#-- Standard set of buckets for an account --]
 [#if getDeploymentUnit()?contains("s3") || (allDeploymentUnits!false) ]
     [#if accountObject.Seed?has_content]
-        [#if deploymentSubsetRequired("genplan", false)]
-            [@addDefaultGenerationPlan subsets=["template", "epilogue"] /]
+        [#if deploymentSubsetRequired("generationcontract", false)]
+            [@addDefaultGenerationContract subsets=["template", "epilogue"] /]
         [/#if]
 
         [#if deploymentSubsetRequired("s3", true)]
@@ -152,4 +152,3 @@
         /]
     [/#if]
 [/#if]
-

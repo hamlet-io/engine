@@ -1,6 +1,6 @@
 [#ftl]
-[#macro aws_cdn_cf_genplan_solution occurrence ]
-    [@addDefaultGenerationPlan subsets=["template", "epilogue"] /]
+[#macro aws_cdn_cf_generationcontract_solution occurrence ]
+    [@addDefaultGenerationContract subsets=["template", "epilogue"] /]
 [/#macro]
 
 [#macro aws_cdn_cf_setup_solution occurrence ]

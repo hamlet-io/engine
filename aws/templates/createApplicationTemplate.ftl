@@ -1,6 +1,6 @@
 [#ftl]
 [#if (deploymentUnit == "model")  &&
-    (!((deploymentUnitSubset!"") == "genplan"))]
+    (!((deploymentUnitSubset!"") == "generationcontract"))]
     [#assign deploymentFrameworkModel = ""]
 [/#if]
 [#include "/bootstrap.ftl" ]
@@ -18,9 +18,9 @@
         [/#if]
         [#-- Fall through to lg processing --]
     [#case "lg"]
-        [#if (commandLineOptions.Deployment.Unit.Subset!"") == "genplan"]
+        [#if (commandLineOptions.Deployment.Unit.Subset!"") == "generationcontract"]
             [@initialiseDefaultScriptOutput format=commandLineOptions.Deployment.Output.Format /]
-            [@addDefaultGenerationPlan subsets="template" /]
+            [@addDefaultGenerationContract subsets="template" /]
         [#else]
             [#if !(commandLineOptions.Deployment.Unit.Subset?has_content)]
                 [#assign allDeploymentUnits = true]
@@ -40,9 +40,9 @@
         [/#if]
         [#break]
     [#case "model"]
-        [#if (commandLineOptions.Deployment.Unit.Subset!"") == "genplan"]
+        [#if (commandLineOptions.Deployment.Unit.Subset!"") == "generationcontract"]
             [@initialiseDefaultScriptOutput format=commandLineOptions.Deployment.Output.Format /]
-            [@addDefaultGenerationPlan subsets="config" /]
+            [@addDefaultGenerationContract subsets="config" /]
         [#else]
             [#assign commandLineOptions =
                 mergeObjects(

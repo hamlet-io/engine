@@ -1,7 +1,7 @@
 [#if getDeploymentUnit()?contains("console") || (allDeploymentUnits!false) ]
 
-    [#if deploymentSubsetRequired("genplan", false)]
-        [@addDefaultGenerationPlan subsets=["epilogue", "cli"] /]
+    [#if deploymentSubsetRequired("generationcontract", false)]
+        [@addDefaultGenerationContract subsets=["epilogue", "cli"] /]
     [/#if]
 
     [#assign consoleLgId = formatLogGroupId( "console" )]

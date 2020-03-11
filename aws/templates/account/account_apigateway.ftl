@@ -1,8 +1,8 @@
 [#-- API Gateway --]
 [#if getDeploymentUnit()?contains("apigateway") || (allDeploymentUnits!false) ]
     [#assign cloudWatchRoleId = formatAccountRoleId("cloudwatch")]
-    [#if deploymentSubsetRequired("genplan", false)]
-        [@addDefaultGenerationPlan subsets="template" /]
+    [#if deploymentSubsetRequired("generationcontract", false)]
+        [@addDefaultGenerationContract subsets="template" /]
     [/#if]
 
     [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(cloudWatchRoleId)]
@@ -27,4 +27,3 @@
         /]
     [/#if]
 [/#if]
-
