@@ -177,6 +177,20 @@ object.
                         "Description" : "Name the Swagger Spec file using the path",
                         "Type" : BOOLEAN_TYPE,
                         "Default" : true
+                    },
+                    {
+                        "Names" : "Contact",
+                        "Mandatory" : false,
+                        "Children" : [
+                            {
+                                "Names" : "Name",
+                                "Type" : STRING_TYPE
+                            },
+                            {
+                                "Names" : "Email",
+                                "Type" : STRING_TYPE
+                            }
+                        ]
                     }
                 ]
             },
