@@ -93,6 +93,13 @@ function options() {
   fi
   GENERATION_PROVIDERS=$(listFromArray "GENERATION_PROVIDERS" ",")
 
+  # load utility functions for all loaded providers
+  for provider in "${GENERATION_PROVIDERS}"; do
+    if [[ -f "${GENERATION_PLUGIN_DIRS}/${provider}/utility.sh" ]]; then
+      . ${GENERATION_PLUGIN_DIRS}/${provider}/utility.sh
+    fi
+  done
+
   # Check level and deployment unit
   ! isValidUnit "${LEVEL}" "${DEPLOYMENT_UNIT}" && fatal "Deployment unit/level not valid" &&  return 1
 
