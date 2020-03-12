@@ -16,6 +16,7 @@
 [#assign AWSTEST_PROVIDER = "awstest"]
 
 [#assign testScenarios = [
+    "db",
     "lb"
 ]]
 

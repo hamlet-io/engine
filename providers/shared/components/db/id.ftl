@@ -67,8 +67,8 @@
                     },
                     {
                         "Names" : "EncryptionScheme",
+                        "Description" : "A prefix added to encrypted strings to identify how they have been encoded",
                         "Type" : STRING_TYPE,
-                        "Values" : ["base64"],
                         "Default" : ""
                     }
                 ]
