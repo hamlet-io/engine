@@ -38,7 +38,14 @@
     [#return attributeIfTrue(
         attribute,
         content?has_content,
-        value?has_content?then(value?number, content?number))]
+        value?has_content?then(
+            value?number, 
+            content?has_content?then(
+                content?number,
+                ""
+            )
+        )
+    )]
 [/#function]
 
 [#------------------------
