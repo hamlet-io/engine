@@ -5,6 +5,17 @@
 
     [#-- Base database setup --]
     [@addScenario
+        settingSets=[
+            {
+                "Type" : "Settings",
+                "Scope" : "Products",
+                "Namespace" : "mockedup-integration-aws-db-postgres-base",
+                "Settings" : {
+                    "MASTER_USERNAME" : "testUser",
+                    "MASTER_PASSWORD" : "testPassword"
+                }
+            }
+        ]
         blueprint={
             "Tiers" : {
                 "db" : {
@@ -19,10 +30,7 @@
                                 "Engine" : "postgres",
                                 "EngineVersion" : "11",
                                 "Profiles" : {
-                                    "Testing" : [ "Component" ]
-                                },
-                                "GenerateCredentials" : {
-                                    "Enabled" : true
+                                    "Testing" : [ "postgresdbbase" ]
                                 }
                             }
                         }
@@ -81,9 +89,66 @@
                 }
             },
             "TestProfiles" : {
-                "Component" : {
+                "postgresdbbase" : {
                     "db" : {
                         "TestCases" : [ "postgresdbbase" ]
+                    }
+                }
+            }
+        }
+    /]
+
+
+    [#-- Generated creds --]
+    [@addScenario
+        blueprint={
+            "Tiers" : {
+                "db" : {
+                    "Components" : {
+                        "postgresdbgenerated" : {
+                            "db" : {
+                                "Instances" : {
+                                    "default" : {
+                                        "DeploymentUnits" : ["aws-db-postgres-generated"]
+                                    }
+                                },
+                                "Engine" : "postgres",
+                                "EngineVersion" : "11",
+                                "Profiles" : {
+                                    "Testing" : [ "postgresdbgenerated" ]
+                                },
+                                "GenerateCredentials" : {
+                                    "Enabled" : true,
+                                    "EncryptionScheme" : "kms"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "TestCases" : {
+                "postgresdbgenerated" : {
+                    "OutputSuffix" : "template.json",
+                    "Structural" : {
+                        "CFN" : {
+                            "Resource" : {
+                                "rdsInstance" : {
+                                    "Name" : "rdsXdbXpostgresdbgenerated",
+                                    "Type" : "AWS::RDS::DBInstance"
+                                }
+                            },
+                            "Output" : [
+                                "rdsXdbXpostgresdbgeneratedXdns",
+                                "rdsXdbXpostgresdbgeneratedXport"
+                            ]
+                        }
+                    }
+                }
+            },
+            "TestProfiles" : {
+                "postgresdbgenerated" : {
+                    "db" : {
+                        "TestCases" : [ "postgresdbgenerated" ]
                     }
                 }
             }
