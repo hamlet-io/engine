@@ -388,6 +388,8 @@ function main() {
             export IOS_DIST_APPLE_ID="$( jq -r '.BuildConfig.IOS_DIST_APPLE_ID' < "${CONFIG_FILE}" )"
             export IOS_DIST_APP_ID="$( jq -r '.BuildConfig.IOS_DIST_APP_ID' < "${CONFIG_FILE}" )"
 
+            export IOS_DIST_EXPORT_METHOD="$( jq -r '.BuildConfig.IOS_DIST_EXPORT_METHOD' < "${CONFIG_FILE}" )"
+
             export IOS_TESTFLIGHT_USERNAME="$(jq -r '.BuildConfig.IOS_TESTFLIGHT_USERNAME' < "${CONFIG_FILE}")"
             IOS_TESTFLIGHT_PASSWORD="$(jq -r '.BuildConfig.IOS_TESTFLIGHT_PASSWORD' < "${CONFIG_FILE}")"
             export IOS_TESTFLIGHT_PASSWORD="$( decrypt_kms_string "${AWS_REGION}" "${IOS_TESTFLIGHT_PASSWORD#"base64:"}")"
@@ -474,7 +476,7 @@ function main() {
 
                 # Build App
                 fastlane run cocoapods podfile:"${FASTLANE_IOS_PODFILE}" || return $?
-                fastlane run build_ios_app workspace:"${FASTLANE_IOS_WORKSPACE_FILE}" output_directory:"${BINARY_PATH}" output_name:"${EXPO_BINARY_FILE_NAME}" export_method:"app-store" codesigning_identity:"${CODESIGN_IDENTITY}" || return $?
+                fastlane run build_ios_app workspace:"${FASTLANE_IOS_WORKSPACE_FILE}" output_directory:"${BINARY_PATH}" output_name:"${EXPO_BINARY_FILE_NAME}" export_method:"${IOS_DIST_EXPORT_METHOD}" codesigning_identity:"${CODESIGN_IDENTITY}" || return $?
 
                 ;;
         esac
