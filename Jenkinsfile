@@ -18,7 +18,7 @@ pipeline {
             agent none
             steps {
                 build (
-                    job: '../docker-gen3/master'
+                    job: '../docker-hamlet/master'
                 )
             }
         }
