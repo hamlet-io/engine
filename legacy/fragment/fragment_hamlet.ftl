@@ -1,11 +1,13 @@
 [#case "codeontap"]
 [#case "_codeontap"]
+[#case "_hamlet"]
+[#case "hamlet"]
 
     [#assign settings = _context.DefaultEnvironment]
 
     [#assign dockerStageDir = settings["DOCKER_STAGE_DIR"]!"/tmp/docker-build" ]
     [#assign dockerHostDaemon = settings["DOCKER_HOST_DAEMON"]!"/var/run/docker.sock"]
-    [#assign jenkinsAgentImage = settings["DOCKER_AGENT_IMAGE"]!"gen3"]
+    [#assign jenkinsAgentImage = settings["DOCKER_AGENT_IMAGE"]!"hamletio/hamlet"]
     [#assign awsAgentAutomationRole = settings["AWS_AUTOMATION_ROLE"]!"codeontap-automation" ]
 
     [@Attributes image=jenkinsAgentImage /]
@@ -38,6 +40,16 @@
             name="codeontap"
             containerPath="/var/opt/codeontap/"
             hostPath=settings["CODEONTAPVOLUME"]
+            readOnly=true
+        /]
+    [/#if]
+
+    [#-- Validate that the appropriate settings have been provided for the container to work --]
+    [#if settings["HAMLETVOLUME"]?has_content ]
+        [@Volume
+            name="hamlet"
+            containerPath="/var/opt/hamlet/"
+            hostPath=settings["HAMLETVOLUME"]
             readOnly=true
         /]
     [/#if]
