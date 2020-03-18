@@ -286,7 +286,7 @@
             parameters=
                 getGenerationContractStepParameters(
                     "pregeneration",
-                    "pregeneration",
+                    "primary",
                     (commandLineOptions.Deployment.Provider.Names)[0]
                 )
         /]
