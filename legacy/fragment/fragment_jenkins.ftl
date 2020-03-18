@@ -36,15 +36,22 @@
     [#if ! settings["ECS_ARN"]?? ]
         [@fatal
             message="Could not find ecs host for agents - add a link to the ECS Host that will run your agents"
-            context=_context.Links 
+            context=_context.Links
             detail="Add a link with the id ecs"
+        /]
+    [/#if]
+
+    [#if (settings["JENKINS_JNLP_FQDN"]!"")?has_content ]
+        [@Settings
+            {
+                "AGENT_JNLP_TUNNEL" : settings["JENKINS_JNLP_FQDN"] + ":50000"
+            }
         /]
     [/#if]
 
     [#if (settings["JENKINS_LOCAL_FQDN"]!"")?has_content ]
         [@Settings
             {
-                "AGENT_JNLP_TUNNEL" : settings["JENKINS_LOCAL_FQDN"] + ":50000",
                 "AGENT_JENKINS_URL" : "http://" + settings["JENKINS_LOCAL_FQDN"] + ":8080"
             }
         /]
