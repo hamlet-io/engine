@@ -58,4 +58,19 @@
         }
     /]
 
+    [@pushInputsPlacementContext
+        {
+            "Account" : account!"",
+            "Region" : region!""
+        }
+    /]
+
+    [@pushInputsProductContext
+        {
+            "Tenant" : tenant!"",
+            "Product" : product!"",
+            "Environment" : environment!"",
+            "Segment" : segment!""
+        }
+    /]
 [/#macro]

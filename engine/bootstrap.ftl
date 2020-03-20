@@ -7,6 +7,9 @@
 [#include "logging.ftl" ]
 
 [#-- Input data handling --]
+[#include "inputdata/context.ftl" ]
+[@initialiseInputsContext /]
+
 [#include "inputdata/commandLineOptions.ftl" ]
 [#include "inputdata/masterdata.ftl" ]
 [#include "inputdata/blueprint.ftl" ]
@@ -43,6 +46,12 @@
 
 [#-- Set desired logging level --]
 [@setLogLevel commandLineOptions.Logging.Level /]
+
+[#-- CMDB Handling --]
+[#if commandLineOptions.Input.Source == "composite"]
+    [#include "cmdb.ftl" ]
+    [@initialiseCMDB /]
+[/#if]
 
 [#-- Get the provider specific command line options/masterdata --]
 [@includeProviders commandLineOptions.Deployment.Provider.Names /]

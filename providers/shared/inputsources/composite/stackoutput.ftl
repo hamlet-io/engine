@@ -10,7 +10,11 @@
     [#-- The component level is determined by the first part of the file name --]
 
     [#-- cloudformation stack outputs are used as the default shared format to align with PseudoStack Output script --]
-    [#list commandLineOptions.Composites.StackOutputs as stackOutputFile ]
+    [#local stackOutputFiles =
+        getCMDBAccountStackOutputs() +
+        getCMDBProductStackOutputs() ]
+
+    [#list stackOutputFiles as stackOutputFile ]
 
         [#local level = ((stackOutputFile["FileName"])?split('-'))[0] ]
 
@@ -34,7 +38,12 @@
                         [/#if]
 
                         [#if stackOutput?has_content ]
-                            [#local stackOutputs += [ mergeObjects( { "Level" : level} , stackOutput) ] ]
+                            [#-- Ensure mandatory attributes present --]
+                            [#if
+                                (stackOutput.Account?has_content || stackOutput.Subscription?has_content) &&
+                                stackOutput.Region?has_content ]
+                                [#local stackOutputs += [ mergeObjects( { "Level" : level} , stackOutput) ] ]
+                            [/#if]
                         [/#if]
                     [/#if]
                 [/#list]

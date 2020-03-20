@@ -4,8 +4,11 @@
 
 [#assign SHARED_PROVIDER = "shared"]
 
-[#assign providerDictionary = [] ]
-[#assign providerMarkers = [] ]
+[#macro initialiseProviders]
+    [#local result = initialisePluginFileSystem() ]
+    [#assign providerDictionary = initialiseDictionary() ]
+    [#assign providerMarkers = findProviderMarkers()  ]
+[/#macro]
 
 [#-- Only load configuration once --]
 [#function isConfigurationIncluded configuration]
@@ -36,12 +39,6 @@
     [#return markers?sort_by("Path") ]
 
 [/#function]
-
-[#macro initialiseProviders]
-    [#local result = initialisePluginFileSystem() ]
-    [#assign providerDictionary = initialiseDictionary() ]
-    [#assign providerMarkers = findProviderMarkers()  ]
-[/#macro]
 
 [#-- Determine what providers have been configured --]
 [#-- Include their input sources                   --]
@@ -488,12 +485,6 @@
     [@internalIncludeTemplatesInDirectory
         [providerMarker.Path, "references"],
         ["reference" ]
-    /]
-
-    [#-- aws/references/reference.ftl --]
-    [@internalIncludeTemplatesInDirectory
-        [providerMarker.Path, "tasks"],
-        ["task" ]
     /]
 
     [#-- aws/resourcegroups/resourcegroup.ftl --]

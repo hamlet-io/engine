@@ -1,7 +1,7 @@
 [#ftl]
 
 [#-- tasks are executed in contracts --]
-[#-- Each task should perform a specifc action to manage a deployment --]
+[#-- Each task should perform a specific action to manage a deployment --]
 
 [#assign taskConfiguration = {}]
 

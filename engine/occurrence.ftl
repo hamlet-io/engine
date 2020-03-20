@@ -366,7 +366,7 @@
     [#return result]
 [/#function]
 
-
+[#-- TODO(mfl): remove unused root parameter --]
 [#function internalCreateOccurrenceSettings possibilities root prefixes alternatives]
     [#local contexts = [] ]
 
@@ -377,7 +377,7 @@
             [#local value = possibilities[key] ]
             [#if value?has_content]
                 [#list alternatives as alternative]
-                    [#local alternativeKey = formatName(root, prefix, alternative.Key) ]
+                    [#local alternativeKey = formatName(prefix, alternative.Key) ]
                     [@debug
                         message=alternative.Match + " comparison of " + matchKey + " to " + alternativeKey
                         enabled=false

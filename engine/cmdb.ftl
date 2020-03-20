@@ -4,7 +4,46 @@
 -- CMDB layered file system functions --
 ----------------------------------------]
 
-[#function analyseCMDBTenants cmdbCache tenant="" path="/" ]
+[#macro initialiseCMDB]
+    [#local result = initialiseCMDBFileSystem({}) ]
+    [#assign cmdbCache = initialiseCache() ]
+[/#macro]
+
+[#-- CMDB cache management --]
+[#macro addToCMDBCache contents...]
+    [#assign cmdbCache = addToCache(cmdbCache, contents) ]
+[/#macro]
+
+[#macro clearCMDBCache paths={} ]
+    [#assign cmdbCache = clearCache(cmdbCache, paths) ]
+[/#macro]
+
+[#macro clearCMDBCacheSection path=[] ]
+    [#assign cmdbCache = clearCacheSection(cmdbCache, path) ]
+[/#macro]
+
+[#function getCMDBCacheSection path=[] ]
+    [#return getCacheSection(cmdbCache, path) ]
+[/#function]
+
+[#function getCMDBCacheTenantSection tenant path=[] ]
+    [#return getCMDBCacheSection(["Tenants", tenant] + path) ]
+[/#function]
+
+[#function getCMDBCacheAccountSection tenant account path=[] ]
+    [#return getCMDBCacheTenantSection(tenant, ["Accounts", account] + path) ]
+[/#function]
+
+[#function getCMDBCacheProductSection tenant product path=[] ]
+    [#return getCMDBCacheTenantSection(tenant, ["Products", product] + path) ]
+[/#function]
+
+[#function getCMDBCacheSegmentSection tenant product environment segment path=[] ]
+    [#return getCMDBCacheProductSection(tenant, product, ["Environments", environment, "Segments", segment] + path) ]
+[/#function]
+
+[#-- CMDB structure analysis --]
+[#function analyseCMDBTenants tenant="" path="/" ]
     [#local tenants={} ]
 
     [#if
@@ -15,7 +54,12 @@
         ) ]
         [#local tenants = cmdbCache.Tenants]
     [#else]
-            [#local tenants = internalAnalyseTenantStructure(path, tenant) ]
+        [#local startingPath = path]
+        [#local cmdbPath = internalFindCMDBPath("accounts")]
+        [#if cmdbPath?has_content]
+            [#local startingPath = cmdbPath]
+        [/#if]
+        [#local tenants = internalAnalyseTenantStructure(startingPath, tenant) ]
     [/#if]
 
     [#return
@@ -25,11 +69,11 @@
     ]
 [/#function]
 
-[#function analyseCMDBAccounts cmdbCache tenant account="" ]
+[#function analyseCMDBAccounts tenant account="" ]
     [#local accounts = {} ]
 
     [#-- Assume tenants up to date in cmdbCache --]
-    [#local tenantStructure = (cmdbCache.Tenants[tenant])!{} ]
+    [#local tenantStructure = getCMDBCacheTenantSection(tenant) ]
 
     [#if tenantStructure?has_content ]
         [#if
@@ -40,12 +84,13 @@
             ) ]
             [#local accounts = tenantStructure.Accounts ]
         [#else]
-            [#local accounts =
-                internalAnalyseAccountStructure(
-                    (tenantStructure.Paths.CMDB)!"",
-                    account
-                )
-            ]
+            [#local startingPath = (tenantStructure.Paths.CMDB)!""]
+            [#local cmdbPath = internalFindCMDBPath("accounts")]
+            [#if cmdbPath?has_content]
+                [#local startingPath = cmdbPath]
+            [/#if]
+
+            [#local accounts = internalAnalyseAccountStructure(startingPath, account) ]
         [/#if]
     [/#if]
 
@@ -62,11 +107,11 @@
     ]
 [/#function]
 
-[#function analyseCMDBProducts cmdbCache tenant product="" environment="" segment="" ]
+[#function analyseCMDBProducts tenant product="" environment="" segment="" ]
     [#local products = {} ]
 
     [#-- Assume tenants up to date in cmdbCache --]
-    [#local tenantStructure = (cmdbCache.Tenants[tenant])!{} ]
+    [#local tenantStructure = getCMDBCacheTenantSection(tenant) ]
 
     [#if tenantStructure?has_content ]
         [#if
@@ -86,7 +131,13 @@
                 )
             ]
         [#else]
-            [#local products = internalAnalyseProductStructure((tenantStructure.Paths.CMDB)!"", product) ]
+            [#local startingPath = (tenantStructure.Paths.CMDB)!""]
+            [#local cmdbPath = internalFindCMDBPath(product)]
+            [#if cmdbPath?has_content]
+                [#local startingPath = cmdbPath]
+            [/#if]
+
+            [#local products = internalAnalyseProductStructure(startingPath, product) ]
         [/#if]
 
         [#list products as productKey, productStructure ]
@@ -101,10 +152,10 @@
                     valueIfContent(
                         getObjectAttributes(
                             productStructure.Environments,
-                            product
+                            environment
                         ),
                         environment,
-                        productStructure.Products
+                        productStructure.Environments
                     )
                 ]
             [#else]
@@ -130,7 +181,7 @@
                         )
                     ]
                 [#else]
-                    [#local segments =  internalAnalyseSegmentStructure((environmentStructure.Paths.Marker)!"",segment) ]
+                    [#local segments =  internalAnalyseSegmentStructure((environmentStructure.Paths.Marker)!"", segment) ]
                 [/#if]
 
                 [#local environments +=
@@ -169,22 +220,54 @@
     ]
 [/#function]
 
-[#function assembleCMDBTenantBlueprint cmdbCache tenant="" ]
+[#-- CMDB configuration extraction --]
+[#function assembleCMDBTenantBlueprint tenant ]
 
-    [#return internalAssembleCMDBBlueprint((cmdbCache.Tenants[tenant].Paths.Marker)!"") ]
+    [#return
+        {
+            "Tenants" : {
+                tenant :
+                    internalAssembleCMDBBlueprint(
+                        (getCMDBCacheTenantSection(tenant).Paths.Marker)!"",
+                        [ [] ],
+                        {
+                            "MinDepth" : 1,
+                            "MaxDepth" : 1
+                        }
+                    )
+            }
+        }
+    ]
 
 [/#function]
 
-[#function assembleCMDBAccountBlueprint cmdbCache tenant="" account="" ]
+[#function assembleCMDBAccountBlueprint tenant account ]
 
-    [#return internalAssembleCMDBBlueprint((cmdbCache.Tenants[tenant].Accounts[account].Paths.Marker)!"") ]
+    [#return
+        {
+            "Tenants" : {
+                tenant : {
+                    "Accounts" : {
+                        account :
+                            internalAssembleCMDBBlueprint(
+                                (getCMDBCacheAccountSection(tenant, account).Paths.Marker)!"",
+                                [ [] ],
+                                {
+                                    "MinDepth" : 1,
+                                    "MaxDepth" : 1
+                                }
+                            )
+                    }
+                }
+            }
+        }
+    ]
 
 [/#function]
 
-[#function assembleCMDBAccountSettings cmdbCache tenant="" account="" ]
+[#function assembleCMDBAccountSettings tenant account ]
 
-    [#local tenantStructure = (cmdbCache.Tenants[tenant])!{} ]
-    [#local accountStructure = (tenantStructure.Accounts[account])!{} ]
+    [#local cache = getCMDBCacheAccountSection(tenant, account) ]
     [#local fileOnlyRegex = r"[^/]+" ]
 
     [#local alternatives =
@@ -194,242 +277,504 @@
     ]
 
     [#return
-        mergeObjects(
-            internalAssembleCMDBSettings(
-                (accountStructure.Paths.Settings.Config)!"",
-                alternatives
-            ),
-            internalAssembleCMDBSettings(
-                (accountStructure.Paths.Settings.Operations)!"",
-                alternatives
-            )
-        )
+        {
+            "Tenants" : {
+                tenant : {
+                    "Accounts" : {
+                        account :
+                            mergeObjects(
+                                internalAssembleCMDBSettings(
+                                    (cache.Paths.Settings.Config)!"",
+                                    alternatives,
+                                    {
+                                        "MinDepth" : 2,
+                                        "MaxDepth" : 2
+                                    }
+                                ),
+                                internalAssembleCMDBSettings(
+                                    (cache.Paths.Settings.Operations)!"",
+                                    alternatives,
+                                    {
+                                        "MinDepth" : 2,
+                                        "MaxDepth" : 2
+                                    }
+                                )
+                            )
+                    }
+                }
+            }
+        }
     ]
 
 [/#function]
 
-[#function assembleCMDBAccountStackOutputs cmdbCache tenant="" account="" deploymentFramework="cf" ]
+[#function assembleCMDBAccountStackOutputs tenant account ]
 
-    [#local tenantStructure = (cmdbCache.Tenants[tenant])!{} ]
-    [#local accountStructure = (tenantStructure.Accounts[account])!{} ]
-    [#local fileOnlyRegex = r"[^/]+-stack.json" ]
+    [#local cache = getCMDBCacheAccountSection(tenant, account) ]
+    [#local pathAndFileRegex = r".+-stack.json" ]
 
     [#local alternatives =
         [
-            [deploymentFramework, "shared", fileOnlyRegex]
+            [r"[^/]+", "shared", pathAndFileRegex]
         ]
     ]
 
     [#return
-        internalAssembleCMDBStackOutputs(
-            (accountStructure.Paths.State)!"",
-            alternatives
-        )
+        {
+            "Tenants" : {
+                tenant : {
+                    "Accounts" : {
+                        account :
+                            internalAssembleCMDBStackOutputs(
+                                (cache.Paths.State)!"",
+                                alternatives
+                            )
+                    }
+                }
+            }
+        }
     ]
 
 [/#function]
 
 
-[#function assembleCMDBProductBlueprint cmdbCache tenant="" product="" environment="" segment="" ]
+[#function assembleCMDBProductBlueprint tenant product environment segment ]
 
-    [#local tenantStructure = (cmdbCache.Tenants[tenant])!{} ]
-    [#local productStructure = (tenantStructure.Products[product])!{} ]
-    [#local alternatives =
-        [
-            ["shared"]
-        ]
-    ]
-    [#if environment?has_content]
-        [#if segment?has_content]
-            [#local alternatives +=
-                [
-                    ["shared", segment],
-                    [environment],
-                    [environment, segment]
-                ]
-            ]
-        [#else]
-            [#local alternatives +=
-                [
-                    [environment]
-                ]
-            ]
-        [/#if]
-    [/#if]
+    [#local cache = getCMDBCacheProductSection(tenant, product) ]
 
     [#return
-        mergeObjects(
-            internalAssembleCMDBBlueprint((tenantStructure.Paths.Marker)!""),
-            internalAssembleCMDBBlueprint((productStructure.Paths.Marker)!""),
-            internalAssembleCMDBBlueprint(
-                (productStructure.Paths.Infrastructure.Solutions)!"",
-                [
-                    ["shared"],
-                    ["shared", segment],
-                    [environment],
-                    [segment]
-                ]
-            )
-        )
+        {
+            "Tenants" : {
+                tenant : {
+                    "Products" : {
+                        product : {
+                            "Environments" : {
+                                environment : {
+                                    "Segments" : {
+                                        segment :
+                                            mergeObjects(
+                                                internalAssembleCMDBBlueprint(
+                                                    (cache.Paths.Marker)!"",
+                                                    [ [] ],
+                                                    {
+                                                        "MinDepth" : 1,
+                                                        "MaxDepth" : 1
+                                                    }
+                                                ),
+                                                internalAssembleCMDBBlueprint(
+                                                    (cache.Paths.Infrastructure.Solutions)!"",
+                                                    [
+                                                        ["shared"],
+                                                        ["shared", segment],
+                                                        [environment],
+                                                        [environment, segment]
+                                                    ]
+                                                )
+                                            )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     ]
 
 [/#function]
 
-[#function assembleCMDBProductSettings cmdbCache tenant="" product="" environment="" segment="" ]
+[#function assembleCMDBProductSettings tenant product environment segment ]
 
-    [#local tenantStructure = (cmdbCache.Tenants[tenant])!{} ]
-    [#local productStructure = (tenantStructure.Products[product])!{} ]
-    [#local fileOnlyRegex = r"[^/]+" ]
+    [#local cache = getCMDBCacheProductSection(tenant, product) ]
     [#local pathAndFileRegex = r".+" ]
 
-
     [#local alternatives =
         [
-            ["shared", fileOnlyRegex]
+            ["shared", pathAndFileRegex],
+            [environment, segment, pathAndFileRegex]
         ]
     ]
-    [#if environment?has_content]
-        [#if segment?has_content]
-            [#local alternatives +=
-                [
-                    ["shared", segment, pathAndFileRegex],
-                    [environment, fileOnlyRegex],
-                    [environment, segment, pathAndFileRegex]
-                ]
-            ]
-        [#else]
-            [#local alternatives +=
-                [
-                    [environment, fileOnlyRegex]
-                ]
-            ]
-        [/#if]
-    [/#if]
 
     [#return
-        mergeObjects(
-            internalAssembleCMDBSettings(
-                (productStructure.Paths.Settings.Config)!"",
-                alternatives
-            ),
-            internalAssembleCMDBSettings(
-                (productStructure.Paths.Infrastructure.Builds)!"",
-                alternatives
-            ),
-            internalAssembleCMDBSettings(
-                (productStructure.Paths.Settings.Operations)!"",
-                alternatives
-            )
-        )
+        {
+            "Tenants" : {
+                tenant : {
+                    "Products" : {
+                        product : {
+                            "Environments" : {
+                                environment : {
+                                    "Segments" : {
+                                        segment :
+                                            mergeObjects(
+                                                internalAssembleCMDBSettings(
+                                                    (cache.Paths.Settings.Config)!"",
+                                                    alternatives
+                                                ),
+                                                internalAssembleCMDBSettings(
+                                                    (cache.Paths.Infrastructure.Builds)!"",
+                                                    alternatives
+                                                ),
+                                                internalAssembleCMDBSettings(
+                                                    (cache.Paths.Settings.Operations)!"",
+                                                    alternatives
+                                                )
+                                            )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     ]
 
 [/#function]
 
-[#function assembleCMDBProductStackOutputs cmdbCache tenant="" product="" environment="" segment="" deploymentFramework="cf" ]
+[#function assembleCMDBProductStackOutputs tenant product environment segment ]
 
-    [#local tenantStructure = (cmdbCache.Tenants[tenant])!{} ]
-    [#local productStructure = (tenantStructure.Products[product])!{} ]
-    [#local environmentStructure = (productStructure.Products[environment])!{} ]
-    [#local segmentStructure = (environmentStructure.Segments[segment])!{} ]
+    [#local cache = getCMDBCacheProductSection(tenant, product) ]
     [#local fileOnlyRegex = r"[^/]+-stack.json" ]
-
-    [#local alternatives =
-        [
-            [deploymentFramework, "shared", fileOnlyRegex]
-        ]
-    ]
-    [#if environment?has_content]
-        [#if segment?has_content]
-            [#local alternatives +=
-                [
-                    [deploymentFramework, environment, fileOnlyRegex],
-                    [deploymentFramework, environment, segment, fileOnlyRegex]
-                ]
-            ]
-        [#else]
-            [#local alternatives +=
-                [
-                    [deploymentFramework, environment, fileOnlyRegex]
-                ]
-            ]
-        [/#if]
-    [/#if]
+    [#local pathAndFileRegex = r".+-stack.json" ]
 
     [#return
-        internalAssembleCMDBStackOutputs(
-            (productStructure.Paths.State)!"",
-            alternatives
-        )
+        {
+            "Tenants" : {
+                tenant : {
+                    "Products" : {
+                        product : {
+                            "Environments" : {
+                                environment : {
+                                    "Segments" : {
+                                        segment :
+                                            internalAssembleCMDBStackOutputs(
+                                                (cache.Paths.State)!"",
+                                                [
+                                                    [r"[^/]+", "shared", fileOnlyRegex],
+                                                    [r"[^/]+", "shared", segment, pathAndFileRegex],
+                                                    [r"[^/]+", environment, fileOnlyRegex],
+                                                    [r"[^/]+", environment, segment, pathAndFileRegex]
+                                                ]
+                                            )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     ]
 
 [/#function]
 
-[#-------------------------------------------------------
--- Internal support functions for cmdb processing --
----------------------------------------------------------]
+[#function assembleCMDBProductDefinitions tenant product environment segment account region]
 
-[#-- Base function for looking up files in the cmdb file system --]
-[#function internalGetCMDBFiles path alternatives cmdbInformation=false]
+    [#local cache = getCMDBCacheProductSection(tenant, product) ]
+    [#local fileOnlyRegex = r"[^/]+-definition.json" ]
+    [#local pathAndFileRegex = r".+-definition.json" ]
+
+    [#return
+        {
+            "Tenants" : {
+                tenant : {
+                    "Products" : {
+                        product : {
+                            "Environments" : {
+                                environment : {
+                                    "Segments" : {
+                                        segment :
+                                            internalAssembleCMDBDefinitions(
+                                                (cache.Paths.State)!"",
+                                                [
+                                                    [r"[^/]+", "shared", fileOnlyRegex],
+                                                    [r"[^/]+", "shared", segment, pathAndFileRegex],
+                                                    [r"[^/]+", environment, fileOnlyRegex],
+                                                    [r"[^/]+", environment, segment, pathAndFileRegex]
+                                                ],
+                                                account,
+                                                region
+                                            )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ]
+
+[/#function]
+
+[#-- CMDB access --]
+
+[#function getCMDBTenantBlueprint ]
+    [#local tenant = getTenantInputsContext() ]
+
+    [#if tenant?has_content ]
+        [#local cache = getCMDBCacheTenantSection(tenant, ["Blueprint"]) ]
+        [#if cache?has_content]
+            [#return cache]
+        [/#if]
+
+        [@addToCMDBCache analyseCMDBTenants(tenant) /]
+        [@addToCMDBCache assembleCMDBTenantBlueprint(tenant) /]
+        [#return getCMDBCacheTenantSection(tenant, ["Blueprint"]) ]
+    [/#if]
+
+    [#return {} ]
+[/#function]
+
+[#function getCMDBAccountBlueprint ]
+    [#local tenant = getTenantInputsContext() ]
+    [#local account = getAccountInputsContext() ]
+
+    [#if tenant?has_content && account?has_content ]
+        [#local cache = getCMDBCacheAccountSection(tenant, account, ["Blueprint"]) ]
+        [#if cache?has_content]
+            [#return cache]
+        [/#if]
+
+        [@addToCMDBCache analyseCMDBTenants(tenant) /]
+        [@addToCMDBCache analyseCMDBAccounts(tenant, account) /]
+        [@addToCMDBCache assembleCMDBAccountBlueprint(tenant, account) /]
+        [#return getCMDBCacheAccountSection(tenant, account, ["Blueprint"]) ]
+    [/#if]
+
+    [#return {} ]
+[/#function]
+
+[#function getCMDBAccountSettings ]
+    [#local tenant = getTenantInputsContext() ]
+    [#local account = getAccountInputsContext() ]
+
+    [#if tenant?has_content && account?has_content ]
+        [#local cache = getCMDBCacheAccountSection(tenant, account, ["Settings"]) ]
+        [#if cache?has_content]
+            [#return cache]
+        [/#if]
+
+        [@addToCMDBCache analyseCMDBTenants(tenant) /]
+        [@addToCMDBCache analyseCMDBAccounts(tenant, account) /]
+        [@addToCMDBCache assembleCMDBAccountSettings(tenant, account) /]
+        [#return getCMDBCacheAccountSection(tenant, account, ["Settings"]) ]
+    [/#if]
+
+    [#return
+        {
+            "General" : {},
+            "Builds" : {},
+            "Sensitive" : {}
+        }
+    ]
+[/#function]
+
+[#function getCMDBAccountStackOutputs ]
+    [#local tenant = getTenantInputsContext() ]
+    [#local account = getAccountInputsContext() ]
+
+    [#if tenant?has_content && account?has_content]
+        [#local cache = getCMDBCacheAccountSection(tenant, account, ["StackOutputs"]) ]
+        [#if cache?has_content]
+            [#return cache]
+        [/#if]
+
+        [@addToCMDBCache analyseCMDBTenants(tenant) /]
+        [@addToCMDBCache analyseCMDBAccounts(tenant, account) /]
+        [@addToCMDBCache assembleCMDBAccountStackOutputs(tenant, account) /]
+        [#return getCMDBCacheAccountSection(tenant, account, ["StackOutputs"]) ]
+    [/#if]
+
+    [#return [] ]
+[/#function]
+
+[#function getCMDBProductBlueprint ]
+    [#local tenant = getTenantInputsContext() ]
+    [#local product = getProductInputsContext() ]
+    [#local environment = getEnvironmentInputsContext() ]
+    [#local segment = getSegmentInputsContext() ]
+
+    [#if tenant?has_content && product?has_content && environment?has_content && segment?has_content ]
+        [#local cache = getCMDBCacheSegmentSection(tenant, product, environment, segment, ["Blueprint"]) ]
+        [#if cache?has_content]
+            [#return cache]
+        [/#if]
+
+        [@addToCMDBCache analyseCMDBTenants(tenant) /]
+        [@addToCMDBCache analyseCMDBProducts(tenant, product, environment, segment) /]
+        [@addToCMDBCache assembleCMDBProductBlueprint(tenant, product, environment, segment) /]
+        [#return getCMDBCacheSegmentSection(tenant, product, environment, segment, ["Blueprint"]) ]
+    [/#if]
+
+    [#return {} ]
+[/#function]
+
+[#function getCMDBProductSettings ]
+    [#local tenant = getTenantInputsContext() ]
+    [#local product = getProductInputsContext() ]
+    [#local environment = getEnvironmentInputsContext() ]
+    [#local segment = getSegmentInputsContext() ]
+
+    [#if tenant?has_content && product?has_content && environment?has_content && segment?has_content ]
+        [#local cache = getCMDBCacheSegmentSection(tenant, product, environment, segment, ["Settings"]) ]
+        [#if cache?has_content]
+            [#return cache]
+        [/#if]
+
+        [@addToCMDBCache analyseCMDBTenants(tenant) /]
+        [@addToCMDBCache analyseCMDBProducts(tenant, product, environment, segment) /]
+        [@addToCMDBCache assembleCMDBProductSettings(tenant, product, environment, segment) /]
+        [#return getCMDBCacheSegmentSection(tenant, product, environment, segment, ["Settings"]) ]
+    [/#if]
+
+    [#return
+        {
+            "General" : {},
+            "Builds" : {},
+            "Sensitive" : {}
+        }
+    ]
+[/#function]
+
+[#function getCMDBProductStackOutputs ]
+    [#local tenant = getTenantInputsContext() ]
+    [#local product = getProductInputsContext() ]
+    [#local environment = getEnvironmentInputsContext() ]
+    [#local segment = getSegmentInputsContext() ]
+
+    [#if tenant?has_content && product?has_content && environment?has_content && segment?has_content ]
+        [#local cache = getCMDBCacheSegmentSection(tenant, product, environment, segment, ["StackOutputs"]) ]
+        [#if cache?has_content]
+            [#return cache]
+        [/#if]
+
+        [@addToCMDBCache analyseCMDBTenants(tenant) /]
+        [@addToCMDBCache analyseCMDBProducts(tenant, product, environment, segment) /]
+        [@addToCMDBCache assembleCMDBProductStackOutputs(tenant, product, environment, segment) /]
+        [#return getCMDBCacheSegmentSection(tenant, product, environment, segment, ["StackOutputs"]) ]
+    [/#if]
+
+    [#return [] ]
+[/#function]
+
+[#function getCMDBProductDefinitions ]
+    [#local tenant = getTenantInputsContext() ]
+    [#local account = getAccountInputsContext() ]
+    [#local region = getRegionInputsContext() ]
+    [#local product = getProductInputsContext() ]
+    [#local environment = getEnvironmentInputsContext() ]
+    [#local segment = getSegmentInputsContext() ]
+
+    [#if
+            tenant?has_content && account?has_content && region?has_content &&
+            product?has_content && environment?has_content && segment?has_content ]
+        [#local cache = getCMDBCacheSegmentSection(tenant, product, environment, segment, ["Definitions", account, region]) ]
+        [#if cache?has_content]
+            [#return cache]
+        [/#if]
+
+        [@addToCMDBCache analyseCMDBTenants(tenant) /]
+        [@addToCMDBCache analyseCMDBProducts(tenant, product, environment, segment) /]
+        [@addToCMDBCache assembleCMDBProductDefinitions(tenant, product, environment, segment, account, region) /]
+        [#return getCMDBCacheSegmentSection(tenant, product, environment, segment, ["Definitions", account, region]) ]
+    [/#if]
+
+    [#return {} ]
+[/#function]
+
+
+[#--------------------------------------------------
+-- Internal support functions for cmdb processing --
+----------------------------------------------------]
+
+[#-- Base function for looking up files in the cmdb file system  --]
+[#function internalGetCMDBFiles path alternatives options={} ]
 
     [#-- Ignore empty paths --]
     [#if !path?has_content]
         [#return [] ]
     [/#if]
 
-    [#-- Construct alternate paths and anchor to the end of the string --]
+    [#-- Construct alternate paths --]
     [#local regex = [] ]
     [#list alternatives as alternative]
-        [#local alternativePath = concatenate([alternative],"/")]
+        [#local alternativePath = formatRelativePath(alternative)]
         [#if alternativePath?has_content]
-            [#local regex += [ alternativePath + "$" ] ]
+            [#local regex += [ alternativePath ] ]
         [/#if]
     [/#list]
 
     [#-- Find matches --]
     [#return
         getCMDBTree(
-            path,
-            attributeIfContent("Regex", regex) +
-                attributeIfTrue("IncludeCMDBInformation", cmdbInformation, true)
+            formatAbsolutePath(path),
+            {
+                "AddEndingWildcard" : false
+            } +
+            options +
+            attributeIfContent("Regex", regex)
         )
     ]
-
 [/#function]
 
 [#-- Return the first file match --]
-[#function internalGetFirstCMDBFile path alternatives cmdbInformation=false]
-    [#list alternatives as alternative]
-        [#local result = internalGetCMDBFiles(path, [alternative], cmdbInformation)]
-        [#if result?has_content]
-            [#return result[0] ]
-        [/#if]
-    [/#list]
+[#function internalGetFirstCMDBFile path alternatives options={} ]
+    [#local result =
+        internalGetCMDBFiles(
+            path,
+            alternatives,
+            {
+                "StopAfterFirstMatch" : true
+            } +
+            options
+        )
+    ]
+    [#if result?has_content]
+        [#return result[0] ]
+    [/#if]
     [#return {} ]
 [/#function]
 
 [#-- Convenience method to attach a marker file to a range of alternatives --]
-[#function internalGetCMDBMarkerFiles path alternatives marker cmdbInformation=false]
+[#-- Marker files may be in a subdirectory of the path, so enable a        --]
+[#-- starting wildcard to ensure they are found                            --]
+[#function internalGetCMDBMarkerFiles path alternatives marker options={} ]
     [#local markers = [] ]
     [#list alternatives as alternative]
-        [#local markers += [ asArray(alternative) + [marker] ] ]
+        [#local markers += [ [alternative, marker] ] ]
     [/#list]
-    [#return internalGetCMDBFiles(path, markers, cmdbInformation) ]
+    [#return
+        internalGetCMDBFiles(
+            path,
+            markers,
+            {
+                "IgnoreSubtreeAfterMatch" : true
+            } +
+            options
+        )
+    ]
 [/#function]
 
-[#--  Merge a collection of JSON files --]
-[#function  internalAssembleCMDBBlueprint path alternatives=[[]] ]
+[#--  Merge a collection of JSON/YAML files --]
+[#function  internalAssembleCMDBBlueprint path alternatives options={} ]
     [#local result = {}]
 
-    [#-- Nothing if no path to check --]
-    [#if !path?has_content]
-        [#return result ]
-    [/#if]
-
+    [#-- Support json or yaml --]
     [#local regex = [] ]
     [#list alternatives as alternative]
-        [#local regex += [["^", path, alternative, r"[^/]+\.json"]] ]
+        [#local regex += [ [alternative, r"[^/]+\.(json|yaml|yml)"] ] ]
     [/#list]
-    [#local files = internalGetCMDBFiles(path, regex) ]
+    [#local files =
+        internalGetCMDBFiles(
+            path,
+            regex,
+            {
+                "AddStartingWildcard" : false
+            } +
+            options
+        )
+    ]
 
     [#list files as file]
         [#if file.ContentsAsJSON?has_content]
@@ -437,26 +782,37 @@
                 mergeObjects(result, file.ContentsAsJSON)]
         [/#if]
     [/#list]
-    [#return result ]
+
+
+    [#return
+        {
+            "Blueprint" : result
+        }
+    ]
 [/#function]
 
 [#-- Convert paths to setting namespaces --]
 [#-- Also handle asFile processing and   --]
 [#-- General/Sensitive/Builds            --]
-[#function  internalAssembleCMDBSettings path alternatives=[[]] ]
-    [#local result = {} ]
+[#function  internalAssembleCMDBSettings path alternatives options={} ]
+    [#local result =
+        {
+            "General" : {},
+            "Builds" : {},
+            "Sensitive" : {}
+        }
+    ]
 
-    [#-- Nothing if no path to check --]
-    [#if !path?has_content]
-        [#return result ]
-    [/#if]
-
-    [#local regex = [] ]
-    [#list alternatives as alternative]
-        [#local regex += [["^", path, alternative]] ]
-    [/#list]
-
-    [#local files = internalGetCMDBFiles(path, regex, true) ]
+    [#local files =
+        internalGetCMDBFiles(
+            path,
+            alternatives,
+            {
+                "AddStartingWildcard" : false
+            } +
+            options
+        )
+    ]
 
     [#list files as file]
         [#-- Ignore directories --]
@@ -472,12 +828,16 @@
                 "-"
             )
         ]
+        [#-- For now remove the "/default" form the front to yield a path --]
+        [#-- relative to the CMDB root.                                   --]
+        [#-- TODO(mfl): Refactor when asFile contents moved to state of   --]
+        [#-- CMDB as part of the createTemplate process                   --]
         [#if file.Path?lower_case?contains("asfile") ]
             [#local content =
                 {
                     attribute : {
                         "Value" : file.Filename,
-                        "AsFile" : file.File
+                        "AsFile" : file.File?remove_beginning("/default")
                     }
                 }
             ]
@@ -486,6 +846,8 @@
             [#-- Settings format depends on file extension --]
             [#switch file.Extension?lower_case]
                 [#case "json"]
+                [#case "yaml"]
+                [#case "yml"]
                     [#if file.ContentsAsJSON??]
                         [#local content = file.ContentsAsJSON]
                         [#break]
@@ -529,56 +891,102 @@
         ]
     [/#list]
 
-    [#return result ]
+    [#return
+        {
+            "Settings" : result
+        }
+    ]
 [/#function]
 
-[#-- Convert paths to setting namespaces --]
-[#-- Also handle asFile processing and   --]
-[#-- General/Sensitive/Builds            --]
-[#function  internalAssembleCMDBStackOutputs path alternatives=[[]] ]
+[#-- More detailed processing done by stack output handler --]
+[#function  internalAssembleCMDBStackOutputs path alternatives options={} ]
     [#local result = [] ]
 
     [#-- Nothing if no path to check --]
-    [#if !path?has_content]
-        [#return result ]
+    [#if path?has_content]
+
+        [#local files =
+            internalGetCMDBFiles(
+                path,
+                alternatives,
+                {
+                    "AddStartingWildcard" : false
+                } +
+                options
+            )
+        ]
+
+        [#list files as file]
+            [#-- Ignore directories --]
+            [#if ! file.ContentsAsJSON?has_content]
+                [#continue]
+            [/#if]
+
+            [#-- Return a simple list of the outputs - the format is opaque at this point --]
+            [#local result +=
+                [
+                    {
+                        "FilePath" : file.Path,
+                        "FileName" : file.Filename,
+                        "Content" : [file.ContentsAsJSON]
+                    }
+                ]
+            ]
+        [/#list]
     [/#if]
 
-    [#local regex = [] ]
-    [#list alternatives as alternative]
-        [#local regex += [["^", path, alternative]] ]
-    [/#list]
-
-    [#local files = internalGetCMDBFiles(path, regex, true) ]
-
-    [#list files as file]
-        [#-- Ignore directories --]
-        [#if ! file.ContentsAsJSON?has_content]
-            [#continue]
-        [/#if]
-
-        [#-- Return a simple list of the outputs - the format is opaque at this point --]
-        [#local result +=
-            [
-                {
-                    "Filename" : file.Filename,
-                    "Contents" : file.ContentsAsJSON
-                }
-            ]
-        ]
-    [/#list]
-
-    [#return result ]
+    [#return
+        {
+            "StackOutputs" : result
+        }
+    ]
 [/#function]
 
-[#-- Determine the  key directories associated with a marker file --]
-[#function internalAnalyseCMDBPaths path markerFiles full=true]
+[#function internalAssembleCMDBDefinitions path alternatives account region options={} ]
+    [#local result = {} ]
+
+    [#-- Nothing if no path to check --]
+    [#if path?has_content]
+
+        [#local files =
+            internalGetCMDBFiles(
+                path,
+                alternatives,
+                {
+                    "AddStartingWildcard" : false
+                } +
+                options
+            )
+        ]
+
+        [#list files as file]
+            [#local content = file.ContentsAsJSON!{} ]
+            [#-- Ignore if not using a definition structure which includes account and region --]
+            [#if (content[account][region])?has_content]
+                [#local result = mergeObjects(result, content) ]
+            [/#if]
+        [/#list]
+    [/#if]
+
+    [#return
+        {
+            "Definitions" : result
+        }
+    ]
+[/#function]
+
+[#-- Determine the key directories associated with a marker file  --]
+[#-- Full analysis can optionally be bypassed where not necessary --]
+[#function internalAnalyseCMDBPaths path markerFiles full ]
     [#local result = {} ]
 
     [#-- Analyse paths --]
     [#list markerFiles as markerFile]
         [#local name = markerFile.Path?keep_after_last("/") ]
+        [#local rootDir = markerFile.Path ]
         [#if name == "config"]
-            [#local name = markerFile.Path?keep_before_last("/")?keep_after_last("/") ]
+            [#local rootDir = rootDir?keep_before_last("/") ]
+            [#local name = rootDir?keep_after_last("/") ]
         [/#if]
         [#if name?has_content ]
             [#local entry =
@@ -591,59 +999,156 @@
             ]
 
             [#if full]
+                [#-- First try the common case of a single cmdb --]
                 [#local config =
                     internalGetFirstCMDBFile(
-                        path,
+                        rootDir,
                         [
-                            [name, "config", "settings"],
-                            ["config", ".*", name, "settings"]
-                        ]
+                            ["config", "settings"]
+                        ],
+                        {
+                            "AddStartingWildcard" : false,
+                            "MinDepth" : 2,
+                            "MaxDepth" : 2
+                        }
                     )
                 ]
                 [#local operations =
                     internalGetFirstCMDBFile(
-                        path,
+                        rootDir,
                         [
-                            [name, "operations", "settings"],
-                            ["operations", ".*", name, "settings"],
-                            [name, "infrastructure", "operations"],
-                            ["infrastructure", ".*", name, "operations"]
-                        ]
+                            ["operations", "settings"],
+                            ["infrastructure", "operations"]
+                        ],
+                        {
+                            "AddStartingWildcard" : false,
+                            "MinDepth" : 2,
+                            "MaxDepth" : 2
+                        }
                     )
                 ]
                 [#local solutions =
                     internalGetFirstCMDBFile(
-                        path,
+                        rootDir,
                         [
-                            [name, "infrastructure", "solutions"],
-                            ["infrastructure", ".*", name, "solutions"],
-                            [name, "config", "solutionsv2"],
-                            ["config", ".*", name, "solutionsv2"]
-                        ]
+                            ["infrastructure", "solutions"],
+                            ["config", "solutionsv2"]
+                        ],
+                        {
+                            "AddStartingWildcard" : false,
+                            "MinDepth" : 2,
+                            "MaxDepth" : 2
+                        }
                     )
                 ]
                 [#local builds =
                     internalGetFirstCMDBFile(
-                        path,
+                        rootDir,
                         [
-                            [name, "infrastructure", "builds"],
-                            ["infrastructure", ".*", name, "builds"],
-                            [name, "config", "settings"],
-                            ["config", ".*", name, "settings"]
-                        ]
+                            ["infrastructure", "builds"],
+                            ["config", "settings"]
+                        ],
+                        {
+                            "AddStartingWildcard" : false,
+                            "MinDepth" : 2,
+                            "MaxDepth" : 2
+                        }
                     )
                 ]
                 [#local state =
                     internalGetFirstCMDBFile(
-                        path,
+                        rootDir,
                         [
-                            [name, "state"],
-                            ["state", ".*", name],
-                            [name, "infrastructure"],
-                            ["infrastructure", ".*", name]
-                        ]
+                            ["state"],
+                            ["infrastructure"]
+                        ],
+                        {
+                            "AddStartingWildcard" : false,
+                            "MinDepth" : 1,
+                            "MaxDepth" : 1
+                        }
                     )
                 ]
+
+                [#-- Try more expensive searches if not the common case --]
+                [#if !config?has_content]
+                    [#local config =
+                        internalGetFirstCMDBFile(
+                            path,
+                            [
+                                [name, "config", "settings"],
+                                ["config", ".*", name, "settings"]
+                            ],
+                            {
+                                "AddStartingWildcard" : true
+                            }
+                        )
+                    ]
+                [/#if]
+                [#if !operations?has_content]
+                    [#local operations =
+                        internalGetFirstCMDBFile(
+                            path,
+                            [
+                                [name, "operations", "settings"],
+                                ["operations", ".*", name, "settings"],
+                                [name, "infrastructure", "operations"],
+                                ["infrastructure", ".*", name, "operations"]
+                            ],
+                            {
+                                "AddStartingWildcard" : true
+                            }
+                        )
+                    ]
+                [/#if]
+                [#if !solutions?has_content]
+                    [#local solutions =
+                        internalGetFirstCMDBFile(
+                            path,
+                            [
+                                [name, "infrastructure", "solutions"],
+                                ["infrastructure", ".*", name, "solutions"],
+                                [name, "config", "solutionsv2"],
+                                ["config", ".*", name, "solutionsv2"]
+                            ],
+                            {
+                                "AddStartingWildcard" : true
+                            }
+                        )
+                    ]
+                [/#if]
+                [#if !builds?has_content]
+                    [#local builds =
+                        internalGetFirstCMDBFile(
+                            path,
+                            [
+                                [name, "infrastructure", "builds"],
+                                ["infrastructure", ".*", name, "builds"],
+                                [name, "config", "settings"],
+                                ["config", ".*", name, "settings"]
+                            ],
+                            {
+                                "AddStartingWildcard" : true
+                            }
+                        )
+                    ]
+                [/#if]
+                [#if !state?has_content]
+                    [#local state =
+                        internalGetFirstCMDBFile(
+                            path,
+                            [
+                                [name, "state"],
+                                ["state", ".*", name],
+                                [name, "infrastructure"],
+                                ["infrastructure", ".*", name]
+                            ],
+                            {
+                                "AddStartingWildcard" : true
+                            }
+                        )
+                    ]
+                [/#if]
 
                 [#local entry =
                     mergeObjects(
@@ -683,13 +1188,17 @@
                 tenant?has_content,
                 [ [] ]
             ),
-            r"tenant\.json",
-            true
+            r"tenant\.(json|yaml|yml)",
+            {
+                "AddStartingWildcard" : true,
+                "IncludeCMDBInformation" : true,
+                "FilenameGlob" : r"tenant.*"
+            }
         )
     ]
 
     [#-- Analyse paths --]
-    [#return internalAnalyseCMDBPaths(path, markerFiles) ]
+    [#return internalAnalyseCMDBPaths(path, markerFiles, false) ]
 [/#function]
 
 [#function internalAnalyseAccountStructure path account=""]
@@ -705,33 +1214,58 @@
                 account?has_content,
                 [ [] ]
             ),
-            r"account\.json"
+            r"account\.(json|yaml|yml)",
+            {
+                "AddStartingWildcard" : true,
+                "FilenameGlob" : r"account.*"
+            }
         )
     ]
 
     [#-- Analyse paths --]
-    [#return internalAnalyseCMDBPaths(path, markerFiles) ]
+    [#return internalAnalyseCMDBPaths(path, markerFiles, true) ]
 [/#function]
 
 [#function internalAnalyseProductStructure path product=""]
     [#-- Find marker files --]
-    [#local markerFiles =
-        internalGetCMDBMarkerFiles(
-            path,
-            arrayIfTrue(
+    [#if product?has_content && path?ends_with(product)]
+        [#local markerFiles =
+            internalGetCMDBMarkerFiles(
+                path,
                 [
-                    [product],
-                    [product, "config"]
+                    [],
+                    ["config"]
                 ],
-                product?has_content,
-                [ [] ]
-            ),
-            r"product\.json"
-        )
-    ]
+                r"product\.(json|yaml|yml)",
+                {
+                    "AddStartingWildcard" : false,
+                    "FilenameGlob" : r"product.*"
+                }
+            )
+        ]
+    [#else]
+        [#local markerFiles =
+            internalGetCMDBMarkerFiles(
+                path,
+                arrayIfTrue(
+                    [
+                        [product],
+                        [product, "config"]
+                    ],
+                    product?has_content,
+                    [ [] ]
+                ),
+                r"product\.(json|yaml|yml)",
+                {
+                    "AddStartingWildcard" : true,
+                    "FilenameGlob" : r"product.*"
+                }
+            )
+        ]
+    [/#if]
 
     [#-- Analyse paths --]
-    [#return internalAnalyseCMDBPaths(path, markerFiles) ]
+    [#return internalAnalyseCMDBPaths(path, markerFiles, true) ]
 
 [/#function]
 
@@ -748,7 +1282,13 @@
                 environment?has_content,
                 [ [] ]
             ),
-            r"environment\.json"
+            r"environment\.(json|yaml|yml)",
+            {
+                "AddStartingWildcard" : false,
+                "MinDepth" : 2,
+                "MaxDepth" : 2,
+                "FilenameGlob" : r"environment.*"
+            }
         )
     ]
 
@@ -769,11 +1309,31 @@
                 segment?has_content,
                 [ [] ]
             ),
-            r"segment\.json"
+            r"segment\.(json|yaml|yml)",
+            {
+                "AddStartingWildcard" : false,
+                "MinDepth" : 2,
+                "MaxDepth" : 2,
+                "FilenameGlob" : r"segment.*"
+            }
         )
     ]
 
     [#-- Analyse paths --]
     [#return internalAnalyseCMDBPaths(path, markerFiles, false) ]
 
+[/#function]
+
+[#function internalFindCMDBPath name ]
+    [#local result = ""]
+    [#-- Iterate through the CMDBS to see if one matches the name requested --]
+    [#local cmdbs = getCMDBs({"ActiveOnly" : true}) ]
+    [#list cmdbs as cmdb]
+        [#if cmdb.Name == name]
+            [#local result = cmdb.CMDBPath]
+            [#break]
+        [/#if]
+    [/#list]
+
+    [#return result]
 [/#function]
