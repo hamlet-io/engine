@@ -15,13 +15,18 @@
     /]
 [/#macro]
 
-[#function formatSettingName parts...]
+[#function formatSettingName upperCase parts...]
     [#-- First join the parts and force to upper case --]
-    [#local name = concatenate(parts, "_")?upper_case ]
+
+    [#local name = concatenate(parts, "_") ]
+
+    [#if upperCase ]
+        [#local name = name?upper_case]
+    [/#if]
 
     [#-- Use a lookbehind regex to permit any non-alphanumeric to be escaped by "^" --]
     [#-- Double backslash is one for freemarker and one for regex --]
-    [#local name = name?replace("(?<!\\^)[^0-9A-Z\\^]", "_", "r")]
+    [#local name = name?replace("(?<!\\^)[^0-9A-Za-z\\^]", "_", "r")]
 
     [#-- Finally remove ^ --]
     [#return name?replace("^", "")]
@@ -32,17 +37,17 @@
     [#list object as key,value]
         [#if value?is_hash]
             [#if value.Value??]
-                [#local result += {formatSettingName(prefix,key) : value} ]
+                [#local result += {formatSettingName(true, prefix,key) : value} ]
             [#else]
-                [#local result += asFlattenedSettings(value, formatSettingName(prefix, key)) ]
+                [#local result += asFlattenedSettings(value, formatSettingName(true, prefix, key)) ]
             [/#if]
             [#continue]
         [/#if]
         [#if value?is_sequence]
-            [#local result += {formatSettingName(prefix, key) : {"Value" : value, "Internal" : true}} ]
+            [#local result += {formatSettingName(true, prefix, key) : {"Value" : value, "Internal" : true}} ]
             [#continue]
         [/#if]
-        [#local result += {formatSettingName(prefix, key) : {"Value" : value}} ]
+        [#local result += {formatSettingName(true, prefix, key) : {"Value" : value}} ]
     [/#list]
     [#return result]
 [/#function]
@@ -70,7 +75,7 @@
         [#local nameParts = asArray(nameAlternative) ]
         [#list nameParts as namePart]
             [#local settingNames +=
-                [formatSettingName(nameParts[namePart?index..])] ]
+                [formatSettingName(true, nameParts[namePart?index..])] ]
         [/#list]
     [/#list]
 

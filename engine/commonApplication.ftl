@@ -71,20 +71,20 @@
     ]
 [/#macro]
 
-[#function addVariableToContext context name value]
+[#function addVariableToContext context name value upperCase=true]
     [#return
         mergeObjects(
             context,
             {
                 "Environment" : {
-                    formatSettingName(name) : asSerialisableString(value)
+                    formatSettingName(upperCase, name) : asSerialisableString(value)
                 }
             }
         ) ]
 [/#function]
 
-[#macro Variable name value]
-    [#assign _context = addVariableToContext(_context, name, value) ]
+[#macro Variable name value upperCase=true ]
+    [#assign _context = addVariableToContext(_context, name, value, upperCase) ]
 [/#macro]
 
 [#function getLinkResourceId link alias]
