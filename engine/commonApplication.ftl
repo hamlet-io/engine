@@ -175,7 +175,7 @@
         [#local name = contentIfContent(value.Setting!"", key) ]
 
         [#if (value.IgnoreIfMissing!false) &&
-            (!((_context.DefaultEnvironment[formatSettingName(name)])??)) ]
+            (!((_context.DefaultEnvironment[formatSettingName(true, name)])??)) ]
                 [#return valueIfTrue(false, asBoolean, "") ]
         [/#if]
     [#else]
@@ -189,7 +189,7 @@
         valueIfTrue(
             true,
             asBoolean,
-            _context.DefaultEnvironment[formatSettingName(name)]!
+            _context.DefaultEnvironment[formatSettingName(true, name)]!
                 "COTFatal: Variable " + name + " not found"
         ) ]
 [/#function]
