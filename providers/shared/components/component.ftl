@@ -82,6 +82,8 @@
 
 [#assign SQS_COMPONENT_TYPE = "sqs"]
 
+[#assign TEMPLATE_COMPONENT_TYPE = "template"]
+
 [#assign TOPIC_COMPONENT_TYPE = "topic"]
 [#assign TOPIC_SUBSCRIPTION_COMPONENT_TYPE = "topicsubscription" ]
 
