@@ -45,11 +45,11 @@
     [/#if]
 
     [#-- Validate that the appropriate settings have been provided for the container to work --]
-    [#if settings["HAMLETVOLUME"]?has_content ]
+    [#if settings["PROPERTIESVOLUME"]?has_content ]
         [@Volume
-            name="hamlet"
-            containerPath="/var/opt/hamlet/"
-            hostPath=settings["HAMLETVOLUME"]
+            name="properties"
+            containerPath=(settings["PROPERTIES_DIR"])!"/var/opt/properties/"
+            hostPath=settings["PROPERTIESVOLUME"]
             readOnly=true
         /]
     [/#if]
@@ -58,23 +58,25 @@
         [@ManagedPolicy settings["AWS_AUTOMATION_POLICIES"]?split(",") /]
     [/#if]
 
-    [#assign automationAccounts = asArray( (settings["AWS_AUTOMATION_ACCOUNTS"]!"")?eval ) ]
+    [#if (settings["AWS_AUTOMATION_ACCOUNTS"]!"")?has_content ]
+        [#assign automationAccounts = asArray( (settings["AWS_AUTOMATION_ACCOUNTS"]!"")?eval ) ]
 
-    [#assign automationAccountRoles = []]
-    [#list automationAccounts as automationAccount ]
-        [#assign automationAccountRoles += [
-                                                formatGlobalArn(
-                                                    "iam",
-                                                    formatRelativePath("role", awsAgentAutomationRole),
-                                                    automationAccount  )
-                                            ]]
-    [/#list]
+        [#assign automationAccountRoles = []]
+        [#list automationAccounts as automationAccount ]
+            [#assign automationAccountRoles += [
+                                                    formatGlobalArn(
+                                                        "iam",
+                                                        formatRelativePath("role", awsAgentAutomationRole),
+                                                        automationAccount  )
+                                                ]]
+        [/#list]
 
-    [@Policy
-        [
-            getPolicyStatement( ["sts:AssumeRole"], automationAccountRoles)
-        ]
-    /]
+        [@Policy
+            [
+                getPolicyStatement( ["sts:AssumeRole"], automationAccountRoles)
+            ]
+        /]
+    [/#if]
     [#break]
 
 [#case "_jenkinsecs" ]

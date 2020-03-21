@@ -1,9 +1,10 @@
 [#case "jenkins"]
 [#case "_jenkins"]
 
-    [@Attributes image="jenkins-master" /]
-
     [#assign settings = _context.DefaultEnvironment]
+
+    [#assign jenkinsImage = settings["JENKINS_IMAGE"]!"hamletio/jenkins"]
+    [@Attributes image=jenkinsImage /]
 
     [#assign pingInterval = (settings["AGENT_PING_INTERVAL"])!"300" ]
     [#assign pingTimeout = (settings["AGENT_PING_TIMEOUT"])!"30"]
@@ -116,6 +117,14 @@
 
     [#if settings["CODEONTAPVOLUME"]?has_content ]
         [@Volume "codeontap" "/var/opt/codeontap/" settings["CODEONTAPVOLUME"] /]
+    [/#if]
+
+    [#if settings["PROPERTIESVOLUME"]?has_content ]
+        [@Volume
+            name="properties"
+            containerPath=(settings["PROPERTIES_DIR"])!"/var/opt/properties/"
+            hostPath=settings["PROPERTIESVOLUME"]
+        /]
     [/#if]
 
     [#break]
