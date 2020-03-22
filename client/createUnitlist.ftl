@@ -21,6 +21,14 @@
                       asArray((occurrence.Configuration.Solution.DeploymentUnits)![]),
                       UNIQUE_COMBINE_BEHAVIOUR
                     )]
+          [#list (occurrence.Occurrences)![] as subOccurrence ]
+            [#local deploymentUnits =
+              combineEntities(
+                deploymentUnits,
+                asArray((subOccurrence.Configuration.Solution.DeploymentUnits)![]),
+                UNIQUE_COMBINE_BEHAVIOUR
+              )]
+          [/#list]
         [/#list]
       [/#if]
     [/#list]
