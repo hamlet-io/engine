@@ -12,6 +12,7 @@
     [/#if]
 
     [#local fragment = getOccurrenceFragmentBase(occurrence) ]
+    [#local contextLinks = getLinkTargets(occurrence) ]
     [#assign _context =
         {
             "Id" : fragment,
@@ -20,7 +21,7 @@
             "Version" : core.Version.Id,
             "DefaultEnvironment" : defaultEnvironment(occurrence, {}, {}),
             "Environment" : {},
-            "Links" : {},
+            "Links" : contextLinks,
             "BaselineLinks" : {},
             "DefaultCoreVariables" : false,
             "DefaultEnvironmentVariables" : true,
