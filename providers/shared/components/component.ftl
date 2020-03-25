@@ -533,7 +533,12 @@
         {
             "Names" : "IPAddressGroups",
             "Type" : ARRAY_OF_STRING_TYPE,
-            "Mandatory" : true
+            "Default" : []
+        },
+        {
+            "Names" : "CountryGroups",
+            "Type" : ARRAY_OF_STRING_TYPE,
+            "Default" : []
         },
         {
             "Names" : "OWASP",

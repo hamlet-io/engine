@@ -1,0 +1,84 @@
+[1mdiff --git a/engine/setContext.ftl b/engine/setContext.ftl[m
+[1mindex 24d498e9..066ee057 100644[m
+[1m--- a/engine/setContext.ftl[m
+[1m+++ b/engine/setContext.ftl[m
+[36m@@ -650,12 +650,12 @@[m
+     [#return valueIfTrue(true, asBoolean, cidrs) ][m
+ [/#function][m
+ [m
+[31m-[#function getGroupCountryCodes countryGroups blacklist=false][m
+[32m+[m[32m[#function getGroupCountryCodes groups blacklist=false][m
+     [#local codes = [] ][m
+[31m-    [#list asFlattenedArray(countryGroups) as countryGroup][m
+[31m-        [#local group = (countryGroups[countryGroup])!{}][m
+[31m-        [#if (group.Blacklist!false) == blacklist)][m
+[31m-            [#local codes += asArray(group.Locations![]) ][m
+[32m+[m[32m    [#list asFlattenedArray(groups) as group][m
+[32m+[m[32m        [#local groupEntry = (countryGroups[group])!{}][m
+[32m+[m[32m        [#if (groupEntry.Blacklist!false) == blacklist ][m
+[32m+[m[32m            [#local codes += asArray(groupEntry.Locations![]) ][m
+         [/#if][m
+     [/#list][m
+     [#return codes][m
+[1mdiff --git a/providers/shared/inputsources/shared/masterdata.ftl b/providers/shared/inputsources/shared/masterdata.ftl[m
+[1mindex f4532711..b073e3a4 100644[m
+[1m--- a/providers/shared/inputsources/shared/masterdata.ftl[m
+[1m+++ b/providers/shared/inputsources/shared/masterdata.ftl[m
+[36m@@ -1351,7 +1351,7 @@[m
+             ][m
+           },[m
+           "blacklistcountries": {[m
+[31m-            "Type": "IPMatch",[m
+[32m+[m[32m            "Type": "GeoMatch",[m
+             "Description": "Blacklist Countries",[m
+             "Filters": [[m
+               {[m
+[36m@@ -1362,7 +1362,7 @@[m
+             ][m
+           },[m
+           "whitelistcountries": {[m
+[31m-            "Type": "IPMatch",[m
+[32m+[m[32m            "Type": "GeoMatch",[m
+             "Description": "Whitelist Countries",[m
+             "Filters": [[m
+               {[m
+[36m@@ -1486,7 +1486,7 @@[m
+               }[m
+             ][m
+           },[m
+[31m-          "whitelist": {[m
+[32m+[m[32m          "whitelistips": {[m
+             "Description": "Whitelist IPs",[m
+             "NameSuffix": "whitelistips",[m
+             "Conditions": [[m
+[36m@@ -1501,7 +1501,7 @@[m
+             "NameSuffix": "blacklistcountries",[m
+             "Conditions": [[m
+               {[m
+[31m-                "Condition": "blacklistcountrycodes",[m
+[32m+[m[32m                "Condition": "blacklistcountries",[m
+                 "Negated": false[m
+               }[m
+             ][m
+[36m@@ -1511,7 +1511,7 @@[m
+             "NameSuffix": "whitelistcountries",[m
+             "Conditions": [[m
+               {[m
+[31m-                "Condition": "whitelistcountrycodes",[m
+[32m+[m[32m                "Condition": "whitelistcountries",[m
+                 "Negated": false[m
+               }[m
+             ][m
+[1mdiff --git a/providers/shared/references/WAFProfile/reference.ftl b/providers/shared/references/WAFProfile/reference.ftl[m
+[1mindex 77378711..331f1bac 100644[m
+[1m--- a/providers/shared/references/WAFProfile/reference.ftl[m
+[1m+++ b/providers/shared/references/WAFProfile/reference.ftl[m
+[36m@@ -10,7 +10,7 @@[m
+         [/#if][m
+         [#list ruleList as ruleListEntry][m
+             [#local conditionList = [] ][m
+[31m-            [#list asArray((rules[ruleListEntry].Conditions))![] as condition][m
+[32m+[m[32m            [#list asArray((rules[ruleListEntry].Conditions)![]) as condition][m
+                 [#local conditionDetail = conditions[condition.Condition]!{} ][m
+                 [#if conditionDetail?has_content][m
+                     [#local conditionList += [[m
