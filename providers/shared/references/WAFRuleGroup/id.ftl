@@ -2,7 +2,7 @@
 
 [@addReference
     type=WAFRULEGROUP_REFERENCE_TYPE
-    pluralType="WAFRuleGroup"
+    pluralType="WAFRuleGroups"
     properties=[
             {
                 "Type"  : "Description",
