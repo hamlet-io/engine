@@ -78,6 +78,11 @@
                 "Names" : "NetworkAccess",
                 "Type" : BOOLEAN_TYPE,
                 "Default" : false
+            },
+            {
+                "Names" : "Links",
+                "Subobjects" : true,
+                "Children" : linkChildrenConfiguration
             }
         ]
 /]
