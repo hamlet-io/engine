@@ -10,7 +10,7 @@
         [/#if]
         [#list ruleList as ruleListEntry]
             [#local conditionList = [] ]
-            [#list asArray((rules[ruleListEntry].Conditions))![] as condition]
+            [#list asArray((rules[ruleListEntry].Conditions)![]) as condition]
                 [#local conditionDetail = conditions[condition.Condition]!{} ]
                 [#if conditionDetail?has_content]
                     [#local conditionList += [

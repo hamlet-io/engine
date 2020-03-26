@@ -995,6 +995,8 @@
             ],
             "blacklistedips": [],
             "whitelistedips": [],
+            "blacklistedcountrycodes": [],
+            "whitelistedcountrycodes": [],
             "sqlheaders": [
               {
                 "Type": "HEADER",
@@ -1326,9 +1328,9 @@
               }
             ]
           },
-          "blacklist": {
+          "blacklistips": {
             "Type": "IPMatch",
-            "Description": "Blacklist",
+            "Description": "Blacklist IPs",
             "Filters": [
               {
                 "Targets": [
@@ -1337,13 +1339,35 @@
               }
             ]
           },
-          "whitelist": {
+          "whitelistips": {
             "Type": "IPMatch",
-            "Description": "Whitelist",
+            "Description": "Whitelist IPs",
             "Filters": [
               {
                 "Targets": [
                   "whitelistedips"
+                ]
+              }
+            ]
+          },
+          "blacklistcountries": {
+            "Type": "GeoMatch",
+            "Description": "Blacklist Countries",
+            "Filters": [
+              {
+                "Targets": [
+                  "blacklistedcountrycodes"
+                ]
+              }
+            ]
+          },
+          "whitelistcountries": {
+            "Type": "GeoMatch",
+            "Description": "Whitelist Countries",
+            "Filters": [
+              {
+                "Targets": [
+                  "whitelistedcountrycodes"
                 ]
               }
             ]
@@ -1452,22 +1476,42 @@
               }
             ]
           },
-          "blacklist": {
-            "Description": "Blacklist",
-            "NameSuffix": "blacklist",
+          "blacklistips": {
+            "Description": "Blacklist IPs",
+            "NameSuffix": "blacklistips",
             "Conditions": [
               {
-                "Condition": "blacklist",
+                "Condition": "blacklistips",
                 "Negated": false
               }
             ]
           },
-          "whitelist": {
-            "Description": "Whitelist",
-            "NameSuffix": "whitelist",
+          "whitelistips": {
+            "Description": "Whitelist IPs",
+            "NameSuffix": "whitelistips",
             "Conditions": [
               {
-                "Condition": "whitelist",
+                "Condition": "whitelistips",
+                "Negated": false
+              }
+            ]
+          },
+          "blacklistcountries": {
+            "Description": "Blacklist Countries",
+            "NameSuffix": "blacklistcountries",
+            "Conditions": [
+              {
+                "Condition": "blacklistcountries",
+                "Negated": false
+              }
+            ]
+          },
+          "whitelistcountries": {
+            "Description": "Whitelist Countries",
+            "NameSuffix": "whitelistcountries",
+            "Conditions": [
+              {
+                "Condition": "whitelistcountries",
                 "Negated": false
               }
             ]

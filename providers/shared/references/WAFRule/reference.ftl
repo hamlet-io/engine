@@ -67,6 +67,20 @@
     [#return result]
 [/#function]
 
+[#function formatWAFGeoMatchTuples filter={} valueSet={} ]
+    [#local result= [] ]
+    [#list getWAFValueList(filter.Targets, valueSet) as target]
+        [#local result += [
+                {
+                    "Type" : "Country",
+                    "Value" : target
+                }
+            ]
+        ]
+    [/#list]
+    [#return result]
+[/#function]
+
 [#function formatWAFSizeConstraintTuples filter={} valueSet={} ]
     [#local result = [] ]
     [#list getWAFValueList(filter.FieldsToMatch, valueSet) as field]

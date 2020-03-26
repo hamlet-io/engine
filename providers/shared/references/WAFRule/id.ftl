@@ -46,7 +46,10 @@
         "ResourceType" : "ByteMatchSet",
         "TuplesAttributeKey" : "ByteMatchTuples"
     },
-    AWS_WAF_GEO_MATCH_CONDITION_TYPE : {},
+    AWS_WAF_GEO_MATCH_CONDITION_TYPE : {
+        "ResourceType" : "GeoMatchSet",
+        "TuplesAttributeKey" : "GeoMatchConstraints"
+    },
     AWS_WAF_IP_MATCH_CONDITION_TYPE : {
         "ResourceType" : "IPSet",
         "TuplesAttributeKey" : "IPSetDescriptors"
