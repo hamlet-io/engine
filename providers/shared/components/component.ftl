@@ -1,6 +1,7 @@
 [#ftl]
 
 [#-- Known component types --]
+[#assign ADAPTOR_COMPONENT_TYPE = "adaptor"]
 
 [#assign APIGATEWAY_COMPONENT_TYPE = "apigateway"]
 [#assign APIGATEWAY_USAGEPLAN_COMPONENT_TYPE = "apiusageplan"]
