@@ -226,6 +226,18 @@
     [@Settings  variables /]
 [/#macro]
 
+[#macro ContextSetting name value ]
+    [#assign _context =
+                mergeObjects(
+                    _context,
+                    {
+                        "ContextSettings" : {
+                            name : value
+                        }
+                    }
+                )]
+[/#macro]
+
 [#macro Host name value]
     [#assign _context +=
         {
@@ -484,7 +496,12 @@
                         )
                         context.DefaultEnvironmentVariables
                     ) +
-                    context.Environment
+                    context.Environment +
+                    valueIfTrue(
+                        context.ContextSettings,
+                        ( context.ContextSettings?has_content && ! (serialisationConfig.Escaped)!true),
+                        {}
+                    )
                 )
         } ]
 [/#function]
