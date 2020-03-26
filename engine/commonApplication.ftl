@@ -498,7 +498,7 @@
                     ) +
                     context.Environment +
                     valueIfTrue(
-                        context.ContextSettings,
+                        context.ContextSettings!{},
                         ( context.ContextSettings?has_content && ! (serialisationConfig.Escaped)!true),
                         {}
                     )
