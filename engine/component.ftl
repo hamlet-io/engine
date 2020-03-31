@@ -76,29 +76,53 @@
     }
 ] ]
 
-[#macro addResourceGroupInformation type attributes provider resourceGroup services=[] ]
-    [#-- Special processing for profiles --]
-    [#if
-        (provider == SHARED_ATTRIBUTES) &&
-        (resourceGroup == DEFAULT_RESOURCE_GROUP) ]
-        [#local extendedAttributes = [] ]
-        [#local profileAttribute = coreProfileChildConfiguration[0] ]
-        [#local settingsNamespacesAttribute = coreSettingsNamespacesConfiguration[0]]
-        [#list attributes as attribute ]
-            [#if asArray(attribute.Names!attribute.Name)?seq_contains("Profiles")]
-                [#local profileAttribute +=
+[#macro addResourceGroupInformation type attributes provider resourceGroup services=[] prefixed=true ]
+    [#if provider == SHARED_ATTRIBUTES ]
+        [#-- Special processing for profiles --]
+        [#if resourceGroup == DEFAULT_RESOURCE_GROUP ]
+            [#local providerAttributes = [] ]
+            [#local profileAttribute = coreProfileChildConfiguration[0] ]
+            [#local settingsNamespacesAttribute = coreSettingsNamespacesConfiguration[0] ]
+            [#list attributes as attribute ]
+                [#if asArray(attribute.Names!attribute.Name![])?seq_contains("Profiles")]
+                    [#local profileAttribute +=
+                            {
+                                "Children" :
+                                    profileAttribute.Children +
+                                    attribute.Children
+                            }
+                        ] ]
+                [#else]
+                    [#local providerAttributes += [attribute] ]
+                [/#if]
+            [/#list]
+            [#local providerAttributes += [profileAttribute, settingsNamespacesAttribute] ]
+        [#else]
+            [#local providerAttributes = attributes ]
+        [/#if]
+    [#else]
+        [#if prefixed]
+            [#-- Handle prefixing of provider specific attributes --]
+            [#local providerAttributes = [] ]
+            [#list attributes as attribute ]
+                [#local prefixedNames = [] ]
+                [#list asArray(attribute.Names!attribute.Name![]) as name]
+                    [#local prefixedNames += [provider + ":" + name] ]
+                [/#list]
+                [#local providerAttributes +=
+                    [
+                        attribute +
                         {
-                            "Children" :
-                                profileAttribute.Children +
-                                attribute.Children
+                            "Names" : prefixedNames
                         }
-                    ] ]
-            [#else]
-                [#local extendedAttributes += [attribute] ]
-            [/#if]
-        [/#list]
-        [#local extendedAttributes += [profileAttribute, settingsNamespacesAttribute] ]
+                    ]
+                ]
+            [/#list]
+        [#else]
+            [#local providerAttributes = attributes ]
+        [/#if]
     [/#if]
+
     [@internalMergeComponentConfiguration
         type=type
         configuration=
@@ -107,7 +131,7 @@
                     resourceGroup : {
                         "Attributes" : {
                             provider :
-                                asArray(extendedAttributes!attributes) + coreComponentChildConfiguration
+                                providerAttributes + coreComponentChildConfiguration
                         }
                     } +
                     valueIfContent(

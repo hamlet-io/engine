@@ -204,8 +204,8 @@
     [#list getComponentResourceGroups(occurrence.Core.Type) as key, value]
         [#local placement = (occurrence.State.ResourceGroups[key].Placement)!{}]
         [#local attributes +=
-            value.Attributes[SHARED_ATTRIBUTES]![] +
-            value.Attributes[placement.Provider!""]![]]
+            (value.Attributes[SHARED_ATTRIBUTES]![]) +
+            (value.Attributes[placement.Provider!""]![]) ]
     [/#list]
     [#return attributes]
 [/#function]
