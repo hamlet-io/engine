@@ -72,7 +72,7 @@
                     {
                         "Names" : "EncryptionScheme",
                         "Type" : STRING_TYPE,
-                        "Values" : ["base64"],
+                        "Description" : "A prefix appended to link attributes to show encryption status",
                         "Default" : ""
                     }
                 ]
