@@ -36,6 +36,12 @@
                 "Default" : false
             },
             {
+                "Names" : "MFAMethods",
+                "Type" : ARRAY_OF_STRING_TYPE,
+                "Values" : [ "SMS", "SoftwareToken" ],
+                "Default" : [ "SMS" ]
+            },
+            {
                 "Names" : "AdminCreatesUser",
                 "Type" : BOOLEAN_TYPE,
                 "Default" : true
@@ -43,7 +49,7 @@
             {
                 "Names" : "UnusedAccountTimeout",
                 "Type" : NUMBER_TYPE,
-                "Default" : 7
+                "Default" : 1
             },
             {
                 "Names" : "VerifyEmail",
@@ -58,7 +64,7 @@
             {
                 "Names" : "LoginAliases",
                 "Type" : ARRAY_OF_STRING_TYPE,
-                "Default" : ["email"]
+                "Description" : "Deprecated - use Username.Aliases"
             },
             {
                 "Names" : "AuthorizationHeader",
@@ -66,8 +72,35 @@
                 "Default" : "Authorization"
             },
             {
+                "Names" : "Username",
+                "Children" : [
+                    {
+                        "Names" : "CaseSensitive",
+                        "Type" : BOOLEAN_TYPE,
+                        "Default" : true
+                    },
+                    {
+                        "Names" : "Attributes",
+                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Values" : [ "email", "phone_number" ],
+                        "Default" : [ ]
+                    },
+                    {
+                        "Names" : "Aliases",
+                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Values" : [ "phone_number", "email", "preferred_username" ],
+                        "Default" : ["email"]
+                    }
+                ]
+            }
+            {
                 "Names" : "PasswordPolicy",
                 "Children" : [
+                    {
+                        "Names" : "AllowUserRecovery",
+                        "Type" : BOOLEAN_TYPE,
+                        "Default" : true
+                    },
                     {
                         "Names" : "MinimumLength",
                         "Type" : NUMBER_TYPE,
@@ -137,6 +170,24 @@
                         "Children" : certificateChildConfiguration
                     }
                 ]
+            },
+            {
+                "Names" : "Security",
+                "Children" : [
+                    {
+                        "Names" : "UserDeviceTracking",
+                        "Type" : [ BOOLEAN_TYPE, STRING_TYPE],
+                        "Values" : [ "true", true, "false", false, "optional" ],
+                        "Default" : "optional"
+                    },
+                    {
+                        "Names" : "ActivityTracking",
+                        "Description" : "Apply authentication validation based on activity",
+                        "Type" : STRING_TYPE,
+                        "Values" : [ "disabled", "audit", "enforced" ],
+                        "Default" : "disabled"
+                    }
+                ]
             }
         ]
 /]
@@ -195,6 +246,25 @@
                 "Type" : ARRAY_OF_STRING_TYPE,
                 "Default" : [ "COGNITO" ]
             },
+            {
+                "Names" : "ResourceScopes",
+                "Description" : "Resources that the client is permitted to access",
+                "Subobjects" : true,
+                "Children" : [
+                    {
+                        "Names" : "Name",
+                        "Type" : STRING_TYPE,
+                        "Description" : "The name of a userpool resource configured for this pool",
+                        "Mandatory" : true
+                    },
+                    {
+                        "Names" : "Scopes",
+                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Description" : "A list of scopes that the resource offers",
+                        "Mandatory" : true
+                    }
+                ]
+            }
             {
                 "Names" : "Links",
                 "Subobjects" : true,
@@ -290,12 +360,12 @@
                     {
                         "Names" : "ClientId",
                         "Type" : STRING_TYPE,
-                        "Default" : "" 
+                        "Default" : ""
                     },
                     {
                         "Names" : "ClientSecret",
                         "Type" : STRING_TYPE,
-                        "Default" : "" 
+                        "Default" : ""
                     },
                     {
                         "Names" : "Scopes",
@@ -306,32 +376,32 @@
                         "Names" : "AttributesHttpMethod",
                         "Type" : STRING_TYPE,
                         "Values" : [ "GET", "POST" ],
-                        "Default" : "GET" 
+                        "Default" : "GET"
                     },
                     {
                         "Names" : "Issuer",
                         "Type" : STRING_TYPE,
-                        "Default" : "" 
+                        "Default" : ""
                     },
                     {
                         "Names" : "AuthorizeUrl",
                         "Type" : STRING_TYPE,
-                        "Default" : "" 
+                        "Default" : ""
                     },
                     {
                         "Names" : "TokenUrl",
                         "Type" : STRING_TYPE,
-                        "Default" : "" 
+                        "Default" : ""
                     },
                     {
                         "Names" : "AttributesUrl",
                         "Type" : STRING_TYPE,
-                        "Default" : "" 
+                        "Default" : ""
                     },
                     {
                         "Names" : "JwksUrl",
                         "Type" : STRING_TYPE,
-                        "Default" : "" 
+                        "Default" : ""
                     }
                 ]
             }
@@ -339,4 +409,72 @@
     parent=USERPOOL_COMPONENT_TYPE
     childAttribute="AuthProviders"
     linkAttributes="AuthProvider"
+/]
+
+
+[@addChildComponent
+    parent=USERPOOL_COMPONENT_TYPE
+    type=USERPOOL_RESOURCE_COMPONENT_TYPE
+    childAttribute="Resources"
+    linkAttributes="Resource"
+    properties=
+        [
+            {
+                "Type" : "Description",
+                "Value" : "A resource represents a server protected by the userpool and the scoped roles that it offers"
+            },
+            {
+                "Type" : "Providers",
+                "Value" : [ "aws" ]
+            },
+            {
+                "Type" : "ComponentLevel",
+                "Value" : "solution"
+            }
+        ]
+    attributes=
+        [
+            {
+                "Names" : "Server",
+                "Description" : "The endpoint of the resource",
+                "Mandatory" : true,
+                "Children" : [
+                    {
+                        "Names" : "Link",
+                        "Description" : "A link to the server resource represented by this resource",
+                        "Mandatory" : true,
+                        "Children" : linkChildrenConfiguration
+                    },
+                    {
+                        "Names" : "LinkAttribute",
+                        "Description" : "The link targets attribute which defines the url",
+                        "Default" : "URL"
+                    },
+                    {
+                        "Names" : "UseProvidedScopes",
+                        "Description" : "Use Scopes provided by the server component if available",
+                        "Type" : BOOLEAN_TYPE,
+                        "Default" : true
+                    }
+                ]
+            },
+            {
+                "Names" : "Scopes",
+                "Description" : "The access scopes offered by the server",
+                "Subobjects" : true,
+                "Children" : [
+                    {
+                        "Names" : "Name",
+                        "Description" : "The name of the scope which is passed to the server",
+                        "Type" : STRING_TYPE
+                    },
+                    {
+                        "Names" : "Description",
+                        "Description" : "A short description of the scope and what it does",
+                        "Type" : STRING_TYPE
+                    }
+                ]
+            }
+        ]
+
 /]
