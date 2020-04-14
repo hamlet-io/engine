@@ -93,6 +93,7 @@
 [#assign USERPOOL_COMPONENT_TYPE = "userpool"]
 [#assign USERPOOL_CLIENT_COMPONENT_TYPE = "userpoolclient" ]
 [#assign USERPOOL_AUTHPROVIDER_COMPONENT_TYPE = "userpoolauthprovider" ]
+[#assign USERPOOL_RESOURCE_COMPONENT_TYPE = "userpoolresource" ]
 
 [#assign
     filterChildrenConfiguration = [
@@ -176,6 +177,10 @@
         },
         {
             "Names" : [ "AuthProvider" ],
+            "Type" : STRING_TYPE
+        },
+        {
+            "Names" : [ "Resource" ],
             "Type" : STRING_TYPE
         },
         {
