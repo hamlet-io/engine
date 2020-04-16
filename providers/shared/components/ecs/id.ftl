@@ -103,6 +103,12 @@
                         "Default" : "default"
                     }
                 ]
+        },
+        {
+            "Names" : "Mode",
+            "Description" : "Sets the mode of a specific container within a task - defaults to the second half of a dash separated id",
+            "Type" : STRING_TYPE,
+            "Default" : ""
         }
     ]
 ]

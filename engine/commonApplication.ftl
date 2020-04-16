@@ -30,12 +30,16 @@
 [/#function]
 
 [#function getContainerMode container]
-    [#assign idParts = container?is_hash?then(
-                        container.Id?split("-"),
-                        container?split("-"))]
-    [#return idParts[1]?has_content?then(
-                idParts[1]?upper_case,
-                "WEB")]
+    [#if (container.Mode!"")?has_content ]
+        [#return container.Mode ]
+    [#else]
+        [#assign idParts = container?is_hash?then(
+                            container.Id?split("-"),
+                            container?split("-"))]
+        [#return idParts[1]?has_content?then(
+                    idParts[1]?upper_case,
+                    "WEB")]
+    [/#if]
 [/#function]
 
 [#-- Fragment List Macros --]
