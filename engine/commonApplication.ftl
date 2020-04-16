@@ -30,8 +30,8 @@
 [/#function]
 
 [#function getContainerMode container]
-    [#if (container.Mode!"")?has_content ]
-        [#return container.Mode ]
+    [#if container?is_hash && (container.RunMode!"")?has_content ]
+        [#return container.RunMode ]
     [#else]
         [#assign idParts = container?is_hash?then(
                             container.Id?split("-"),
