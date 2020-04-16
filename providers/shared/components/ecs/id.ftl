@@ -103,6 +103,12 @@
                         "Default" : "default"
                     }
                 ]
+        },
+        {
+            "Names" : "RunMode",
+            "Description" : "A per container setting which can be used by the app to determine run mode for a container in a task - defaults to the second half of a dash separated id",
+            "Type" : STRING_TYPE,
+            "Default" : ""
         }
     ]
 ]
