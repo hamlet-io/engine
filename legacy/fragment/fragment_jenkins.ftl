@@ -116,7 +116,17 @@
     [/#if]
 
     [#if settings["CODEONTAPVOLUME"]?has_content ]
-        [@Volume "codeontap" "/var/opt/codeontap/" settings["CODEONTAPVOLUME"] /]
+        [@Volume
+            name="codeontap"
+            containerPath="/var/opt/codeontap/"
+            hostPath=settings["CODEONTAPVOLUME"]
+        /]
+    [#elseif settings["PROPERTIESVOLUME"]?has_content ]
+        [@Volume
+            name="codeontap"
+            containerPath="/var/opt/codeontap/"
+            hostPath=settings["PROPERTIESVOLUME"]
+        /]
     [/#if]
 
     [#if settings["PROPERTIESVOLUME"]?has_content ]
