@@ -42,6 +42,13 @@
             hostPath=settings["CODEONTAPVOLUME"]
             readOnly=true
         /]
+    [#elseif settings["PROPERTIESVOLUME"]?has_content ]
+        [@Volume
+            name="codeontap"
+            containerPath="/var/opt/codeontap/"
+            hostPath=settings["PROPERTIESVOLUME"]
+            readOnly=true
+        /]
     [/#if]
 
     [#-- Validate that the appropriate settings have been provided for the container to work --]
