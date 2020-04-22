@@ -11,7 +11,11 @@
             "Description": "Normally only one environment for the alm. Entry mainly here for naming consistency",
             "Category": "alm",
             "Operations": {
-              "Expiration": 90
+              "Expiration": 90,
+              "FlowLogs": {
+                "Enabled": true,
+                "Expiration": 7
+              }
             },
             "DomainBehaviours": {
               "Segment": "segmentInHost"
@@ -41,7 +45,11 @@
             "Description": "Prototyping environment according to DTO classification",
             "Category": "test",
             "Operations": {
-              "Expiration": 14
+              "Expiration": 14,
+              "FlowLogs": {
+                "Enabled": true,
+                "Expiration": 2
+              }
             },
             "DomainBehaviours": {
               "Segment": "segmentInHost"
@@ -53,7 +61,11 @@
             "Category": "stg",
             "MultiAZ": true,
             "Operations": {
-              "Expiration": 90
+              "Expiration": 90,
+              "FlowLogs": {
+                "Enabled": true,
+                "Expiration": 7
+              }
             },
             "DomainBehaviours": {
               "Segment": "segmentInHost"
@@ -65,7 +77,11 @@
             "Description": "Mainly for devs to confirm components work together",
             "Category": "test",
             "Operations": {
-              "Expiration": 30
+              "Expiration": 30,
+              "FlowLogs": {
+                "Enabled": true,
+                "Expiration": 7
+              }
             },
             "DomainBehaviours": {
               "Segment": "segmentInHost"
@@ -77,7 +93,11 @@
             "Description": "Execution of automated tests",
             "Category": "test",
             "Operations": {
-              "Expiration": 30
+              "Expiration": 30,
+              "FlowLogs": {
+                "Enabled": true,
+                "Expiration": 7
+              }
             },
             "DomainBehaviours": {
               "Segment": "segmentInHost"
@@ -89,7 +109,11 @@
             "Description": "Manual customer testing",
             "Category": "test",
             "Operations": {
-              "Expiration": 30
+              "Expiration": 30,
+              "FlowLogs": {
+                "Enabled": true,
+                "Expiration": 7
+              }
             },
             "DomainBehaviours": {
               "Segment": "segmentInHost"
@@ -102,7 +126,11 @@
             "Category": "test",
             "MultiAZ": true,
             "Operations": {
-              "Expiration": 30
+              "Expiration": 30,
+              "FlowLogs": {
+                "Enabled": true,
+                "Expiration": 7
+              }
             },
             "DomainBehaviours": {
               "Segment": "segmentInHost"
@@ -115,7 +143,11 @@
             "Category": "stg",
             "MultiAZ": true,
             "Operations": {
-              "Expiration": 90
+              "Expiration": 90,
+              "FlowLogs": {
+                "Enabled": true,
+                "Expiration": 7
+              }
             },
             "DomainBehaviours": {
               "Segment": "segmentInHost"
@@ -128,7 +160,11 @@
             "Category": "stg",
             "MultiAZ": true,
             "Operations": {
-              "Expiration": 90
+              "Expiration": 90,
+              "FlowLogs": {
+                "Enabled": true,
+                "Expiration": 7
+              }
             },
             "DomainBehaviours": {
               "Segment": "segmentInHost"
@@ -141,7 +177,11 @@
             "Category": "prod",
             "MultiAZ": true,
             "Operations": {
-              "Expiration": 365
+              "Expiration": 365,
+              "FlowLogs": {
+                "Enabled": true,
+                "Expiration": 7
+              }
             },
             "DomainBehaviours": {
               "Segment": "naked"
@@ -153,7 +193,11 @@
             "Description": "",
             "Category": "prod",
             "Operations": {
-              "Expiration": 90
+              "Expiration": 90,
+              "FlowLogs": {
+                "Enabled": true,
+                "Expiration": 7
+              }
             },
             "DomainBehaviours": {
               "Segment": "segmentInHost"
