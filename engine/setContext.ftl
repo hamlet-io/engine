@@ -101,10 +101,6 @@
 [@addReferenceData type=NETWORKENDPOINTGROUP_REFERENCE_TYPE base=blueprintObject /]
 [#assign networkEndpointGroups = getReferenceData(NETWORKENDPOINTGROUP_REFERENCE_TYPE) ]
 
-[#-- Virtual Machine Image Profiles --]
-[@addReferenceData type=VIRTUAL_MACHINE_IMAGE_REFERENCE_TYPE base=blueprintObject /]
-[#assign vmImageProfiles = getReferenceData(VIRTUAL_MACHINE_IMAGE_REFERENCE_TYPE) ]
-
 [#-- WAF --]
 [@addReferenceData type=WAFPROFILE_REFERENCE_TYPE base=blueprintObject /]
 [@addReferenceData type=WAFRULEGROUP_REFERENCE_TYPE base=blueprintObject /]
