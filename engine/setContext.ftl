@@ -117,10 +117,6 @@
 [#assign wafConditions = getReferenceData(WAFCONDITION_REFERENCE_TYPE) ]
 [#assign wafValueSets = getReferenceData(WAFVALUESET_REFERENCE_TYPE) ]
 
-[#-- SKU --]
-[@addReferenceData type=SKU_PROFILE_REFERENCE_TYPE base=blueprintObject /]
-[#assign skuProfiles = getReferenceData(SKU_PROFILE_REFERENCE_TYPE) ]
-
 [#-- Regions --]
 [#if commandLineOptions.Regions.Segment?has_content]
     [#assign regionId = commandLineOptions.Regions.Segment]
