@@ -48,12 +48,12 @@
 [@includeProviders commandLineOptions.Deployment.Provider.Names /]
 [@seedCoreProviderInputSourceData commandLineOptions.Deployment.Provider.Names /]
 
+[#-- start the blueprint with the masterData --]
+[@addBlueprint blueprint=getMasterData() /]
+
 [#-- Process the remaining core provider configuration --]
 [@includeCoreProviderConfiguration SHARED_PROVIDER /]
 [@includeCoreProviderConfiguration commandLineOptions.Deployment.Provider.Names /]
-
-[#-- start the blueprint with the masterData --]
-[@addBlueprint blueprint=getMasterData() /]
 
 [#-- Load Scenarios --]
 [#if scenarioList?has_content ]
