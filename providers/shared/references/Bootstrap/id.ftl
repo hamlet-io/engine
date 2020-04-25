@@ -35,6 +35,65 @@
                     "Type" : STRING_TYPE
                 }
             ]
+        },
+        {
+            "Names" : "Index",
+            "Description" : "Determines script execution sequence.",
+            "Type" : NUMBER_TYPE
+        },
+        {
+            "Names" : "Type",
+            "Children" : [
+                {
+                    "Names" : "Name",
+                    "Type" : STRING_TYPE
+                },
+                {
+                    "Names" : "HandlerVersion",
+                    "Type" : STRING_TYPE
+                }
+            ]
+        }
+        {
+            "Names" : "Publisher",
+            "Type" : STRING_TYPE
+        },
+        {
+            "Names" : "AutoUpgradeOnMinorVersion",
+            "Type" : BOOLEAN_TYPE,
+            "Default" : false
+        },
+        {
+            "Names" : "Settings",
+            "Subobjects" : true,
+            "Children" : [
+                {
+                    "Names" : "Key",
+                    "Type" : STRING_TYPE,
+                    "Mandatory" : true
+                },
+                {
+                    "Names" : "Value",
+                    "Type" : STRING_TYPE,
+                    "Mandatory" : true
+                }
+            ]
+        },
+        {
+            "Names" : "ProtectedSettings",
+            "Subobjects" : true,
+            "Children" : [
+                {
+                    "Names" : "Key",
+                    "Type" : STRING_TYPE,
+                    "Mandatory" : true
+                },
+                {
+                    "Names" : "Value",
+                    "Type" : STRING_TYPE,
+                    "Mandatory" : true
+                }
+            ]
         }
     ]
 /]
