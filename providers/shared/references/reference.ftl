@@ -19,7 +19,6 @@
 [#assign LOGFILTER_REFERENCE_TYPE = "LogFilter" ]
 
 [#-- Compute Reference Types --]
-[#assign VIRTUAL_MACHINE_IMAGE_REFERENCE_TYPE = "VMImageProfile"]
 [#assign PROCESSOR_REFERENCE_TYPE = "Processor" ]
 [#assign STORAGE_REFERENCE_TYPE = "Storage" ]
 
