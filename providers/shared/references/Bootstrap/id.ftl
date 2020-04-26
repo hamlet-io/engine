@@ -64,22 +64,6 @@
             "Default" : false
         },
         {
-            "Names" : "Settings",
-            "Subobjects" : true,
-            "Children" : [
-                {
-                    "Names" : "Key",
-                    "Type" : STRING_TYPE,
-                    "Mandatory" : true
-                },
-                {
-                    "Names" : "Value",
-                    "Type" : STRING_TYPE,
-                    "Mandatory" : true
-                }
-            ]
-        },
-        {
             "Names" : "ProtectedSettings",
             "Subobjects" : true,
             "Children" : [
@@ -90,7 +74,7 @@
                 },
                 {
                     "Names" : "Value",
-                    "Type" : STRING_TYPE,
+                    "Type" : ANY_TYPE,
                     "Mandatory" : true
                 }
             ]
