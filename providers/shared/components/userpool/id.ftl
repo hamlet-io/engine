@@ -299,7 +299,7 @@
                 "Names" : "Engine",
                 "Description" : "The authentication provider type",
                 "Type" : STRING_TYPE,
-                "Values" : [ "SAML", "OIDC" ],
+                "Values" : [ "SAML", "OIDC", "Facebook", "Google", "Apple", "Amazon" ],
                 "Mandatory" : true
             },
             {
@@ -402,6 +402,101 @@
                         "Names" : "JwksUrl",
                         "Type" : STRING_TYPE,
                         "Default" : ""
+                    }
+                ]
+            },
+            {
+                "Names" : "Facebook",
+                "Children" : [
+                    {
+                        "Names" : "ClientId",
+                        "Type" : STRING_TYPE,
+                        "Default" : ""
+                    },
+                    {
+                        "Names" : "ClientSecret",
+                        "Type" : STRING_TYPE,
+                        "Default" : ""
+                    },
+                    {
+                        "Names" : "Scopes",
+                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Default" : [ "email", "public_profile" ]
+                    },
+                    {
+                        "Names" : "APIVersion",
+                        "Type" : STRING_TYPE,
+                        "Default" : ""
+                    }
+                ]
+            },
+            {
+                "Names" : "Amazon",
+                "Children" : [
+                    {
+                        "Names" : "ClientId",
+                        "Type" : STRING_TYPE,
+                        "Default" : ""
+                    },
+                    {
+                        "Names" : "ClientSecret",
+                        "Type" : STRING_TYPE,
+                        "Default" : ""
+                    },
+                    {
+                        "Names" : "Scopes",
+                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Default" : [ "profile" ]
+                    }
+                ]
+            },
+            {
+                "Names" : "Google",
+                "Children" : [
+                    {
+                        "Names" : "ClientId",
+                        "Type" : STRING_TYPE,
+                        "Default" : ""
+                    },
+                    {
+                        "Names" : "ClientSecret",
+                        "Type" : STRING_TYPE,
+                        "Default" : ""
+                    },
+                    {
+                        "Names" : "Scopes",
+                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Default" : [ "openid", "profile", "email"  ]
+                    }
+                ]
+            },
+            {
+                "Names" : "Apple",
+                "Children" : [
+                    {
+                        "Names" : "ClientId",
+                        "Type" : STRING_TYPE,
+                        "Default" : ""
+                    },
+                    {
+                        "Names" : "TeamId",
+                        "Type" : STRING_TYPE,
+                        "Default" : ""
+                    },
+                    {
+                        "Names" : "KeyId",
+                        "Type" : STRING_TYPE,
+                        "Default" : ""
+                    },
+                    {
+                        "Names" : "PriviateKey",
+                        "Type" : STRING_TYPE,
+                        "Default" : ""
+                    },
+                    {
+                        "Names" : "Scopes",
+                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Default" : [ "email", "name"  ]
                     }
                 ]
             }
