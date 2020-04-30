@@ -176,7 +176,7 @@
             {
                 "Names" : "Role",
                 "Type" : STRING_TYPE,
-                "Values" : [ "appdata", "operations" ],
+                "Values" : [ "appdata", "operations", "staticWebsite" ],
                 "Mandatory" : true
             },
             {
