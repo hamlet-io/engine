@@ -237,7 +237,7 @@
             {
                 "Names" : "EncryptionScheme",
                 "Type" : STRING_TYPE,
-                "Description" : "A prefix appended to link attributes to show encryption status",
+                "Description" : "A prefix appended to attributes to show encryption status",
                 "Default" : ""
             },
             {
