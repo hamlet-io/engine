@@ -235,6 +235,12 @@
                 "Default" : false
             },
             {
+                "Names" : "EncryptionScheme",
+                "Type" : STRING_TYPE,
+                "Description" : "A prefix appended to link attributes to show encryption status",
+                "Default" : ""
+            },
+            {
                 "Names" : "ClientTokenValidity",
                 "Description" : "Time in days that the refresh token is valid for",
                 "Type" : NUMBER_TYPE,

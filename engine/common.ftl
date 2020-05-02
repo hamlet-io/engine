@@ -283,7 +283,7 @@ behaviour.
     [#return {}]
 [/#function]
 
-[#function getProcessorCounts processorProfile multiAz desiredCount="" minCount="" maxCount="" ]
+[#function getProcessorCounts processorProfile multiAz=false desiredCount="" minCount="" maxCount="" ]
 
     [#local fixedMaxCount = maxCount?has_content?then(
                                 maxCount,
