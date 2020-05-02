@@ -343,8 +343,7 @@
                     {
                         "Names" : "MetadataUrl",
                         "Description" : "The SAML metadataUrl endpoint",
-                        "Type" : STRING_TYPE,
-                        "Default" : ""
+                        "Type" : STRING_TYPE
                     },
                     {
                         "Names" : "EnableIDPSignOut",
@@ -359,13 +358,11 @@
                 "Children" : [
                     {
                         "Names" : "ClientId",
-                        "Type" : STRING_TYPE,
-                        "Default" : ""
+                        "Type" : STRING_TYPE
                     },
                     {
                         "Names" : "ClientSecret",
-                        "Type" : STRING_TYPE,
-                        "Default" : ""
+                        "Type" : STRING_TYPE
                     },
                     {
                         "Names" : "Scopes",
@@ -380,28 +377,23 @@
                     },
                     {
                         "Names" : "Issuer",
-                        "Type" : STRING_TYPE,
-                        "Default" : ""
+                        "Type" : STRING_TYPE
                     },
                     {
                         "Names" : "AuthorizeUrl",
-                        "Type" : STRING_TYPE,
-                        "Default" : ""
+                        "Type" : STRING_TYPE
                     },
                     {
                         "Names" : "TokenUrl",
-                        "Type" : STRING_TYPE,
-                        "Default" : ""
+                        "Type" : STRING_TYPE
                     },
                     {
                         "Names" : "AttributesUrl",
-                        "Type" : STRING_TYPE,
-                        "Default" : ""
+                        "Type" : STRING_TYPE
                     },
                     {
                         "Names" : "JwksUrl",
-                        "Type" : STRING_TYPE,
-                        "Default" : ""
+                        "Type" : STRING_TYPE
                     }
                 ]
             },
@@ -410,13 +402,11 @@
                 "Children" : [
                     {
                         "Names" : "ClientId",
-                        "Type" : STRING_TYPE,
-                        "Default" : ""
+                        "Type" : STRING_TYPE
                     },
                     {
                         "Names" : "ClientSecret",
-                        "Type" : STRING_TYPE,
-                        "Default" : ""
+                        "Type" : STRING_TYPE
                     },
                     {
                         "Names" : "Scopes",
@@ -425,8 +415,7 @@
                     },
                     {
                         "Names" : "APIVersion",
-                        "Type" : STRING_TYPE,
-                        "Default" : ""
+                        "Type" : STRING_TYPE
                     }
                 ]
             },
@@ -435,13 +424,11 @@
                 "Children" : [
                     {
                         "Names" : "ClientId",
-                        "Type" : STRING_TYPE,
-                        "Default" : ""
+                        "Type" : STRING_TYPE
                     },
                     {
                         "Names" : "ClientSecret",
-                        "Type" : STRING_TYPE,
-                        "Default" : ""
+                        "Type" : STRING_TYPE
                     },
                     {
                         "Names" : "Scopes",
@@ -455,13 +442,11 @@
                 "Children" : [
                     {
                         "Names" : "ClientId",
-                        "Type" : STRING_TYPE,
-                        "Default" : ""
+                        "Type" : STRING_TYPE
                     },
                     {
                         "Names" : "ClientSecret",
-                        "Type" : STRING_TYPE,
-                        "Default" : ""
+                        "Type" : STRING_TYPE
                     },
                     {
                         "Names" : "Scopes",
@@ -475,23 +460,19 @@
                 "Children" : [
                     {
                         "Names" : "ClientId",
-                        "Type" : STRING_TYPE,
-                        "Default" : ""
+                        "Type" : STRING_TYPE
                     },
                     {
                         "Names" : "TeamId",
-                        "Type" : STRING_TYPE,
-                        "Default" : ""
+                        "Type" : STRING_TYPE
                     },
                     {
                         "Names" : "KeyId",
-                        "Type" : STRING_TYPE,
-                        "Default" : ""
+                        "Type" : STRING_TYPE
                     },
                     {
-                        "Names" : "PriviateKey",
-                        "Type" : STRING_TYPE,
-                        "Default" : ""
+                        "Names" : "PrivateKey",
+                        "Type" : STRING_TYPE
                     },
                     {
                         "Names" : "Scopes",
