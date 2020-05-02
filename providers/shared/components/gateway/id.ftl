@@ -27,7 +27,7 @@
             {
                 "Names" : "Engine",
                 "Type" : STRING_TYPE,
-                "Values" : [ "natgw", "igw", "vpcendpoint" ],
+                "Values" : [ "natgw", "igw", "vpcendpoint", "endpoint" ],
                 "Required" : true
             },
             {
@@ -35,6 +35,42 @@
                 "Description" : "IP Address Groups which can access this gateway",
                 "Type" : ARRAY_OF_STRING_TYPE,
                 "Default" : [ "_localnet" ]
+            },
+            {
+                "Names" : "EndpointScope",
+                "Description" : "The scope of the endpoint gateway component",
+                "Values" : [ "network", "zone" ],
+                "Type" : STRING_TYPE,
+                "Mandatory" : true
+            },
+            {
+                "Names" : "EndpointType",
+                "Description" : "The type of the route resource",
+                "Values" : [ "Peering", "Transit", "NetworkInterface", "Instance" ],
+                "Mandatory" : true
+            },
+            {
+                "Names" : "Endpoints",
+                "Description" : "Endpoint Engine resources",
+                "Subobjects" : true,
+                "Children" : [
+                    {
+                        "Names" : "Zone",
+                        "Description" : "The zone the endpoint belongs to",
+                        "Type" : STRING_TYPE
+                    },
+                    {
+                        "Names" : "Attribute",
+                        "Description" : "The attribute of the endpoint",
+                        "Type" : STRING_TYPE,
+                        "Mandatory" : true
+                    },
+                    {
+                        "Names" : "Link",
+                        "Description" : "The link to the component",
+                        "Children" : linkChildrenConfiguration
+                    }
+                ]
             }
         ]
 /]
