@@ -248,8 +248,9 @@
             },
             {
                 "Names" : "AuthProviders",
-                "Description" : "A list of user pool auth providers which can use this client",
+                "Description" : "A list of user pool auth providers which can use this client. AuthProvider component names are constrained to these fixed values.",
                 "Type" : ARRAY_OF_STRING_TYPE,
+                "Values" : ["COGNITO", "Facebook", "Google", "LoginWithAmazon"],
                 "Default" : [ "COGNITO" ]
             },
             {
