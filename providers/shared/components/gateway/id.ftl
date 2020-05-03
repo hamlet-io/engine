@@ -40,14 +40,12 @@
                 "Names" : "EndpointScope",
                 "Description" : "The scope of the endpoint gateway component",
                 "Values" : [ "network", "zone" ],
-                "Type" : STRING_TYPE,
-                "Mandatory" : true
+                "Type" : STRING_TYPE
             },
             {
                 "Names" : "EndpointType",
                 "Description" : "The type of the route resource",
-                "Values" : [ "Peering", "Transit", "NetworkInterface", "Instance" ],
-                "Mandatory" : true
+                "Values" : [ "Peering", "Transit", "NetworkInterface", "Instance" ]
             },
             {
                 "Names" : "Endpoints",
