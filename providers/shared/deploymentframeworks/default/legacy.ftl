@@ -447,39 +447,56 @@
                         [#-- must be under a "Configuration" attribute to avoid the  --]
                         [#-- configuration attributes being treated as subcomponent  --]
                         [#-- instances.                                              --]
-                        [#local subComponentInstances = {} ]
-                        [#if ((typeObject[subComponent.Component])!{})?is_hash ]
-                            [#local subComponentInstances =
-                                (typeObject[subComponent.Component].Components)!
-                                (typeObject[subComponent.Component])!{}
-                            ]
+
+                        [#-- Collect up the subcomponent configuration across the current contexts --]
+                        [#local subComponentConfig =
+                            (
+                                getCompositeObject(
+                                    [
+                                        {
+                                            "Names" : subComponent.Component,
+                                            "Children" : [
+                                                {
+                                                    "Names" : "Components",
+                                                    "Subobjects" : true,
+                                                    "Children" : [
+                                                        {
+                                                            "Names" : "*"
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "Names" : "*"
+                                                }
+                                            ]
+                                        }
+                                    ],
+                                    occurrenceContexts
+                                )[subComponent.Component]
+                             )!{} ]
+
+                        [#if subComponentConfig.Components?has_content]
+                            [#local subComponentInstances = subComponentConfig.Components]
                         [#else]
-                            [@fatal
-                              message="Subcomponent " + subComponent.Component + " content is not a hash"
-                              context=typeObject[subComponent.Component] /]
+                            [#local subComponentInstances = removeObjectAttributes(subComponentConfig, ["Enabled", "Configured", "Components"]) ]
                         [/#if]
 
                         [#list subComponentInstances as key,subComponentInstance ]
+
                             [#if subComponentInstance?is_hash ]
                                 [#local subOccurrenceContexts = occurrenceContexts ]
-                                [#if (typeObject[subComponent.Component].Components)?has_content ]
+                                [#if (subComponentConfig.Components)?has_content ]
                                     [#-- Configuration attributes at same level as Components attribute --]
-                                    [#local subOccurrenceContexts +=
-                                        [
-                                            typeObject[subComponent.Component]
-                                        ]
-                                    ]
+                                    [#local subOccurrenceContexts += [ removeObjectAttributes(subComponentConfig, "Components") ] ]
                                 [#else]
                                     [#if key == "Configuration" ]
                                         [#-- Skip the Configuration element --]
                                         [#continue]
                                     [#else]
                                         [#-- Add in any shared configuration --]
-                                        [#local subOccurrenceContexts +=
-                                            [
-                                                typeObject[subComponent.Component].Configuration!{}
-                                            ]
-                                        ]
+                                        [#if subComponentConfig.Configuration?has_content]
+                                            [#local subOccurrenceContexts += [ subComponentConfig.Configuration ]  ]
+                                        [/#if]
                                     [/#if]
                                 [/#if]
                                 [#local
