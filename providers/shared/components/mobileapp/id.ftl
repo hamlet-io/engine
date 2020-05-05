@@ -40,6 +40,12 @@
                 "Names" : ["Fragment", "Container"],
                 "Type" : STRING_TYPE,
                 "Default" : ""
+            },
+            {
+                "Names" : "UseOTAPrefix",
+                "Description" : "Include the OTA Prefix in the OTA Url",
+                "Type" : BOOLEAN_TYPE,
+                "Default" : true
             }
         ]
 /]
