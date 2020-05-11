@@ -45,7 +45,7 @@
             "Names" : "apigateway",
             "Children" : [
                 {
-                    "Names" : [ "CDNHTTPSProfile" "HTTPSProfile"],
+                    "Names" : [ "CDNHTTPSProfile", "HTTPSProfile"],
                     "Type" : STRING_TYPE
                 },
                 {
