@@ -45,8 +45,13 @@
             "Names" : "apigateway",
             "Children" : [
                 {
-                    "Names" : "HTTPSProfile",
+                    "Names" : [ "CDNHTTPSProfile", "HTTPSProfile"],
                     "Type" : STRING_TYPE
+                },
+                {
+                    "Names" : "GatewayHTTPSProfile",
+                    "Type" : STRING_TYPE,
+                    "Default" : "TLS_1_0"
                 },
                 {
                     "Names" : "ProtocolPolicy",

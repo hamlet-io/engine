@@ -1560,7 +1560,8 @@
               }
             },
             "apigateway": {
-              "HTTPSProfile": "TLSv1",
+              "CDNHTTPSProfile": "TLSv1",
+              "GatewayHTTPSProfile" : "TLS_1_0",
               "ProtocolPolicy": "redirect-to-https",
               "WAFProfile": "OWASP2017",
               "WAFValueSet": "default"
