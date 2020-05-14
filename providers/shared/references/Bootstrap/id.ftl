@@ -60,8 +60,7 @@
         },
         {
             "Names" : "AutoUpgradeOnMinorVersion",
-            "Type" : BOOLEAN_TYPE,
-            "Default" : false
+            "Type" : BOOLEAN_TYPE
         },
         {
             "Names" : "ProtectedSettings",
