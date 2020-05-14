@@ -84,6 +84,24 @@
             ]
         /]
     [/#if]
+
+    [#if (settings["JENKINS_PERMANENT_AGENT"]!"false")?boolean  ]
+
+        [#assign jenkinsUrl = settings["JENKINS_URL"] ]
+
+        [#if (settings["JENKINS_LOCAL_FQDN"]!"")?has_content ]
+            [#assign jenkinsUrl = "http://" + settings["JENKINS_LOCAL_FQDN"] + ":8080" ]
+        [/#if]
+
+        [@Command
+            [
+                "-url",
+                jenkinsUrl,
+                settings["JENKINS_PERMANENT_AGENT_SECRET"],
+                settings["JENKINS_PERMANENT_AGENT_NAME"]
+            ]
+        /]
+    [/#if]
     [#break]
 
 [#case "_jenkinsecs" ]
