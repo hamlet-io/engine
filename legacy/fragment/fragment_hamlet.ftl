@@ -8,6 +8,8 @@
     [#assign dockerStageDir = settings["DOCKER_STAGE_DIR"]!"/tmp/docker-build" ]
     [#assign dockerHostDaemon = settings["DOCKER_HOST_DAEMON"]!"/var/run/docker.sock"]
     [#assign jenkinsAgentImage = settings["DOCKER_AGENT_IMAGE"]!"hamletio/hamlet"]
+
+    [#assign awsAutomationUser = settings["AWS_AUTOMATION_USER"]!"ROLE" ]
     [#assign awsAgentAutomationRole = settings["AWS_AUTOMATION_ROLE"]!"codeontap-automation" ]
 
     [@Attributes image=jenkinsAgentImage /]
@@ -18,7 +20,7 @@
     [@DefaultBaselineVariables      enabled=false /]
 
     [@Settings {
-        "AWS_AUTOMATION_USER" : "ROLE",
+        "AWS_AUTOMATION_USER" : awsAutomationUser,
         "AWS_AUTOMATION_ROLE" : awsAgentAutomationRole,
         "DOCKER_STAGE_DIR" : dockerStageDir,
         "STARTUP_COMMANDS" : (settings["STARTUP_COMMANDS"])!""
