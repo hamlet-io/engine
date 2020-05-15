@@ -20,7 +20,8 @@
     [@Settings {
         "AWS_AUTOMATION_USER" : "ROLE",
         "AWS_AUTOMATION_ROLE" : awsAgentAutomationRole,
-        "DOCKER_STAGE_DIR" : dockerStageDir
+        "DOCKER_STAGE_DIR" : dockerStageDir,
+        "STARTUP_COMMANDS" : (settings["STARTUP_COMMANDS"])!""
     }/]
 
     [@Volume
