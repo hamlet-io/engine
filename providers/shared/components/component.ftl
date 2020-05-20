@@ -54,6 +54,8 @@
 [#assign FEDERATEDROLE_COMPONENT_TYPE = "federatedrole" ]
 [#assign FEDERATEDROLE_ASSIGNMENT_COMPONENT_TYPE = "federatedroleassignment" ]
 
+[#assign GLOBALDB_COMPONENT_TYPE = "globaldb" ]
+
 [#assign LAMBDA_COMPONENT_TYPE = "lambda"]
 [#assign LAMBDA_FUNCTION_COMPONENT_TYPE = "function"]
 
@@ -818,6 +820,12 @@
         "Type"  : STRING_TYPE,
         "Values" : [ "provisioned", "per-request" ],
         "Default" : "provisioned"
+    },
+    {
+        "Names" : "Encrypted",
+        "Description" : "Enable Service side encryption",
+        "Type" : BOOLEAN_TYPE,
+        "Default" : true
     },
     {
         "Names" : "Capacity",
