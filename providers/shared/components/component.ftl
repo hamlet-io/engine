@@ -823,7 +823,7 @@
     },
     {
         "Names" : "Encrypted",
-        "Description" : "Enable Service side encryption",
+        "Description" : "Enable at rest encryption",
         "Type" : BOOLEAN_TYPE,
         "Default" : true
     },
