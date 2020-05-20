@@ -6,7 +6,7 @@
         [
             {
                 "Type"  : "Description",
-                "Value" : "A global database instance"
+                "Value" : "A global NoSQL database table"
             },
             {
                 "Type" : "Providers",
@@ -37,7 +37,7 @@
             },
             {
                 "Names" : "TTLKey",
-                "Description" : "A key in the table used to manage the items expiriy",
+                "Description" : "A key in the table used to manage the items expiry",
                 "Type" : STRING_TYPE,
                 "Default" : ""
             }
