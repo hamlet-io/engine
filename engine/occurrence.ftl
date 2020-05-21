@@ -368,36 +368,24 @@
 
 
 [#function internalCreateOccurrenceSettings possibilities root prefixes alternatives]
-    [#local contexts = [] ]
 
-    [#-- Order possibilities in increasing priority --]
+    [#-- Add the root to each prefix --]
+    [#local namespacePrefixes = [] ]
     [#list prefixes as prefix]
-        [#list possibilities?keys?sort as key]
-            [#local matchKey = key?lower_case?remove_ending("-asfile") ]
-            [#local value = possibilities[key] ]
-            [#if value?has_content]
-                [#list alternatives as alternative]
-                    [#local alternativeKey = formatName(root, prefix, alternative.Key) ]
-                    [@debug
-                        message=alternative.Match + " comparison of " + matchKey + " to " + alternativeKey
-                        enabled=false
-                    /]
-                    [#if
-                        (
-                            ((alternative.Match == "exact") && (alternativeKey == matchKey)) ||
-                            ((alternative.Match == "partial") && (alternativeKey?starts_with(matchKey)))
-                        ) ]
-                        [@debug
-                            message=alternative.Match + " comparison of " + matchKey + " to " + alternativeKey + " successful"
-                            enabled=false
-                        /]
-                        [#local contexts += [value] ]
-                        [#break]
-                    [/#if]
-                [/#list]
-            [/#if]
-        [/#list]
+        [#local namespacePrefixes += [formatName(root, prefix)] ]
     [/#list]
+
+    [#-- Get the keys of the matching possibilities --]
+    [#local matches = getMatchingNamespaces(possibilities?keys, namespacePrefixes, alternatives, ["-asfile"]) ]
+
+    [#-- Get the values of matching possibilities --]
+    [#local contexts = [] ]
+    [#list matches as match]
+        [#if possibilities[match]?has_content]
+            [#local contexts += [possibilities[match]] ]
+        [/#if]
+    [/#list]
+
     [#return asFlattenedSettings(getCompositeObject(["InhibitEnabled", { "Names" : "*" }], contexts)) ]
 [/#function]
 
