@@ -206,6 +206,73 @@ names.
     [#return concatenate(names, "-")]
 [/#function]
 
+[#function getMatchingNamespaces namespaces prefixes alternatives endingsToRemove=[] ]
+    [#local matches = [] ]
+    [#local candidates = [] ]
+
+    [@debug message=
+        {
+            "Method" : "getMatchingNamespaces",
+            "Namespaces" : namespaces,
+            "Prefixes" : prefixes,
+            "Alternatives" : alternatives,
+            "EndingsToRemove" :  endingsToRemove
+        }
+        enabled=false /]
+
+    [#-- Preprocess the namespaces to permit sorting --]
+    [#list asArray(namespaces) as namespace]
+        [#local key = namespace?lower_case]
+
+        [#-- Remove namespace endings if required --]
+        [#list asArray(endingsToRemove) as endingToRemove]
+            [#local key = key?remove_ending(endingToRemove)]
+        [/#list]
+
+        [#local candidates += [ {"Namespace" : namespace, "Key" : key} ] ]
+    [/#list]
+
+    [#-- Longer matches are ordered later in the match list --]
+    [#local candidates = candidates?sort_by("Key") ]
+
+    [#-- Prefixes listed in increasing priority --]
+    [#list prefixes as prefix]
+        [#list candidates as candidate]
+
+            [#local key = candidate.Key]
+
+            [#-- Alternatives listed in increasing priority --]
+            [#list alternatives as alternative]
+                [#local alternativeKey = formatName(prefix, alternative.Key) ]
+                [@debug
+                    message=alternative.Match + " comparison of " + key + " to " + alternativeKey
+                    enabled=false
+                /]
+                [#if
+                    (
+                        ((alternative.Match == "exact") && (alternativeKey == key)) ||
+                        ((alternative.Match == "partial") && (alternativeKey?starts_with(key)))
+                    ) ]
+                    [@debug
+                        message=alternative.Match + " comparison of " + key + " to " + alternativeKey + " successful"
+                        enabled=false
+                    /]
+                    [#local matches += [candidate.Namespace] ]
+                    [#break]
+                [/#if]
+            [/#list]
+        [/#list]
+    [/#list]
+    [@debug message=
+        {
+            "Method" : "getMatchingNamespaces",
+            "Matches" : matches
+        }
+        enabled=false /]
+
+    [#return matches]
+[/#function]
+
 [#--
 Whenever a type is used for an attribute key to create a reference from one
 object to another, the singular form implies one reference value is provided,
