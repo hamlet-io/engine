@@ -63,6 +63,22 @@
             "Type" : BOOLEAN_TYPE
         },
         {
+            "Names" : "Settings",
+            "SubObjects" : true,
+            "Children" : [
+                {
+                    "Names" : "Key",
+                    "Type" : STRING_TYPE,
+                    "Mandatory" : true
+                },
+                {
+                    "Names" : "Value",
+                    "Type" : ANY_TYPE,
+                    "Mandatory" : true
+                }
+            ]
+        },
+        {
             "Names" : "ProtectedSettings",
             "Subobjects" : true,
             "Children" : [
