@@ -27,8 +27,13 @@
             {
                 "Names" : "Engine",
                 "Type" : STRING_TYPE,
-                "Values" : [ "natgw", "igw", "vpcendpoint", "endpoint" ],
+                "Values" : [ "natgw", "igw", "vpcendpoint", "endpoint", "router" ],
                 "Required" : true
+            },
+            {
+                "Names" : "Links",
+                "Subobjects" : true,
+                "Children" : linkChildrenConfiguration
             },
             {
                 "Names" : "SourceIPAddressGroups",
