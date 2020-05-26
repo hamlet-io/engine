@@ -74,6 +74,8 @@
 [#assign NETWORK_GATEWAY_DESTINATION_COMPONENT_TYPE = "gatewaydestination"]
 [#assign NETWORK_ROUTE_TABLE_COMPONENT_TYPE = "networkroute"]
 
+[#assign NETWORK_ROUTER_COMPONENT_TYPE = "router"]
+
 [#assign OBJECTSQL_COMPONENT_TYPE = "objectsql"]
 
 [#assign S3_COMPONENT_TYPE = "s3" ]
