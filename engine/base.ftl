@@ -39,7 +39,7 @@
         attribute,
         content?has_content,
         value?has_content?then(
-            value?number, 
+            value?number,
             content?has_content?then(
                 content?number,
                 ""
@@ -71,11 +71,20 @@
 [/#function]
 
 [#function intSquareRoot value ]
+    [#local lastPerfect = 1 ]
     [#list 1..100 as square]
-        [#if square * square == value ]
+        [#local multiple = square * square ]
+        [#if multiple == value ]
             [#return square ]
         [/#if]
+        [#if multiple?floor == multiple ]
+            [#local lastPerfect = square ]
+        [/#if]
+        [#if multiple > value ]
+            [#break]
+        [/#if]
     [/#list]
+    [#return lastPerfect ]
 [/#function]
 
 [#-------------------
@@ -1192,4 +1201,3 @@ are added.
 [#function formatRelativePath parts...]
     [#return formatPath(false, parts)]
 [/#function]
-
