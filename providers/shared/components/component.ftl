@@ -49,6 +49,9 @@
 [#assign ES_COMPONENT_TYPE = "es"]
 [#assign ES_LEGACY_COMPONENT_TYPE = "elasticsearch"]
 
+[#assign EXTERNALNETWORK_COMPONENT_TYPE = "externalnetwork" ]
+[#assign EXTERNALNETWORK_CONNECTION_COMPONENT_TYPE = "externalnetworkconnection" ]
+
 [#assign EXTERNALSERVICE_COMPONENT_TYPE = "externalservice" ]
 
 [#assign FEDERATEDROLE_COMPONENT_TYPE = "federatedrole" ]
