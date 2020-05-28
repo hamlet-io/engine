@@ -36,7 +36,7 @@
                         "Names" : "ASN",
                         "Description" : "The BGP ASN (Autonomous system) Id of the external network",
                         "Type" : NUMBER_TYPE,
-                        "Default" : 65000
+                        "Default" : 64512
                     }
                 ]
             }
@@ -64,8 +64,8 @@
         [
             {
                 "Names" : "Engine",
-                "Type" : BOOLEAN_TYPE,
-                "Values" : [ "SiteToSite" ]
+                "Type" : STRING_TYPE,
+                "Values" : [ "SiteToSite" ],
                 "Default" : "SiteToSite"
             },
             {
@@ -85,6 +85,6 @@
             }
         ]
     parent=EXTERNALNETWORK_COMPONENT_TYPE
-    childAttribute="Connnections"
+    childAttribute="Connections"
     linkAttributes="Connection"
 /]

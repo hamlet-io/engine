@@ -183,6 +183,10 @@
             "Type" : STRING_TYPE
         },
         {
+            "Names" : [ "Connection" ],
+            "Type" : STRING_TYPE
+        },
+        {
             "Names" : [ "AuthProvider" ],
             "Type" : STRING_TYPE
         },
