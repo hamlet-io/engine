@@ -27,7 +27,7 @@
             {
                 "Names" : "Engine",
                 "Type" : STRING_TYPE,
-                "Values" : [ "natgw", "igw", "vpcendpoint", "endpoint", "router" ],
+                "Values" : [ "natgw", "igw", "vpcendpoint", "endpoint", "router", "private" ],
                 "Required" : true
             },
             {
@@ -118,6 +118,17 @@
                 "Names" : "Links",
                 "Subobjects" : true,
                 "Children" : linkChildrenConfiguration
+            },
+            {
+                "Names" : "Private",
+                "Description" : "Private Network specific configuration",
+                "Children" : [
+                    {
+                        "Names" : "UseGatewayNetwork",
+                        "Description" : "Use the network provided by the gateway or its links",
+                        "Enabled" : true
+                    }
+                ]
             }
         ]
     parent=NETWORK_GATEWAY_COMPONENT_TYPE
