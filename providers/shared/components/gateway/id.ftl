@@ -53,6 +53,22 @@
                 "Values" : [ "Peering", "Transit", "NetworkInterface", "Instance" ]
             },
             {
+                "Names" : "BGP",
+                "Description" : "BGP Network routing",
+                "Children" : [
+                    {
+                        "Names" : "Enabled",
+                        "Type" : BOOLEAN_TYPE,
+                        "Default" : true
+                    },
+                    {
+                        "Names" : "ASN",
+                        "Type" : NUMBER_TYPE,
+                        "Default" : 65000
+                    }
+                ]
+            },
+            {
                 "Names" : "Endpoints",
                 "Description" : "Endpoint Engine resources",
                 "Subobjects" : true,
@@ -115,20 +131,15 @@
                 "Default" : []
             },
             {
+                "Names" : "DynamicRouting",
+                "Description" : "Use dynamic routing to determine destinations",
+                "Type" : BOOLEAN_TYPE,
+                "Default" : true
+            },
+            {
                 "Names" : "Links",
                 "Subobjects" : true,
                 "Children" : linkChildrenConfiguration
-            },
-            {
-                "Names" : "Private",
-                "Description" : "Private Network specific configuration",
-                "Children" : [
-                    {
-                        "Names" : "UseGatewayNetwork",
-                        "Description" : "Use the network provided by the gateway or its links",
-                        "Enabled" : true
-                    }
-                ]
             }
         ]
     parent=NETWORK_GATEWAY_COMPONENT_TYPE
