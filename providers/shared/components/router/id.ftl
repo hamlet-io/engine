@@ -35,7 +35,7 @@
                     },
                     {
                         "Names" : "ASN",
-                        "Description" : "The private BGP ASN ( Autonomous system) Id of the router",
+                        "Description" : "The BGP ASN ( Autonomous system ) Id of the router",
                         "Type" : NUMBER_TYPE,
                         "Mandatory" : true
                     },
