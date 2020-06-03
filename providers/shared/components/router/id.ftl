@@ -37,7 +37,7 @@
                         "Names" : "ASN",
                         "Description" : "The private BGP ASN ( Autonomous system) Id of the router",
                         "Type" : NUMBER_TYPE,
-                        "Default" : 64512
+                        "Mandatory" : true
                     },
                     {
                         "Names" : "ECMP",
