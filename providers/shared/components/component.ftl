@@ -81,6 +81,8 @@
 
 [#assign OBJECTSQL_COMPONENT_TYPE = "objectsql"]
 
+[#assign PRIVATE_SERVICE_COMPONENT_TYPE = "privateservice" ]
+
 [#assign S3_COMPONENT_TYPE = "s3" ]
 
 [#assign SERVICE_REGISTRY_COMPONENT_TYPE = "serviceregistry" ]
