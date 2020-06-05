@@ -14,6 +14,15 @@
             "Names" : "lb",
             "Children" : [
                 {
+                    "Names" : "network",
+                    "Children" : [
+                        {
+                            "Names" : "HTTPSProfile",
+                            "Type" : STRING_TYPE
+                        }
+                    ]
+                },
+                {
                     "Names" : "application",
                     "Children" : [
                         {
