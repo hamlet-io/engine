@@ -1550,6 +1550,9 @@
         "SecurityProfiles": {
           "default": {
             "lb": {
+              "network" : {
+                "HTTPSProfile": "ELBSecurityPolicy-TLS-1-2-2017-01"
+              },
               "application": {
                 "HTTPSProfile": "ELBSecurityPolicy-TLS-1-2-2017-01",
                 "WAFProfile": "OWASP2017",
