@@ -78,6 +78,7 @@
 [#assign NETWORK_ROUTE_TABLE_COMPONENT_TYPE = "networkroute"]
 
 [#assign NETWORK_ROUTER_COMPONENT_TYPE = "router"]
+[#assign NETWORK_ROUTER_STATIC_ROUTE_COMPONENT_TYPE = "routerstaticroute" ]
 
 [#assign OBJECTSQL_COMPONENT_TYPE = "objectsql"]
 
