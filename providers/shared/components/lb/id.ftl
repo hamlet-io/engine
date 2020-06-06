@@ -219,6 +219,17 @@
                         "Names" : "DeregistrationTimeout",
                         "Type" : NUMBER_TYPE,
                         "Default" : 30
+                    },
+                    {
+                        "Names" : "StaticEndpoints",
+                        "Description" : "Static endpoints for the load balancing port",
+                        "Children"  : [
+                            {
+                                "Names" : "Links",
+                                "Subobjects" : true,
+                                "Children" : linkChildrenConfiguration
+                            }
+                        ]
                     }
                 ]
             }
