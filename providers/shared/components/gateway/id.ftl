@@ -90,6 +90,13 @@
                         "Children" : linkChildrenConfiguration
                     }
                 ]
+            },
+            {
+                "Names" : "DNSSupport",
+                "Description" : "Configure a private DNS zone for the serivces offerred by the endpoint",
+                "Type" : [ STRING_TYPE, BOOLEAN_TYPE ],
+                "Values" : [ "UseNetworkConfig", "Disabled", "Enabled", true, false ],
+                "Default" : "UseNetworkConfig"
             }
         ]
 /]
