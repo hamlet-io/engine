@@ -17,11 +17,6 @@
                 "Value" : "solution"
             }
         ]
-    attributes=[]
-/]
-
-[@addResourceGroupInformation
-    type=EXTERNALSERVICE_COMPONENT_TYPE
     attributes=[
         {
             "Names" : "Properties",
@@ -50,6 +45,46 @@
             "Children" : linkChildrenConfiguration
         }
     ]
+/]
+
+[@addChildComponent
+    type=EXTERNALSERVICE_ENDPOINT_COMPONENT_TYPE
+    properties=
+        [
+            {
+                "Type"  : "Description",
+                "Value" : "An endpoint of an external serivce normally an IP address or collection"
+            },
+            {
+                "Type" : "Providers",
+                "Value" : [ "shared" ]
+            },
+            {
+                "Type" : "ComponentLevel",
+                "Value" : "solution"
+            }
+        ]
+    attributes=
+        [
+            {
+                "Names" : "IPAddressGroups",
+                "Type" : ARRAY_OF_STRING_TYPE,
+                "Default" : []
+            },
+            {
+                "Names" : "Port",
+                "Type" : STRING_TYPE,
+                "Default" : ""
+            }
+        ]
+    parent=EXTERNALSERVICE_COMPONENT_TYPE
+    childAttribute="Endpoints"
+    linkAttributes="Endpoint"
+/]
+
+[@addResourceGroupInformation
+    type=EXTERNALSERVICE_COMPONENT_TYPE
+    attributes=[]
     provider=SHARED_PROVIDER
     resourceGroup=DEFAULT_RESOURCE_GROUP
     services=[

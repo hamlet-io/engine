@@ -53,6 +53,7 @@
 [#assign EXTERNALNETWORK_CONNECTION_COMPONENT_TYPE = "externalnetworkconnection" ]
 
 [#assign EXTERNALSERVICE_COMPONENT_TYPE = "externalservice" ]
+[#assign EXTERNALSERVICE_ENDPOINT_COMPONENT_TYPE = "externalserviceendpoint" ]
 
 [#assign FEDERATEDROLE_COMPONENT_TYPE = "federatedrole" ]
 [#assign FEDERATEDROLE_ASSIGNMENT_COMPONENT_TYPE = "federatedroleassignment" ]
@@ -211,6 +212,10 @@
         },
         {
             "Names" : [ "Route" ],
+            "Type"  : STRING_TYPE
+        },
+        {
+            "Names" : [ "Endpoint" ],
             "Type"  : STRING_TYPE
         },
         {
