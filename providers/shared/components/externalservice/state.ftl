@@ -59,3 +59,25 @@
         }
     ]
 [/#macro]
+
+[#macro shared_externalserviceendpoint_default_state occurrence parent={} ]
+    [#local core = occurrence.Core]
+    [#local solution = occurrence.Configuration.Solution]
+
+    [#assign componentState =
+        {
+            "Resources" : {
+                "externalEndpoint" : {
+                    "Id" : formatId(SHARED_EXTERNAL_RESOURCE_TYPE, core.Id),
+                    "Name" : core.FullName,
+                    "Type" : SHARED_EXTERNAL_RESOURCE_TYPE
+                }
+            },
+            "Attributes" : {},
+            "Roles" : {
+                "Inbound" : {},
+                "Outbound" : {}
+            }
+        }
+    ]
+[/#macro]
