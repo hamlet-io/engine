@@ -27,7 +27,7 @@
             {
                 "Names" : "Engine",
                 "Type" : STRING_TYPE,
-                "Values" : [ "natgw", "igw", "vpcendpoint", "endpoint", "router", "private" ],
+                "Values" : [ "natgw", "igw", "vpcendpoint", "privateservice", "endpoint", "router", "private" ],
                 "Required" : true
             },
             {
@@ -50,7 +50,7 @@
             {
                 "Names" : "EndpointType",
                 "Description" : "The type of the route resource",
-                "Values" : [ "Peering", "Transit", "NetworkInterface", "Instance" ]
+                "Values" : [ "Peering", "NetworkInterface", "Instance" ]
             },
             {
                 "Names" : "BGP",
@@ -88,6 +88,17 @@
                         "Names" : "Link",
                         "Description" : "The link to the component",
                         "Children" : linkChildrenConfiguration
+                    }
+                ]
+            },
+            {
+                "Names" : "PrivateServices",
+                "Children" : [
+                    {
+                        "Names" : "DestinationPorts",
+                        "Description" : "The ports of services avaialble from the private service",
+                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Default" : [ "https" ]
                     }
                 ]
             },
