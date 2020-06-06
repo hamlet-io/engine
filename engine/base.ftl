@@ -485,6 +485,11 @@ are added.
     [#return IPAddress__getSubNetworks(networkCIDR, subnetCIDRMask )?eval ]
 [/#function]
 
+[#function getHostsFromNetwork networkCIDR ]
+    [#local networkIPs = getSubnetsFromNetwork(networkCIDR, 32)?map(cidr -> (cidr?split("/"))[0] )]
+    [#return networkIPs[1..(networkIPs?size - 2)]]
+[/#function]
+
 [#----------------------------
 -- Dynamic template loading --
 ------------------------------]
