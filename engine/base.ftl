@@ -487,7 +487,14 @@ are added.
 
 [#function getHostsFromNetwork networkCIDR ]
     [#local networkIPs = getSubnetsFromNetwork(networkCIDR, 32)?map(cidr -> (cidr?split("/"))[0] )]
-    [#return networkIPs[1..(networkIPs?size - 2)]]
+
+    [#-- networks with greater than 2 hosts ( i.e. above /31 ) --]
+    [#-- reserve the first and last address and can't be used for hosts --]
+    [#if networkIPs?size - 2 > 1 ]
+        [#return networkIPs[1..(networkIPs?size - 2)]]
+    [#else]
+        [#return networkIPs]
+    [/#if]
 [/#function]
 
 [#----------------------------
