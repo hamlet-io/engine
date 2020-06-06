@@ -92,15 +92,10 @@
                 ]
             },
             {
-                "Names" : "PrivateServices",
-                "Children" : [
-                    {
-                        "Names" : "DestinationPorts",
-                        "Description" : "The ports of services avaialble from the private service",
-                        "Type" : ARRAY_OF_STRING_TYPE,
-                        "Default" : [ "https" ]
-                    }
-                ]
+                "Names" : "DestinationPorts",
+                "Description" : "The ports of services avaialble from the private service",
+                "Type" : ARRAY_OF_STRING_TYPE,
+                "Default" : [ "any" ]
             },
             {
                 "Names" : "DNSSupport",
