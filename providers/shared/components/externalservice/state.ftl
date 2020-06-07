@@ -65,9 +65,9 @@
     [#local solution = occurrence.Configuration.Solution]
 
     [#local cidrs = getGroupCIDRs(solution.IPAddressGroups, true, occurrence)]
-    [#local hosts = []]
+    [#local hostIPs = []]
     [#list cidrs as cidr ]
-        [#local hosts = combineEntities(hosts, getHostsFromNetwork(cidr), UNIQUE_COMBINE_BEHAVIOUR) ]
+        [#local hostIPs = combineEntities(hosts, getHostsFromNetwork(cidr), UNIQUE_COMBINE_BEHAVIOUR) ]
     [/#list]
 
     [#local port = ports[solution.Port]]
@@ -86,7 +86,7 @@
             },
             "Attributes" : parentAttributes +
             {
-                "IP" : hosts?join(","),
+                "IP" : hostIPs?join(","),
                 "PORT" : port.Port,
                 "PROTOCOL" : port.Protocol
             },
