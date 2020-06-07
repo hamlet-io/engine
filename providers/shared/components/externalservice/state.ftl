@@ -64,16 +64,32 @@
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
+    [#local cidrs = getGroupCIDRs(solution.IPAddressGroups, true, occurrence)]
+    [#local hosts = []]
+    [#list cidrs as cidr ]
+        [#local hosts = combineEntities(hosts, getHostsFromNetwork(cidr), UNIQUE_COMBINE_BEHAVIOUR) ]
+    [/#list]
+
+    [#local port = ports[solution.Port]]
+
+    [#local parentAttributes = parent.State.Attributes ]
+
     [#assign componentState =
         {
             "Resources" : {
                 "externalEndpoint" : {
                     "Id" : formatId(SHARED_EXTERNAL_RESOURCE_TYPE, core.Id),
                     "Name" : core.FullName,
-                    "Type" : SHARED_EXTERNAL_RESOURCE_TYPE
+                    "Type" : SHARED_EXTERNAL_RESOURCE_TYPE,
+                    "Deployed" : true
                 }
             },
-            "Attributes" : {},
+            "Attributes" : parentAttributes +
+            {
+                "HOST" : hosts?join(","),
+                "PORT" : port.Port,
+                "PROTOCOL" : port.Protocol
+            },
             "Roles" : {
                 "Inbound" : {},
                 "Outbound" : {}
