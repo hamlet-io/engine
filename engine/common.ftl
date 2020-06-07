@@ -850,7 +850,7 @@ behaviour.
 
 [/#function]
 
-[#function syncFilesToBucketScript filesArrayName region bucket prefix]
+[#function syncFilesToBucketScript filesArrayName region bucket prefix cleanup=true]
     [#return
         [
             "case $\{STACK_OPERATION} in",
@@ -869,7 +869,8 @@ behaviour.
                    "\"" + bucket         + "\"" + " " +
                    "\"" + prefix         + "\"" + " " +
                    "\"" + filesArrayName + "\"" + " " +
-                   "--delete || return $?",
+                   valueIfTrue("--delete", cleanup, "") +
+                   " || return $?",
             "    ;;",
             " esac",
             "#"
