@@ -86,7 +86,7 @@
             },
             "Attributes" : parentAttributes +
             {
-                "HOST" : hosts?join(","),
+                "IP" : hosts?join(","),
                 "PORT" : port.Port,
                 "PROTOCOL" : port.Protocol
             },
