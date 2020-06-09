@@ -67,7 +67,7 @@
     [#local cidrs = getGroupCIDRs(solution.IPAddressGroups, true, occurrence)]
     [#local hostIPs = []]
     [#list cidrs as cidr ]
-        [#local hostIPs = combineEntities(hosts, getHostsFromNetwork(cidr), UNIQUE_COMBINE_BEHAVIOUR) ]
+        [#local hostIPs = combineEntities(hostIPs, getHostsFromNetwork(cidr), UNIQUE_COMBINE_BEHAVIOUR) ]
     [/#list]
 
     [#local port = ports[solution.Port]]
