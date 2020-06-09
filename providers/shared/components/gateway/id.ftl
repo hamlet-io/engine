@@ -153,6 +153,16 @@
                 "Names" : "Links",
                 "Subobjects" : true,
                 "Children" : linkChildrenConfiguration
+            },
+            {
+                "Names" : "Profiles",
+                "Children" : [
+                    {
+                        "Names" : "Security",
+                        "Type" : STRING_TYPE,
+                        "Default" : "default"
+                    }
+                ]
             }
         ]
     parent=NETWORK_GATEWAY_COMPONENT_TYPE

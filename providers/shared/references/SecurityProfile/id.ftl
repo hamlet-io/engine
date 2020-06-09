@@ -111,6 +111,82 @@
                     "Values" : [ "https-only", "http-https", "http-only" ]
                 }
             ]
+        },
+        {
+            "Names" : "IPSecVPN",
+            "Children" : [
+                {
+                    "Names" : "TunnelInsideCidr",
+                    "Type" : STRING_TYPE
+                },
+                {
+                    "Names" : "IKEVersions",
+                    "Type" : ARRAY_OF_STRING_TYPE
+                },
+                {
+                    "Names" : "Rekey",
+                    "Children" : [
+                        {
+                            "Names" : "MarginTime",
+                            "Type" : NUMBER_TYPE
+                        },
+                        {
+                            "Names" : "FuzzPercentage",
+                            "Type" : NUMBER_TYPE
+                        }
+                    ]
+                },
+                {
+                    "Names" : "ReplayWindowSize",
+                    "Type" : NUMBER_TYPE
+                },
+                {
+                    "Names" : "DeadPeerDetectionTimeout",
+                    "Type" : NUMBER_TYPE
+                },
+                {
+                    "Names" : "Phase1",
+                    "Children" : [
+                        {
+                            "Names" : "EncryptionAlgorithms",
+                            "Type" : ARRAY_OF_STRING_TYPE
+                        },
+                        {
+                            "Names" : "IntegrityAlgorithms",
+                            "Type" : ARRAY_OF_STRING_TYPE
+                        },
+                        {
+                            "Names" : "DiffeHellmanGroups",
+                            "Type" : ARRAY_OF_NUMBER_TYPE
+                        }
+                        {
+                            "Names" : "Lifetime",
+                            "Type" : NUMBER_TYPE
+                        }
+                    ]
+                },
+                {
+                    "Names" : "Phase2",
+                    "Children" : [
+                        {
+                            "Names" : "EncryptionAlgorithms",
+                            "Type" : ARRAY_OF_STRING_TYPE
+                        },
+                        {
+                            "Names" : "IntegrityAlgorithms",
+                            "Type" : ARRAY_OF_STRING_TYPE
+                        },
+                        {
+                            "Names" : "DiffeHellmanGroups",
+                            "Type" : ARRAY_OF_NUMBER_TYPE
+                        }
+                        {
+                            "Names" : "Lifetime",
+                            "Type" : NUMBER_TYPE
+                        }
+                    ]
+                }
+            ]
         }
     ]
 /]

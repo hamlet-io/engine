@@ -1584,6 +1584,27 @@
             },
             "es": {
               "ProtocolPolicy": "https-only"
+            },
+            "IPSecVPN" : {
+              "IKEVersions" : [ "ikev1", "ikev2" ],
+              "Rekey" : {
+                "MarginTime" : 540,
+                "FuzzPercentage" : 100
+              },
+              "ReplayWindowSize" : 1024,
+              "DeadPeerDetectionTimeout" : 30,
+              "Phase1" : {
+                "EncryptionAlgorithms" : [ "AES256" ],
+                "IntegrityAlgorithms" : [ "SHA2-256" ],
+                "DiffeHellmanGroups" : [ 18, 22, 23, 24 ],
+                "Lifetime" : 3600
+              },
+              "Phase2" : {
+                "EncryptionAlgorithms" : [ "AES256" ],
+                "IntegrityAlgorithms" : [ "SHA2-256" ],
+                "DiffeHellmanGroups" : [ 18, 22, 23, 24 ],
+                "Lifetime" : 3600
+              }
             }
           }
         },
