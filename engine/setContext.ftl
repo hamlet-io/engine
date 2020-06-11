@@ -361,8 +361,7 @@
 
     [#assign rotateKeys = (segmentObject.RotateKeys)!true]
 
-    [#assign sshEnabled = internetAccess &&
-                            ((segmentObject.SSH.Enabled)!(segmentObject.Bastion.Enabled)!true)]
+    [#assign sshEnabled = ((segmentObject.SSH.Enabled)!(segmentObject.Bastion.Enabled)!true)]
     [#assign sshActive = sshEnabled &&
                             ((segmentObject.SSH.Active)!(segmentObject.Bastion.Active)!false)]
     [#if (commandLineOptions.Deployment.Provider.Names)?seq_contains("aws")]
