@@ -13,7 +13,7 @@
         {
             "Names" : "OutputSuffix",
             "Type" : STRING_TYPE,
-            "Values" : [ "template.json", "config.json", "cli.json" ]
+            "Values" : [ "template.json", "config.json", "cli.json", "parameters.json", "prologue.sh", "epilogue.sh" ]
         },
         {
             "Names" : "Structural",
@@ -63,7 +63,7 @@
                             "Type" : ARRAY_OF_STRING_TYPE
                         }
                     ]
-                }
+                },
                 {
                     "Names" : "CFN",
                     "Description" : "Cloud formation Template structure",
@@ -92,7 +92,6 @@
                         }
                     ]
                 }
-
             ]
         },
         {
