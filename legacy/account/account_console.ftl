@@ -1,80 +1,127 @@
 [#if getDeploymentUnit()?contains("console") || (allDeploymentUnits!false) ]
 
     [#if deploymentSubsetRequired("generationcontract", false)]
-        [@addDefaultGenerationContract subsets=["epilogue", "cli"] /]
+        [@addDefaultGenerationContract
+            subsets=[ "prologue", "template" ]
+            alternatives=["primary", "replace1", "replace2"]
+        /]
     [/#if]
 
-    [#assign consoleLgId = formatLogGroupId( "console" )]
-    [#assign consoleLgName = formatAbsolutePath("ssm", "session-trace" )]
-    [#assign consoleRoleId = formatAccountRoleId( "console" )]
+    [@includeServicesConfiguration
+        provider=AWS_PROVIDER
+        services=[
+            AWS_SYSTEMS_MANAGER_SERVICE,
+            AWS_KEY_MANAGEMENT_SERVICE
+        ]
+        deploymentFramework=CLOUD_FORMATION_DEPLOYMENT_FRAMEWORK
+    /]
 
+    [#assign consoleSSMDocumentId = formatAccountSSMSessionManagerDocumentId() ]
     [#assign consoleSSMDocumentName = "SSM-SessionManagerRunShell"]
-    [#assign consoleSSMDocumentVersion = "\\$LATEST"]
 
-    [#assign consoleCliCommand = "setSSMSessionPreferences" ]
-    [#assign consoleResourceId = "ssmPreferences" ]
+    [#assign consoleLgId = formatAccountSSMSessionManagerLogGroupId() ]
+    [#assign consoleLgName = formatAccountSSMSessionManagerLogGroupName()]
 
-    [#if deploymentSubsetRequired("iam", true) &&
-            isPartOfCurrentDeploymentUnit(consoleRoleId)]
-        [@createRole
-            id=consoleRoleId
-            trustedServices=["ssm.amazonaws.com" ]
-            policies=
-                [
-                    getPolicyDocument(
-                        cwLogsProducePermission(consoleLgName),
-                        "basic")
-                ]
+    [#assign consoleLogBucketId = formatAccountSSMSessionManagerLogBucketId() ]
+    [#assign consoleLogBucketName = formatAccountSSMSessionManagerLogBucketName() ]
+    [#assign consoleLogBucketPrefix = formatAccountSSMSessionManagerLogBucketPrefix()]
+
+    [#assign consoleLoggingDestinations = (accountObject.Console.LoggingDestinations)![ "s3" ]]
+
+    [#assign consoleDocumentDependencies = []]
+
+    [#assign accountCMKId = formatAccountCMKTemplateId()]
+    [#if ! getExistingReference(formatAccountCMKTemplateId())?has_content ]
+        [@fatal
+            message="Account CMK not found"
+            detail="Run the cmk deployment at the account level to create the CMK"
         /]
     [/#if]
 
-    [#if deploymentSubsetRequired("lg", true) &&
-            isPartOfCurrentDeploymentUnit(consoleLgId)]
-        [@createLogGroup
-            id=consoleLgId
-            name=consoleLgName /]
-    [/#if]
+    [#assign SSMDocumentInput = {
+        "kmsKeyId" : getExistingReference(accountCMKId)
+    }]
 
+    [#list consoleLoggingDestinations as loggingDestination ]
+        [#switch loggingDestination ]
+            [#case "cloudwatch"]
+                [#if deploymentSubsetRequired("lg", true) &&
+                        isPartOfCurrentDeploymentUnit(consoleLgId)]
+                    [@createLogGroup
+                        id=consoleLgId
+                        name=consoleLgName
+                    /]
+                [/#if]
 
+                [#assign SSMDocumentInput += {
+                        "cloudWatchLogGroupName": consoleLgName,
+                        "cloudWatchEncryptionEnabled" : false
+                    }]
+                [#break]
 
-    [#-- Need to run the unit twice or use an IAM unit so the role can be included in the CLI --]
-    [#if deploymentSubsetRequired("cli", false) ]
+            [#case "s3"]
+                [#assign consoleDocumentDependencies += [ consoleLogBucketId] ]
+                [#if deploymentSubsetRequired("console", true) &&
+                        isPartOfCurrentDeploymentUnit(consoleLogBucketId)]
+                    [@createS3Bucket
+                        id=consoleLogBucketId
+                        name=consoleLogBucketName
+                        encrypted=true
+                        kmsKeyId=accountCMKId
+                        versioning=true
+                    /]
+                [/#if]
 
-        [@addCliToDefaultJsonOutput
-            id=consoleResourceId
-            command=consoleCliCommand
-            content=
-                {
-                    "schemaVersion": "1.0",
-                    "description": "Document to hold regional settings for Session Manager",
-                    "sessionType": "Standard_Stream",
-                    "inputs": {
-                        "cloudWatchLogGroupName": consoleLgName
-                    }
-                }
-        /]
-    [/#if]
+                [#assign SSMDocumentInput += {
+                    "s3BucketName": consoleLogBucketName,
+                    "s3KeyPrefix" : consoleLogBucketPrefix,
+                    "s3EncryptionEnabled" : true
+                }]
+                [#break]
+        [/#switch]
+    [/#list]
 
-    [#if deploymentSubsetRequired("epilogue", false) ]
+    [#assign documentContent =
+        {
+            "schemaVersion": "1.0",
+            "description": "Document to hold regional settings for Session Manager",
+            "sessionType": "Standard_Stream",
+            "inputs": SSMDocumentInput
+        }]
+
+    [#-- We need to make sure the document hasn't been created via the console or through a script --]
+    [#if deploymentSubsetRequired("prologue", false)]
         [@addToDefaultBashScriptOutput
             content=
                 [
-                    "case $\{STACK_OPERATION} in",
-                    "  create|update)",
-                    "      # Get cli config file",
-                    "      split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?",
-                    "      # Apply SSM Session account preferences",
-                    "      info \"Applying SSM Session account preferences ...\"",
-                    "      #",
-                    "      update_ssm_document" +
-                    "      \"" + region + "\" " +
-                    "      \"" + consoleSSMDocumentName + "\" " +
-                    "      \"" + consoleSSMDocumentVersion + "\" " +
-                    "      \"$\{tmpdir}/cli-" +
-                               consoleResourceId + "-" + consoleCliCommand + ".json\" || return $?"
-                    "      ;;",
-                    "esac"
-                ]
+                    r'info "Setting up for SSM Documents using CFN"'
+                ] +
+                ( ! (getExistingReference(consoleSSMDocumentId)?has_content ))?then(
+                    [
+                        r'case ${STACK_OPERATION} in',
+                        r'  create|update)',
+                        r'      info "Cleaning documents which might not have been created by CFN"',
+                        r'      cleanup_ssm_document' +
+                        r'      "' + region + r'" ' +
+                        r'      "' + consoleSSMDocumentName + r'" ',
+                        r'      ;;',
+                        r'esac'
+                    ],
+                    []
+                )
+        /]
+    [/#if]
+
+    [#if deploymentSubsetRequired("console", true) &&
+            ! ( commandLineOptions.Deployment.Unit.Alternative == "replace1" ) ]
+
+        [@createSSMDocument
+            id=consoleSSMDocumentId
+            name=consoleSSMDocumentName
+            content=documentContent
+            tags=getCfTemplateCoreTags("", "", "", "", false, false, 7)
+            documentType="Session"
+            dependencies=consoleDocumentDependencies
         /]
     [/#if]
 [/#if]
