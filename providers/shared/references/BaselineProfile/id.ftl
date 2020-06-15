@@ -1,6 +1,6 @@
 [#ftl]
 
-[@addReference 
+[@addReference
     type=BASELINEPROFILE_REFERENCE_TYPE
     pluralType="BaselineProfiles"
     properties=[
