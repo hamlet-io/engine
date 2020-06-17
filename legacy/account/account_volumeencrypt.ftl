@@ -18,14 +18,15 @@
 
     [#assign kmsKeyArn = getExistingReference(formatAccountCMKTemplateId(), ARN_ATTRIBUTE_TYPE)]
 
-    [#if ! kmsKeyArn?has_content ]
-        [@fatal
-            message="Account CMK not found"
-            detail="Create account level CMK before enabling volume encryption"
-        /]
-    [/#if]
-
     [#if deploymentSubsetRequired("epilogue", false) ]
+
+        [#if ! kmsKeyArn?has_content ]
+            [@fatal
+                message="Account CMK not found"
+                detail="Create account level CMK before enabling volume encryption"
+            /]
+        [/#if]
+
         [@addToDefaultBashScriptOutput
             content=
                 [
