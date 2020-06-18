@@ -69,6 +69,10 @@
                 "Names" : "Links",
                 "Subobjects" : true,
                 "Children" : linkChildrenConfiguration
+            },
+            {
+                "Names" : "WAF",
+                "Children" : wafChildConfiguration
             }
         ]
 /]
