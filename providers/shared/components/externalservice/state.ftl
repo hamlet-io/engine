@@ -91,8 +91,19 @@
                 "PROTOCOL" : port.Protocol
             },
             "Roles" : {
-                "Inbound" : {},
-                "Outbound" : {}
+                "Inbound" : {
+                    "networkacl" : {
+                        "IPAddressGroups" : solution.IPAddressGroups,
+                        "Description" : core.FullName
+                    }
+                },
+                "Outbound" : {
+                    "networkacl" : {
+                        "Ports" : solution.Port,
+                        "IPAddressGroups" : solution.IPAddressGroups,
+                        "Description" : core.FullName
+                    }
+                }
             }
         }
     ]
