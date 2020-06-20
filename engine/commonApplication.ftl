@@ -95,7 +95,7 @@
     [#return (_context.Links[link].State.Resources[alias].Id)!"" ]
 [/#function]
 
-[#function addLinkVariablesToContext context name link attributes rawName=false ignoreIfNotDefined=false requireLinkAttributes=true ]
+[#function addLinkVariablesToContext context name link attributes rawName=false ignoreIfNotDefined=false requireLinkAttributes=false ]
     [#local result = context ]
     [#local linkAttributes = (context.Links[link].State.Attributes)!{} ]
     [#local attributeList = valueIfContent(asArray(attributes), attributes, linkAttributes?keys) ]
@@ -530,7 +530,9 @@
     [#list solution.Containers?values as container]
         [#local containerPortMappings = [] ]
         [#local containerLinks = mergeObjects( solution.Links, container.Links) ]
+        [#local inboundPorts = []]
         [#local ingressRules = []]
+        [#local egressRules = []]
 
         [#list container.Ports?values as port]
 
@@ -623,6 +625,7 @@
             [/#if]
 
             [#local containerPortMappings += [containerPortMapping] ]
+            [#local inboundPorts += [ port.Name ]]
         [/#list]
 
         [#local logDriver =
@@ -752,6 +755,7 @@
             ) +
             attributeIfContent("PortMappings", containerPortMappings) +
             attributeIfContent("IngressRules", ingressRules) +
+            attributeIfContent("InboundPorts", inboundPorts) +
             attributeIfContent("RunCapabilities", container.RunCapabilities) +
             attributeIfContent("ContainerNetworkLinks", container.ContainerNetworkLinks)
         ]
@@ -761,6 +765,11 @@
             [#assign linkTargetConfiguration = linkTarget.Configuration ]
             [#assign linkTargetResources = linkTarget.State.Resources ]
             [#assign linkTargetAttributes = linkTarget.State.Attributes ]
+            [#assign linkTargetRoles = linkTarget.State.Roles ]
+
+            [#if (linkTargetRoles.Outbound["networkacl"]!{})?has_content ]
+                [#local egressRules += [ linkTargetRoles.Outbound["networkacl"] ]]
+            [/#if]
 
             [#switch linkTargetCore.Type]
                 [#case DATAVOLUME_COMPONENT_TYPE]
@@ -788,6 +797,9 @@
                     [#break]
             [/#switch]
         [/#list]
+
+        [#-- Add link based egress rules --]
+        [#assign _context += { "EgressRules" : egressRules }]
 
         [#-- Add in fragment specifics including override of defaults --]
         [#assign fragmentId = formatFragmentId(_context)]
