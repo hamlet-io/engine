@@ -907,6 +907,33 @@
     }
 ]]
 
+[#assign networkRuleChildConfiguration = [
+    {
+        "Names" : "Ports",
+        "Description" : "A list of port ids from the Ports reference",
+        "Type" : ARRAY_OF_STRING_TYPE,
+        "Default" : []
+    },
+    {
+        "Names" : "IPAddressGroups",
+        "Description" : "A list of IP Address groups ids from the IPAddressGroups reference",
+        "Type" : ARRAY_OF_STRING_TYPE,
+        "Default" : []
+    },
+    {
+        "Names" : "SecurityGroups",
+        "Description" : "A list of security groups or ids - for internal use only",
+        "Type" : ARRAY_OF_STRING_TYPE,
+        "Default" : []
+    },
+    {
+        "Names" : "Description",
+        "Description" : "A description that will be applied to the rule",
+        "Type" : STRING_TYPE,
+        "Default" : ""
+    }
+]]
+
 [#-- Not for general use - framework only --]
 [#assign coreProfileChildConfiguration = [
     {

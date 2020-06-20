@@ -669,6 +669,17 @@
               "Timeout": "5"
             }
           },
+          "nfs": {
+            "Port": 2049,
+            "Protocol": "TCP",
+            "IPProtocol": "tcp",
+            "HealthCheck": {
+              "HealthyThreshold": "3",
+              "UnhealthyThreshold": "5",
+              "Interval": "30",
+              "Timeout": "5"
+            }
+          },
           "hsmtp": {
             "Port": 2025,
             "Protocol": "TCP",
@@ -1604,6 +1615,16 @@
                 "IntegrityAlgorithms" : [ "SHA2-256" ],
                 "DiffeHellmanGroups" : [ 18, 22, 23, 24 ],
                 "Lifetime" : 3600
+              }
+            }
+          }
+        },
+        "NetworkProfiles" :{
+          "default" : {
+            "BaseSecurityGroup" : {
+              "Outbound" : {
+                "IPAddressGroups" : [ "_global" ],
+                "Ports" : [ "any" ]
               }
             }
           }

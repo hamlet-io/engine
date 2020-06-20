@@ -392,6 +392,10 @@ behaviour.
 
 [/#function]
 
+[#function getNetworkProfile profileName  ]
+    [#return (networkProfiles[profileName])!{} ]
+[/#function]
+
 [#function getNetworkEndpoints endpointGroups zone region ]
     [#local services = []]
     [#local networkEndpoints = {}]
