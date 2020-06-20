@@ -63,7 +63,7 @@
             },
             {
                 "Names" : "States",
-                "Descrption" : "A writable attribute in the config branch",
+                "Description" : "A writable attribute in the config branch",
                 "Subobjects" : true,
                 "Children" : [
                     {

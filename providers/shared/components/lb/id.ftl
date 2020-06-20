@@ -99,7 +99,7 @@
             {
                 "Names" : "IPAddressGroups",
                 "Type" : ARRAY_OF_STRING_TYPE,
-                "Default" : []
+                "Default" : [ "_localnet" ]
             },
             {
                 "Names" : "Certificate",
@@ -128,6 +128,16 @@
                 "Names" : "Links",
                 "Subobjects" : true,
                 "Children" : linkChildrenConfiguration
+            },
+            {
+                "Names" : "Profiles",
+                "Children" : [
+                    {
+                        "Names" : "Network",
+                        "Type" : STRING_TYPE,
+                        "Default" : "default"
+                    }
+                ]
             },
             {
                 "Names" : "Authentication",

@@ -25,6 +25,11 @@
                 "Default" : []
             },
             {
+                "Names" : "Ports",
+                "Type" : ARRAY_OF_STRING_TYPE,
+                "Default" : [ "any" ]
+            },
+            {
                 "Names" : "BGP",
                 "Children" : [
                     {

@@ -33,6 +33,16 @@
                 "Type" : STRING_TYPE
             },
             {
+                "Names" : "IPAddressGroups",
+                "Type" : ARRAY_OF_STRING_TYPE,
+                "Default" : [ "_localnet" ]
+            },
+            {
+                "Names" : "Links",
+                "Subobjects" : true,
+                "Children" : linkChildrenConfiguration
+            },
+            {
                 "Names" : "Backup",
                 "Children" : [
                     {
@@ -53,6 +63,11 @@
                         },
                         {
                             "Names" : "Alert",
+                            "Type" : STRING_TYPE,
+                            "Default" : "default"
+                        },
+                        {
+                            "Names" : "Network",
                             "Type" : STRING_TYPE,
                             "Default" : "default"
                         }

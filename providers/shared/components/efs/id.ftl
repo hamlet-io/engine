@@ -23,6 +23,26 @@
                 "Names" : "Encrypted",
                 "Type" : BOOLEAN_TYPE,
                 "Default" : true
+            },
+            {
+                "Names" : "Profiles",
+                "Children" : [
+                    {
+                        "Names" : "Network",
+                        "Type" : STRING_TYPE,
+                        "Default" : "default"
+                    }
+                ]
+            },
+            {
+                "Names" : "IPAddressGroups",
+                "Type" : ARRAY_OF_STRING_TYPE,
+                "Default" : [ "_localnet" ]
+            },
+            {
+                "Names" : "Links",
+                "Subobjects" : true,
+                "Children" : linkChildrenConfiguration
             }
         ]
 /]
