@@ -38,6 +38,7 @@
 [#assign CORSPROFILE_REFERENCE_TYPE = "CORSProfile" ]
 [#assign SCRIPTSTORE_REFERENCE_TYPE = "ScriptStore" ]
 [#assign SECURITYPROFILE_REFERENCE_TYPE = "SecurityProfile" ]
+[#assign NETWORKPROFILE_REFERENCE_TYPE = "NetworkProfile" ]
 
 [#assign TESTCASE_REFERENCE_TYPE = "TestCase" ]
 [#assign TESTPROFILE_REFERENCE_TYPE = "TestProfile" ]

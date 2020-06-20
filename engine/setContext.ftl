@@ -89,6 +89,10 @@
 [@addReferenceData type=SECURITYPROFILE_REFERENCE_TYPE base=blueprintObject /]
 [#assign securityProfiles = getReferenceData(SECURITYPROFILE_REFERENCE_TYPE) ]
 
+[#-- Network Profiles --]
+[@addReferenceData type=NETWORKPROFILE_REFERENCE_TYPE base=blueprintObject /]
+[#assign networkProfiles = getReferenceData(NETWORKPROFILE_REFERENCE_TYPE) ]
+
 [#-- Baseline Profiles --]
 [@addReferenceData type=BASELINEPROFILE_REFERENCE_TYPE base=blueprintObject /]
 [#assign baselineProfiles = getReferenceData(BASELINEPROFILE_REFERENCE_TYPE) ]
@@ -367,8 +371,6 @@
     [#if (commandLineOptions.Deployment.Provider.Names)?seq_contains("aws")]
         [#assign sshFromProxySecurityGroup = getExistingReference(formatSSHFromProxySecurityGroupId())]
     [/#if]
-
-    [#assign consoleOnly = (segmentObject.ConsoleOnly)!false]
 
     [#assign operationsExpiration =
         (segmentObject.Operations.Expiration)!
