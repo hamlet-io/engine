@@ -39,7 +39,6 @@
                 "Bastion": {
                     "Active": false
                 },
-                "ConsoleOnly": true,
                 "multiAZ": true
             },
             "IPAddressGroups": {},
