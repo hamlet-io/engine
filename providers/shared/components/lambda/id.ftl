@@ -199,6 +199,11 @@
                             "Names" : "Alert",
                             "Type" : STRING_TYPE,
                             "Default" : "default"
+                        },
+                        {
+                            "Names" : "Network",
+                            "Type" : STRING_TYPE,
+                            "Default" : "default"
                         }
                     ]
             },

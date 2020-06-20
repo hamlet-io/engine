@@ -177,6 +177,11 @@
                             "Names" : "Alert",
                             "Type" : STRING_TYPE,
                             "Default" : "default"
+                        },
+                        {
+                            "Names" : "Network",
+                            "Type" : STRING_TYPE,
+                            "Default" : "default"
                         }
                     ]
             },
@@ -373,6 +378,11 @@
                             "Names" : "Processor",
                             "Type" : STRING_TYPE,
                             "Default" : "default"
+                        },
+                        {
+                            "Names" : "Network",
+                            "Type" : STRING_TYPE,
+                            "Default" : "default"
                         }
                     ]
             },
@@ -496,6 +506,11 @@
                     [
                         {
                             "Names" : "Alert",
+                            "Type" : STRING_TYPE,
+                            "Default" : "default"
+                        },
+                        {
+                            "Names" : "Network",
                             "Type" : STRING_TYPE,
                             "Default" : "default"
                         }

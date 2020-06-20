@@ -47,6 +47,11 @@
                 "Type" : STRING_TYPE
             },
             {
+                "Names" : "IPAddressGroups",
+                "Type" : ARRAY_OF_STRING_TYPE,
+                "Default" : [ "_localnet" ]
+            },
+            {
                 "Names" : "Encrypted",
                 "Type" : BOOLEAN_TYPE,
                 "Default" : false
@@ -150,6 +155,11 @@
                         },
                         {
                             "Names" : "Security",
+                            "Type" : STRING_TYPE,
+                            "Default" : "default"
+                        },
+                        {
+                            "Names" : "Network",
                             "Type" : STRING_TYPE,
                             "Default" : "default"
                         }

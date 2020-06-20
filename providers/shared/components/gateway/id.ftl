@@ -103,6 +103,16 @@
                 "Type" : [ STRING_TYPE, BOOLEAN_TYPE ],
                 "Values" : [ "UseNetworkConfig", "Disabled", "Enabled", true, false ],
                 "Default" : "UseNetworkConfig"
+            },
+            {
+                "Names" : "Profiles",
+                "Children" : [
+                    {
+                        "Names" : "Network",
+                        "Description" : "The network profile for the gateway",
+                        "Default" : "default"
+                    }
+                ]
             }
         ]
 /]
