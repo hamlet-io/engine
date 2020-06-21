@@ -5,6 +5,29 @@
             [@addDefaultGenerationContract subsets=["template", "epilogue"] /]
         [/#if]
 
+        [@includeServicesConfiguration
+            provider=AWS_PROVIDER
+            services=[
+                AWS_KEY_MANAGEMENT_SERVICE
+            ]
+            deploymentFramework=CLOUD_FORMATION_DEPLOYMENT_FRAMEWORK
+        /]
+
+        [#assign accountCMKId = formatAccountCMKTemplateId()]
+        [#assign s3EncryptionEnabled = (accountObject.S3.Encryption.Enabled)!false ]
+        [#assign s3EncryptionSource = (accountObject.S3.Encryption.EncryptionSource)!"EncryptionService" ]
+        [#assign s3VersioningEnabled = (accountObject.S3.Versioning.Enabled)!false]
+
+        [#if s3EncryptionEnabled ]
+            [#if deploymentSubsetRequired("s3", true) &&
+                    ! getExistingReference(accountCMKId)?has_content ]
+                [@fatal
+                    message="Account CMK not found"
+                    detail="Run the cmk deployment at the account level to create the CMK"
+                /]
+            [/#if]
+        [/#if]
+
         [#if deploymentSubsetRequired("s3", true)]
 
             [#assign buckets = ["credentials", "code", "registry"] ]
@@ -24,6 +47,10 @@
                 [@createS3Bucket
                     id=bucketId
                     name=bucketName
+                    versioning=s3VersioningEnabled
+                    encrypted=s3EncryptionEnabled
+                    encryptionSource=s3EncryptionSource
+                    kmsKeyId=accountCMKId
                     outputId=formatAccountS3Id(bucket)
                 /]
 

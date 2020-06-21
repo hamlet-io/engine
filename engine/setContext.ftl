@@ -166,8 +166,13 @@
 
     [#if (commandLineOptions.Deployment.Provider.Names)?seq_contains("aws")]
         [#assign credentialsBucket = getExistingReference(formatAccountS3Id("credentials"))]
+        [#assign credentialsBucketRegion = getExistingReference(formatAccountS3Id("credentials"), REGION_ATTRIBUTE_TYPE)]
+
         [#assign codeBucket = getExistingReference(formatAccountS3Id("code")) ]
+        [#assign codeBucketRegion = getExistingReference(formatAccountS3Id("code"), REGION_ATTRIBUTE_TYPE)]
+
         [#assign registryBucket = getExistingReference(formatAccountS3Id("registry")) ]
+        [#assign registryBucketRegion = getExistingReference(formatAccountS3Id("registry"), REGION_ATTRIBUTE_TYPE)]
     [/#if]
 
     [#assign categoryName = "account"]

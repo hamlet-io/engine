@@ -7,6 +7,8 @@
             [@addDefaultGenerationContract subsets="template" /]
         [/#if]
 
+        [#assign s3EncryptionEnabled = (accountObject.S3.Encryption.Enabled)!false ]
+
         [#if deploymentSubsetRequired("audit", true)]
             [#assign lifecycleRules = []]
 
@@ -20,31 +22,14 @@
 
             [#assign sqsNotifications = []]
 
-            [@cfResource
+            [@createS3Bucket
                 id=formatAccountS3Id("audit")
-                type="AWS::S3::Bucket"
-                properties=
-                    {
-                        "BucketName" : formatName("account", "audit", accountObject.Seed),
-                        "AccessControl" : "LogDeliveryWrite",
-                        "VersioningConfiguration" : {
-                            "Status" : "Enabled"
-                        }
-                    } +
-                    attributeIfContent(
-                        "LifecycleConfiguration",
-                        lifecycleRules,
-                        {
-                            "Rules" : lifecycleRules
-                        }) +
-                    attributeIfContent(
-                        "NotificationConfiguration",
-                        sqsNotifications,
-                        {
-                            "QueueConfigurations" : sqsNotifications
-                        })
-                tags=getCfTemplateCoreTags("", "", "", "", false, false, 7)
-                outputs=S3_OUTPUT_MAPPINGS
+                name=formatName("account", "audit", accountObject.Seed)
+                encrypted=s3EncryptionEnabled
+                encryptionSource="AES256"
+                lifecycleRules=lifecycleRules
+                versioning=true
+                cannedACL="LogDeliveryWrite"
             /]
         [/#if]
     [#else]
