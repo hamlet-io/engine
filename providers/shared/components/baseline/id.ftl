@@ -216,6 +216,10 @@
                 "Names" : "Notifications",
                 "Subobjects" : true,
                 "Children" : s3NotificationChildConfiguration
+            },
+            {
+                "Names" : "Encryption",
+                "Children" : s3EncryptionChildConfiguration
             }
         ]
     parent=BASELINE_COMPONENT_TYPE

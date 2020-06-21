@@ -830,6 +830,22 @@
     }
 ]]
 
+[#assign s3EncryptionChildConfiguration = [
+    {
+        "Names" : "Enabled",
+        "Description" : "Enable at rest encryption",
+        "Type" : BOOLEAN_TYPE,
+        "Default" : false
+    },
+    {
+        "Names" : "EncryptionSource",
+        "Type" : STRING_TYPE,
+        "Description" : "The encryption service to use - LocalService = S3, EncryptionService = native encryption service (kms)",
+        "Values" : [ "EncryptionService", "LocalService" ],
+        "Default" : "EncryptionService"
+    }
+]]
+
 [#assign dynamoDbTableChildConfiguration = [
     {
         "Names" : "Billing",

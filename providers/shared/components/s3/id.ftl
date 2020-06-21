@@ -112,6 +112,10 @@
                 ]
             },
             {
+                "Names" : "Encryption",
+                "Children" : s3EncryptionChildConfiguration
+            },
+            {
                 "Names" : "Links",
                 "Subobjects" : true,
                 "Children" : linkChildrenConfiguration
