@@ -13,6 +13,7 @@
     [#assign awsAgentAutomationRole = settings["AWS_AUTOMATION_ROLE"]!"codeontap-automation" ]
 
     [#assign azureAuthMethod = settings["AZ_AUTH_METHOD"]!"service" ]
+    [#assign azureTenantId   = settings["AZ_TENANT_ID"]!""]
 
     [@Attributes image=jenkinsAgentImage /]
 
@@ -25,6 +26,7 @@
         "AWS_AUTOMATION_USER"   : awsAutomationUser,
         "AWS_AUTOMATION_ROLE"   : awsAgentAutomationRole,
         "AZ_AUTH_METHOD"        : azureAuthMethod,
+        "AZ_TENANT_ID"          : azureTenantId,
         "DOCKER_STAGE_DIR"      : dockerStageDir,
         "STARTUP_COMMANDS"      : (settings["STARTUP_COMMANDS"])!""
     }/]
