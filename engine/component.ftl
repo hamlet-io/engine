@@ -19,6 +19,7 @@
 
 [#-- Macros to assemble the component configuration --]
 [#macro addComponent type properties attributes dependencies=[] ]
+
     [@internalMergeComponentConfiguration
         type=type
         configuration=
@@ -153,6 +154,16 @@
 
 [#function getComponentResourceGroups type]
     [#return (componentConfiguration[type].ResourceGroups)!{} ]
+[/#function]
+
+[#function getComponentLegacyTypes type]
+    [#local result = [] ]
+    [#list legacyTypeMapping as legacyType,canonicalType]
+        [#if type == canonicalType]
+            [#local result += [legacyType] ]
+        [/#if]
+    [/#list]
+    [#return result ]
 [/#function]
 
 [#function getComponentChildren type]
@@ -358,7 +369,7 @@
     [/#if]
 [/#function]
 
-[#-- Get the type for a component --]
+[#-- Get the canonical type for a component --]
 [#function getComponentType component]
     [#if ! (component?is_hash && component.Id?has_content) ]
         [@precondition function="getComponentType" context=component /]
@@ -394,37 +405,27 @@
         [/#if]
     [/#if]
 
+    [#-- Canonical type values are always lower case --]
+    [#local result = result?lower_case]
+
     [#-- Handle legacy component names --]
-    [#switch result?lower_case]
-        [#case DB_LEGACY_COMPONENT_TYPE]
-            [#return DB_COMPONENT_TYPE]
-            [#break]
-        [#case ES_LEGACY_COMPONENT_TYPE]
-            [#return ES_COMPONENT_TYPE]
-            [#break]
-        [#case LB_LEGACY_COMPONENT_TYPE ]
-            [#return LB_COMPONENT_TYPE]
-            [#break]
-    [/#switch]
-    [#return result?lower_case]
+    [#return legacyTypeMapping[result]!result ]
+
 [/#function]
 
-[#-- Get the type object for a component --]
+[#-- Get the attribute for the type object for a component --]
 [#function getComponentTypeObjectAttribute component]
     [#local type = getComponentType(component) ]
     [#list component as key,value]
+        [#-- type object based on canonical type --]
         [#if key?lower_case == type]
             [#return key]
-        [#-- Backwards Compatability for Component renaming --]
-        [#else]
-            [#switch key?lower_case]
-                [#case DB_LEGACY_COMPONENT_TYPE]
-                [#case ES_LEGACY_COMPONENT_TYPE]
-                [#case LB_LEGACY_COMPONENT_TYPE]
-                    [#return key]
-                    [#break]
-            [/#switch]
-       [/#if]
+        [/#if]
+        [#-- type object based on legacy type --]
+        [#if (legacyTypeMapping[key?lower_case]!"") == type ]
+            [#return key]
+        [/#if]
+
     [/#list]
     [#return "" ]
 [/#function]

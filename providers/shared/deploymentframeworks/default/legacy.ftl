@@ -399,11 +399,29 @@
                     [#local attributes = constructOccurrenceAttributes(occurrence) ]
 
                     [#-- Apply deployment and policy profile overrides                  --]
+                    [#local deploymentProfile = getDeploymentProfile(profiles.Deployment, commandLineOptions.Deployment.Mode) ]
+                    [#local policyProfile = getPolicyProfile(commandLineOptions.Deployment.Mode) ]
+
+                    [#-- Assemble the profile objects allowing for legacy types --]
+                    [#local deploymentProfileObjects = [(deploymentProfile["*"])!{}] ]
+                    [#local policyProfileObjects = [(policyProfile["*"])!{}] ]
+                    [#list [type] + getComponentLegacyTypes(type) as typeAlternative]
+                        [#list deploymentProfile as key,value]
+                            [#if  key?lower_case == typeAlternative ]
+                                [#local deploymentProfileObjects += [value] ]
+                            [/#if]
+                        [/#list]
+                        [#list policyProfile as key,value]
+                            [#if  key?lower_case == typeAlternative ]
+                                [#local policyProfileObjects += [value] ]
+                            [/#if]
+                        [/#list]
+                    [/#list]
+
+
                     [#-- To allow deployment profiles to be overriden by the occurrence --]
                     [#-- configuration, use reordered occurrence contexts now that the  --]
                     [#-- deployment profiles are known                                  --]
-                    [#local deploymentProfile = getDeploymentProfile(profiles.Deployment, commandLineOptions.Deployment.Mode) ]
-                    [#local policyProfile = getPolicyProfile(commandLineOptions.Deployment.Mode) ]
                     [#local occurrence +=
                         {
                             "Configuration" : {
@@ -411,8 +429,7 @@
                                     getCompositeObject(
                                         attributes,
                                         parentContexts,
-                                        (deploymentProfile["*"])!{},
-                                        (deploymentProfile[type])!{},
+                                        deploymentProfileObjects,
                                         valueIfTrue(
                                             [component, typeObject],
                                             tier?has_content,
@@ -420,8 +437,7 @@
                                         ),
                                         instance,
                                         version,
-                                        (policyProfile["*"])!{},
-                                        (policyProfile[type])!{}
+                                        policyProfileObjects
                                     )
                             }
                         }
