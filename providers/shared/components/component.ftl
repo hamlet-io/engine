@@ -1,5 +1,8 @@
 [#ftl]
 
+[#-- Legacy type mappings --]
+[#assign legacyTypeMapping = {} ]
+
 [#-- Known component types --]
 [#assign ADAPTOR_COMPONENT_TYPE = "adaptor"]
 
@@ -36,6 +39,7 @@
 
 [#assign DB_COMPONENT_TYPE = "db" ]
 [#assign DB_LEGACY_COMPONENT_TYPE = "rds" ]
+[#assign legacyTypeMapping += { DB_LEGACY_COMPONENT_TYPE : DB_COMPONENT_TYPE } ]
 
 [#assign EC2_COMPONENT_TYPE = "ec2"]
 
@@ -48,6 +52,7 @@
 
 [#assign ES_COMPONENT_TYPE = "es"]
 [#assign ES_LEGACY_COMPONENT_TYPE = "elasticsearch"]
+[#assign legacyTypeMapping += { ES_LEGACY_COMPONENT_TYPE : ES_COMPONENT_TYPE } ]
 
 [#assign EXTERNALNETWORK_COMPONENT_TYPE = "externalnetwork" ]
 [#assign EXTERNALNETWORK_CONNECTION_COMPONENT_TYPE = "externalnetworkconnection" ]
@@ -66,6 +71,7 @@
 [#assign LB_COMPONENT_TYPE = "lb" ]
 [#assign LB_PORT_COMPONENT_TYPE = "lbport" ]
 [#assign LB_LEGACY_COMPONENT_TYPE = "alb" ]
+[#assign legacyTypeMapping += { LB_LEGACY_COMPONENT_TYPE : LB_COMPONENT_TYPE } ]
 
 [#assign MOBILEAPP_COMPONENT_TYPE = "mobileapp"]
 
