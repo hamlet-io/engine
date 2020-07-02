@@ -21,8 +21,20 @@
                 },
                 {
                     "Names" : "Outbound",
-                    "Description" : "Network level Rules to apply",
-                    "Children" : networkRuleChildConfiguration
+                    "Description" : "Outbound security group rules",
+                    "Children" : [
+                        {
+                            "Names" : "GlobalAllow",
+                            "Description" : "Allow all outbound traffic",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Names" : "NetworkRules",
+                            "SubObjects" : true,
+                            "Children" : networkRuleChildConfiguration
+                        }
+                    ]
                 }
             ]
         }
