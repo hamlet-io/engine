@@ -621,6 +621,18 @@
             [/#if]
             [#break]
 
+        [#case "_localhost"]
+        [#case "_localhost_"]
+        [#case "__localhost__"]
+            [#return
+                {
+                    "Id" : groupId,
+                    "Name" : groupId,
+                    "IsOpen" : false,
+                    "CIDR" : [ "127.0.0.1/32" ]
+                } ]
+            [#break]
+
         [#default]
             [#if (ipAddressGroups[groupId]!{})?has_content ]
                 [#return ipAddressGroups[groupId] ]

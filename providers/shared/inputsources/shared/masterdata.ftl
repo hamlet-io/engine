@@ -1623,9 +1623,8 @@
           "default" : {
             "BaseSecurityGroup" : {
               "Outbound" : {
-                "IPAddressGroups" : [ "_global" ],
-                "Ports" : [ "any" ],
-                "Description" : "Default Global outbound"
+                "GlobalAllow" : true,
+                "NetworkRules" : {}
               }
             }
           }
