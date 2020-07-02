@@ -1624,7 +1624,8 @@
             "BaseSecurityGroup" : {
               "Outbound" : {
                 "IPAddressGroups" : [ "_global" ],
-                "Ports" : [ "any" ]
+                "Ports" : [ "any" ],
+                "Description" : "Default Global outbound"
               }
             }
           }
