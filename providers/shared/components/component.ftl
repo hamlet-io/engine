@@ -93,6 +93,9 @@
 
 [#assign S3_COMPONENT_TYPE = "s3" ]
 
+[#assign SECRETSTORE_COMPONENT_TYPE = "secretstore" ]
+[#assign SECRETSTORE_SECRET_COMPONENT_TYPE = "secret" ]
+
 [#assign SERVICE_REGISTRY_COMPONENT_TYPE = "serviceregistry" ]
 [#assign SERVICE_REGISTRY_SERVICE_COMPONENT_TYPE = "serviceregistryservice" ]
 
@@ -230,6 +233,10 @@
         },
         {
             "Names" : "Version",
+            "Type" : STRING_TYPE
+        },
+        {
+            "Names" : "Secret",
             "Type" : STRING_TYPE
         }
     ]
