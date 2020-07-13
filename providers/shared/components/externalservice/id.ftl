@@ -7,16 +7,28 @@
             {
                 "Type" : "Description",
                 "Value" : "An external component which is not part of codeontap"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "shared" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "solution"
             }
         ]
+    attributes=[]
+/]
+
+[@addChildComponent
+    type=EXTERNALSERVICE_ENDPOINT_COMPONENT_TYPE
+    properties=
+        [
+            {
+                "Type"  : "Description",
+                "Value" : "An endpoint of an external serivce normally an IP address or collection"
+            }
+        ]
+    attributes=[]
+    parent=EXTERNALSERVICE_COMPONENT_TYPE
+    childAttribute="Endpoints"
+    linkAttributes="Endpoint"
+/]
+
+[@addResourceGroupInformation
+    type=EXTERNALSERVICE_COMPONENT_TYPE
     attributes=[
         {
             "Names" : "Properties",
@@ -45,27 +57,17 @@
             "Children" : linkChildrenConfiguration
         }
     ]
+    provider=SHARED_PROVIDER
+    resourceGroup=DEFAULT_RESOURCE_GROUP
+    services=[
+        SHARED_EXTERNAL_SERVICE
+    ]
 /]
 
-[@addChildComponent
+
+[@addResourceGroupInformation
     type=EXTERNALSERVICE_ENDPOINT_COMPONENT_TYPE
-    properties=
-        [
-            {
-                "Type"  : "Description",
-                "Value" : "An endpoint of an external serivce normally an IP address or collection"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "shared" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "solution"
-            }
-        ]
-    attributes=
-        [
+    attributes=[
             {
                 "Names" : "IPAddressGroups",
                 "Type" : ARRAY_OF_STRING_TYPE,
@@ -77,14 +79,6 @@
                 "Default" : ""
             }
         ]
-    parent=EXTERNALSERVICE_COMPONENT_TYPE
-    childAttribute="Endpoints"
-    linkAttributes="Endpoint"
-/]
-
-[@addResourceGroupInformation
-    type=EXTERNALSERVICE_COMPONENT_TYPE
-    attributes=[]
     provider=SHARED_PROVIDER
     resourceGroup=DEFAULT_RESOURCE_GROUP
     services=[
