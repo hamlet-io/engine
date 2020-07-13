@@ -10,17 +10,23 @@
 
 [#-- Macros to assemble the component configuration --]
 [#macro addReference type pluralType properties attributes ]
+    [#local configuration = {
+        "Type" : {
+            "Singular"  : type,
+            "Plural"    : pluralType
+        },
+        "Properties" : asArray(properties),
+        "Attributes" : asArray(attributes)}]
+
     [@internalMergeReferenceConfiguration
         type=type
-        configuration=
-            {
-                "Type" : {
-                    "Singular"  : type,
-                    "Plural"    : pluralType
-                },
-                "Properties" : asArray(properties),
-                "Attributes" : asArray(attributes)
-            }
+        configuration=configuration  
+    /]
+
+    [@internalMergeSchemaConfiguration
+        scope=REFERENCE_SCHEMA_SCOPE
+        type=type
+        configuration=configuration  
     /]
 [/#macro]
 
