@@ -5,7 +5,7 @@
 
 [#macro addBlueprint blueprint={} ]
     [#if blueprint?has_content ]
-        [@interalMergeBlueprint
+        [@internalMergeBlueprint
             blueprint=blueprint
         /]
     [/#if]
@@ -15,7 +15,7 @@
 -- Internal support functions for blueprint processing --
 -------------------------------------------------------]
 
-[#macro interalMergeBlueprint blueprint ]
+[#macro internalMergeBlueprint blueprint ]
     [#assign blueprintObject =
         mergeObjects(
             blueprintObject,
