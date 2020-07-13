@@ -379,6 +379,58 @@
     outputSuffix="parameters.json"
 /]
 
+[@addGenerationContractStepOutputMapping
+    provider=SHARED_PROVIDER
+    subset="schema"
+    outputType=JSON_DEFAULT_OUTPUT_TYPE
+    outputFormat=""
+    outputSuffix="schema.json"
+/]
+
+[#-- Schema --]
+[#-- Schemas create JSON Schema documents that define the Hamlet solution structure --]
+[#-- Definitions are re-usable schema sections. --]
+[#-- Properties are individual schema. --]
+
+[@initialiseJsonOutput name="schemas" /]
+[#assign rootSchemaPath = ""]
+[#assign rootSchema = "http://json-schema.org/draft-07/schema"]
+
+[#macro default_output_schema level="" include=""]
+
+    [#if include?has_content]
+        [#include include?ensure_starts_with("/")]
+    [#else]
+        [@processComponents level /]
+    [/#if]
+
+    [#-- Combine schema sources --]
+    [#local compositeSchemas = mergeObjects(
+        schemaConfiguration,
+        getOutputContent("schemas"))]
+
+    [#if schemaConfiguration?has_content || logMessages?has_content ]
+        [@toJSON
+            getSchema(
+                OBJECT_TYPE,
+                compositeSchemas,
+                true)
+            + attributeIfContent("COTMessages", logMessages)
+        /]
+    [/#if]
+    [@serialiseOutput name=JSON_DEFAULT_OUTPUT_TYPE /]
+[/#macro]
+
+[#macro schema id scope schema isDefinition=false isRoot=false]
+    [@mergeWithJsonOutput
+        name="schemas"
+        content={
+            scope : {
+                id : getSchema(OBJECT_TYPE, schema, id, isRoot)
+            }
+    /]
+[/#macro]
+
 [#------------------------------------------------------------
 -- internal support functions for default output processing --
 --------------------------------------------------------------]
