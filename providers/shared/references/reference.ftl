@@ -13,10 +13,11 @@
 [#assign PORTMAPPING_REFERENCE_TYPE = "PortMapping" ]
 
 [#-- Logging Reference Types --]
+[#assign LOGGINGPROFILE_REFERENCE_TYPE = "LoggingProfile" ]
+[#assign LOGFILTER_REFERENCE_TYPE = "LogFilter" ]
 [#assign LOGFILE_REFERENCE_TYPE = "LogFile" ]
 [#assign LOGFILEGROUP_REFERENCE_TYPE = "LogFileGroup" ]
 [#assign LOGFILEPROFILE_REFERENCE_TYPE = "LogFileProfile" ]
-[#assign LOGFILTER_REFERENCE_TYPE = "LogFilter" ]
 
 [#-- Compute Reference Types --]
 [#assign PROCESSOR_REFERENCE_TYPE = "Processor" ]

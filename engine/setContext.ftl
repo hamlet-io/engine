@@ -57,6 +57,9 @@
 [@addReferenceData type=PORTMAPPING_REFERENCE_TYPE base=blueprintObject /]
 [#assign portMappings = getReferenceData(PORTMAPPING_REFERENCE_TYPE) ]
 
+[#-- Logging Profiles --]
+[@addReferenceData type=LOGGINGPROFILE_REFERENCE_TYPE base=blueprintObject /]
+
 [#-- Log Files --]
 [@addReferenceData type=LOGFILE_REFERENCE_TYPE base=blueprintObject /]
 [#assign logFiles = getReferenceData(LOGFILE_REFERENCE_TYPE) ]
