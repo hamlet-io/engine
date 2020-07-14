@@ -42,6 +42,16 @@
                         "Default" : "base64"
                     }
                 ]
+            },
+            {
+                "Names" : "Profiles",
+                "Children" : [
+                    {
+                        "Names" : "Logging",
+                        "Type" : STRING_TYPE,
+                        "Default" : "default"
+                    }
+                ]
             }
         ]
 /]
@@ -113,6 +123,11 @@
                 "Children" : [
                     {
                         "Names" : "Alert",
+                        "Type" : STRING_TYPE,
+                        "Default" : "default"
+                    },
+                    {
+                        "Names" : "Logging",
                         "Type" : STRING_TYPE,
                         "Default" : "default"
                     }

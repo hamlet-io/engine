@@ -182,6 +182,11 @@
                             "Names" : "Network",
                             "Type" : STRING_TYPE,
                             "Default" : "default"
+                        },
+                        {
+                            "Names" : "Logging",
+                            "Type" : STRING_TYPE,
+                            "Default" : "default"
                         }
                     ]
             },
@@ -383,6 +388,11 @@
                             "Names" : "Network",
                             "Type" : STRING_TYPE,
                             "Default" : "default"
+                        },
+                        {
+                            "Names" : "Logging",
+                            "Type" : STRING_TYPE,
+                            "Default" : "default"
                         }
                     ]
             },
@@ -511,6 +521,11 @@
                         },
                         {
                             "Names" : "Network",
+                            "Type" : STRING_TYPE,
+                            "Default" : "default"
+                        },
+                        {
+                            "Names" : "Logging",
                             "Type" : STRING_TYPE,
                             "Default" : "default"
                         }
