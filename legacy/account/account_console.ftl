@@ -30,10 +30,10 @@
 
     [#assign consoleDocumentDependencies = []]
 
-    [#assign accountCMKId = formatAccountCMKTemplateId()]
+    [#assign consoleCMKId = getAccountSSMSessionManagerKMSKeyId()]
 
     [#if deploymentSubsetRequired("console", true) &&
-            ! getExistingReference(formatAccountCMKTemplateId())?has_content ]
+            ! getExistingReference(consoleCMKId)?has_content ]
         [@fatal
             message="Account CMK not found"
             detail="Run the cmk deployment at the account level to create the CMK"
@@ -41,7 +41,7 @@
     [/#if]
 
     [#assign SSMDocumentInput = {
-        "kmsKeyId" : getExistingReference(accountCMKId)
+        "kmsKeyId" : getExistingReference(consoleCMKId)
     }]
 
     [#list consoleLoggingDestinations as loggingDestination ]
@@ -69,7 +69,7 @@
                         id=consoleLogBucketId
                         name=consoleLogBucketName
                         encrypted=true
-                        kmsKeyId=accountCMKId
+                        kmsKeyId=consoleCMKId
                         versioning=true
                     /]
                 [/#if]
