@@ -188,6 +188,13 @@
                         "Default" : "disabled"
                     }
                 ]
+            },
+            {
+                "Names" : "VerificationEmailType",
+                "Description" : "The default verification email option for message customization.",
+                "Values" : [ "code", "link"],
+                "Type" : STRING_TYPE,
+                "Default" : "code"
             }
         ]
 /]
