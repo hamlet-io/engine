@@ -13,11 +13,18 @@
         deploymentFramework=CLOUD_FORMATION_DEPLOYMENT_FRAMEWORK
     /]
 
+    [#if accountObject.Encryption.Alias.IncludeSeed!false ]
+        [#assign cmkKeyAliasName = formatRelativePath( "alias", formatName("account", "cmk", accountObject.Seed)) ]
+        [#assign consoleKeyAliasName = formatRelativePath( "alias", formatName("account", "cmk", "console", accountObject.Seed)) ]
+    [#else]
+        [#assign cmkKeyAliasName = formatRelativePath( "alias", formatName("account", "cmk")) ]
+        [#assign consoleKeyAliasName = formatRelativePath( "alias", formatName("account", "cmk", "console")) ]
+    [/#if]
+
     [#assign cmkKeyId = formatAccountCMKTemplateId()]
     [#assign cmkKeyName = formatName("account", "cmk")]
 
     [#assign cmkKeyAliasId = formatDependentResourceId(AWS_CMK_ALIAS_RESOURCE_TYPE, cmkKeyId)]
-    [#assign cmkKeyAliasName = formatRelativePath( "alias", formatName("account", "cmk")) ]
 
     [#if deploymentSubsetRequired("cmk", true) ]
 
@@ -92,7 +99,6 @@
             [#assign consoleKeyId = formatAccountSSMSessionManagerKMSKeyId() ]
             [#assign consoleKeyName = formatName("account", "cmk", "console")]
             [#assign consoleKeyAliasId = formatDependentResourceId(AWS_CMK_ALIAS_RESOURCE_TYPE, consoleKeyId)]
-            [#assign consoleKeyAliasName = formatRelativePath( "alias", consoleKeyName) ]
 
             [#if isPartOfCurrentDeploymentUnit(consoleKeyId)]
                 [@createCMK
