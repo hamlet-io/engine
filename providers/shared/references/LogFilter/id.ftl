@@ -1,12 +1,12 @@
 [#ftl]
 
-[@addReference 
+[@addReference
     type=LOGFILTER_REFERENCE_TYPE
     pluralType="LogFilters"
     properties=[
             {
                 "Type"  : "Description",
-                "Value" : "A filter to apply when searching log files" 
+                "Value" : "A filter to apply when searching log files"
             }
         ]
     attributes=[
@@ -17,3 +17,7 @@
         }
     ]
 /]
+
+[#function getLogFilterPattern logFilterId ]
+    [#return (logFilters[logFilterId].Pattern)!"" ]
+[/#function]

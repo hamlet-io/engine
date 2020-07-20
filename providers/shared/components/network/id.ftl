@@ -58,11 +58,21 @@
                         "Default" : "10.0.0.0/16"
                     }
                 ]
-            },            
+            },
             {
                 "Names" : "Links",
                 "Subobjects" : true,
                 "Children" : linkChildrenConfiguration
+            },
+            {
+                "Names" : "Profiles",
+                "Children" : [
+                    {
+                        "Names" : "Logging",
+                        "Type" : STRING_TYPE,
+                        "Default" : "default"
+                    }
+                ]
             }
         ]
 /]

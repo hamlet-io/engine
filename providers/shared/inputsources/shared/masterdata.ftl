@@ -1630,6 +1630,11 @@
           }
         },
         "Bootstraps": {},
+        "LoggingProfiles" : {
+          "default" : {
+            "ForwardingRules" : {}
+          }
+        },
         "LogFilters": {
           "_all": {
             "Pattern": ""

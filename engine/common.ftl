@@ -396,6 +396,11 @@ behaviour.
     [#return (networkProfiles[profileName])!{} ]
 [/#function]
 
+[#function getLoggingProfile profileName  ]
+    [#local loggingProfiles = getReferenceData(LOGGINGPROFILE_REFERENCE_TYPE)]
+    [#return (loggingProfiles[profileName])!{} ]
+[/#function]
+
 [#function getNetworkEndpoints endpointGroups zone region ]
     [#local services = []]
     [#local networkEndpoints = {}]
