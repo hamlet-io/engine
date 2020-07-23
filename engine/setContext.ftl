@@ -552,6 +552,27 @@
 
 [#function getIPAddressGroup group occurrence={}]
     [#local groupId = group?is_hash?then(group.Id, group) ]
+
+    [#if groupId?starts_with("_tier") || groupId?starts_with("__tier") ]
+        [#local lookupTier = groupId?split(":")[1] ]
+        [#if ! lookupTier?has_content ]
+            [@fatal
+                message="Invalid Tier IP AddressGroup"
+                detail="Please provide tier groups as _tier:tierId"
+                context=groupId
+            /]
+
+            [#return
+                {
+                    "Id" : groupId,
+                    "IsOpen" : true,
+                    "CIDR" : []
+                }]
+        [/#if]
+        [#local groupDetailId = groupId ]
+        [#local groupId = "_tier" ]
+    [/#if]
+
     [#switch groupId]
         [#case "_global"]
         [#case "_global_"]
@@ -585,6 +606,48 @@
                     "IsOpen" : false,
                     "CIDR" : segmentCIDR
                 } ]
+            [#break]
+
+        [#case "_tier"]
+
+            [#if occurrence?has_content ]
+                [#if occurrence.Core.Type == "network"  ]
+                    [#assign networkResources = occurrence.State.Resources ]
+                [#else]
+                    [#local occurrenceTier = getTier(occurrence.Core.Tier.Id) ]
+                    [#local networkLinkTarget = getLinkTarget(occurrence, occurrenceTier.Network.Link, false )]
+                    [#local networkResources = networkLinkTarget.State.Resources ]
+                [/#if]
+
+                [#local tier = getTier(lookupTier) ]
+                [#local tierResources = networkResources["subnets"][tier.Id] ]
+
+                [#local tierSubnets = []]
+                [#list tierResources as zone,resource ]
+                    [#local tierSubnets += [ resource.subnet.Address ] ]
+                [/#list]
+
+                [#return
+                    {
+                        "Id" : groupDetailId,
+                        "Name" : groupDetailId,
+                        "IsOpen" : false,
+                        "CIDR" : tierSubnets
+                    } ]
+            [#else]
+                [#return
+                    {
+                        "Id" : groupDetailId,
+                        "IsOpen" : true,
+                        "CIDR" : []
+                    }]
+
+                [@fatal
+                    message="Local network details required"
+                    context=group
+                    detail="To use the localnet IP Address group please provide the occurrence of the item using it"
+                /]
+            [/#if]
             [#break]
 
         [#case "_localnet"]
