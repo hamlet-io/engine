@@ -840,6 +840,12 @@
         "Type" : ARRAY_OF_STRING_TYPE,
         "Default" : [ "create" ],
         "Values" : [ "create", "delete", "restore", "reducedredundancy" ]
+    },
+    {
+        "Names" : "aws:QueuePermissionMigration",
+        "Description" : "Deprecation alert: set to true once policy updated for queue",
+        "Type" : BOOLEAN_TYPE,
+        "Default" : false
     }
 ]]
 
