@@ -11,7 +11,9 @@
         provider=AWS_PROVIDER
         services=[
             AWS_SYSTEMS_MANAGER_SERVICE,
-            AWS_KEY_MANAGEMENT_SERVICE
+            AWS_KEY_MANAGEMENT_SERVICE,
+            AWS_IDENTITY_SERVICE,
+            AWS_CLOUDWATCH_SERVICE
         ]
         deploymentFramework=CLOUD_FORMATION_DEPLOYMENT_FRAMEWORK
     /]

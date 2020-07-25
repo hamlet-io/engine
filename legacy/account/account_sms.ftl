@@ -1,5 +1,28 @@
 [#-- SMS --]
 [#if getDeploymentUnit()?contains("sms") || (allDeploymentUnits!false) ]
+
+
+    [@includeProviderComponentDefinitionConfiguration
+        provider=SHARED_PROVIDER
+        component=MOBILENOTIFIER_COMPONENT_TYPE
+    /]
+    [@includeProviderComponentDefinitionConfiguration
+        provider=AWS_PROVIDER
+        component=MOBILENOTIFIER_COMPONENT_TYPE
+    /]
+
+    [@includeProviderComponentConfiguration
+        provider=AWS_PROVIDER
+        component=MOBILENOTIFIER_COMPONENT_TYPE
+        services=[AWS_CLOUDWATCH_SERVICE, AWS_SIMPLE_NOTIFICATION_SERVICE]
+    /]
+
+    [@includeServicesConfiguration
+        provider=AWS_PROVIDER
+        services=[AWS_IDENTITY_SERVICE ]
+        deploymentFramework=commandLineOptions.Deployment.Framework.Name
+    /]
+
     [#assign cloudWatchRoleId = formatAccountRoleId("sms","cloudwatch")]
     [#if deploymentSubsetRequired("generationcontract", false)]
         [@addDefaultGenerationContract subsets=["epilogue", "cli"] /]

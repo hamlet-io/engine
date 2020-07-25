@@ -4,6 +4,13 @@
         [@addDefaultGenerationContract subsets="template" /]
     [/#if]
 
+
+    [@includeServicesConfiguration
+        provider=AWS_PROVIDER
+        services=[AWS_IDENTITY_SERVICE ]
+        deploymentFramework=commandLineOptions.Deployment.Framework.Name
+    /]
+
     [#if deploymentSubsetRequired("roles", true)]
         [#assign automationRoleId = formatAccountRoleId("automation")]
         [#assign administratorRoleId = formatAccountRoleId("administrator")]

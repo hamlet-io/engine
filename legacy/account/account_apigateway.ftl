@@ -1,9 +1,16 @@
 [#-- API Gateway --]
 [#if getDeploymentUnit()?contains("apigateway") || (allDeploymentUnits!false) ]
-    [#assign cloudWatchRoleId = formatAccountRoleId("cloudwatch")]
     [#if deploymentSubsetRequired("generationcontract", false)]
         [@addDefaultGenerationContract subsets="template" /]
     [/#if]
+
+    [@includeServicesConfiguration
+        provider=AWS_PROVIDER
+        services=[AWS_IDENTITY_SERVICE ]
+        deploymentFramework=commandLineOptions.Deployment.Framework.Name
+    /]
+
+    [#assign cloudWatchRoleId = formatAccountRoleId("cloudwatch")]
 
     [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(cloudWatchRoleId)]
         [@createRole
