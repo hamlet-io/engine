@@ -150,6 +150,22 @@
                 /]
             [/#list]
 
+            [#-- Determine the resource labels for the provider --]
+            [#local directories =
+                internalGetPluginFiles(
+                    [providerMarker.Path, "resourcelabels"],
+                    [
+                        ["[^/]+"]
+                    ]
+                )
+            ]
+            [#list directories as directory]
+                [@internalIncludeTemplatesInDirectory
+                    directory,
+                    ["resourcelabel"]
+                /]
+            [/#list]
+
             [#-- Determine the global resource groups for the provider --]
             [#local directories =
                 internalGetPluginFiles(
@@ -494,6 +510,12 @@
     [@internalIncludeTemplatesInDirectory
         [providerMarker.Path, "tasks"],
         ["task" ]
+    /]
+
+    [#-- aws/resourcelabels/resourcelabel.ftl --]
+    [@internalIncludeTemplatesInDirectory
+        [providerMarker.Path, "resourcelabels"],
+        ["resourcelabel" ]
     /]
 
     [#-- aws/resourcegroups/resourcegroup.ftl --]
