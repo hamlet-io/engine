@@ -23,6 +23,9 @@
 [#assign cmdbProductLookupPrefixes = [] ]
 [#assign segmentQualifiers = [] ]
 
+[#-- DeploymentGroup --]
+[@addReferenceData type=DEPLOYMENTGROUP_REFERENCE_TYPE base=blueprintObject /]
+
 [#-- Testing --]
 [@addReferenceData type=TESTCASE_REFERENCE_TYPE base=blueprintObject /]
 [#assign testCases = getReferenceData(TESTCASE_REFERENCE_TYPE) ]
