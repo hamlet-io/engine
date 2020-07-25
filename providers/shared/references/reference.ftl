@@ -5,6 +5,8 @@
 [#assign ENVIRONMENT_REFERENCE_TYPE = "Environment" ]
 [#assign REGION_REFERENCE_TYPE = "Region" ]
 
+[#assign DEPLOYMENTGROUP_REFERENCE_TYPE = "DeploymentGroup" ]
+
 [#-- Network Reference Types --]
 [#assign CERTIFICATEBEHAVIOUR_REFERNCE_TYPE = "CertificateBehaviour" ]
 [#assign IPADDRESSGROUP_REFERENCE_TYPE = "IPAddressGroup" ]

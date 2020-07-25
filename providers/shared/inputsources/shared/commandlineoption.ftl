@@ -35,7 +35,8 @@
                 "ResourceGroup" : {
                     "Name" : resourceGroup!""
                 },
-                "Mode" : deploymentMode!""
+                "Mode" : deploymentMode!"",
+                "Group" : deploymentGroup!""
             }
         }
     /]
