@@ -19,6 +19,9 @@
 [#-- Task loading --]
 [#include "task.ftl" ]
 
+[#-- Resource Labels --]
+[#include "resourceLabel.ftl" ]
+
 [#-- Scenerio Loading --]
 [#include "scenario.ftl" ]
 [#include "testcase.ftl" ]
