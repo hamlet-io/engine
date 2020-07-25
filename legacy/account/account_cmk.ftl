@@ -8,12 +8,13 @@
         provider=AWS_PROVIDER
         services=[
             AWS_KEY_MANAGEMENT_SERVICE,
-            AWS_SYSTEMS_MANAGER_SERVICE
+            AWS_SYSTEMS_MANAGER_SERVICE,
+            AWS_IDENTITY_SERVICE
         ]
         deploymentFramework=CLOUD_FORMATION_DEPLOYMENT_FRAMEWORK
     /]
 
-    [#if accountObject.Encryption.Alias.IncludeSeed!false ]
+    [#if (accountObject.Encryption.Alias.IncludeSeed)!false ]
         [#assign cmkKeyAliasName = formatRelativePath( "alias", formatName("account", "cmk", accountObject.Seed)) ]
         [#assign consoleKeyAliasName = formatRelativePath( "alias", formatName("account", "cmk", "console", accountObject.Seed)) ]
     [#else]
