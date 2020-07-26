@@ -727,7 +727,7 @@
         [/#if]
         [#local cidrs += nextGroup.CIDR ]
     [/#list]
-    [#return valueIfTrue(true, asBoolean, cidrs) ]
+    [#return valueIfTrue(cidrs?has_content, asBoolean, cidrs) ]
 [/#function]
 
 [#function getGroupCountryCodes groups blacklist=false]
