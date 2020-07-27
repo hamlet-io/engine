@@ -12,6 +12,7 @@
 [#assign SCRIPT_DEFAULT_OUTPUT_TYPE = "script"]
 [#assign JSON_DEFAULT_OUTPUT_TYPE = "json"]
 [#assign MODEL_DEFAULT_OUTPUT_TYPE = "model"]
+[#assign SCHEMA_DEFAULT_OUTPUT_TYPE = "schema"]
 
 [#-- SCRIPT_DEFAULT_OUTPUT_TYPE --]
 
@@ -318,6 +319,44 @@
     [/#list]
 [/#macro]
 
+[#-- Schema --]
+[#macro default_output_schema level="" include=""]
+    [@processComponents level /]
+
+    [#local schemaType = commandLineOptions.Deployment.Unit.Name]
+    [#switch schemaType]
+
+        [#default]
+            [#local schema = getOutputContent(
+                "schema",
+                schemaType)!{}]
+            [#break]
+
+    [/#switch]
+    
+    [#if schema?has_content || logMessages?has_content ]
+        [@toJSON
+            schema +
+            attributeIfContent("COTMessages", logMessages)
+        /]
+    [/#if]
+
+    [@serialiseOutput name=JSON_DEFAULT_OUTPUT_TYPE /]
+[/#macro]
+
+[#macro addSchemaToDefaultJsonOutput section config schemaId]
+    [@mergeWithJsonOutput
+        name="schema"
+        section=section
+        content=
+            mergeObjects(
+                { "$schema" : HamletSchemas.Root },
+                formatJsonSchemaBaseType(config, schemaId),
+                { "definitions" : config }
+            )
+    /]
+[/#macro]
+
 [#-- Initialise the possible outputs to make sure they are available to all steps --]
 [@initialiseDefaultScriptOutput format=BASH_DEFAULT_OUTPUT_FORMAT /]
 [@initialiseJsonOutput name=JSON_DEFAULT_OUTPUT_TYPE /]
@@ -382,54 +421,10 @@
 [@addGenerationContractStepOutputMapping
     provider=SHARED_PROVIDER
     subset="schema"
-    outputType=JSON_DEFAULT_OUTPUT_TYPE
+    outputType=SCHEMA_DEFAULT_OUTPUT_TYPE
     outputFormat=""
     outputSuffix="schema.json"
 /]
-
-[#-- Schema --]
-[#-- Schemas create JSON Schema documents that define the Hamlet solution structure --]
-[#-- Definitions are re-usable schema sections. --]
-[#-- Properties are individual schema. --]
-
-[@initialiseJsonOutput name="schemas" /]
-[#assign rootSchemaPath = ""]
-[#assign rootSchema = "http://json-schema.org/draft-07/schema"]
-
-[#macro default_output_schema level="" include=""]
-
-    [#if include?has_content]
-        [#include include?ensure_starts_with("/")]
-    [#else]
-        [@processComponents level /]
-    [/#if]
-
-    [#-- Combine schema sources --]
-    [#local compositeSchemas = mergeObjects(
-        schemaConfiguration,
-        getOutputContent("schemas"))]
-
-    [#if schemaConfiguration?has_content || logMessages?has_content ]
-        [@toJSON
-            getSchema(
-                OBJECT_TYPE,
-                compositeSchemas,
-                true)
-            + attributeIfContent("COTMessages", logMessages)
-        /]
-    [/#if]
-    [@serialiseOutput name=JSON_DEFAULT_OUTPUT_TYPE /]
-[/#macro]
-
-[#macro schema id scope schema isDefinition=false isRoot=false]
-    [@mergeWithJsonOutput
-        name="schemas"
-        content={
-            scope : {
-                id : getSchema(OBJECT_TYPE, schema, id, isRoot)
-            }
-    /]
-[/#macro]
 
 [#------------------------------------------------------------
 -- internal support functions for default output processing --
@@ -453,7 +448,5 @@
         name=SCRIPT_DEFAULT_OUTPUT_TYPE
         messages=logMessages
     /]
-    [@serialiseOutput
-        name=SCRIPT_DEFAULT_OUTPUT_TYPE
-    /]
+    [@serialiseOutput name=SCRIPT_DEFAULT_OUTPUT_TYPE /]
 [/#macro]

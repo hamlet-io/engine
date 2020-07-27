@@ -59,6 +59,15 @@
                                 [/#if]
                                 [#break]
 
+                            [#case "schema"]
+                                [#if invokeSchemaMacro(occurrence, key, [level])]
+                                   [@debug
+                                        message="Schema Processing " + key + " ..."
+                                        enabled=false
+                                    /]
+                                [/#if]
+                                [#break]
+
                             [#default]
                                 [#if invokeSetupMacro(occurrence, key, [ level ] ) ]
                                     [@debug

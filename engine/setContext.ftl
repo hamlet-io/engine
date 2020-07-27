@@ -2,6 +2,7 @@
 [#include "engine.ftl"]
 [#include "common.ftl"]
 [#include "openapi.ftl"]
+[#include "schema.ftl"]
 
 [#-- Shared Provider Configurations --]
 [@includeSharedComponentConfiguration component="baseline" /]
