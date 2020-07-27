@@ -7,6 +7,22 @@
 [#-- Component configuration is extended dynamically by each component type --]
 [#assign componentConfiguration = {} ]
 
+[#function findComponentMarkers]
+    [#local markers = 
+        getPluginTree(
+            "/",
+            {
+                "Regex" : [r"id\.ftl"],
+                "AddEndingWildcard" : false,
+                "MinDepth" : 4,
+                "MaxDepth" : 4,
+                "FilenameGlob" : r"id.ftl"
+            }
+        )
+    ]
+    [#return markers?sort_by("Path")]
+[/#function]
+
 [#-- Resource Groups --]
 [#assign DEFAULT_RESOURCE_GROUP = "default"]
 [#assign DNS_RESOURCE_GROUP = "dns"]

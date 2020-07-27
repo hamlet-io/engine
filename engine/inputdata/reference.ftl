@@ -22,12 +22,6 @@
         type=type
         configuration=configuration  
     /]
-
-    [@internalMergeSchemaConfiguration
-        scope=REFERENCE_SCHEMA_SCOPE
-        type=type
-        configuration=configuration  
-    /]
 [/#macro]
 
 [#macro addReferenceData type base={} data={} ]
