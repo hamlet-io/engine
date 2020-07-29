@@ -1687,81 +1687,22 @@
           }
         },
         "DeploymentGroups" : {
-          "account" : {
-            "Deployment" : {
-              "Level" : "",
-              "ResourceSets" : {
-                "iam" : {
-                  "DeploymentUnit" : "iam",
-                  "ResourceLabels" : [ "iam" ]
-                },
-                "lg" : {
-                  "DeploymentUnit" : "lg",
-                  "ResourceLabels" : [ "lg" ]
-                }
-              }
-            },
-            "CompositeTemplate" : "accountList"
-          },
           "segment" : {
             "Deployment" : {
               "Level" : "segment",
-              "ResourceSets" : {
-                "iam" : {
-                  "DeploymentUnit" : "iam",
-                  "ResourceLabels" : [ "iam" ]
-                },
-                "lg" : {
-                  "DeploymentUnit" : "lg",
-                  "ResourceLabels" : [ "lg" ]
-                },
-                "eip" : {
-                  "DeploymentUnit" : "eip",
-                  "ResourceLabels" : [ "eip" ]
-                },
-                "s3" : {
-                  "DeploymentUnit" : "s3",
-                  "ResourceLabels" : [ "s3" ]
-                },
-                "cmk" : {
-                  "DeploymentUnit" : "cmk",
-                  "ResourceLabels" : [ "cmk" ]
-                }
-              }
+              "ResourceSets" : {}
             }
           },
           "solution" : {
             "Deployment" : {
               "Level" : "solution",
-              "ResourceSets" : {
-                "eip" : {
-                  "DeploymentUnit" : "eip",
-                  "ResourceLabels" : [ "eip" ]
-                },
-                "iam" : {
-                  "DeploymentUnit" : "iam",
-                  "ResourceLabels" : [ "iam" ]
-                },
-                "lg" : {
-                  "DeploymentUnit" : "lg",
-                  "ResourceLabels" : [ "lg" ]
-                }
-              }
+              "ResourceSets" : {}
             }
           },
           "application" : {
             "Deployment" : {
               "Level" : "application",
-              "ResourceSets" : {
-                "iam" : {
-                  "DeploymentUnit" : "iam",
-                  "ResourceLabels" : [ "iam" ]
-                },
-                "lg" : {
-                  "DeploymentUnit" : "lg",
-                  "ResourceLabels" : [ "lg" ]
-                }
-              }
+              "ResourceSets" : {}
             }
           }
         }
