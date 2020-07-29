@@ -1,7 +1,8 @@
 [#ftl]
 
-[#-- tasks are executed in contracts --]
-[#-- Each task should perform a specifc action to manage a deployment --]
+[#-- Resource Labels  --]
+[#-- resource labels can be applied to resources and provide a way to filter resources in components based on these labels --]
+[#-- From this you could choose to specifically deploy resources as their own deployment unit --]
 
 [#assign resourceLabelConfiguration = {}]
 
@@ -39,7 +40,7 @@
 [/#function]
 
 [#-------------------------------------------------------
--- Internal support functions for task processing      --
+-- Internal support functions for resoure label processing      --
 ---------------------------------------------------------]
 
 [#-- Helper macro - not for general use --]

@@ -1,6 +1,6 @@
 [#ftl]
 
-[#-- Core Tasks --]
+[#-- Shared Resource labels used for all providers --]
 [#assign RESOURCE_LABEL_COMPONENT = "component" ]
 
 [@addResourceLabel
