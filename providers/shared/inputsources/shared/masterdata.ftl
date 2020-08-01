@@ -1633,6 +1633,9 @@
         "LoggingProfiles" : {
           "default" : {
             "ForwardingRules" : {}
+          },
+          "waf" : {
+            "ForwardingRules" : {}
           }
         },
         "LogFilters": {

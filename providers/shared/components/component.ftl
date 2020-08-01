@@ -582,6 +582,16 @@
             "Names" : "OWASP",
             "Type" : BOOLEAN_TYPE,
             "Default" : false
+        },
+        {
+            "Names" : "Profiles",
+            "Children" : [
+                {
+                    "Names" : "Logging",
+                    "Type"  : STRING_TYPE,
+                    "Default" : "waf"
+                }
+            ]
         }
     ]
 ]
