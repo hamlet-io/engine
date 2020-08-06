@@ -132,7 +132,8 @@
                                             childSchemaName : formatJsonSchemaFromComposite(child) 
                                         },
                                         "additionalProperties" : false
-                                    }
+                                    } +
+                                    attributeIfContent("required", required)
                                 }
                             },
                             {   
@@ -140,7 +141,8 @@
                                     childSchemaName : formatJsonSchemaFromComposite(child) 
                                 },
                                 "additionalProperties" : false
-                            }
+                            } +
+                            attributeIfContent("required", required)
                         )
                     )]
                 [#else]
