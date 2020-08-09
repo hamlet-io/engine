@@ -61,10 +61,6 @@
             [#assign volumeEncryptionKmsKeyName = formatName("account", "cmk", "volume", "encrypt")]
             [#assign volumeEncryptionKmsKeyAliasId = formatDependentResourceId(AWS_CMK_ALIAS_RESOURCE_TYPE, volumeEncryptionKmsKeyId)]
 
-            [#assign volumeEncryptResourceId = formatEC2AccountVolumeEncryptionId() ]
-            [#assign volumeEncryptionEnabled = true ]
-
-
             [#-- Check that service linked role exists --]
             [#assign autoScaleRoleDeployed = false ]
             [#list getReferenceData(SERVICEROLE_REFERENCE_TYPE) as id,ServiceRole ]
