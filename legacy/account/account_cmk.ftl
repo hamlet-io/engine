@@ -62,17 +62,10 @@
             [#assign volumeEncryptionKmsKeyAliasId = formatDependentResourceId(AWS_CMK_ALIAS_RESOURCE_TYPE, volumeEncryptionKmsKeyId)]
 
             [#-- Check that service linked role exists --]
-            [#assign autoScaleRoleDeployed = false ]
-            [#list getReferenceData(SERVICEROLE_REFERENCE_TYPE) as id,ServiceRole ]
-                [#if ServiceRole.ServiceName == "autoscaling.amazonaws.com" ]
-                    [#assign autoScaleRoleDeployed = getExistingReference( formatAccountServiceLinkedRoleId(id) )?has_content ]
-                [/#if]
-            [/#list]
-
-            [#if ! autoScaleRoleDeployed ]
+            [#if ! isSerivceLinkedRoleDeployed("autoscaling.amazonaws.com" ) ]
                 [@fatal
                     message="autoscaling.amazonaws.com service linked role not deployed"
-                    detail="Check ServiceRoles reference data and run account level IAM deployment"
+                    detail="Run an account level iam deployment to enable the service"
                 /]
             [/#if]
 
