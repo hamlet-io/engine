@@ -14,47 +14,50 @@
     /]
 
     [#assign volumeEncryptResourceId = formatEC2AccountVolumeEncryptionId() ]
+    [#assign volumeEncryptionKmsKeyId = formatEc2AccountVolumeEncryptionKMSKeyId()]
+    [#assign volumeEncryptKmsKeyArn = getExistingReference(volumeEncryptionKmsKeyId, ARN_ATTRIBUTE_TYPE)]
+
     [#assign volumeEncryptionEnabled = true ]
 
-    [#assign kmsKeyArn = getExistingReference(formatAccountCMKTemplateId(), ARN_ATTRIBUTE_TYPE)]
+    [#if (accountObject.Volume.Encryption.Enabled)!false ]
+        [#if deploymentSubsetRequired("epilogue", false) ]
 
-    [#if deploymentSubsetRequired("epilogue", false) ]
+            [#if ! volumeEncryptKmsKeyArn?has_content ]
+                [@fatal
+                    message="VolumeEncryption CMK not found"
+                    detail="Run cmk deployment to create volume encryption cmk"
+                /]
+            [/#if]
 
-        [#if ! kmsKeyArn?has_content ]
-            [@fatal
-                message="Account CMK not found"
-                detail="Create account level CMK before enabling volume encryption"
+            [@addToDefaultBashScriptOutput
+                content=
+                    [
+                        r'case ${STACK_OPERATION} in',
+                        r'  create|update)',
+                        r'      info "Managing EBS Volume Encryption state..."',
+                        r'      manage_ec2_volume_encryption' +
+                        r'      "' + region + r'" ' +
+                        r'      "true"' +
+                        r'      "' + volumeEncryptKmsKeyArn + r'"'
+                    ] +
+                    pseudoStackOutputScript(
+                        "Volume Encryption",
+                        {
+                            volumeEncryptResourceId : volumeEncryptionEnabled?c
+                        }
+                    ) +
+                    [
+                        r'      ;;',
+                        r' delete)',
+                        r'      info "Managing EBS Volume Encryption state..."',
+                        r'      manage_ec2_volume_encryption' +
+                        r'      "' + region + r'" ' +
+                        r'      "false"' +
+                        r'      "alias/aws/ebs"'
+                        r'      ;;',
+                        r'esac'
+                    ]
             /]
         [/#if]
-
-        [@addToDefaultBashScriptOutput
-            content=
-                [
-                    r'case ${STACK_OPERATION} in',
-                    r'  create|update)',
-                    r'      info "Managing EBS Volume Encryption state..."',
-                    r'      manage_ec2_volume_encryption' +
-                    r'      "' + region + r'" ' +
-                    r'      "true"' +
-                    r'      "' + kmsKeyArn + r'"'
-                ] +
-                pseudoStackOutputScript(
-                    "Volume Encryption",
-                    {
-                        volumeEncryptResourceId : volumeEncryptionEnabled?c
-                    }
-                ) +
-                [
-                    r'      ;;',
-                    r' delete)',
-                    r'      info "Managing EBS Volume Encryption state..."',
-                    r'      manage_ec2_volume_encryption' +
-                    r'      "' + region + r'" ' +
-                    r'      "false"' +
-                    r'      "alias/aws/ebs"'
-                    r'      ;;',
-                    r'esac'
-                ]
-        /]
     [/#if]
 [/#if]

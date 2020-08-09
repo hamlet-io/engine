@@ -17,9 +17,11 @@
     [#if (accountObject.Encryption.Alias.IncludeSeed)!false ]
         [#assign cmkKeyAliasName = formatRelativePath( "alias", formatName("account", "cmk", accountObject.Seed)) ]
         [#assign consoleKeyAliasName = formatRelativePath( "alias", formatName("account", "cmk", "console", accountObject.Seed)) ]
+        [#assign volumeEncryptionKeyAliasName = formatRelativePath( "alias", formatName("account", "cmk", "volume", "encrypt", accountObject.Seed)) ]
     [#else]
         [#assign cmkKeyAliasName = formatRelativePath( "alias", formatName("account", "cmk")) ]
         [#assign consoleKeyAliasName = formatRelativePath( "alias", formatName("account", "cmk", "console")) ]
+        [#assign volumeEncryptionKeyAliasName = formatRelativePath( "alias", formatName("account", "cmk", "volume", "encrypt" )) ]
     [/#if]
 
     [#assign cmkKeyId = formatAccountCMKTemplateId()]
@@ -42,48 +44,6 @@
                             {
                                 "AWS": formatAccountPrincipalArn()
                             }
-                        ),
-                        getPolicyStatement(
-                            [
-                                "kms:Encrypt",
-                                "kms:Decrypt",
-                                "kms:ReEncrypt*",
-                                "kms:GenerateDataKey*",
-                                "kms:DescribeKey"
-                            ],
-                            "*",
-                            {
-                                "AWS": [
-                                    formatGlobalArn(
-                                        "iam",
-                                        "role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling"
-                                    )
-                                ]
-                            },
-                            {},
-                            true,
-                            "AutoScale Service Linked Role"
-                        ),
-                        getPolicyStatement(
-                            [
-                                "kms:CreateGrant"
-                            ],
-                            "*",
-                            {
-                                "AWS": [
-                                    formatGlobalArn(
-                                        "iam",
-                                        "role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling"
-                                    )
-                                ]
-                            },
-                            {
-                                "Bool": {
-                                    "kms:GrantIsForAWSResource": true
-                                }
-                            },
-                            true,
-                            "AutoScale Attachment of persistent resources"
                         )
                     ]
             /]
@@ -93,6 +53,98 @@
                 name=cmkKeyAliasName
                 cmkId=cmkKeyId
             /]
+        [/#if]
+
+        [#if (accountObject.Volume.Encryption.Enabled)!false ]
+
+            [#assign volumeEncryptionKmsKeyId = formatEc2AccountVolumeEncryptionKMSKeyId()]
+            [#assign volumeEncryptionKmsKeyName = formatName("account", "cmk", "volume", "encrypt")]
+            [#assign volumeEncryptionKmsKeyAliasId = formatDependentResourceId(AWS_CMK_ALIAS_RESOURCE_TYPE, volumeEncryptionKmsKeyId)]
+
+            [#assign volumeEncryptResourceId = formatEC2AccountVolumeEncryptionId() ]
+            [#assign volumeEncryptionEnabled = true ]
+
+
+            [#-- Check that service linked role exists --]
+            [#assign autoScaleRoleDeployed = false ]
+            [#list getReferenceData(SERVICEROLE_REFERENCE_TYPE) as id,ServiceRole ]
+                [#if ServiceRole.ServiceName == "autoscaling.amazonaws.com" ]
+                    [#assign autoScaleRoleDeployed = getExistingReference( formatAccountServiceLinkedRoleId(id) )?has_content ]
+                [/#if]
+            [/#list]
+
+            [#if ! autoScaleRoleDeployed ]
+                [@fatal
+                    message="autoscaling.amazonaws.com service linked role not deployed"
+                    detail="Check ServiceRoles reference data and run account level IAM deployment"
+                /]
+            [/#if]
+
+            [#if isPartOfCurrentDeploymentUnit(volumeEncryptionKmsKeyId)]
+
+                [@createCMK
+                    id=volumeEncryptionKmsKeyId
+                    description=volumeEncryptionKmsKeyName
+                    statements=
+                        [
+                            getPolicyStatement(
+                                "kms:*",
+                                "*",
+                                {
+                                    "AWS": formatAccountPrincipalArn()
+                                }
+                            ),
+                            getPolicyStatement(
+                                [
+                                    "kms:Encrypt",
+                                    "kms:Decrypt",
+                                    "kms:ReEncrypt*",
+                                    "kms:GenerateDataKey*",
+                                    "kms:DescribeKey"
+                                ],
+                                "*",
+                                {
+                                    "AWS": [
+                                        formatGlobalArn(
+                                            "iam",
+                                            "role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling"
+                                        )
+                                    ]
+                                },
+                                {},
+                                true,
+                                "AutoScale Service Linked Role"
+                            ),
+                            getPolicyStatement(
+                                [
+                                    "kms:CreateGrant"
+                                ],
+                                "*",
+                                {
+                                    "AWS": [
+                                        formatGlobalArn(
+                                            "iam",
+                                            "role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling"
+                                        )
+                                    ]
+                                },
+                                {
+                                    "Bool": {
+                                        "kms:GrantIsForAWSResource": true
+                                    }
+                                },
+                                true,
+                                "AutoScale Attachment of persistent resources"
+                            )
+                        ]
+                /]
+
+                [@createCMKAlias
+                    id=volumeEncryptionKmsKeyAliasId
+                    name=volumeEncryptionKeyAliasName
+                    cmkId=volumeEncryptionKmsKeyId
+                /]
+            [/#if]
         [/#if]
 
         [#if (accountObject.Console.Encryption.DedicatedKey)!false ]
