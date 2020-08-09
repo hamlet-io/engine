@@ -42,6 +42,7 @@
 [#assign SCRIPTSTORE_REFERENCE_TYPE = "ScriptStore" ]
 [#assign SECURITYPROFILE_REFERENCE_TYPE = "SecurityProfile" ]
 [#assign NETWORKPROFILE_REFERENCE_TYPE = "NetworkProfile" ]
+[#assign SERVICEROLE_REFERENCE_TYPE = "ServiceRole" ]
 
 [#assign TESTCASE_REFERENCE_TYPE = "TestCase" ]
 [#assign TESTPROFILE_REFERENCE_TYPE = "TestProfile" ]

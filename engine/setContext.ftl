@@ -112,6 +112,9 @@
 [@addReferenceData type=NETWORKENDPOINTGROUP_REFERENCE_TYPE base=blueprintObject /]
 [#assign networkEndpointGroups = getReferenceData(NETWORKENDPOINTGROUP_REFERENCE_TYPE) ]
 
+[#-- Service Roles --]
+[@addReferenceData type=SERVICEROLE_REFERENCE_TYPE base=blueprintObject /]
+
 [#-- WAF --]
 [@addReferenceData type=WAFPROFILE_REFERENCE_TYPE base=blueprintObject /]
 [@addReferenceData type=WAFRULEGROUP_REFERENCE_TYPE base=blueprintObject /]
