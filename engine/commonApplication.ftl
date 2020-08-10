@@ -391,6 +391,7 @@
         }]
 [/#macro]
 
+
 [#-- CloudFront Specific Fragment Macros --]
 [#macro cfCustomHeader name value ]
     [#assign _context +=
@@ -410,6 +411,32 @@
                                     asArray(names)
         }]
 [/#macro]
+
+[#-- User Specific Fragment Macros --]
+[#macro userTransferMount name s3LinkId mountPrefix s3Prefix  ]
+    [#list _context.Links as id,linkTarget ]
+        [#if id == s3LinkId && linkTarget.Core.Type == S3_COMPONENT_TYPE ]
+            [#local s3BucketName = linkTarget.State.Attributes["NAME"] ]
+        [/#if]
+    [/#list]
+
+    [#if s3BucketName?has_content ]
+        [#assign _context +=
+            {
+                "TransferMounts" :
+                    (_context.TransferMounts!{}) +
+                    {
+                        name : getTransferHomeDirectoryMapping(
+                                    mountPrefix,
+                                    s3BucketName,
+                                    s3Prefix
+                                )
+                    }
+            }
+        ]
+    [/#if]
+[/#macro]
+
 
 [#assign ECS_DEFAULT_MEMORY_LIMIT_MULTIPLIER=1.5 ]
 

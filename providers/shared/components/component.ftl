@@ -63,6 +63,8 @@
 [#assign FEDERATEDROLE_COMPONENT_TYPE = "federatedrole" ]
 [#assign FEDERATEDROLE_ASSIGNMENT_COMPONENT_TYPE = "federatedroleassignment" ]
 
+[#assign FILETRANSFER_COMPONENT_TYPE = "filetransfer"]
+
 [#assign GLOBALDB_COMPONENT_TYPE = "globaldb" ]
 
 [#assign LAMBDA_COMPONENT_TYPE = "lambda"]
