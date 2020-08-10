@@ -52,8 +52,18 @@
                 ]
             },
             {
-            "Names" : "Permissions",
-            "Children" : [
+                "Names" : "SSHPublicKeys",
+                "Subobjects" : true,
+                "Children" : [
+                    {
+                        "Names" : "SettingName",
+                        "Description"  : "The name of setting where the key is stored"
+                    }
+                ]
+            },
+            {
+                "Names" : "Permissions",
+                "Children" : [
                     {
                         "Names" : "Decrypt",
                         "Type" : BOOLEAN_TYPE,
