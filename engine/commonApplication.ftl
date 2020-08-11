@@ -778,6 +778,8 @@
             attributeIfContent("ContainerNetworkLinks", container.ContainerNetworkLinks)
         ]
 
+
+        [#local linkIngressRules = [] ]
         [#list _context.Links as linkId,linkTarget]
             [#assign linkTargetCore = linkTarget.Core ]
             [#assign linkTargetConfiguration = linkTarget.Configuration ]
@@ -787,6 +789,10 @@
 
             [#if (linkTargetRoles.Outbound["networkacl"]!{})?has_content ]
                 [#local egressRules += [ linkTargetRoles.Outbound["networkacl"] ]]
+            [/#if]
+
+            [#if linkTarget.Direction == "Inbound" && linkTarget.Role == "networkacl" ]
+                [#local linkIngressRules += [  mergeObjects( linkTargetRoles.Inbound["networkacl"],  { "Ports" : inboundPorts } ) ] ]]
             [/#if]
 
             [#switch linkTargetCore.Type]
@@ -816,9 +822,10 @@
             [/#switch]
         [/#list]
 
-        [#-- Add link based egress rules --]
+        [#-- Add link based sec rules --]
         [#assign _context += { "EgressRules" : egressRules }]
-
+        [#assign _context += { "LinkIngressRules" : linkIngressRules }]
+å
         [#-- Add in fragment specifics including override of defaults --]
         [#assign fragmentId = formatFragmentId(_context)]
         [#include fragmentList]
