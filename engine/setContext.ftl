@@ -283,6 +283,7 @@
     forceProfileComponentTypesToLowerCase(
         mergeObjects(
             blueprintObject.DeploymentProfiles!{},
+            productObject.DeploymentProfiles!{},
             tenantObject.DeploymentProfiles!{},
             accountObject.DeploymentProfiles!{}
         )
@@ -293,6 +294,7 @@
 [#assign policyProfiles =
     forceProfileComponentTypesToLowerCase(
         mergeObjects(
+            blueprintObject.PolicyProfiles!{},
             productObject.PolicyProfiles!{},
             accountObject.PolicyProfiles!{},
             tenantObject.PolicyProfiles!{}

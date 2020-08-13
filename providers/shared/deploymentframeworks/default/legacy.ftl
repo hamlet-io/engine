@@ -409,7 +409,7 @@
 
                     [#-- Apply deployment and policy profile overrides                  --]
                     [#local deploymentProfile = getDeploymentProfile(profiles.Deployment, commandLineOptions.Deployment.Mode) ]
-                    [#local policyProfile = getPolicyProfile(commandLineOptions.Deployment.Mode) ]
+                    [#local policyProfile = getPolicyProfile(profiles.Policy, commandLineOptions.Deployment.Mode) ]
 
                     [#-- Assemble the profile objects allowing for legacy types --]
                     [#local deploymentProfileObjects = [(deploymentProfile["*"])!{}] ]
