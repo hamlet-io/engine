@@ -453,11 +453,14 @@ behaviour.
     [#return mergeObjects( (deploymentProfile.Modes["*"])!{}, (deploymentProfile.Modes[deploymentMode])!{})  ]
 [/#function]
 
-[#function getPolicyProfile deploymentMode ]
+[#function getPolicyProfile occurrencePolicies deploymentMode ]
 
     [#-- Get the total list of deployment profiles --]
     [#local policyProfileNames =
         getUniqueArrayElements(
+            occurrencePolicies,
+            (segmentObject.Profiles.Policy)![],
+            (environmentObject.Profiles.Policy)![],
             (productObject.Profiles.Policy)![],
             (accountObject.Profiles.Policy)![],
             (tenantObject.Profiles.Policy)![]
