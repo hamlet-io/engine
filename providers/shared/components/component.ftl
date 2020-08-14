@@ -974,6 +974,11 @@
                 "Default" : []
             },
             {
+                "Names" : "Policy",
+                "Type" : ARRAY_OF_STRING_TYPE,
+                "Default" : []
+            },
+            {
                 "Names" : "Placement",
                 "Type" : STRING_TYPE,
                 "Default" : "default"
