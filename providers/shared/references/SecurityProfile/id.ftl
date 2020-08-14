@@ -187,6 +187,15 @@
                     ]
                 }
             ]
+        },
+        {
+            "Names" : "filetransfer",
+            "Children" : [
+                {
+                    "Names" : "EncryptionPolicy",
+                    "Type" : STRING_TYPE
+                }
+            ]
         }
     ]
 /]
