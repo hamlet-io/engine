@@ -1616,6 +1616,9 @@
                 "DiffeHellmanGroups" : [ 18, 22, 23, 24 ],
                 "Lifetime" : 3600
               }
+            },
+            "filetransfer" : {
+              "EncryptionPolicy" : "TransferSecurityPolicy-2020-06"
             }
           }
         },
