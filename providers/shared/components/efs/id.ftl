@@ -70,6 +70,42 @@
                 "Names" : "Directory",
                 "Type" : STRING_TYPE,
                 "Mandatory" : true
+            },
+            {
+                "Names" : "chroot",
+                "Description" : "Set this directory as the root for clients who connect to it",
+                "TYPE" : BOOLEAN_TYPE,
+                "Default" : false
+            },
+            {
+                "Names" : "Ownership",
+                "Description" : "Defines the ownerships of files created under this directory",
+                "Subobjects" : [
+                    {
+                        "Names" : "Enforced",
+                        "Description" : "Enforce these ownership details on all files",
+                        "Type" : BOOLEAN_TYPE,
+                        "Default" : false
+                    }
+                    {
+                        "Names" : "UID",
+                        "Description" : "The UID which owns the files",
+                        "TYPE" : NUMBER_TYPE,
+                        "Default" : ""
+                    },
+                    {
+                        "Names" : "GID",
+                        "Description" : "The GID which owns the files",
+                        "TYPE" : NUMBER_TYPE,
+                        "Default" : ""
+                    },
+                    {
+                        "Names" : "Permission",
+                        "Description" : "The unix file permissions ( in number format) to apply",
+                        "TYPE" : NUMBER_TYPE,
+                        "Default" : 755
+                    }
+                ]
             }
         ]
     parent=EFS_COMPONENT_TYPE
