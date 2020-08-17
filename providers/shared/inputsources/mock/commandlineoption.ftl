@@ -15,4 +15,13 @@
             }
         }
     /]
+
+    [#-- RunId details --]
+    [@addCommandLineOption
+        option={
+            "Run" : {
+                "Id" : "runId098"
+            }
+        }
+    /]
 [/#macro]
