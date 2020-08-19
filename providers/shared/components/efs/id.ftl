@@ -80,13 +80,13 @@
             {
                 "Names" : "Ownership",
                 "Description" : "Defines the ownerships of files created under this directory",
-                "Subobjects" : [
+                "Children" : [
                     {
                         "Names" : "Enforced",
                         "Description" : "Enforce these ownership details on all files",
                         "Type" : BOOLEAN_TYPE,
                         "Default" : false
-                    }
+                    },
                     {
                         "Names" : "UID",
                         "Description" : "The UID which owns the files",
@@ -100,7 +100,13 @@
                         "Default" : ""
                     },
                     {
-                        "Names" : "Permission",
+                        "Names" : "SecondaryGIDS",
+                        "Description" : "Secondary GIDS to apply to file ownership",
+                        "TYPE" : ARRAY_OF_NUMBER_TYPE,
+                        "Default" : []
+                    },
+                    {
+                        "Names" : "Permissions",
                         "Description" : "The unix file permissions ( in number format) to apply",
                         "TYPE" : NUMBER_TYPE,
                         "Default" : 755
