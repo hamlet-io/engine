@@ -282,6 +282,9 @@
         [#case "ebs" ]
             [#local volumeDriver = "rexray/ebs" ]
             [#break]
+        [#case "efs"]
+            [#local volumeDriver = "efs"]
+            [#break]
         [#default]
             [#local volumeDriver = "local" ]
     [/#switch]
@@ -301,7 +304,13 @@
                         "Driver" : volumeDriver,
                         "DriverOptions" : driverOpts,
                         "AutoProvision" : autoProvision
-                    }
+                    } +
+                    (volumeDriver == "efs" )?then(
+                        {
+                            "EFS" : _context.DataVolumes[volumeLinkId].EFS
+                        },
+                        {}
+                    )
                 }
         }
     ]
@@ -846,6 +855,29 @@
                                 }
                         }]
                     [#break]
+                [#case EFS_COMPONENT_TYPE]
+                [#case EFS_MOUNT_COMPONENT_TYPE]
+                    [#assign _context +=
+                        {
+                            "DataVolumes" :
+                                (_context.DataVolumes!{}) +
+                                {
+                                    linkId : {
+                                        "Name" : formatName("efs", linkTargetAttributes["EFS"], linkTargetAttributes["ACCESS_POINT_ID"]!""),
+                                        "Engine" : "efs",
+                                        "EFS" : {
+                                            "FileSystemId" : linkTargetAttributes["EFS"]
+                                        } +
+                                        attributeIfContent(
+                                            "AccessPointId",
+                                            (linkTargetAttributes["ACCESS_POINT_ID"]!"")
+                                        )
+                                    }
+                                }
+                        }
+
+                    ]
+                    [#break]
             [/#switch]
         [/#list]
 
@@ -890,9 +922,9 @@
             [/#if]
 
             [#list _context.Volumes!{} as name,volume ]
-                [#if volume.hostPath?has_content || volume.PersistVolume || volume.Driver != "local" ]
+                [#if volume.hostPath?has_content || volume.PersistVolume || ( volume.Driver != "local" && volume.Driver != "efs" ) ]
                     [#assign fargateInvalidConfig = true ]
-                    [#assign fargateInvalidConfigMessage += [ "Can only use the local driver and cannot reference host - volume ${name}" ] ]
+                    [#assign fargateInvalidConfigMessage += [ "Can only use the local or efs driver and cannot reference host - volume ${name}" ] ]
                 [/#if]
             [/#list]
 
