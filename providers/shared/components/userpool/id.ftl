@@ -232,6 +232,11 @@
                         "Type" : ARRAY_OF_STRING_TYPE,
                         "Values" : [ "code", "implicit", "client_credentials" ],
                         "Default" : [ "code" ]
+                    },
+                    {
+                        "Names" : "Enabled",
+                        "Type" : BOOLEAN_TYPE,
+                        "Default" : true
                     }
                 ]
             },
