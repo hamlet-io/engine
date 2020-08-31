@@ -7,18 +7,15 @@
             {
                 "Type"  : "Description",
                 "Value" : "A configuration store to provide dynamic attributes"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "solution"
             }
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "solution"
+            },
             {
                 "Names" : ["Fragment", "Container"],
                 "Type" : STRING_TYPE,

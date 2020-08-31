@@ -7,18 +7,15 @@
             {
                 "Type"  : "Description",
                 "Value" : "A service providing a route to another network"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "segment"
             }
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentyGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "segment"
+            },
             {
                 "Names" : "Active",
                 "Type" : BOOLEAN_TYPE,

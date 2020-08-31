@@ -10,18 +10,15 @@
             {
                 "Type"  : "Description",
                 "Value" : "A managed mobile notification proxy"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "solution"
             }
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "solution"
+            },
             {
                 "Names" : "Links",
                 "Subobjects" : true,

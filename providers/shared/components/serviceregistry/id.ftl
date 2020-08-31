@@ -20,6 +20,11 @@
     attributes=
         [
             {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "solution"
+            },
+            {
                 "Names" : "Links",
                 "Subobjects" : true,
                 "Children" : linkChildrenConfiguration
@@ -38,14 +43,6 @@
             {
                 "Type"  : "Description",
                 "Value" : "An individual service in the registry"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "solution"
             }
         ]
     attributes=

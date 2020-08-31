@@ -7,18 +7,15 @@
             {
                 "Type"  : "Description",
                 "Value" : "HTTP based object storage service"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "solution"
             }
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "solution"
+            },
             {
                 "Names" : "Lifecycle",
                 "Children" : [

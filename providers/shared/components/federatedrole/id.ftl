@@ -7,18 +7,15 @@
             {
                 "Type" : "Description",
                 "Value" : "Provides access to resources using an external identity source "
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "solution"
             }
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentyGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "solution"
+            },
             {
                 "Names" : ["Fragment", "Container"],
                 "Type" : STRING_TYPE,

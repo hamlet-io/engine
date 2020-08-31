@@ -7,18 +7,15 @@
             {
                 "Type"  : "Description",
                 "Value" : "A statically hosted web application"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "application"
             }
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "application"
+            },
             {
                 "Names" : ["Fragment", "Container"],
                 "Type" : STRING_TYPE,

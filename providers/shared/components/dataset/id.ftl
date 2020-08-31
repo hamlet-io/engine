@@ -7,18 +7,15 @@
             {
                 "Type" : "Description",
                 "Value" : "A data aretefact that is managed in a similar way to a code unit"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "application"
             }
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "application"
+            },
             {
                 "Names" : "Engine",
                 "Type" : STRING_TYPE,

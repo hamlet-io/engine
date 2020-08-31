@@ -31,6 +31,11 @@
     type=EXTERNALSERVICE_COMPONENT_TYPE
     attributes=[
         {
+            "Names" : "DeploymentGroup",
+            "Type" : STRING_TYPE,
+            "Default" : "external"
+        },
+        {
             "Names" : "Properties",
             "Subobjects" : true,
             "Children" : [

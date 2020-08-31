@@ -7,18 +7,15 @@
             {
                 "Type" : "Description",
                 "Value" : "mobile apps with over the air update hosting"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "application"
             }
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "application"
+            },
             {
                 "Names" : "Engine",
                 "Type" : STRING_TYPE,

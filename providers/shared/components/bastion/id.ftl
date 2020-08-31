@@ -7,18 +7,15 @@
             {
                 "Type"  : "Description",
                 "Value" : "An bastion instance to manage vpc only components"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "segment"
             }
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "segment"
+            },
             {
                 "Names" : "Active",
                 "Type" : BOOLEAN_TYPE,

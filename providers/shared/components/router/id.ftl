@@ -7,18 +7,15 @@
             {
                 "Type"  : "Description",
                 "Value" : "Provides routes between multiple networks"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "segment"
             }
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "segment"
+            },
             {
                 "Names" : "Active",
                 "Type" : BOOLEAN_TYPE,
@@ -56,14 +53,6 @@
             {
                 "Type"  : "Description",
                 "Value" : "A Static route defined on the router"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "solution"
             }
         ]
     attributes=

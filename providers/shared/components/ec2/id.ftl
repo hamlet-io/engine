@@ -7,18 +7,15 @@
             {
                 "Type" : "Description",
                 "Value" : "A single virtual machine with no code deployment "
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "solution"
             }
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "solution"
+            },
             {
                 "Names" : "FixedIP",
                 "Type" : BOOLEAN_TYPE,

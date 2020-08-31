@@ -7,18 +7,15 @@
             {
                 "Type" : "Description",
                 "Value" : "Hub for decentralised content hosting with centralised publishing"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "github" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "application"
             }
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "application"
+            },
             {
                 "Names" : "Prefix",
                 "Type" : STRING_TYPE,

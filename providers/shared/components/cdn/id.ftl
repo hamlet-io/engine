@@ -7,18 +7,15 @@
             {
                 "Type"  : "Description",
                 "Value" : "A content distribution network which provides caching and global distribution of content"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "solution"
             }
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "solution"
+            },
             {
                 "Names" : ["Fragment", "Container"],
                 "Type" : STRING_TYPE,
@@ -121,14 +118,6 @@
             {
                 "Type"  : "Description",
                 "Value" : "A path based route on the CDN instance"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "solution"
             }
         ]
     attributes=[

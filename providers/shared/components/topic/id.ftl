@@ -7,18 +7,15 @@
             {
                 "Type"  : "Description",
                 "Value" : "pub sub messaging serivce"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "solution"
             }
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "solution"
+            },
             {
                 "Names" : "Encrypted",
                 "Type" : BOOLEAN_TYPE,
@@ -49,14 +46,6 @@
             {
                 "Type"  : "Description",
                 "Value" : "subscription to a topic"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "solution"
             }
         ]
     attributes=

@@ -124,18 +124,15 @@
             {
                 "Type"  : "Description",
                 "Value" : "A set of resources required for every segment deployment"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "segment"
             }
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "segment"
+            },
             {
                 "Names" : "Active",
                 "Type" : BOOLEAN_TYPE,

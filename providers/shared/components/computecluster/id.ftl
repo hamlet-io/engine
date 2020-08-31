@@ -7,18 +7,15 @@
             {
                 "Type" : "Description",
                 "Value" : "Auto-Scaling IaaS with code deployment"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "application"
             }
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "application"
+            },
             {
                 "Names" : ["Fragment", "Container"],
                 "Type" : STRING_TYPE,

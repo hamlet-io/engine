@@ -7,18 +7,15 @@
             {
                 "Type"  : "Description",
                 "Value" : "A virtual network segment used by private resources"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "segment"
             }
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "segment"
+            },
             {
                 "Names" : "Active",
                 "Type" : BOOLEAN_TYPE,
@@ -84,14 +81,6 @@
             {
                 "Type"  : "Description",
                 "Value" : "A network routing table providing acess to resources outside of the network"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "segment"
             }
         ]
     attributes=
@@ -120,14 +109,6 @@
             {
                 "Type"  : "Description",
                 "Value" : "A tier/subnet level network access control policy"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "segment"
             }
         ]
     attributes=

@@ -6,17 +6,15 @@
             {
                 "Type"  : "Description",
                 "Value" : "A Secret Manager"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "segment"
             }
         ]
-    attributes=[]
+    attributes=[
+        {
+            "Names" : "DeploymentGroup",
+            "Type" : STRING_TYPE,
+            "Default" : "segment"
+        }
+    ]
 /]
 
 [@addChildComponent
@@ -25,14 +23,6 @@
             {
                 "Type"  : "Description",
                 "Value" : "A Secret stored within a given SecretStore."
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "segment"
             }
         ]
     attributes=[
@@ -74,7 +64,7 @@
                         "Names" : "MaxLength",
                         "Description" : "The maximum character length for the Secret.",
                         "Type" : NUMBER_TYPE,
-                        "Default" : 30 
+                        "Default" : 30
                     },
                     {
                         "Names" : "IncludeUpper",
