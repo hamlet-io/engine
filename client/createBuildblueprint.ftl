@@ -18,7 +18,8 @@
         [#if component?is_hash]
             [#list requiredOccurrences(
                 getOccurrences(tier, component),
-                getDeploymentUnit() ) as occurrence]
+                getDeploymentUnit(),
+                "*" ) as occurrence]
 
                 [#local componentType = getComponentType(component)]
 
@@ -47,7 +48,8 @@
 [#macro processComponents level]
   [#if (commandLineOptions.Deployment.Unit.Subset!"") == "config" ]
     [@addToDefaultJsonOutput
-      content=mergeObjects(getComponentBuildBlueprint(), logMessages )
+      content=getComponentBuildBlueprint() +
+                attributeIfContent("COTMessages", logMessages)
     /]
   [/#if]
 [/#macro]

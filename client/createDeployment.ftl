@@ -1,8 +1,6 @@
 [#ftl]
 [#include "/bootstrap.ftl" ]
 
-[#assign deploymentGroup = getDeploymentGroup(commandLineOptions.Deployment.Group)]
-[#assign level = deploymentGroup.Deployment.Level ]
 [#assign compositeTemplateContent = (.vars[deploymentGroup.CompositeTemplate])!"" ]
 
 [#-- ResourceSets  --]
