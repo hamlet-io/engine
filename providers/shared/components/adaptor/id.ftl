@@ -20,6 +20,11 @@
     attributes=
         [
             {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "application"
+            },
+            {
                 "Names" : ["Fragment", "Container"],
                 "Type" : STRING_TYPE,
                 "Default" : ""

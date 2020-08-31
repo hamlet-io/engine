@@ -7,14 +7,15 @@
             {
                 "Type" : "Description",
                 "Value" : "File Transfer Service based on standard protocols"
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "solution"
             }
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentyGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "solution"
+            },
             {
                 "Names" : "Protocols",
                 "Type" : ARRAY_OF_STRING_TYPE,

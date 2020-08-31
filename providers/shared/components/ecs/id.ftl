@@ -120,18 +120,15 @@
             {
                 "Type" : "Description",
                 "Value" : "An autoscaling container host cluster"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "solution"
             }
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "solution"
+            },
             {
                 "Names" : ["Fragment", "Container"],
                 "Type" : "string",
@@ -264,18 +261,15 @@
             {
                 "Type" : "Description",
                 "Value" : "An orchestrated container with always on scheduling"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "application"
             }
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "application"
+            },
             {
                 "Names" : "Engine",
                 "Type" : STRING_TYPE,
@@ -414,18 +408,15 @@
             {
                 "Type" : "Description",
                 "Value" : "A container defintion which is invoked on demand"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "application"
             }
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "application"
+            },
             {
                 "Names" : "Engine",
                 "Type" : STRING_TYPE,

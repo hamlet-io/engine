@@ -7,18 +7,15 @@
             {
                 "Type" : "Description",
                 "Value" : "A managed ElasticSearch instance"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "solution"
             }
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "solution"
+            },
             {
                 "Names" : "Authentication",
                 "Type" : STRING_TYPE,

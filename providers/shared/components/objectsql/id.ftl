@@ -9,14 +9,6 @@
                 "Value" : "SQL based query engine over an object stores"
             },
             {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "solution"
-            },
-            {
                 "Type" : "Note",
                 "Value" : "This componet only deploys the supporting infrastrucure. The table definition will need to be created seperatley",
                 "Severity" : "info"
@@ -24,6 +16,11 @@
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "solution"
+            },
             {
                 "Names" : "Links",
                 "Subobjects" : true,

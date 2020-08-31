@@ -9,14 +9,6 @@
                 "Value" : "Managed identity service"
             },
             {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "solution"
-            },
-            {
                 "Type" : "Note",
                 "Value" : "Make sure to plan your schema before initial deployment. Updating shema attributes causes a replaccement of the userpool",
                 "Severity" : "warning"
@@ -29,6 +21,11 @@
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "solution"
+            },
             {
                 "Names" : "MFA",
                 "Type" : [ BOOLEAN_TYPE, STRING_TYPE],
@@ -206,14 +203,6 @@
             {
                 "Type" : "Description",
                 "Value" : "A oauth app client which belongs to the userpool"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "solution"
             }
         ]
     attributes=
@@ -301,14 +290,6 @@
             {
                 "Type" : "Description",
                 "Value" : "An external auth provider which will federate with the user pool"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "solution"
             }
         ]
     attributes=
@@ -516,14 +497,6 @@
             {
                 "Type" : "Description",
                 "Value" : "A resource represents a server protected by the userpool and the scoped roles that it offers"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "solution"
             }
         ]
     attributes=

@@ -7,18 +7,15 @@
             {
                 "Type" : "Description",
                 "Value" : "A managed network attached file share"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "solution"
             }
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "solution"
+            },
             {
                 "Names" : "Encrypted",
                 "Type" : BOOLEAN_TYPE,
@@ -54,14 +51,6 @@
             {
                 "Type" : "Description",
                 "Value" : "A specific directory on the share for OS mounting"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "solution"
             }
         ]
     attributes=

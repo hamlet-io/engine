@@ -7,18 +7,15 @@
             {
                 "Type"  : "Description",
                 "Value" : "Private service offering to other entities"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "solution"
             }
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "solution"
+            },
             {
                 "Names" : "DomainName",
                 "Children" : domainNameChildConfiguration

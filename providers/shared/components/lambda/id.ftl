@@ -29,18 +29,15 @@
             {
                 "Type"  : "Description",
                 "Value" : "A specific entry point for the lambda deployment"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "application"
             }
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "application"
+            },
             {
                 "Names" : "DeploymentType",
                 "Type" : STRING_TYPE,

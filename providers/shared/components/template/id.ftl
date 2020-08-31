@@ -7,18 +7,15 @@
             {
                 "Type"  : "Description",
                 "Value" : "Deploy a declarative template of resources"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "application"
             }
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "application"
+            },
             {
                 "Names" : "RootFile",
                 "Description" : "The name of the root template file in the build aretefact",

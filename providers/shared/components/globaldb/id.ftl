@@ -7,18 +7,15 @@
             {
                 "Type"  : "Description",
                 "Value" : "A global NoSQL database table"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "solution"
             }
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentyGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "solution"
+            },
             {
                 "Names" : "Table",
                 "Children" : dynamoDbTableChildConfiguration

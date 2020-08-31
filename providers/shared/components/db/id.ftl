@@ -9,14 +9,6 @@
                 "Value" : "A managed SQL database instance"
             },
             {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "solution"
-            },
-            {
                 "Type" : "Note",
                 "Value" : "Major Version Upgrades - When performing a major version upgrade only change the EngineVersion",
                 "Severity" : "warning"
@@ -29,6 +21,11 @@
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "solution"
+            },
             {
                 "Names" : "Engine",
                 "Mandatory" : true

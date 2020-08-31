@@ -7,23 +7,15 @@
             {
                 "Type"  : "Description",
                 "Value" : "A load balancer for virtual network based components"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "solution"
-            },
-            {
-                "Type" : "Note",
-                "Value" : "Requires second deployment to complete configuration",
-                "Severity" : "warning"
             }
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "solution"
+            },
             {
                 "Names" : "Logs",
                 "Type" : BOOLEAN_TYPE,
@@ -84,14 +76,6 @@
             {
                 "Type"  : "Description",
                 "Value" : "A specifc listener based on the client side network port"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "solution"
             }
         ]
     attributes=

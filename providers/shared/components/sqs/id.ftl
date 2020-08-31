@@ -7,18 +7,15 @@
             {
                 "Type"  : "Description",
                 "Value" : "Managed worker queue engine"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "solution"
             }
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "solution"
+            },
             {
                 "Names" : "DelaySeconds",
                 "Type" : NUMBER_TYPE

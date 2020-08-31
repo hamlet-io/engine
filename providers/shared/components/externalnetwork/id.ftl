@@ -7,18 +7,15 @@
             {
                 "Type"  : "Description",
                 "Value" : "An external private network segment which can integrate with other networks"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "segment"
             }
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "segment"
+            },
             {
                 "Names" : "IPAddressGroups",
                 "Type" : ARRAY_OF_STRING_TYPE,
@@ -55,14 +52,6 @@
             {
                 "Type"  : "Description",
                 "Value" : "An external network connection endpoint"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "segment"
             }
         ]
     attributes=

@@ -7,18 +7,15 @@
             {
                 "Type" : "Description",
                 "Value" : "A persistant disk volume independent of compute"
-            },
-            {
-                "Type" : "Providers",
-                "Value" : [ "aws" ]
-            },
-            {
-                "Type" : "ComponentLevel",
-                "Value" : "solution"
             }
         ]
     attributes=
         [
+            {
+                "Names" : "DeploymentGroup",
+                "Type" : STRING_TYPE,
+                "Default" : "solution"
+            },
             {
                 "Names" : "Engine",
                 "Type" : STRING_TYPE,
