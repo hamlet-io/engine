@@ -27,6 +27,9 @@
                     "Format" : outputFormat!"",
                     "Prefix" : outputPrefix!""
                 },
+                "Group" : {
+                    "Name" : deploymentGroup!""
+                },
                 "Unit" : {
                     "Name" : deploymentUnit!"",
                     "Subset" : deploymentUnitSubset!"",
@@ -35,8 +38,7 @@
                 "ResourceGroup" : {
                     "Name" : resourceGroup!""
                 },
-                "Mode" : deploymentMode!"",
-                "Group" : deploymentGroup!""
+                "Mode" : deploymentMode!""
             }
         }
     /]

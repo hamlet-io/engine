@@ -63,5 +63,18 @@
 
 [#function getDeploymentGroup deploymentGroup  ]
     [#local deploymentGroups = getReferenceData(DEPLOYMENTGROUP_REFERENCE_TYPE)]
-    [#return (deploymentGroups[deploymentGroup])!{} ]
+
+    [#if ! (deploymentGroups[deploymentGroup]!{})?has_content ]
+        [#return {}]
+    [/#if]
+
+    [#return
+        mergeObjects(
+            {
+                "Id" : deploymentGroup,
+                "Name" : (deploymentGroups[deploymentGroup].Name)!deploymentGroup
+            },
+            deploymentGroups[deploymentGroup]
+        )
+    ]
 [/#function]
