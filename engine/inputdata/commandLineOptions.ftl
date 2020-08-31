@@ -35,6 +35,6 @@
 [#macro internalMergeCommandLineOption option ]
     [#assign commandLineOptions = mergeObjects(
                                     commandLineOptions,
-                                    option 
-    )] 
+                                    option
+    )]
 [/#macro]

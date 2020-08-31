@@ -26,6 +26,9 @@
 [#-- DeploymentGroup --]
 [@addReferenceData type=DEPLOYMENTGROUP_REFERENCE_TYPE base=blueprintObject /]
 
+[#assign deploymentGroup = getDeploymentGroup(commandLineOptions.Deployment.Group.Name) ]
+[#assign level = (deploymentGroup.Deployment.Level)!"" ]
+
 [#-- Testing --]
 [@addReferenceData type=TESTCASE_REFERENCE_TYPE base=blueprintObject /]
 [#assign testCases = getReferenceData(TESTCASE_REFERENCE_TYPE) ]
