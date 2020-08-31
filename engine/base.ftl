@@ -796,7 +796,8 @@ are added.
             [#-- children so ignore mandatory check                          --]
             [#if attribute.Mandatory &&
                     ( !(providedName?has_content) ) &&
-                    candidates?has_content ]
+                    candidates?has_content &&
+                    ( ! attribute.DefaultProvided )]
                 [@fatal
                     message="Mandatory attribute missing"
                     context=
