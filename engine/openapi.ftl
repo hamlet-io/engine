@@ -359,7 +359,17 @@
                 {
                     "Names" : "Quota",
                     "Description" : "",
-                    "Type" : NUMBER_TYPE
+                    "Children" : [
+                        {
+                            "Names" : "Limit",
+                            "Type" : NUMBER_TYPE
+                        },
+                        {
+                            "Names" : "Period",
+                            "Type" : STRING_TYPE,
+                            "Values" : [ "DAY", "WEEK", "MONTH" ]
+                        },
+                    ]
                 }
             ]
         }
