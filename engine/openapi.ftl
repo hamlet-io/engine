@@ -131,57 +131,6 @@
     }
 ]
 
-[#assign throttlingSettingChildren = 
-    [
-        {
-            "Names" : "BurstLimit",
-            "Description" : "The maximum number of concurrent requests.",
-            "Type" : NUMBER_TYPE
-        },
-        {
-            "Names" : "RateLimit",
-            "Description" : "The request limit per second.",
-            "Type" : NUMBER_TYPE
-        }
-    ]
-]
-
-[#assign configurationThrottlingChildren =
-    [
-        {
-            "Names" : "API",
-            "Description" : "Default throttling settings for the API. Overridden by Version/Method configurations if present.",
-            "Children" : throttlingSettingChildren
-        },
-        {
-            "Names" : "Versions",
-            "Description" : "Throttling settings at the Version/Stage level. Id must match the Version in the Solution.",
-            "Subobjects" : true,
-            "Children" : throttlingSettingChildren
-        },
-        {
-            "Names" : "Methods",
-            "Description" : "Throttling settings for individual API methods.",
-            "Subobjects" : true,
-            "Children" : [
-                {
-                    "Names" : "Path",
-                    "Description" : "The method path to which the throttling configuration should apply.",
-                    "Mandatory" : true,
-                    "Type" : STRING_TYPE
-                },
-                {
-                    "Names" : "Operation",
-                    "Description" : "The HTTP Operation for the associated method throttling configuration.",
-                    "Type" : STRING_TYPE,
-                    "Mandatory" : true,
-                    "Values" : [ "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS", "TRACE" ]
-                }
-            ] + throttlingSettingChildren
-        }
-    ]
-]
-
 [#assign globalChildren =
     [
         {
@@ -293,10 +242,6 @@
             "Type" : STRING_TYPE,
             "Values" : [ "UseVerb", "disabled" ],
             "Default" : "UseVerb"
-        },
-        {
-            "Names" : "Throttling",
-            "Children" : configurationThrottlingChildren
         }
     ]
 ]
@@ -400,7 +345,23 @@
         },
         {
             "Names" : "Throttling",
-            "Children" : configurationThrottlingChildren
+            "Children" : [
+                {
+                    "Names" : "BurstLimit",
+                    "Description" : "The maximum number of concurrent requests.",
+                    "Type" : NUMBER_TYPE
+                },
+                {
+                    "Names" : "RateLimit",
+                    "Description" : "The request limit per second.",
+                    "Type" : NUMBER_TYPE
+                },
+                {
+                    "Names" : "Quota",
+                    "Description" : "",
+                    "Type" : NUMBER_TYPE
+                }
+            ]
         }
     ]
 ]
@@ -1081,13 +1042,18 @@ is useful to see what the global settings are from a debug perspective
 [/#function]
 
 [#function getApiThrottlingSettings occurrence]
+
+    [#local occurrenceSettings = 
+        getOccurrenceSettingValue(occurrence, [["apigw"]], true)]
+
     [#local result = mergeObjects(
         {
-            "API" : {},
-            "Versions" : {},
-            "Methods" : {}
-        }
-        getOccurrenceSettingValue(occurrence, [["apigw"]], true).Throttling!{}
+            "BurstLimit" : "",
+            "RateLimit" : "",
+            "Quota" : ""
+        },
+        occurrenceSettings.Throttling!{},
+        { "Patterns" : occurrenceSettings.Patterns![] }
     )]
     [#return result]
 [/#function]
