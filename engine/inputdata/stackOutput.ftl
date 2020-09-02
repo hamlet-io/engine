@@ -62,7 +62,7 @@
             deploymentUnit=deploymentUnit
             region=region
             account=account
-            level=level
+            level=getDeploymentLevel()
         /]
     [#else]
         [@debug

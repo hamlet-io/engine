@@ -1,6 +1,14 @@
 [#ftl]
 
 [#-- Check if a deployment unit occurs anywhere in provided object --]
+[#function getDeploymentUnitId obj]
+    [#if obj["deployment:Unit"]?has_content ]
+        [#return obj["deployment:Unit"]]
+    [#else]
+        [#return ((obj.DeploymentUnits)![])[0] ]
+    [/#if]
+[/#function]
+
 [#function deploymentRequired obj unit group="" deploymentGroupOverride="" subObjects=true includeGroupMembership=false ]
     [#if obj?is_hash]
         [#if allDeploymentUnits!false]
@@ -10,10 +18,10 @@
             [#return true]
         [/#if]
 
-        [#if obj.DeploymentUnits?has_content && obj.DeploymentUnits?seq_contains(unit) ]
+        [#if getDeploymentUnitId(obj)?has_content && getDeploymentUnitId(obj) == unit ]
             [#if includeGroupMembership ]
-                [#local deploymentGroup = (obj.DeploymentGroup)!deploymentGroupOverride ]
-                [#if deploymentGroup == group || group = "*" ]
+                [#local deploymentGroup = (obj["deployment:Group"])!deploymentGroupOverride ]
+                [#if deploymentGroup == group || group == "*" ]
                     [#return true ]
                 [/#if]
             [#else]
@@ -31,7 +39,7 @@
     [#return false]
 [/#function]
 
-[#function requiredOccurrences occurrences deploymentUnit deploymentGroup, deploymentGroupOverride="" checkSubOccurrences=false]
+[#function requiredOccurrences occurrences deploymentUnit deploymentGroup deploymentGroupOverride="" checkSubOccurrences=false]
     [#local result = [] ]
     [#list asFlattenedArray(occurrences) as occurrence]
         [#-- Ignore if not enabled --]
@@ -44,7 +52,7 @@
             [#-- is a suboccurrence required --]
             [#if checkSubOccurrences &&
                 occurrence.Occurrences?has_content &&
-                requiredOccurrences(occurrence.Occurrences, deploymentUnit, deploymentGroup, (occurrence.Configuration.Solution.DeploymentGroup)!"",  true)?has_content]
+                requiredOccurrences(occurrence.Occurrences, deploymentUnit, deploymentGroup, (occurrence.Configuration.Solution["deployment:Group"])!"",  true)?has_content]
                 [#local result += [occurrence] ]
                 [#continue]
             [/#if]

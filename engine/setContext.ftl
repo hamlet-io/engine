@@ -23,11 +23,9 @@
 [#assign cmdbProductLookupPrefixes = [] ]
 [#assign segmentQualifiers = [] ]
 
-[#-- DeploymentGroup --]
+[#-- Deployment Controls --]
 [@addReferenceData type=DEPLOYMENTGROUP_REFERENCE_TYPE base=blueprintObject /]
-
-[#assign deploymentGroup = getDeploymentGroup(commandLineOptions.Deployment.Group.Name) ]
-[#assign level = (deploymentGroup.Deployment.Level)!"" ]
+[@addReferenceData type=DEPLOYMENTMODE_REFERENCE_TYPE base=blueprintObject /]
 
 [#-- Testing --]
 [@addReferenceData type=TESTCASE_REFERENCE_TYPE base=blueprintObject /]

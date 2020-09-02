@@ -32,7 +32,7 @@
     [#list testCaseNames as testCaseName ]
         [#local testCaseFullName = concatenate(
                                         [
-                                            (solution.DeploymentUnits),
+                                            getOccurrenceDeploymentUnit(occurrence),
                                             (occurrence.Core.ShortTypedName),
                                             testCaseName
                                         ],
