@@ -337,6 +337,18 @@
         )]
 [/#function]
 
+[#function invokeManagementContractMacro occurrence resourceGroup qualifiers=[] ]
+    [#return
+        invokeComponentMacro(
+            occurrence,
+            resourceGroup,
+            "managementcontract",
+            qualifiers,
+            {},
+            true
+        )]
+[/#function]
+
 [#function invokeGenerationContractMacro occurrence resourceGroup qualifiers=[] ]
     [#return
         invokeComponentMacro(

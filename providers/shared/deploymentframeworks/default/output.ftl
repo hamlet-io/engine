@@ -13,6 +13,7 @@
 [#assign JSON_DEFAULT_OUTPUT_TYPE = "json"]
 [#assign MODEL_DEFAULT_OUTPUT_TYPE = "model"]
 [#assign SCHEMA_DEFAULT_OUTPUT_TYPE = "schema"]
+[#assign CONTRACT_DEFAULT_OUTPUT_TYPE = "contract"]
 
 [#-- SCRIPT_DEFAULT_OUTPUT_TYPE --]
 
@@ -162,6 +163,7 @@
 [#-- Contract --]
 [#assign CONTRACT_EXECUTION_MODE_SERIAL = "serial" ]
 [#assign CONTRACT_EXECUTION_MODE_PARALLEL = "parallel" ]
+[#assign CONTRACT_EXECUTION_MODE_PRIORITY = "priority" ]
 
 [@initialiseJsonOutput name="stages" /]
 [@initialiseJsonOutput name="steps" /]
@@ -192,6 +194,8 @@
                                                 {
                                                     "Id" : step.Id,
                                                     "Type" : step.Type,
+                                                    "Priority" : step.Priority,
+                                                    "Mandatory" : step.Mandatory,
                                                     "Parameters"  : step.Parameters
                                                 }
                                             ],
@@ -206,6 +210,7 @@
                                                 {
                                                     "Id" : stage.Id,
                                                     "ExecutionMode" : stage.ExecutionMode,
+                                                    "Mandatory" : stage.Mandatory,
                                                     "Steps" : stageSteps
                                                 }
                                             ],
@@ -231,26 +236,28 @@
     [@serialiseOutput name=JSON_DEFAULT_OUTPUT_TYPE /]
 [/#macro]
 
-[#macro contractStage id executionMode priority=100 ]
+[#macro contractStage id executionMode priority=100 mandatory=true ]
     [@mergeWithJsonOutput
         name="stages"
         content={
             id : {
                 "Id" : id,
-                "Priority" : 100,
+                "Priority" : priority,
+                "Mandatory" : mandatory,
                 "ExecutionMode" : executionMode
             }
         }
     /]
 [/#macro]
 
-[#macro contractStep id stageId taskType parameters priority=100  ]
+[#macro contractStep id stageId taskType parameters priority=100 mandatory=true  ]
     [@mergeWithJsonOutput
         name="steps"
         content={
             stageId : {
                 id : {
                     "Id" : id,
+                    "Mandatory" : mandatory,
                     "Priority" : priority
                 } +
                 getTask(taskType, parameters)
@@ -264,8 +271,7 @@
 [#-- Generation Contracts create a contract document which outlines what documents need to be generated --]
 [#macro addDefaultGenerationContract subsets=[] alternatives=["primary"] ]
 
-    [#local requiredSubsets = [ "testcase" ]]
-    [#local subsets = combineEntities( requiredSubsets, asArray( subsets ), UNIQUE_COMBINE_BEHAVIOUR )]
+    [#local subsets = asArray( subsets ) ]
 
     [#local alternatives = asArray(alternatives) ]
 
@@ -333,7 +339,7 @@
             [#break]
 
     [/#switch]
-    
+
     [#if schema?has_content || logMessages?has_content ]
         [@toJSON
             schema +
@@ -365,8 +371,8 @@
 [@addGenerationContractStepOutputMapping
     provider=SHARED_PROVIDER
     subset="pregeneration"
-    outputType=SCRIPT_DEFAULT_OUTPUT_TYPE
-    outputFormat=getOutputFormat(SCRIPT_DEFAULT_OUTPUT_TYPE)
+    outputType=CONTRACT_DEFAULT_OUTPUT_TYPE
+    outputFormat=""
     outputSuffix="pregeneration.sh"
 /]
 
@@ -425,6 +431,15 @@
     outputFormat=""
     outputSuffix="schema.json"
 /]
+
+[@addGenerationContractStepOutputMapping
+    provider=SHARED_PROVIDER
+    subset="managementcontract"
+    outputType=CONTRACT_DEFAULT_OUTPUT_TYPE
+    outputFormat=""
+    outputSuffix="managementcontract.json"
+/]
+
 
 [#------------------------------------------------------------
 -- internal support functions for default output processing --

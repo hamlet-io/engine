@@ -45,6 +45,15 @@
 
                     [#list occurrence.State.ResourceGroups as key,value]
                         [#switch commandLineOptions.Deployment.Unit.Subset ]
+                            [#case "managementcontract" ]
+                                [#if invokeManagementContractMacro(occurrence, key, [] ) ]
+                                    [@debug
+                                        message="managementcontract Processing key:" + key + "..."
+                                        enabled=false
+                                    /]
+                                [/#if]
+                                [#break]
+
                             [#case "generationcontract" ]
                                 [#if invokeGenerationContractMacro(occurrence, key, [ level ] ) ]
                                     [@debug
