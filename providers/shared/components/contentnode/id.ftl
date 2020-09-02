@@ -1,5 +1,10 @@
 [#ftl]
 
+[@addComponentDeployment
+    type=CONTENTHUB_NODE_COMPONENT_TYPE
+    defaultGroup="application"
+/]
+
 [@addComponent
     type=CONTENTHUB_NODE_COMPONENT_TYPE
     properties=
@@ -11,11 +16,6 @@
         ]
     attributes=
         [
-            {
-                "Names" : "DeploymentGroup",
-                "Type" : STRING_TYPE,
-                "Default" : "application"
-            },
             {
                 "Names" : "Path",
                 "Children" : pathChildConfiguration

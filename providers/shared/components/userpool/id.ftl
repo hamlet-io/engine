@@ -1,5 +1,10 @@
 [#ftl]
 
+[@addComponentDeployment
+    type=USERPOOL_COMPONENT_TYPE
+    defaultGroup="solution"
+/]
+
 [@addComponent
     type=USERPOOL_COMPONENT_TYPE
     properties=
@@ -21,11 +26,6 @@
         ]
     attributes=
         [
-            {
-                "Names" : "DeploymentGroup",
-                "Type" : STRING_TYPE,
-                "Default" : "solution"
-            },
             {
                 "Names" : "MFA",
                 "Type" : [ BOOLEAN_TYPE, STRING_TYPE],

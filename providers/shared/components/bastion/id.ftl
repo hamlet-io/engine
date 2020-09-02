@@ -1,5 +1,10 @@
 [#ftl]
 
+[@addComponentDeployment
+    type=BASTION_COMPONENT_TYPE
+    defaultGroup="segment"
+/]
+
 [@addComponent
     type=BASTION_COMPONENT_TYPE
     properties=
@@ -11,11 +16,6 @@
         ]
     attributes=
         [
-            {
-                "Names" : "DeploymentGroup",
-                "Type" : STRING_TYPE,
-                "Default" : "segment"
-            },
             {
                 "Names" : "Active",
                 "Type" : BOOLEAN_TYPE,

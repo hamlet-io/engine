@@ -1,5 +1,10 @@
 [#ftl]
 
+[@addComponentDeployment
+    type=APIGATEWAY_USAGEPLAN_COMPONENT_TYPE
+    defaultGroup="application"
+/]
+
 [@addComponent
     type=APIGATEWAY_USAGEPLAN_COMPONENT_TYPE
     properties=
@@ -19,11 +24,6 @@
         ]
     attributes=
         [
-            {
-                "Names" : "DeploymentGroup",
-                "Type" : STRING_TYPE,
-                "Default" : "application"
-            },
             {
                 "Names" : "Links",
                 "Subobjects" : true,

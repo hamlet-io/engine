@@ -1,5 +1,10 @@
 [#ftl]
 
+[@addComponentDeployment
+    type=DATASET_COMPONENT_TYPE
+    defaultGroup="application"
+/]
+
 [@addComponent
     type=DATASET_COMPONENT_TYPE
     properties=
@@ -11,11 +16,6 @@
         ]
     attributes=
         [
-            {
-                "Names" : "DeploymentGroup",
-                "Type" : STRING_TYPE,
-                "Default" : "application"
-            },
             {
                 "Names" : "Engine",
                 "Type" : STRING_TYPE,

@@ -113,6 +113,11 @@
     ]
 ]
 
+[@addComponentDeployment
+    type=ECS_COMPONENT_TYPE
+    defaultGroup="solution"
+/]
+
 [@addComponent
     type=ECS_COMPONENT_TYPE
     properties=
@@ -124,11 +129,6 @@
         ]
     attributes=
         [
-            {
-                "Names" : "DeploymentGroup",
-                "Type" : STRING_TYPE,
-                "Default" : "solution"
-            },
             {
                 "Names" : ["Fragment", "Container"],
                 "Type" : "string",
@@ -251,6 +251,11 @@
         ]
 /]
 
+[@addComponentDeployment
+    type=ECS_SERVICE_COMPONENT_TYPE
+    defaultGroup="application"
+/]
+
 [@addChildComponent
     type=ECS_SERVICE_COMPONENT_TYPE
     parent=ECS_COMPONENT_TYPE
@@ -265,11 +270,6 @@
         ]
     attributes=
         [
-            {
-                "Names" : "DeploymentGroup",
-                "Type" : STRING_TYPE,
-                "Default" : "application"
-            },
             {
                 "Names" : "Engine",
                 "Type" : STRING_TYPE,
@@ -398,6 +398,11 @@
         ]
 /]
 
+[@addComponentDeployment
+    type=ECS_TASK_COMPONENT_TYPE
+    defaultGroup="application"
+/]
+
 [@addChildComponent
     type=ECS_TASK_COMPONENT_TYPE
     parent=ECS_COMPONENT_TYPE
@@ -412,11 +417,6 @@
         ]
     attributes=
         [
-            {
-                "Names" : "DeploymentGroup",
-                "Type" : STRING_TYPE,
-                "Default" : "application"
-            },
             {
                 "Names" : "Engine",
                 "Type" : STRING_TYPE,

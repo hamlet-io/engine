@@ -1,5 +1,10 @@
 [#ftl]
 
+[@addComponentDeployment
+    type=CONFIGSTORE_COMPONENT_TYPE
+    defaultGroup="solution"
+/]
+
 [@addComponent
     type=CONFIGSTORE_COMPONENT_TYPE
     properties=
@@ -11,11 +16,6 @@
         ]
     attributes=
         [
-            {
-                "Names" : "DeploymentGroup",
-                "Type" : STRING_TYPE,
-                "Default" : "solution"
-            },
             {
                 "Names" : ["Fragment", "Container"],
                 "Type" : STRING_TYPE,

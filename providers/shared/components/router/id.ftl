@@ -1,5 +1,11 @@
 [#ftl]
 
+[@addComponentDeployment
+    type=NETWORK_ROUTER_COMPONENT_TYPE
+    defaultGroup="segment"
+/]
+
+
 [@addComponent
     type=NETWORK_ROUTER_COMPONENT_TYPE
     properties=
@@ -11,11 +17,6 @@
         ]
     attributes=
         [
-            {
-                "Names" : "DeploymentGroup",
-                "Type" : STRING_TYPE,
-                "Default" : "segment"
-            },
             {
                 "Names" : "Active",
                 "Type" : BOOLEAN_TYPE,

@@ -1,5 +1,10 @@
 [#ftl]
 
+[@addComponentDeployment
+    type=SERVICE_REGISTRY_COMPONENT_TYPE
+    defaultGroup="solution"
+/]
+
 [@addComponent
     type=SERVICE_REGISTRY_COMPONENT_TYPE
     properties=
@@ -19,11 +24,6 @@
         ]
     attributes=
         [
-            {
-                "Names" : "DeploymentGroup",
-                "Type" : STRING_TYPE,
-                "Default" : "solution"
-            },
             {
                 "Names" : "Links",
                 "Subobjects" : true,

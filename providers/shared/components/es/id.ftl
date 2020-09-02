@@ -1,5 +1,10 @@
 [#ftl]
 
+[@addComponentDeployment
+    type=ES_COMPONENT_TYPE
+    defaultGroup="solution"
+/]
+
 [@addComponent
     type=ES_COMPONENT_TYPE
     properties=
@@ -11,11 +16,6 @@
         ]
     attributes=
         [
-            {
-                "Names" : "DeploymentGroup",
-                "Type" : STRING_TYPE,
-                "Default" : "solution"
-            },
             {
                 "Names" : "Authentication",
                 "Type" : STRING_TYPE,

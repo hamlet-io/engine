@@ -1,5 +1,10 @@
 [#ftl]
 
+[@addComponentDeployment
+    type=EXTERNALNETWORK_COMPONENT_TYPE
+    defaultGroup="segment"
+/]
+
 [@addComponent
     type=EXTERNALNETWORK_COMPONENT_TYPE
     properties=
@@ -11,11 +16,6 @@
         ]
     attributes=
         [
-            {
-                "Names" : "DeploymentGroup",
-                "Type" : STRING_TYPE,
-                "Default" : "segment"
-            },
             {
                 "Names" : "IPAddressGroups",
                 "Type" : ARRAY_OF_STRING_TYPE,
