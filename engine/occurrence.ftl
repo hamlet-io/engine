@@ -51,6 +51,11 @@
     [#return contentIfContent((occurrence.Configuration.Solution.Fragment)!"", occurrence.Core.Component.Id)]
 [/#function]
 
+[#function getOccurrenceDeploymentUnit occurrence]
+    [#local solution = occurrence.Configuration.Solution ]
+    [#return getDeploymentUnitId(solution) ]
+[/#function]
+
 [#function isOccurrenceEnabled occurrence]
     [#return (occurrence.Configuration.Solution.Enabled)!true ]
 [/#function]
@@ -205,6 +210,7 @@
         [#local placement = (occurrence.State.ResourceGroups[key].Placement)!{}]
         [#local attributes +=
             (value.Attributes[SHARED_ATTRIBUTES]![]) +
+            (value.Attributes[DEPLOYMENT_ATTRIBUTES]![]) +
             (value.Attributes[placement.Provider!""]![]) ]
     [/#list]
     [#return attributes]
@@ -442,7 +448,7 @@
 [/#function]
 
 [#function internalCreateOccurrenceBuildSettings occurrence]
-    [#local deploymentUnit = (occurrence.Configuration.Solution.DeploymentUnits[0])!"" ]
+    [#local deploymentUnit = getOccurrenceDeploymentUnit(occurrence) ]
     [#local settingNamespaces = (occurrence.Configuration.Solution.SettingNamespaces)!{}]
 
     [#local alternatives =
@@ -533,7 +539,7 @@
 [/#function]
 
 [#function internalCreateOccurrenceProductSettings occurrence ]
-    [#local deploymentUnit = (occurrence.Configuration.Solution.DeploymentUnits[0])!"" ]
+    [#local deploymentUnit = getOccurrenceDeploymentUnit(occurrence) ]
     [#local settingNamespaces = (occurrence.Configuration.Solution.SettingNamespaces)!{}]
 
     [#local alternatives =
@@ -558,7 +564,7 @@
 [/#function]
 
 [#function internalCreateOccurrenceSensitiveSettings occurrence]
-    [#local deploymentUnit = (occurrence.Configuration.Solution.DeploymentUnits[0])!"" ]
+    [#local deploymentUnit = getOccurrenceDeploymentUnit(occurrence) ]
     [#local settingNamespaces = (occurrence.Configuration.Solution.SettingNamespaces)!{}]
 
     [#local alternatives =

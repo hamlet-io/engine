@@ -8,7 +8,7 @@
 [#assign componentConfiguration = {} ]
 
 [#function findComponentMarkers]
-    [#local markers = 
+    [#local markers =
         getPluginTree(
             "/",
             {
@@ -29,6 +29,7 @@
 
 [#-- Attributes are shared across providers, or provider specific --]
 [#assign SHARED_ATTRIBUTES = "shared"]
+[#assign DEPLOYMENT_ATTRIBUTES = "deployment"]
 
 [#-- Placement profiles --]
 [#assign DEFAULT_PLACEMENT_PROFILE = "default"]
@@ -80,6 +81,49 @@
     /]
 [/#macro]
 
+[#-- Enables Deployment support for the component --]
+[#macro addComponentDeployment type defaultGroup defaultPriority=100 defaultUnit="" lockAttributes=false   ]
+    [#local deploymentAttributes = [
+        {
+            "Names" : "Unit",
+            "Type" : "STRING_TYPE",
+            "Default" : defaultUnit
+        } +
+        attributeIfTrue(
+            "Values",
+            lockAttributes,
+            [ defaultUnit ]
+        ),
+        {
+            "Names" : "Group",
+            "Type" : STRING_TYPE,
+            "Default" : defaultGroup
+        } +
+        attributeIfTrue(
+            "Values",
+            lockAttributes,
+            [ defaultGroup ]
+        ),
+        {
+            "Names" : "Priority",
+            "Type" : NUMBER_TYPE,
+            "Default" : defaultPriority
+        } +
+        attributeIfTrue(
+            "Values",
+            lockAttributes,
+            [ defaultPriority ]
+        )
+    ]]
+
+    [@addResourceGroupInformation
+        type=type
+        attributes=deploymentAttributes
+        provider=DEPLOYMENT_ATTRIBUTES
+        resourceGroup=DEFAULT_RESOURCE_GROUP
+        prefixed=true
+    /]
+[/#macro]
 
 [#-- Not for general use - framework only --]
 [#assign coreComponentChildConfiguration = [
@@ -117,6 +161,8 @@
         [#else]
             [#local providerAttributes = attributes ]
         [/#if]
+
+        [#local providerAttributes += coreComponentChildConfiguration ]
     [#else]
         [#if prefixed]
             [#-- Handle prefixing of provider specific attributes --]
@@ -148,7 +194,7 @@
                     resourceGroup : {
                         "Attributes" : {
                             provider :
-                                providerAttributes + coreComponentChildConfiguration
+                                providerAttributes
                         }
                     } +
                     valueIfContent(

@@ -1,12 +1,13 @@
 [#ftl]
 [#include "/bootstrap.ftl" ]
 
-[#assign compositeTemplateContent = (.vars[deploymentGroup.CompositeTemplate])!"" ]
+[#assign deploymentGroupDetails = getDeploymentGroupDetails(getDeploymentGroup())]
+[#assign compositeTemplateContent = (.vars[deploymentGroupDetails.CompositeTemplate])!"" ]
 
 [#-- ResourceSets  --]
 [#-- Seperates resources from their component templates in to their own deployment --]
-[#list ((deploymentGroup.Deployment.ResourceSets)!{})?values?filter(s -> s.Enabled ) as resourceSet ]
-    [#if getDeploymentUnit() == resourceSet.DeploymentUnit ]
+[#list ((deploymentGroupDetails.Deployment.ResourceSets)!{})?values?filter(s -> s.Enabled ) as resourceSet ]
+    [#if getDeploymentUnit() == resourceSet["deployment:Unit"] ]
 
         [#assign allDeploymentUnits = true]
         [#assign ignoreDeploymentUnitSubsetInOutputs = true]
@@ -42,10 +43,15 @@
     [/#if]
 [/#list]
 
+
+[#if (commandLineOptions.Deployment.Unit.Subset!"") == "generationcontract" ]
+  [@addDefaultGenerationContract subsets="testcase" /]
+[/#if]
+
 [@generateOutput
     deploymentFramework=commandLineOptions.Deployment.Framework.Name
     type=commandLineOptions.Deployment.Output.Type
     format=commandLineOptions.Deployment.Output.Format
-    level=level
+    level=getDeploymentLevel()
     include=compositeTemplateContent
 /]
