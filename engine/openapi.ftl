@@ -368,7 +368,7 @@
                             "Names" : "Period",
                             "Type" : STRING_TYPE,
                             "Values" : [ "DAY", "WEEK", "MONTH" ]
-                        },
+                        }
                     ]
                 }
             ]
