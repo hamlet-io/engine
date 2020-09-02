@@ -5,7 +5,9 @@
 [#assign ENVIRONMENT_REFERENCE_TYPE = "Environment" ]
 [#assign REGION_REFERENCE_TYPE = "Region" ]
 
+[#-- Deployment Reference Types --]
 [#assign DEPLOYMENTGROUP_REFERENCE_TYPE = "DeploymentGroup" ]
+[#assign DEPLOYMENTMODE_REFERENCE_TYPE = "DeploymentMode" ]
 
 [#-- Network Reference Types --]
 [#assign CERTIFICATEBEHAVIOUR_REFERNCE_TYPE = "CertificateBehaviour" ]

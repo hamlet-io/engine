@@ -1694,21 +1694,44 @@
         },
         "DeploymentGroups" : {
           "segment" : {
-            "Deployment" : {
-              "Level" : "segment",
-              "ResourceSets" : {}
-            }
+            "Priority" : 10,
+            "Level" : "segment",
+            "ResourceSets" : {}
           },
           "solution" : {
-            "Deployment" : {
-              "Level" : "solution",
-              "ResourceSets" : {}
-            }
+            "Priority" : 100,
+            "Level" : "solution",
+            "ResourceSets" : {}
           },
           "application" : {
-            "Deployment" : {
-              "Level" : "application",
-              "ResourceSets" : {}
+            "Priority" : 200,
+            "Level" : "application",
+            "ResourceSets" : {}
+          }
+        },
+        "DeploymentModes" : {
+          "update" : {
+            "Actions" : [ "update" ],
+            "Membership" : "priority",
+            "Priority" : {
+              "GroupFilter" : ".*",
+              "Order" : "LowestFirst"
+            }
+          },
+          "stop" : {
+            "Actions" : [ "delete" ],
+            "Membership" : "priority",
+            "Priority" : {
+              "GroupFilter" : ".*",
+              "Order" : "HighestFirst"
+            }
+          },
+          "stopstart" : {
+            "Actions" : [ "delete", "update" ],
+            "Membership" : "priority",
+            "Priority" : {
+              "GroupFilter" : ".*",
+              "Order" : "LowestFirst"
             }
           }
         }
