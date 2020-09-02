@@ -1,5 +1,10 @@
 [#ftl]
 
+[@addComponentDeployment
+    type=DB_COMPONENT_TYPE
+    defaultGroup="solution"
+/]
+
 [@addComponent
     type=DB_COMPONENT_TYPE
     properties=
@@ -21,11 +26,6 @@
         ]
     attributes=
         [
-            {
-                "Names" : "DeploymentGroup",
-                "Type" : STRING_TYPE,
-                "Default" : "solution"
-            },
             {
                 "Names" : "Engine",
                 "Mandatory" : true

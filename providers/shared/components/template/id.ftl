@@ -1,5 +1,10 @@
 [#ftl]
 
+[@addComponentDeployment
+    type=TEMPLATE_COMPONENT_TYPE
+    defaultGroup="application"
+/]
+
 [@addComponent
     type=TEMPLATE_COMPONENT_TYPE
     properties=
@@ -11,11 +16,6 @@
         ]
     attributes=
         [
-            {
-                "Names" : "DeploymentGroup",
-                "Type" : STRING_TYPE,
-                "Default" : "application"
-            },
             {
                 "Names" : "RootFile",
                 "Description" : "The name of the root template file in the build aretefact",

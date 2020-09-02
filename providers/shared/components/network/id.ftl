@@ -1,5 +1,12 @@
 [#ftl]
 
+[@addComponentDeployment
+    type=NETWORK_COMPONENT_TYPE
+    defaultGroup="segment"
+    defaultPriority=20
+/]
+
+
 [@addComponent
     type=NETWORK_COMPONENT_TYPE
     properties=
@@ -11,11 +18,6 @@
         ]
     attributes=
         [
-            {
-                "Names" : "DeploymentGroup",
-                "Type" : STRING_TYPE,
-                "Default" : "segment"
-            },
             {
                 "Names" : "Active",
                 "Type" : BOOLEAN_TYPE,

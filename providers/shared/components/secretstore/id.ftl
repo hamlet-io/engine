@@ -1,5 +1,10 @@
 [#ftl]
 
+[@addComponentDeployment
+    type=SECRETSTORE_COMPONENT_TYPE
+    defaultGroup="segment"
+/]
+
 [@addComponent
     type=SECRETSTORE_COMPONENT_TYPE
     properties=[
@@ -9,11 +14,6 @@
             }
         ]
     attributes=[
-        {
-            "Names" : "DeploymentGroup",
-            "Type" : STRING_TYPE,
-            "Default" : "segment"
-        }
     ]
 /]
 

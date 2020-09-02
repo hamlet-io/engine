@@ -1,5 +1,10 @@
 [#ftl]
 
+[@addComponentDeployment
+    type=FILETRANSFER_COMPONENT_TYPE
+    defaultGroup="solution"
+/]
+
 [@addComponent
     type=FILETRANSFER_COMPONENT_TYPE
     properties=
@@ -11,11 +16,6 @@
         ]
     attributes=
         [
-            {
-                "Names" : "DeploymentyGroup",
-                "Type" : STRING_TYPE,
-                "Default" : "solution"
-            },
             {
                 "Names" : "Protocols",
                 "Type" : ARRAY_OF_STRING_TYPE,

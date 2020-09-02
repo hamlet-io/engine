@@ -1,5 +1,11 @@
 [#ftl]
 
+[@addComponentDeployment
+    type=EFS_COMPONENT_TYPE
+    defaultGroup="solution"
+    defaultPriority=50
+/]
+
 [@addComponent
     type=EFS_COMPONENT_TYPE
     properties=
@@ -11,11 +17,6 @@
         ]
     attributes=
         [
-            {
-                "Names" : "DeploymentGroup",
-                "Type" : STRING_TYPE,
-                "Default" : "solution"
-            },
             {
                 "Names" : "Encrypted",
                 "Type" : BOOLEAN_TYPE,

@@ -22,6 +22,11 @@
         ]
 /]
 
+[@addComponentDeployment
+    type=LAMBDA_FUNCTION_COMPONENT_TYPE
+    defaultGroup="application"
+/]
+
 [@addChildComponent
     type=LAMBDA_FUNCTION_COMPONENT_TYPE
     properties=
@@ -33,11 +38,6 @@
         ]
     attributes=
         [
-            {
-                "Names" : "DeploymentGroup",
-                "Type" : STRING_TYPE,
-                "Default" : "application"
-            },
             {
                 "Names" : "DeploymentType",
                 "Type" : STRING_TYPE,

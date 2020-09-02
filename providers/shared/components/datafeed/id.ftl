@@ -1,5 +1,10 @@
 [#ftl]
 
+[@addComponentDeployment
+    type=DATAFEED_COMPONENT_TYPE
+    defaultGroup="solution"
+/]
+
 [@addComponent
     type=DATAFEED_COMPONENT_TYPE
     properties=
@@ -15,11 +20,6 @@
         ]
     attributes=
         [
-            {
-                "Names" : "DeploymentGroup",
-                "Type" : STRING_TYPE,
-                "Default" : "solution"
-            },
             {
                 "Names" : "ElasticSearch",
                 "Children" : [

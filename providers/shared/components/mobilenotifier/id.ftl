@@ -3,6 +3,11 @@
 [#-- Engines --]
 [#assign MOBILENOTIFIER_SMS_ENGINE = "SMS" ]
 
+[@addComponentDeployment
+    type=MOBILENOTIFIER_COMPONENT_TYPE
+    defaultGroup="solution"
+/]
+
 [@addComponent
     type=MOBILENOTIFIER_COMPONENT_TYPE
     properties=
@@ -14,11 +19,6 @@
         ]
     attributes=
         [
-            {
-                "Names" : "DeploymentGroup",
-                "Type" : STRING_TYPE,
-                "Default" : "solution"
-            },
             {
                 "Names" : "Links",
                 "Subobjects" : true,

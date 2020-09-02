@@ -1,5 +1,11 @@
 [#ftl]
 
+[@addComponentDeployment
+    type=PRIVATE_SERVICE_COMPONENT_TYPE
+    defaultGroup="solution"
+/]
+
+
 [@addComponent
     type=PRIVATE_SERVICE_COMPONENT_TYPE
     properties=
@@ -11,11 +17,6 @@
         ]
     attributes=
         [
-            {
-                "Names" : "DeploymentGroup",
-                "Type" : STRING_TYPE,
-                "Default" : "solution"
-            },
             {
                 "Names" : "DomainName",
                 "Children" : domainNameChildConfiguration

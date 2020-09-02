@@ -1,5 +1,10 @@
 [#ftl]
 
+[@addComponentDeployment
+    type=ADAPTOR_COMPONENT_TYPE
+    defaultGroup="application"
+/]
+
 [@addComponent
     type=ADAPTOR_COMPONENT_TYPE
     properties=
@@ -19,11 +24,6 @@
         ]
     attributes=
         [
-            {
-                "Names" : "DeploymentGroup",
-                "Type" : STRING_TYPE,
-                "Default" : "application"
-            },
             {
                 "Names" : ["Fragment", "Container"],
                 "Type" : STRING_TYPE,

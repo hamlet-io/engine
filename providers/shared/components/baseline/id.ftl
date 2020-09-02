@@ -117,6 +117,14 @@
     [#return baselineLinkTargets ]
 [/#function]
 
+[@addComponentDeployment
+    type=BASELINE_COMPONENT_TYPE
+    lockAttributes=true
+    defaultUnit="baseline"
+    defaultPriority=1
+    defaultGroup="segment"
+/]
+
 [@addComponent
     type=BASELINE_COMPONENT_TYPE
     properties=
@@ -128,11 +136,6 @@
         ]
     attributes=
         [
-            {
-                "Names" : "DeploymentGroup",
-                "Type" : STRING_TYPE,
-                "Default" : "segment"
-            },
             {
                 "Names" : "Active",
                 "Type" : BOOLEAN_TYPE,
