@@ -30,7 +30,7 @@
                 [#list requiredOccurrences(
                     getOccurrences(tier, component),
                     getDeploymentUnit(),
-                    deploymentGroup.Name
+                    getDeploymentGroup(),
                     "",
                     true) as occurrence]
                     [#local occurrenceEnd = .now]

@@ -428,7 +428,7 @@ Solution     - Solutions -> Tiers -> Instances -> Versions -> Components
         [#-- Occurrences of a component inherit any parent component deploymentUnit --]
         [#local componentConfiguration =
             mergeObjects(
-                component + attributeIfContent("DeploymentUnits", instance.DeploymentUnits![]),
+                component + attributeIfContent("DeploymentUnits", getDeploymentUnitId(instance)),
                 getObjectAttributes(instance, componentChildrenAttributes)
             ) ]
 
@@ -490,7 +490,7 @@ Solution     - Solutions -> Tiers -> Instances -> Versions -> Components
         [#-- Occurrences of a component inherit any parent component deploymentUnit --]
         [#local componentConfiguration =
             mergeObjects(
-                component + attributeIfContent("DeploymentUnits", version.DeploymentUnits![]),
+                component + attributeIfContent("DeploymentUnits", getDeploymentUnitId(version)),
                 getObjectAttributes(version, componentChildrenAttributes)
             ) ]
 
@@ -608,7 +608,7 @@ Solution     - Solutions -> Tiers -> Instances -> Versions -> Components
                                             "Name" : childComponentId,
                                             "Type" : getComponentChildType(child)
                                         } +
-                                            attributeIfContent("DeploymentUnits", component.DeploymentUnits![]) +
+                                            attributeIfContent("DeploymentUnits", getDeploymentUnitId(component)) +
                                             childComponent,
                                         componentContext,
                                         getComponentChildLinkAttributes(child)[0]
