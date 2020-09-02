@@ -342,6 +342,32 @@
     ]
 [/#macro]
 
+[#macro HealthCheck command useShell=true interval=30 retries=3 startWait=0 timeout=5  ]
+
+    [#local command = asArray(command) ]
+
+    [#if  !(command[0] == "CMD") && !(command[0] == "CMD-SHELL") ]
+        [#local command = [ useShell?then( "CMD-SHELL", "CMD") ] + command ]
+    [/#if]
+
+    [#assign _context +=
+        {
+            "HealthCheck" : {
+                "Command" : command,
+                "Interval" : interval,
+                "Retries" : retries,
+                "Timeout" : timeout
+            } +
+            attributeIfTrue(
+                "StartPeriod",
+                ( startWait > 0 ),
+                startWait
+            )
+        }
+    ]
+
+[/#macro]
+
 [#macro Policy statements...]
     [#assign _context +=
         {
