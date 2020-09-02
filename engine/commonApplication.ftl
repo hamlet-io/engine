@@ -342,7 +342,7 @@
     ]
 [/#macro]
 
-[#macro HealthCheck command useShell=true interval=30 retries=3 startWait=0 timeout=5  ]
+[#macro HealthCheck command useShell=true interval=30 retries=3 startPeriod=0 timeout=5  ]
 
     [#local command = asArray(command) ]
 
@@ -360,8 +360,8 @@
             } +
             attributeIfTrue(
                 "StartPeriod",
-                ( startWait > 0 ),
-                startWait
+                ( startPeriod > 0 ),
+                startPeriod
             )
         }
     ]
