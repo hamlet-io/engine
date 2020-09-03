@@ -451,12 +451,13 @@
             []
         ) +
         [
-            {"Key" : deploymentUnit, "Match" : "exact"},
             {"Key" : occurrence.Core.Name, "Match" : "partial"},
             {"Key" : occurrence.Core.TypedName, "Match" : "partial"},
             {"Key" : occurrence.Core.ShortName, "Match" : "partial"},
-            {"Key" : occurrence.Core.ShortTypedName, "Match" : "partial"}
-        ] ]
+            {"Key" : occurrence.Core.ShortTypedName, "Match" : "partial"},
+            {"Key" : deploymentUnit, "Match" : "exact"}
+        ]
+    ]
 
     [#local occurrenceBuild =
         internalCreateOccurrenceSettings(
@@ -542,11 +543,11 @@
             []
         ) +
         [
-            {"Key" : deploymentUnit, "Match" : "exact"},
             {"Key" : occurrence.Core.Name, "Match" : "partial"},
             {"Key" : occurrence.Core.TypedName, "Match" : "partial"},
             {"Key" : occurrence.Core.ShortName, "Match" : "partial"},
-            {"Key" : occurrence.Core.ShortTypedName, "Match" : "partial"}
+            {"Key" : occurrence.Core.ShortTypedName, "Match" : "partial"},
+            {"Key" : deploymentUnit, "Match" : "exact"}
         ] ]
 
     [#return
@@ -567,11 +568,11 @@
             []
         ) +
         [
-            {"Key" : deploymentUnit, "Match" : "exact"},
             {"Key" : occurrence.Core.Name, "Match" : "partial"},
             {"Key" : occurrence.Core.TypedName, "Match" : "partial"},
             {"Key" : occurrence.Core.ShortName, "Match" : "partial"},
-            {"Key" : occurrence.Core.ShortTypedName, "Match" : "partial"}
+            {"Key" : occurrence.Core.ShortTypedName, "Match" : "partial"},
+            {"Key" : deploymentUnit, "Match" : "exact"}
         ] ]
 
     [#return
