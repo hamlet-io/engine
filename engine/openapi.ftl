@@ -355,21 +355,6 @@
                     "Names" : "RateLimit",
                     "Description" : "The request limit per second.",
                     "Type" : NUMBER_TYPE
-                },
-                {
-                    "Names" : "Quota",
-                    "Description" : "",
-                    "Children" : [
-                        {
-                            "Names" : "Limit",
-                            "Type" : NUMBER_TYPE
-                        },
-                        {
-                            "Names" : "Period",
-                            "Type" : STRING_TYPE,
-                            "Values" : [ "DAY", "WEEK", "MONTH" ]
-                        }
-                    ]
                 }
             ]
         }
@@ -1048,23 +1033,6 @@ is useful to see what the global settings are from a debug perspective
             ]
             [#break]
     [/#switch]
-    [#return result]
-[/#function]
-
-[#function getApiThrottlingSettings occurrence]
-
-    [#local occurrenceSettings = 
-        getOccurrenceSettingValue(occurrence, [["apigw"]], true)]
-
-    [#local result = mergeObjects(
-        {
-            "BurstLimit" : "",
-            "RateLimit" : "",
-            "Quota" : ""
-        },
-        occurrenceSettings.Throttling!{},
-        { "Patterns" : occurrenceSettings.Patterns![] }
-    )]
     [#return result]
 [/#function]
 
