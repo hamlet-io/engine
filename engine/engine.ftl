@@ -210,15 +210,10 @@ names.
     [#local matches = [] ]
     [#local candidates = [] ]
 
-    [@debug message=
-        {
-            "Method" : "getMatchingNamespaces",
-            "Namespaces" : namespaces,
-            "Prefixes" : prefixes,
-            "Alternatives" : alternatives,
-            "EndingsToRemove" :  endingsToRemove
-        }
-        enabled=false /]
+    [#-- ## Matching namespace rules ## --]
+    [#-- Last Prefix is preferred over the first Prefix --]
+    [#-- Exact match within a prefix is preferred over a Partial match --]
+    [#local matchPreference = [ "partial", "exact" ]]
 
     [#-- Preprocess the namespaces to permit sorting --]
     [#list asArray(namespaces) as namespace]
@@ -235,31 +230,55 @@ names.
     [#-- Longer matches are ordered later in the match list --]
     [#local candidates = candidates?sort_by("Key") ]
 
+    [@debug message=
+        {
+            "Method" : "getMatchingNamespaces",
+            "Namespaces" : namespaces,
+            "Prefixes" : prefixes,
+            "Alternatives" : alternatives,
+            "EndingsToRemove" :  endingsToRemove,
+            "Candidates" : candidates
+        }
+        enabled=false
+    /]
+
     [#-- Prefixes listed in increasing priority --]
     [#list prefixes as prefix]
-        [#list candidates as candidate]
+        [#list matchPreference as match ]
+            [#list candidates as candidate]
 
-            [#local key = candidate.Key]
+                [#local key = candidate.Key]
 
-            [#-- Alternatives listed in increasing priority --]
-            [#list alternatives as alternative]
-                [#local alternativeKey = formatName(prefix, alternative.Key) ]
-                [@debug
-                    message=alternative.Match + " comparison of " + key + " to " + alternativeKey
-                    enabled=false
-                /]
-                [#if
-                    (
-                        ((alternative.Match == "exact") && (alternativeKey == key)) ||
-                        ((alternative.Match == "partial") && (alternativeKey?starts_with(key)))
-                    ) ]
+                [#-- Alternatives listed in increasing priority --]
+                [#list alternatives as alternative]
+                    [#local alternativeKey = formatName(prefix, alternative.Key) ]
                     [@debug
-                        message=alternative.Match + " comparison of " + key + " to " + alternativeKey + " successful"
+                        message=alternative.Match + " comparison of " + key + " to " + alternativeKey
                         enabled=false
                     /]
-                    [#local matches += [candidate.Namespace] ]
-                    [#break]
-                [/#if]
+                    [#local alternativeMatched = false]
+
+                    [#if alternative.Match == match ]
+                        [#switch match ]
+                            [#case "exact" ]
+                                [#if alternativeKey == key ]
+                                    [#local alternativeMatched = true]
+                                [/#if]
+                                [#break]
+
+                            [#case "partial" ]
+                                [#if alternativeKey?starts_with(key) ]
+                                    [#local alternativeMatched = true]
+                                [/#if]
+                                [#break]
+                        [/#switch]
+
+                        [#if alternativeMatched ]
+                            [#local matches += [candidate.Namespace] ]
+                            [#break]
+                        [/#if]
+                    [/#if]
+                [/#list]
             [/#list]
         [/#list]
     [/#list]
