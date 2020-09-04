@@ -1,6 +1,6 @@
 [#ftl]
 
-[@addChildComponent
+[@addComponent
     type=CONTAINERTASK_COMPONENT_TYPE
     properties=
         [
