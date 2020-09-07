@@ -17,5 +17,11 @@
                 "Value" : "solution"
             }
         ]
-    attributes=containerHostAttributes
+    attributes=[
+        {
+            "Names" : "Engine",
+            "Type" : STRING_TYPE
+        }
+    ] +
+    containerHostAttributes
 /]
