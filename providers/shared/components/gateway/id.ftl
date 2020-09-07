@@ -18,11 +18,6 @@
     attributes=
         [
             {
-                "Names" : "DeploymentyGroup",
-                "Type" : STRING_TYPE,
-                "Default" : "segment"
-            },
-            {
                 "Names" : "Active",
                 "Type" : BOOLEAN_TYPE,
                 "Default" : false
