@@ -25,7 +25,7 @@
                                     settings?eval,
                                     {}
                 ),
-                "Definitions" : (definitions!"")?has_content?then(
+                "Definitions" : ((definitions!"")?has_content && (!definitions?contains("null")))?then(
                                     definitions?eval,
                                     {}
                 ),
