@@ -1,5 +1,10 @@
 [#ftl]
 
+[@addComponentDeployment
+    type=CONTAINERTASK_COMPONENT_TYPE
+    defaultGroup="application"
+/]
+
 [@addComponent
     type=CONTAINERTASK_COMPONENT_TYPE
     properties=

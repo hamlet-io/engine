@@ -77,6 +77,10 @@
             nodeCountChildConfiguration
         },
         {
+            "Names" : "containerhost",
+            "Children" : nodeCountChildConfiguration
+        },
+        {
             "Names" : "ComputeCluster",
             "Children" : [
                 {
@@ -140,6 +144,10 @@
         },
         {
             "Names" : "service",
+            "Children" : nodeCountChildConfiguration
+        },
+        {
+            "Names" : "containerservice",
             "Children" : nodeCountChildConfiguration
         },
         {
