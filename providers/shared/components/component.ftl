@@ -1220,12 +1220,6 @@
 
 [#assign containerServiceAttributes = [
     {
-        "Names" : "Engine",
-        "Type" : STRING_TYPE,
-        "Values" : [ "ec2", "fargate" ],
-        "Default" : "ec2"
-    },
-    {
         "Names" : "Containers",
         "Subobjects" : true,
         "Children" : containerChildrenConfiguration
