@@ -67,7 +67,7 @@
             ]
         },
         {
-            "Names" : "ECS",
+            "Names" : [ "ECS", "containerhost" ],
             "Children" : [
                 {
                     "Names" : "Processor",
@@ -139,7 +139,7 @@
             ]
         },
         {
-            "Names" : "service",
+            "Names" : [ "service", "containerservice" ],
             "Children" : nodeCountChildConfiguration
         },
         {
