@@ -152,7 +152,7 @@
                                     profileAttribute.Children +
                                     attribute.Children
                             }
-                        ] ]
+                        ]
                 [#else]
                     [#local providerAttributes += [attribute] ]
                 [/#if]
