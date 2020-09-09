@@ -203,13 +203,42 @@
     [#return occurrence]
 [/#function]
 
+[#function extendOccurrenceAttributes provider attributes=[] extensions=[]]
+    [#local result = []]
+    [#if extensions?has_content]
+        [#local providerExtensions = extensions[provider]![]]
+        [#list attributes as attribute]
+
+            [#local attributeExtension = providerExtensions?filter(e -> asArray(attribute.Names)?seq_contains(e.Names))]
+            [#if attributeExtension?has_content]
+  
+                [#local extendedValues = combineEntities(
+                    attribute.Values,
+                    attributeExtension[0].Values,
+                    ADD_COMBINE_BEHAVIOUR) ]
+
+                [#local result += [mergeObjects(attribute, { "Values" : extendedValues })] ]
+            [#else]
+                [#local result += [attribute]]
+            [/#if]
+        [/#list]
+    [#else]
+        [#return attributes]
+    [/#if]
+    [#return result]
+[/#function]
+
 [#function constructOccurrenceAttributes occurrence]
     [#local attributes = [] ]
 
     [#list getComponentResourceGroups(occurrence.Core.Type) as key, value]
         [#local placement = (occurrence.State.ResourceGroups[key].Placement)!{}]
+
+        [#local extendedSharedAttributes = 
+            extendOccurrenceAttributes(placement.Provider, value.Attributes[SHARED_ATTRIBUTES]![], value.Extensions![])]
+
         [#local attributes +=
-            (value.Attributes[SHARED_ATTRIBUTES]![]) +
+            extendedSharedAttributes +
             (value.Attributes[DEPLOYMENT_ATTRIBUTES]![]) +
             (value.Attributes[placement.Provider!""]![]) ]
     [/#list]
