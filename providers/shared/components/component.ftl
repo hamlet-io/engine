@@ -594,6 +594,22 @@
                     "Default" : "waf"
                 }
             ]
+        },
+        {
+            "Names" : "RateLimits",
+            "Subobjects" : true,
+            "Children" : [
+                {
+                    "Names" : "IPAddressGroups",
+                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Default" : []
+                },
+                {
+                    "Names" : "Limit",
+                    "Type" : NUMBER_TYPE,
+                    "Mandatory" : true
+                }
+            ]
         }
     ]
 ]
