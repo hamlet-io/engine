@@ -209,15 +209,27 @@
         [#local providerExtensions = extensions[provider]![]]
         [#list attributes as attribute]
 
-            [#local attributeExtension = providerExtensions?filter(e -> asArray(attribute.Names)?seq_contains(e.Names))]
-            [#if attributeExtension?has_content]
-  
-                [#local extendedValues = combineEntities(
-                    attribute.Values,
-                    attributeExtension[0].Values,
-                    ADD_COMBINE_BEHAVIOUR) ]
+            [#local attributeExtension = 
+                providerExtensions
+                ?filter(e -> asArray(attribute.Names)
+                    ?seq_contains(e.Names))]
 
-                [#local result += [mergeObjects(attribute, { "Values" : extendedValues })] ]
+            [#if attributeExtension?has_content]
+
+                [#local extendedValues = attribute.Values]
+  
+                [#list attributeExtension[0].Values as extensionValue]
+                    [#local extendedValues +=
+                        [extensionValue?ensure_starts_with(provider + ":")] ]
+                [/#list]
+
+                [#local result += [
+                    mergeObjects(
+                        attribute,
+                        {
+                            "Values" : getUniqueArrayElements(extendedValues)
+                        }
+                    )]]
             [#else]
                 [#local result += [attribute]]
             [/#if]

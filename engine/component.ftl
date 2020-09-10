@@ -137,7 +137,7 @@
     }
 ] ]
 
-[#macro addResourceGroupInformationExtensions type extensions provider]
+[#macro addResourceGroupAttributeValues type extensions provider]
 
     [@internalMergeComponentConfiguration
         type=type
