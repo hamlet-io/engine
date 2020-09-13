@@ -5,7 +5,7 @@
     [#if obj["deployment:Unit"]?has_content ]
         [#return obj["deployment:Unit"]]
     [#else]
-        [#return ((obj.DeploymentUnits)![])[0] ]
+        [#return (((obj.DeploymentUnits)![])[0])!"" ]
     [/#if]
 [/#function]
 
