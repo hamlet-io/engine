@@ -137,14 +137,14 @@
     }
 ] ]
 
-[#macro addResourceGroupAttributeValues type extensions provider]
+[#macro addResourceGroupAttributeValues type extensions provider resourceGroup=DEFAULT_RESOURCE_GROUP]
 
     [@internalMergeComponentConfiguration
         type=type
         configuration=
             {
                 "ResourceGroups" : {
-                    DEFAULT_RESOURCE_GROUP : {
+                    resourceGroup : {
                         "Extensions" : {
                             provider :
                                 extensions
