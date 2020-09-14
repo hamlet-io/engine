@@ -203,33 +203,55 @@
     [#return occurrence]
 [/#function]
 
-[#function extendOccurrenceAttributes provider attributes=[] extensions=[]]
+[#function extendAttributes attributes=[] extensions=[] prefix=""]
     [#local result = []]
     [#if extensions?has_content]
-        [#local providerExtensions = extensions[provider]![]]
         [#list attributes as attribute]
 
             [#local attributeExtension = 
-                providerExtensions
+                extensions
                 ?filter(e -> asArray(attribute.Names)
-                    ?seq_contains(e.Names))]
+                ?seq_contains(e.Names))![]]
 
             [#if attributeExtension?has_content]
+                [#local attributeExtension = attributeExtension?first]
+                [#if (attribute.Children![])?has_content]
+                    [#if (attributeExtension.Children![])?has_content]
+                        [#local result += [
+                            mergeObjects(
+                                attribute,
+                                {
+                                    "Children" : extendAttributes(
+                                                    attribute.Children,
+                                                    attributeExtension.Children,
+                                                    prefix)
+                                }
+                            )
+                        ]]
+                    [#else]
+                        [@fatal
+                            message="Attribute Extension missing children."
+                            context={
+                                "Attribute" : attribute,
+                                "Extension" : attributeExtension
+                            }
+                        /]
+                    [/#if]
+                [#else]
+                    [#local extendedValues = attribute.Values]
+                    [#list attributeExtension.Values as extensionValue]
+                        [#local extendedValues +=
+                            [extensionValue?ensure_starts_with(prefix + ":")] ]
+                    [/#list]
 
-                [#local extendedValues = attribute.Values]
-  
-                [#list attributeExtension[0].Values as extensionValue]
-                    [#local extendedValues +=
-                        [extensionValue?ensure_starts_with(provider + ":")] ]
-                [/#list]
-
-                [#local result += [
-                    mergeObjects(
-                        attribute,
-                        {
-                            "Values" : getUniqueArrayElements(extendedValues)
-                        }
-                    )]]
+                    [#local result += [
+                        mergeObjects(
+                            attribute,
+                            {
+                                "Values" : getUniqueArrayElements(extendedValues)
+                            }
+                        )]]
+                [/#if]
             [#else]
                 [#local result += [attribute]]
             [/#if]
@@ -246,13 +268,21 @@
     [#list getComponentResourceGroups(occurrence.Core.Type) as key, value]
         [#local placement = (occurrence.State.ResourceGroups[key].Placement)!{}]
 
-        [#local extendedSharedAttributes = 
-            extendOccurrenceAttributes(placement.Provider, value.Attributes[SHARED_ATTRIBUTES]![], value.Extensions![])]
+        [#if (value.Extensions![])?has_content]
+            [#local extendedSharedAttributes = 
+                extendAttributes(
+                    value.Attributes[SHARED_ATTRIBUTES]![],
+                    value.Extensions[placement.Provider]![],
+                    placement.Provider)]
+        [#else]
+            [#local extendedSharedAttributes = (value.Attributes[SHARED_ATTRIBUTES]![])]
+        [/#if]
 
         [#local attributes +=
             extendedSharedAttributes +
             (value.Attributes[DEPLOYMENT_ATTRIBUTES]![]) +
             (value.Attributes[placement.Provider!""]![]) ]
+
     [/#list]
     [#return attributes]
 [/#function]
