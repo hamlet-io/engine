@@ -372,7 +372,7 @@
     provider=SHARED_PROVIDER
     subset="pregeneration"
     outputType=SCRIPT_DEFAULT_OUTPUT_TYPE
-    outputFormat=""
+    outputFormat=getOutputFormat(SCRIPT_DEFAULT_OUTPUT_TYPE)
     outputSuffix="pregeneration.sh"
 /]
 
