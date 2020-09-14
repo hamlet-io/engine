@@ -371,7 +371,7 @@
 [@addGenerationContractStepOutputMapping
     provider=SHARED_PROVIDER
     subset="pregeneration"
-    outputType=CONTRACT_DEFAULT_OUTPUT_TYPE
+    outputType=SCRIPT_DEFAULT_OUTPUT_TYPE
     outputFormat=""
     outputSuffix="pregeneration.sh"
 /]
