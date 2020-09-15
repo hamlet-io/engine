@@ -43,18 +43,6 @@
 [/#function]
 
 [#-- Fragment List Macros --]
-
-[#macro Attributes name="" image="" version="" essential=true]
-    [#assign _context +=
-        {
-            "Essential" : essential
-        } +
-        attributeIfContent("Name", name) +
-        attributeIfContent("Image", image) +
-        attributeIfContent("ImageVersion", version)
-    ]
-[/#macro]
-
 [#macro lambdaAttributes
         imageBucket=""
         imagePrefix=""
@@ -258,6 +246,25 @@
             }
         ]
     [/#if]
+[/#macro]
+
+[#macro Hostname hostname ]
+    [#assign _context +=
+        {
+            "Hostname" : hostname
+        }
+    ]
+[/#macro]
+
+[#macro Attributes name="" image="" version="" essential=true]
+    [#assign _context +=
+        {
+            "Essential" : essential
+        } +
+        attributeIfContent("Name", name) +
+        attributeIfContent("Image", image) +
+        attributeIfContent("ImageVersion", version)
+    ]
 [/#macro]
 
 [#macro WorkingDirectory workingDirectory ]
