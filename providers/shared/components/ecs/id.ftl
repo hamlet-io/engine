@@ -3,6 +3,11 @@
 [#assign
     containerChildrenConfiguration = [
         {
+            "Names" : ["Fragment", "Container"],
+            "Type" : "string",
+            "Default" : ""
+        },
+        {
             "Names" : "Cpu",
             "Type" : NUMBER_TYPE,
             "Default" : ""
@@ -84,8 +89,15 @@
             ]
         },
         {
+            "Names" : "Image",
+            "Type" : STRING_TYPE,
+            "Description" : "Overrides the image from the deployment unit",
+            "Default": ""
+        },
+        {
             "Names" : "Version",
             "Type" : STRING_TYPE,
+            "Description" : "Override the version from the deployment unit",
             "Default" : ""
         },
         {
@@ -247,6 +259,18 @@
                 "Description" : "The default compute provider for the cluster",
                 "Values" : [ "ec2", "ec2OnDemand" ],
                 "Default" : "ec2"
+            },
+            {
+                "Names" : "Monitoring",
+                "Description" : "Cluster level monitoring configuration",
+                "Children" : [
+                    {
+                        "Names" : "ContainerMetrics",
+                        "Description" : "Create detailed metrics on container lifecycle",
+                        "Type" : BOOLEAN_TYPE,
+                        "Default" : false
+                    }
+                ]
             }
         ]
 /]
