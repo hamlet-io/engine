@@ -789,23 +789,28 @@
         [#assign contextLinks = getLinkTargets(task, containerLinks) ]
         [#assign _context =
             {
-                "Id" : getContainerId(container),
+                "Id" : contentIfContent(
+                        container.Fragment,
+                        getContainerId(container)
+                ),
                 "Name" : getContainerName(container),
                 "Instance" : core.Instance.Id,
                 "Version" : core.Version.Id,
                 "Essential" : true,
                 "RegistryEndPoint" : getRegistryEndPoint("docker", task),
-                "Image" :
-                    formatRelativePath(
-                        formatName(
-                            productName,
-                            getOccurrenceBuildScopeExtension(task)
-                        ),
-                        formatName(
-                            getOccurrenceBuildUnit(task),
-                            getOccurrenceBuildReference(task)
-                        )
-                    ),
+                "Image" : container.Image?has_content?then(
+                            container.Image,
+                            formatRelativePath(
+                                formatName(
+                                    productName,
+                                    getOccurrenceBuildScopeExtension(task)
+                                ),
+                                formatName(
+                                    getOccurrenceBuildUnit(task),
+                                    getOccurrenceBuildReference(task)
+                                )
+                            )
+                ),
                 "MemoryReservation" : container.MemoryReservation,
                 "Mode" : getContainerMode(container),
                 "LogDriver" : logDriver,
@@ -920,7 +925,7 @@
         [#-- Add link based sec rules --]
         [#assign _context += { "EgressRules" : egressRules }]
         [#assign _context += { "LinkIngressRules" : linkIngressRules }]
-å
+
         [#-- Add in fragment specifics including override of defaults --]
         [#assign fragmentId = formatFragmentId(_context)]
         [#include fragmentList]
