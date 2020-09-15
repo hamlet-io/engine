@@ -111,30 +111,79 @@
             /]
     [/#switch]
 
-    [#if settings["JENKINSHOMEVOLUME"]?has_content ]
-        [@Volume "jenkinsdata" "/var/jenkins_home" settings["JENKINSHOMEVOLUME"] /]
+    [#-- Persistant Volume Mounts --]
+    [#-- Jenkins Home --]
+    [#assign JenkinsHomeFound = false ]
+    [#if ((_context["Links"]["efs_jenkins_home"])!{})?has_content ]
+        [#assign JenkinsHomeFound = true]
+        [@Volume
+            name="jenkins_home"
+            containerPath="/var/jenkins_home"
+            volumeLinkId="efs_jenkins_home"
+        /]
+
+    [#else]
+        [#if settings["JENKINSHOMEVOLUME"]?has_content ]
+            [#assign JenkinsHomeFound = true]
+            [@Volume
+                name="jenkinsdata"
+                containerPath"/var/jenkins_home"
+                hostPath=settings["JENKINSHOMEVOLUME"]
+            /]
+        [/#if]
     [/#if]
 
-    [#if settings["CODEONTAPVOLUME"]?has_content ]
-        [@Volume
-            name="codeontap"
-            containerPath="/var/opt/codeontap/"
-            hostPath=settings["CODEONTAPVOLUME"]
-        /]
-    [#elseif settings["PROPERTIESVOLUME"]?has_content ]
-        [@Volume
-            name="codeontap"
-            containerPath="/var/opt/codeontap/"
-            hostPath=settings["PROPERTIESVOLUME"]
+    [#if ! JenkinsHomeFound ]
+        [@fatal
+            message="Persistant Volume for Jenkins Home not found"
+            detail=[
+                "A persistant volume is required to host Jenkins",
+                " - EFS FileSystem - add a link called efs_jenkins_home to your EFS mount from the ecs service",
+                " - Host Mount - add the setting JENKINSHOMEVOLUME with the host path to map"
+            ]?join(" ")
         /]
     [/#if]
 
-    [#if settings["PROPERTIESVOLUME"]?has_content ]
+
+    [#-- Propeties volumes provide a read only share between the jenkins server and the agents --]
+    [#-- The mount can either be an efs share or a host mount which must be available to all containers --]
+    [#if ((_context["Links"]["efs_properties"])!{})?has_content ]
+        [@Volume
+            name="codeontap_properties"
+            containerPath="/var/opt/codeontap/"
+            volumeLinkId="efs_properties"
+        /]
+
         [@Volume
             name="properties"
-            containerPath=(settings["PROPERTIES_DIR"])!"/var/opt/properties/"
-            hostPath=settings["PROPERTIESVOLUME"]
+            containerPath="/var/opt/properties/"
+            volumeLinkId="efs_properties"
         /]
+
+    [#else]
+
+        [#if settings["CODEONTAPVOLUME"]?has_content ]
+            [@Volume
+                name="codeontap"
+                containerPath="/var/opt/codeontap/"
+                hostPath=settings["CODEONTAPVOLUME"]
+            /]
+        [#elseif settings["PROPERTIESVOLUME"]?has_content ]
+            [@Volume
+                name="codeontap"
+                containerPath="/var/opt/codeontap/"
+                hostPath=settings["PROPERTIESVOLUME"]
+            /]
+        [/#if]
+
+        [#if settings["PROPERTIESVOLUME"]?has_content ]
+            [@Volume
+                name="properties"
+                containerPath=(settings["PROPERTIES_DIR"])!"/var/opt/properties/"
+                hostPath=settings["PROPERTIESVOLUME"]
+            /]
+        [/#if]
+
     [/#if]
 
     [#break]

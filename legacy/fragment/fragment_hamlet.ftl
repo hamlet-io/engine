@@ -5,8 +5,6 @@
 
     [#assign settings = _context.DefaultEnvironment]
 
-    [#assign dockerStageDir = settings["DOCKER_STAGE_DIR"]!"/tmp/docker-build" ]
-    [#assign dockerHostDaemon = settings["DOCKER_HOST_DAEMON"]!"/var/run/docker.sock"]
     [#assign jenkinsAgentImage = settings["DOCKER_AGENT_IMAGE"]!"hamletio/hamlet"]
 
     [#assign awsAutomationUser = settings["AWS_AUTOMATION_USER"]!"ROLE" ]
@@ -30,17 +28,6 @@
         "DOCKER_STAGE_DIR"      : dockerStageDir,
         "STARTUP_COMMANDS"      : (settings["STARTUP_COMMANDS"])!""
     }/]
-
-    [@Volume
-        name="dockerDaemon"
-        containerPath="/var/run/docker.sock"
-        hostPath=dockerHostDaemon
-    /]
-    [@Volume
-        name="dockerStage"
-        containerPath=dockerStageDir
-        hostPath=dockerStageDir
-    /]
 
     [#-- Validate that the appropriate settings have been provided for the container to work --]
     [#if settings["CODEONTAPVOLUME"]?has_content ]
@@ -110,6 +97,142 @@
             ]
         /]
     [/#if]
+
+    [#-- Docker Agent Access --]
+    [#assign dockerEnabled = ((settings["ENABLE_DOCKER"])!"true")?boolean ]
+    [#assign dindEnabled = (settings["DIND_ENABLED"]!"false")?boolean ]
+
+    [#if dockerEnabled && dindEnabled ]
+        [@fatal
+            message="DockerInDocker and DockerOutOfDocker Agent modes enabled"
+            context={
+                "ENABLE_DOCKER" : dockerEnabled,
+                "DIND_ENABLED" : dindEnabled
+            }
+            detail="Update settings so only one agent docker mode is enabled"
+        /]
+    [/#if]
+
+    [#-- DockerOutOfDocker Agent--]
+    [#-- The docker out of docker provides a bind mount volume to the containers own docker socket --]
+    [#-- This can cause issues with port conflicts and disk usage on the hosts. The AWS linux docker volumes dir is pretty small --]
+    [#if dockerEnabled ]
+
+        [#assign dockerStageDir = settings["DOCKER_STAGE_DIR"]!"/tmp/docker-build" ]
+        [#assign dockerHostDaemon = settings["DOCKER_HOST_DAEMON"]!"/var/run/docker.sock"]
+
+        [@Volume
+            name="dockerDaemon"
+            containerPath="/var/run/docker.sock"
+            hostPath=dockerHostDaemon
+        /]
+
+        [@Volume
+            name="dockerStage"
+            containerPath=dockerStageDir
+            hostPath=dockerStageDir
+        /]
+    [/#if]
+
+
+    [#-- DockerInDockerAgent --]
+    [#-- In this model a sidercar container running in priviledged mode offers the docker service for the agent to use --]
+    [#-- We also use a dockerStage directory to share local bind mounts between the agent and the dind host --]
+    [#-- This agent requires the dind side car and enabling privledged mode in a container which is considered a secrity risk --]
+    [#-- This requires the ecs host to have the ebs VolumeDriver Enabled --]
+    [#if dindEnabled ]
+
+        [#assign dockerStageDir = settings["DOCKER_STAGE_DIR"]!"/home/jenkins"  ]
+        [#assign dockerStageSize = settings["DOCKER_STAGE_SIZE_GB"]!"20"        ]
+        [#assign dindHost = settings["DIND_DOCKER_HOST_URL"]!"tcp://dind:2376"  ]
+        [#assign dindTLSVerify = settings["DIND_DOCKER_TLS_VERIFY"]!"true"      ]
+
+        [#if dindTLSVerify?boolean ]
+            [@Settings
+                {
+                    "DOCKER_CERT_PATH" : "/docker/certs/client"
+                }
+            /]
+
+            [@Volume
+                name="dind_certs_client"
+                containerPath="/docker/certs/client"
+                readOnly=true
+            /]
+
+        [/#if]
+
+        [@Settings
+            {
+                "DOCKER_HOST" : dindHost,
+                "DOCKER_TLS_VERIFY" : dindTLSVerify
+            }
+        /]
+
+        [@Volume
+            name="dockerStage"
+            containerPath=dockerStageDir
+            volumeEngine="ebs"
+            scope="task"
+            driverOpts={
+                "volumetype": "gp2",
+                "size": dockerStageSize
+            }
+        /]
+
+    [/#if]
+
+    [#break]
+
+[#case "_dind" ]
+[#case "dind" ]
+    [@DefaultLinkVariables enabled=false /]
+    [@DefaultCoreVariables enabled=false /]
+    [@DefaultEnvironmentVariables enabled=false /]
+    [@DefaultBaselineVariables enabled=false /]
+
+    [@Hostname hostname=_context.Name /]
+
+    [#assign dockerStageDir = settings["DOCKER_STAGE_DIR"]!"/home/jenkins"  ]
+    [#assign dockerStageSize = settings["DOCKER_STAGE_SIZE_GB"]!"20"        ]
+    [#assign dockerLibSize = settings["DOCKER_LIB_VOLUME_SIZE]!"20"         ]
+    [#assign dindTLSVerify = settings["DIND_DOCKER_TLS_VERIFY"]!"true"      ]
+
+
+    [#if dindTLSVerify?boolean ]
+        [@Settings
+            {
+                "DOCKER_TLS_CERTDIR" : "/docker/certs"
+            }
+        /]
+
+        [@Volume
+            name="dind_certs_client"
+            containerPath="/docker/certs/client"
+        /]
+    [/#if]
+
+    [@Volume
+        name="dockerStage"
+        containerPath=dockerStageDir
+        volumeEngine="ebs"
+        scope="task"
+        driverOpts={
+            "volumetype": "gp2",
+            "size": dockerStageSize
+        }
+    /]
+
+    [@Volume
+        name="dind_lib"
+        containerPath="/var/lib/docker"
+        volumeEngine="ebs"
+        scope="task"
+        driverOpts={
+            "volumetype": "gp2",
+            "size": dockerLibSize
+        }
+    /]
     [#break]
 
 [#case "_jenkinsecs" ]
