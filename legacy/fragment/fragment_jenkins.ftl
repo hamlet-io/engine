@@ -127,7 +127,7 @@
             [#assign JenkinsHomeFound = true]
             [@Volume
                 name="jenkinsdata"
-                containerPath"/var/jenkins_home"
+                containerPath="/var/jenkins_home"
                 hostPath=settings["JENKINSHOMEVOLUME"]
             /]
         [/#if]

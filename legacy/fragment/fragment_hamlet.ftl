@@ -195,7 +195,7 @@
 
     [#assign dockerStageDir = settings["DOCKER_STAGE_DIR"]!"/home/jenkins"  ]
     [#assign dockerStageSize = settings["DOCKER_STAGE_SIZE_GB"]!"20"        ]
-    [#assign dockerLibSize = settings["DOCKER_LIB_VOLUME_SIZE]!"20"         ]
+    [#assign dockerLibSize = settings["DOCKER_LIB_VOLUME_SIZE"]!"20"         ]
     [#assign dindTLSVerify = settings["DIND_DOCKER_TLS_VERIFY"]!"true"      ]
 
 
