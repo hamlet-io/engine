@@ -275,14 +275,13 @@
     ]
 [/#macro]
 
-[#macro Volume name="" containerPath="" hostPath="" readOnly=false persist=false volumeLinkId="" driverOpts={} autoProvision=false ]
+[#macro Volume name="" containerPath="" hostPath="" readOnly=false persist=false volumeLinkId="" driverOpts={} autoProvision=false scope="" volumeEngine="local" ]
 
     [#if volumeLinkId?has_content ]
         [#local volumeName = _context.DataVolumes[volumeLinkId].Name ]
         [#local volumeEngine = _context.DataVolumes[volumeLinkId].Engine ]
     [#else]
         [#local volumeName = name!"COTFatal: Volume Name or VolumeLinkId not provided" ]
-        [#local volumeEngine = "local"]
     [/#if]
 
     [#switch volumeEngine ]
@@ -309,9 +308,13 @@
                                             persist?boolean,
                                             persist),
                         "Driver" : volumeDriver,
-                        "DriverOptions" : driverOpts,
+                        "DriverOpts" : driverOpts,
                         "AutoProvision" : autoProvision
                     } +
+                    attributeIfContent(
+                        "Scope",
+                        scope
+                    ) +
                     (volumeDriver == "efs" )?then(
                         {
                             "EFS" : _context.DataVolumes[volumeLinkId].EFS
