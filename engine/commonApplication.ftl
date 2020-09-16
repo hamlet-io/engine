@@ -230,6 +230,8 @@
                 )]
 [/#macro]
 
+[#-- ECS Specific Macros --]
+
 [#macro Host name value]
     [#assign _context +=
         {
@@ -264,6 +266,15 @@
         attributeIfContent("Name", name) +
         attributeIfContent("Image", image) +
         attributeIfContent("ImageVersion", version)
+    ]
+[/#macro]
+
+
+[#macro taskPlacementConstraint expression ]
+    [#assign _context +=
+        {
+            "PlacementConstraints" : combineEntities( _context.PlacementConstraints![], [ expression ], UNIQUE_COMBINE_BEHAVIOUR)
+        }
     ]
 [/#macro]
 
@@ -852,7 +863,8 @@
             attributeIfContent("IngressRules", ingressRules) +
             attributeIfContent("InboundPorts", inboundPorts) +
             attributeIfContent("RunCapabilities", container.RunCapabilities) +
-            attributeIfContent("ContainerNetworkLinks", container.ContainerNetworkLinks)
+            attributeIfContent("ContainerNetworkLinks", container.ContainerNetworkLinks) +
+            attributeIfContent("PlacementConstraints", container.PlacementConstraints![] )
         ]
 
 
