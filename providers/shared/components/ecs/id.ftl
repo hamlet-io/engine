@@ -3,7 +3,8 @@
 [#assign
     containerChildrenConfiguration = [
         {
-            "Names" : ["Fragment", "Container"],
+            "Names" : "Fragment",
+            "Description" : "The fragment Id to use when evaluating component fragments - defaults to the container id",
             "Type" : "string",
             "Default" : ""
         },
