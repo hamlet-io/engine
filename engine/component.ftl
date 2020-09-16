@@ -137,6 +137,25 @@
     }
 ] ]
 
+[#macro addResourceGroupAttributeValues type extensions provider resourceGroup=DEFAULT_RESOURCE_GROUP]
+
+    [@internalMergeComponentConfiguration
+        type=type
+        configuration=
+            {
+                "ResourceGroups" : {
+                    resourceGroup : {
+                        "Extensions" : {
+                            provider :
+                                extensions
+                        }
+                    }
+                }
+            }
+    /]
+
+[/#macro]
+
 [#macro addResourceGroupInformation type attributes provider resourceGroup services=[] prefixed=true ]
     [#if provider == SHARED_ATTRIBUTES ]
         [#-- Special processing for profiles --]
@@ -152,7 +171,7 @@
                                     profileAttribute.Children +
                                     attribute.Children
                             }
-                        ] ]
+                        ]
                 [#else]
                     [#local providerAttributes += [attribute] ]
                 [/#if]
