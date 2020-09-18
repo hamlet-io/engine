@@ -13,6 +13,8 @@
     [#assign azureAuthMethod = settings["AZ_AUTH_METHOD"]!"service" ]
     [#assign azureTenantId   = settings["AZ_TENANT_ID"]!""]
 
+    [#assign dockerStageDir = settings["DOCKER_STAGE_DIR"]!"/tmp/docker-build" ]
+
     [@Attributes image=jenkinsAgentImage /]
 
     [@DefaultLinkVariables          enabled=false /]
@@ -29,31 +31,45 @@
         "STARTUP_COMMANDS"      : (settings["STARTUP_COMMANDS"])!""
     }/]
 
-    [#-- Validate that the appropriate settings have been provided for the container to work --]
-    [#if settings["CODEONTAPVOLUME"]?has_content ]
+    [#-- Propeties volumes provide a read only share between the jenkins server and the agents --]
+    [#-- The mount can either be an efs share or a host mount which must be available to all containers --]
+    [#if ((_context["Links"]["efs_properties"])!{})?has_content ]
         [@Volume
-            name="codeontap"
+            name="codeontap_properties"
             containerPath="/var/opt/codeontap/"
-            hostPath=settings["CODEONTAPVOLUME"]
-            readOnly=true
+            volumeLinkId="efs_properties"
         /]
-    [#elseif settings["PROPERTIESVOLUME"]?has_content ]
-        [@Volume
-            name="codeontap"
-            containerPath="/var/opt/codeontap/"
-            hostPath=settings["PROPERTIESVOLUME"]
-            readOnly=true
-        /]
-    [/#if]
 
-    [#-- Validate that the appropriate settings have been provided for the container to work --]
-    [#if settings["PROPERTIESVOLUME"]?has_content ]
         [@Volume
             name="properties"
-            containerPath=(settings["PROPERTIES_DIR"])!"/var/opt/properties/"
-            hostPath=settings["PROPERTIESVOLUME"]
-            readOnly=true
+            containerPath="/var/opt/properties/"
+            volumeLinkId="efs_properties"
         /]
+
+    [#else]
+
+        [#if settings["CODEONTAPVOLUME"]?has_content ]
+            [@Volume
+                name="codeontap"
+                containerPath="/var/opt/codeontap/"
+                hostPath=settings["CODEONTAPVOLUME"]
+            /]
+        [#elseif settings["PROPERTIESVOLUME"]?has_content ]
+            [@Volume
+                name="codeontap"
+                containerPath="/var/opt/codeontap/"
+                hostPath=settings["PROPERTIESVOLUME"]
+            /]
+        [/#if]
+
+        [#if settings["PROPERTIESVOLUME"]?has_content ]
+            [@Volume
+                name="properties"
+                containerPath=(settings["PROPERTIES_DIR"])!"/var/opt/properties/"
+                hostPath=settings["PROPERTIESVOLUME"]
+            /]
+        [/#if]
+
     [/#if]
 
     [#if settings["AWS_AUTOMATION_POLICIES"]?has_content ]
@@ -118,7 +134,6 @@
     [#-- This can cause issues with port conflicts and disk usage on the hosts. The AWS linux docker volumes dir is pretty small --]
     [#if dockerEnabled ]
 
-        [#assign dockerStageDir = settings["DOCKER_STAGE_DIR"]!"/tmp/docker-build" ]
         [#assign dockerHostDaemon = settings["DOCKER_HOST_DAEMON"]!"/var/run/docker.sock"]
 
         [@Volume
@@ -144,6 +159,7 @@
 
         [#assign dockerStageDir = settings["DOCKER_STAGE_DIR"]!"/home/jenkins"  ]
         [#assign dockerStageSize = settings["DOCKER_STAGE_SIZE_GB"]!"20"        ]
+        [#assign dockerStagePersist = (settings["DOCKER_STAGE_PERSIST"]?boolean)!false ]
         [#assign dindHost = settings["DIND_DOCKER_HOST_URL"]!"tcp://dind:2376"  ]
         [#assign dindTLSVerify = settings["DIND_DOCKER_TLS_VERIFY"]!"true"      ]
 
@@ -173,7 +189,10 @@
             name="dockerStage"
             containerPath=dockerStageDir
             volumeEngine="ebs"
-            scope="task"
+            scope=dockerStagePersist?then(
+                        "shared",
+                        "task"
+            )
             driverOpts={
                 "volumetype": "gp2",
                 "size": dockerStageSize
@@ -195,6 +214,7 @@
 
     [#assign dockerStageDir = settings["DOCKER_STAGE_DIR"]!"/home/jenkins"  ]
     [#assign dockerStageSize = settings["DOCKER_STAGE_SIZE_GB"]!"20"        ]
+    [#assign dockerStagePersist = (settings["DOCKER_STAGE_PERSIST"]?boolean)!false ]
     [#assign dockerLibSize = settings["DOCKER_LIB_VOLUME_SIZE"]!"20"         ]
     [#assign dindTLSVerify = settings["DIND_DOCKER_TLS_VERIFY"]!"true"      ]
 
@@ -216,7 +236,10 @@
         name="dockerStage"
         containerPath=dockerStageDir
         volumeEngine="ebs"
-        scope="task"
+        scope=dockerStagePersist?then(
+                    "shared",
+                    "task"
+        )
         driverOpts={
             "volumetype": "gp2",
             "size": dockerStageSize
@@ -228,6 +251,10 @@
         containerPath="/var/lib/docker"
         volumeEngine="ebs"
         scope="task"
+        scope=dockerStagePersist?then(
+            "shared",
+            "task"
+        )
         driverOpts={
             "volumetype": "gp2",
             "size": dockerLibSize
