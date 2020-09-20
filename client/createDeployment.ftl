@@ -6,7 +6,7 @@
 
 [#-- ResourceSets  --]
 [#-- Seperates resources from their component templates in to their own deployment --]
-[#list ((deploymentGroupDetails.Deployment.ResourceSets)!{})?values?filter(s -> s.Enabled ) as resourceSet ]
+[#list ((deploymentGroupDetails.ResourceSets)!{})?values?filter(s -> s.Enabled ) as resourceSet ]
     [#if getDeploymentUnit() == resourceSet["deployment:Unit"] ]
 
         [#assign allDeploymentUnits = true]
@@ -14,7 +14,7 @@
 
         [#assign contractSubsets = []]
         [#list resourceSet.ResourceLabels as label ]
-            [#assign resourceLabel = getResourceLabel(label, level) ]
+            [#assign resourceLabel = getResourceLabel(label, getDeploymentLevel()) ]
             [#assign contractSubsets = combineEntities( contractSubsets, (resourceLabel.Subsets)![], UNIQUE_COMBINE_BEHAVIOUR ) ]
         [/#list]
 
