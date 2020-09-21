@@ -987,6 +987,12 @@
 
 [#assign containerChildrenConfiguration = [
     {
+        "Names" : "Fragment",
+        "Description" : "The fragment Id to use when evaluating component fragments - defaults to the container id",
+        "Type" : "string",
+        "Default" : ""
+    },
+    {
         "Names" : "Cpu",
         "Type" : NUMBER_TYPE,
         "Default" : ""
@@ -1068,8 +1074,15 @@
         ]
     },
     {
+        "Names" : "Image",
+        "Type" : STRING_TYPE,
+        "Description" : "Overrides the image from the deployment unit",
+        "Default": ""
+    },
+    {
         "Names" : "Version",
         "Type" : STRING_TYPE,
+        "Description" : "Override the version from the deployment unit",
         "Default" : ""
     },
     {
