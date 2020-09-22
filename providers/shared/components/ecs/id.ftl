@@ -1,5 +1,10 @@
 [#ftl]
 
+[@addComponentDeployment
+    type=ECS_COMPONENT_TYPE
+    defaultGroup="solution"
+/]
+
 [@addComponent
     type=ECS_COMPONENT_TYPE
     properties=
