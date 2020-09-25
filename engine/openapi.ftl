@@ -994,6 +994,7 @@ is useful to see what the global settings are from a debug perspective
                 {
                     "x-amazon-apigateway-integration" : {
                         "type": "mock",
+                        "passthroughBehavior" : "never",
                         "responses" :
                             {
                                 "default" : {
