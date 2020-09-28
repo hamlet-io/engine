@@ -957,7 +957,7 @@ behaviour.
               getRegistryEndPoint(registry, occurrence) + " " +
               formatRelativePath(
                 getRegistryPrefix(registry, occurrence),
-                getOccurrenceBuildScopeProduct(occurrence, product),
+                getOccurrenceBuildProduct(occurrence, product),
                 getOccurrenceBuildScopeExtension(occurrence),
                 getOccurrenceBuildUnit(occurrence),
                 getOccurrenceBuildReference(occurrence)) + " " +
