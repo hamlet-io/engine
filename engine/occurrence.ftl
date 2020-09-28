@@ -34,7 +34,7 @@
 
 [#function getOccurrenceBuildScopeExtension occurrence ]
     [#local extension = ""]
-    [#local scope = getOccurrenceSettingValue(occurrence, "BUILD_SCOPE", true).trim() ]
+    [#local scope = getOccurrenceSettingValue(occurrence, "BUILD_SCOPE", true)?trim ]
     [#switch scope]
         [#case "account"]
             [#break]
@@ -51,7 +51,7 @@
 
 [#function getOccurrenceBuildProduct occurrence product]
     [#local result = product]
-    [#local scope = getOccurrenceSettingValue(occurrence, "BUILD_SCOPE", true).trim() ]
+    [#local scope = getOccurrenceSettingValue(occurrence, "BUILD_SCOPE", true)?trim ]
     [#switch scope]
         [#case "account"]
             [#local result = accountName]
