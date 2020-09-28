@@ -34,13 +34,31 @@
 
 [#function getOccurrenceBuildScopeExtension occurrence ]
     [#local extension = ""]
-    [#switch getOccurrenceSettingValue(occurrence, "BUILD_SCOPE", true)]
+    [#local scope = getOccurrenceSettingValue(occurrence, "BUILD_SCOPE", true).trim() ]
+    [#switch scope]
+        [#case "account"]
+            [#break]
         [#case "segment"]
             [#local extension = segmentName]
+            [#break]
+        [#default]
+            [#local extension = scope]
             [#break]
     [/#switch]
 
     [#return extension]
+[/#function]
+
+[#function getOccurrenceBuildProduct occurrence product]
+    [#local result = product]
+    [#local scope = getOccurrenceSettingValue(occurrence, "BUILD_SCOPE", true).trim() ]
+    [#switch scope]
+        [#case "account"]
+            [#local result = accountName]
+            [#break]
+    [/#switch]
+
+    [#return result]
 [/#function]
 
 [#function getOccurrenceNetwork occurrence]
@@ -208,7 +226,7 @@
     [#if extensions?has_content]
         [#list attributes as attribute]
 
-            [#local attributeExtension = 
+            [#local attributeExtension =
                 extensions
                 ?filter(e -> asArray(attribute.Names)
                 ?seq_contains(e.Names))![]]
@@ -269,7 +287,7 @@
         [#local placement = (occurrence.State.ResourceGroups[key].Placement)!{}]
 
         [#if (value.Extensions![])?has_content]
-            [#local extendedSharedAttributes = 
+            [#local extendedSharedAttributes =
                 extendAttributes(
                     value.Attributes[SHARED_ATTRIBUTES]![],
                     value.Extensions[placement.Provider]![],

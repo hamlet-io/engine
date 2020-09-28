@@ -802,7 +802,7 @@
                             container.Image,
                             formatRelativePath(
                                 formatName(
-                                    productName,
+                                    getOccurrenceBuildScopeProduct(task, productName),
                                     getOccurrenceBuildScopeExtension(task)
                                 ),
                                 formatName(
