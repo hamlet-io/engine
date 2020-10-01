@@ -58,7 +58,7 @@
                 [#local optionSets += composite.Type?map(t -> [{ "type" : t }])]
             [/#if]
         [#elseif composite.Type == REF_TYPE]
-            [#local result += formatJsonSchemaReference(formatPath(false, "definitions", composite.Path))]
+            [#local result += formatJsonSchemaReference(composite.Path, composite.File)]
         [#else]
             [#local result += { "type" : composite.Type }]
         [/#if]
@@ -91,14 +91,14 @@
     [/#switch]
 [/#function]
 
-[#function formatJsonSchemaFromComposite composite filters=[] schemaId=""]
+[#function formatJsonSchemaFromComposite composite references=[] schemaId=""]
     [#local jsonSchema = {}]
     [#local required = []]
     [#local childrenConfiguration = {}]
 
     [#if composite?is_hash]
         [#local schemaName = formatJsonSchemaBaseName(composite)]
-        [#if !filters?seq_contains(schemaName)]
+        [#if !references?seq_contains(schemaName)]
             [#if schemaId?has_content]
                 [#local section = commandLineOptions.Deployment.Unit.Name]
                 [#local schemaId = formatPath(false, schemaId?remove_ending(".json"), section + ".json")]
@@ -125,7 +125,7 @@
                     [#if child?is_hash]
 
                         [#local childSchemaName = formatJsonSchemaBaseName(child)]
-                        [#if !filters?seq_contains(childSchemaName)]
+                        [#if !references?seq_contains(childSchemaName)]
                             [#local childrenConfiguration = mergeObjects(
                                 childrenConfiguration,
                                 subObjects?then(
@@ -133,7 +133,7 @@
                                         "patternProperties" : {
                                             patternPropertiesRegex : {
                                                 "properties" : {
-                                                    childSchemaName : formatJsonSchemaFromComposite(child, filters) 
+                                                    childSchemaName : formatJsonSchemaFromComposite(child, references) 
                                                 },
                                                 "additionalProperties" : false
                                             } +
@@ -142,7 +142,7 @@
                                     },
                                     {   
                                         "properties" : {
-                                            childSchemaName : formatJsonSchemaFromComposite(child, filters) 
+                                            childSchemaName : formatJsonSchemaFromComposite(child, references) 
                                         },
                                         "additionalProperties" : false
                                     } +
@@ -150,11 +150,40 @@
                                 )
                             )]
                         [#else]
-                            [@debug
-                                message="Filtering Schema Attribute: "
-                                context={"Composite" : composite, "Filtered" : childSchemaName}
-                                enabled=true
-                            /]
+                            [#-- Create a Reference to schema --]
+                            [#local childrenConfiguration = mergeObjects(
+                                childrenConfiguration,
+                                subObjects?then(
+                                    {
+                                        "patternProperties" : {
+                                            patternPropertiesRegex : {
+                                                "properties" : {
+                                                    childSchemaName : formatJsonSchemaFromComposite(
+                                                        {
+                                                            "Names" : childSchemaName,
+                                                            "Type" : REF_TYPE,
+                                                            "File" : "metaparameter-schema.json",
+                                                            "Path" : formatPath(false, "definitions", childSchemaName)
+                                                        }
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "properties" : {
+                                            childSchemaName : formatJsonSchemaFromComposite(
+                                                {
+                                                    "Names" : childSchemaName,
+                                                    "Type" : REF_TYPE,
+                                                    "File" : "metaparameter-schema.json",
+                                                    "Path" : formatPath(false, "#definitions", childSchemaName)
+                                                }
+                                            )
+                                        }
+                                    }
+                                )
+                            )]
                         [/#if]
                     [#else]
                         [@debug
@@ -174,11 +203,21 @@
                     )]
             [/#if]
         [#else]
-            [@debug 
-                message="Filtering Out Attribute: "
-                context={"Composite" : composite, "Filtered" : childSchemaName}
-                enabled=false
-            /]
+            [#local jsonSchema =
+                mergeObjects(
+                    jsonSchema,
+                    {
+                        schemaName : 
+                            formatJsonSchemaFromComposite(
+                                {
+                                    "Names" : schemaName,
+                                    "Type" : REF_TYPE,
+                                    "File" : "metaparameter-schema.json",
+                                    "Path" : formatPath(false, "#definitions", schemaName)
+                                }
+                            ) 
+                    }
+                )]
         [/#if]
     [#else]
         [@debug
@@ -190,8 +229,8 @@
     [#return jsonSchema ]
 [/#function]
 
-[#function formatJsonSchemaReference path]
-    [#return { r"$ref": path?ensure_starts_with("#/") }]
+[#function formatJsonSchemaReference path file=""]
+    [#return { r"$ref": concatenate([file, path?ensure_starts_with("#/")], '') }]
 [/#function]
 
 [#-------------------------------------------------------
