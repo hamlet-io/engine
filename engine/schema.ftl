@@ -55,6 +55,8 @@
             [#else]
                 [#local optionSets += composite.Type?map(t -> [{ "type" : t }])]
             [/#if]
+        [#elseif composite.Type == REF_TYPE]
+            [#local result += formatJsonSchemaReference(formatPath(false, "definitions", composite.Path))]
         [#else]
             [#local result += { "type" : composite.Type }]
         [/#if]
@@ -170,6 +172,10 @@
         /]
     [/#if]
     [#return jsonSchema ]
+[/#function]
+
+[#function formatJsonSchemaReference path]
+    [#return { r"$ref": path?ensure_starts_with("#/") }]
 [/#function]
 
 [#-------------------------------------------------------
