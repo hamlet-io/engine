@@ -300,6 +300,35 @@
     [@includeTemplates templates=templates /]
 [/#macro]
 
+[#macro includeProviderViewDefinitionConfiguration provider view ]
+
+    [#local templates = [] ]
+
+    [#-- Check component not already seen --]
+    [#if !isConfigurationIncluded([provider, "v", view, "id"])]
+        [#list ["id" ] as level]
+            [#-- aws/views/blueprint/id.ftl --]
+            [#local templates += [[provider, "views", view, level]] ]
+        [/#list]
+    [/#if]
+
+    [@includeTemplates templates=templates /]
+[/#macro]
+
+[#macro includeProviderViewConfiguration provider view ]
+    [#local templates = [] ]
+
+    [#-- Check component not already seen --]
+    [#if !isConfigurationIncluded([provider, "v", view])]
+        [#list [ "setup" ] as level]
+            [#-- aws/views/lb/setup.ftl --]
+            [#local templates += [[provider, "views", view, level]] ]
+        [/#list]
+    [/#if]
+
+    [@includeTemplates templates=templates /]
+[/#macro]
+
 [#macro includeSharedComponentConfiguration component ]
     [@includeProviderComponentDefinitionConfiguration SHARED_PROVIDER component /]
     [@includeProviderComponentConfiguration SHARED_PROVIDER component /]

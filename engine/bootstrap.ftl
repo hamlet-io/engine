@@ -38,6 +38,9 @@
 [#-- Component handling --]
 [#include "component.ftl" ]
 
+[#-- View handling --]
+[#include "view.ftl" ]
+
 [#--Occurrence handling --]
 [#include "occurrence.ftl"]
 [#include "link.ftl"]
