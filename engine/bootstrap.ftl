@@ -3,6 +3,12 @@
 [#-- Core helper routines --]
 [#include "base.ftl" ]
 
+[#-- model --]
+[#include "model.ftl" ]
+
+[#-- context --]
+[#include "context.ftl" ]
+
 [#-- logging --]
 [#include "logging.ftl" ]
 

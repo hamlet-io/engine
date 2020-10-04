@@ -28,7 +28,8 @@
                 },
                 "Framework" : {
                     "Name" : deploymentFramework!"",
-                    "Model" : deploymentFrameworkModel!"legacy"
+                    "Model" : deploymentFrameworkModel!"legacy",
+                    "Scope" : deploymentFrameworkScope!COMPONENTS_MODEL_SCOPE
                 },
                 "Output" : {
                     "Type" : outputType!"",
