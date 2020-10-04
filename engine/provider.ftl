@@ -98,6 +98,26 @@
                 [#continue]
             [/#if]
 
+            [#-- Determine the models for the provider --]
+            [#local directories =
+                internalGetPluginFiles(
+                    [providerMarker.Path, "models"],
+                    [
+                        ["[^/]+"]
+                    ]
+                )
+            ]
+            [#local deploymentFrameworks = [] ]
+            [#list directories as directory]
+                [#if directory.IsDirectory!false ]
+                    [#local deploymentFrameworks += [directory.Filename] ]
+                    [@internalIncludeTemplatesInDirectory
+                        directory,
+                        ["model"]
+                    /]
+                [/#if]
+            [/#list]
+
             [#-- Determine the deployment frameworks for the provider --]
             [#local directories =
                 internalGetPluginFiles(

@@ -3,22 +3,15 @@
 [#-------------------------------------------------------
 -- Public functions for context based model processing --
 ---------------------------------------------------------]
-
-[#-- Include the core context support --]
-[#include "context.ftl"]
+[#import "internal.ftl" as internal_model_context ]
 
 [#-- Temporary model for transition to context as default --]
 [#function default_model_context args=[] ]
-    [#return default_model(args) ]
-[/#function]
-
-[#-- Build the context tree corresponding to the provided config --]
-[#function default_model args=[] ]
-    [#return internalDefaultModel(args) ]
+    [#return internal_model_context.internalDefaultModel(args)  ]
 [/#function]
 
 [#-- Main component processing loop --]
-[#macro processComponents level=""]
+[#macro default_model_context_scope_components level=""]
 
     [#-- Construct the match corresponding to provided values --]
     [#-- This can later be provided as an explicit parameter  --]
@@ -667,18 +660,3 @@
 [#function internalCreateOccurrenceFromContextExternalLink occurrence fullLink]
     [#return {} ]
 [/#function]
-
-
-
-[#---------------------------------
--- Support for legacy processing --
------------------------------------]
-
-[#-- Legacy processing doesn't have a model --]
-[#function default_model_legacy args=[] ]
-    [#return {} ]
-[/#function]
-
-[#if (commandLineOptions.Deployment.Framework.Model!"")?lower_case == "legacy"]
-    [#include "legacy.ftl" ]
-[/#if]

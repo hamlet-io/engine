@@ -1,116 +1,17 @@
 [#ftl]
-
-[#-- Redefine key directives for legacy processing --]
-
 [#------------------------------------------
 -- Public functions for legacy processing --
 --------------------------------------------]
+
+[#-- Legacy processing doesn't have a model --]
+[#function default_model_legacy args=[] ]
+    [#return {} ]
+[/#function]
 
 [#-- Get the occurrences of versions/instances of a component --]
 [#function getOccurrences tier component ]
     [#return internalGetOccurrences(component, tier) ]
 [/#function]
-
-[#-- Main component processing loop --]
-[#macro processComponents level=""]
-    [#local start = .now]
-    [@timing message="Starting component processing ..." /]
-    [#list tiers as tier]
-        [#list (tier.Components!{}) as key, value]
-            [#local component =
-                {
-                    "Id" : key,
-                    "Name" : key
-                } + value ]
-
-            [#if deploymentRequired(component, getDeploymentUnit(), "", "", true, false)]
-
-                [#assign multiAZ = component.MultiAZ!solnMultiAZ]
-                [#local occurrenceStart = .now]
-                [#list requiredOccurrences(
-                    getOccurrences(tier, component),
-                    getDeploymentUnit(),
-                    getDeploymentGroup(),
-                    "",
-                    true) as occurrence]
-                    [#local occurrenceEnd = .now]
-                    [@timing
-                        message= "Got " + tier.Id + "/" + component.Id + " occurrences ..."
-                        context=
-                            {
-                                "Elapsed" : (duration(occurrenceEnd, start)/1000)?string["0.000"],
-                                "Duration" : (duration(occurrenceEnd, occurrenceStart)/1000)?string["0.000"]
-                            }
-                    /]
-
-                    [#list occurrence.State.ResourceGroups as key,value]
-                        [#switch commandLineOptions.Deployment.Unit.Subset ]
-                            [#case "managementcontract" ]
-                                [#if invokeManagementContractMacro(occurrence, key, [] ) ]
-                                    [@debug
-                                        message="managementcontract Processing key:" + key + "..."
-                                        enabled=false
-                                    /]
-                                [/#if]
-                                [#break]
-
-                            [#case "generationcontract" ]
-                                [#if invokeGenerationContractMacro(occurrence, key, [ level ] ) ]
-                                    [@debug
-                                        message="generationcontract Processing key:" + key + "..."
-                                        enabled=false
-                                    /]
-                                [/#if]
-                                [#break]
-
-                            [#case "testcase" ]
-                                [#if invokeTestCaseMacro( occurrence, key, [ level ]) ]
-                                    [@debug
-                                        message="Test case Processing key:" + key + "..."
-                                        enabled=false
-                                    /]
-                                [/#if]
-                                [#break]
-
-                            [#case "schema"]
-                                [#if invokeSchemaMacro(occurrence, key, [level])]
-                                   [@debug
-                                        message="Schema Processing " + key + " ..."
-                                        enabled=false
-                                    /]
-                                [/#if]
-                                [#break]
-
-                            [#default]
-                                [#if invokeSetupMacro(occurrence, key, [ level ] ) ]
-                                    [@debug
-                                        message="Setup Processing " + key + " ..."
-                                        enabled=false
-                                    /]
-                                [/#if]
-                        [/#switch]
-                    [/#list]
-                    [#local processingEnd = .now]
-                    [@timing
-                        message="Processed " + tier.Id + "/" + component.Id + "."
-                        context=
-                            {
-                                "Elapsed"  : (duration(processingEnd, start)/1000)?string["0.000"],
-                                "Duration" : (duration(processingEnd, occurrenceEnd)/1000)?string["0.000"]
-                            }
-                    /]
-                [/#list]
-            [/#if]
-        [/#list]
-    [/#list]
-    [@timing
-        message="Finished component processing."
-        context=
-            {
-                "Elapsed"  : (duration(.now, start)/1000)?string["0.000"]
-            }
-        /]
-[/#macro]
 
 [#function getLinkTarget occurrence link activeOnly=true activeRequired=false]
 
@@ -261,6 +162,79 @@
     /]
     [#return {} ]
 [/#function]
+
+[#-- Main component processing loop --]
+[#macro default_model_legacy_scope_components level ]
+
+    [#local start = .now]
+    [@timing message="Starting component processing ..." /]
+    [#list tiers as tier]
+        [#list (tier.Components!{}) as key, value]
+            [#local component =
+                {
+                    "Id" : key,
+                    "Name" : key
+                } + value ]
+
+            [#if deploymentRequired(component, getDeploymentUnit(), "", "", true, false)]
+
+                [#assign multiAZ = component.MultiAZ!solnMultiAZ]
+                [#local occurrenceStart = .now]
+                [#list requiredOccurrences(
+                    getOccurrences(tier, component),
+                    getDeploymentUnit(),
+                    getDeploymentGroup(),
+                    "",
+                    true) as occurrence]
+                    [#local occurrenceEnd = .now]
+                    [@timing
+                        message= "Got " + tier.Id + "/" + component.Id + " occurrences ..."
+                        context=
+                            {
+                                "Elapsed" : (duration(occurrenceEnd, start)/1000)?string["0.000"],
+                                "Duration" : (duration(occurrenceEnd, occurrenceStart)/1000)?string["0.000"]
+                            }
+                    /]
+
+                    [#list occurrence.State.ResourceGroups as key,value]
+                        [#if invokeComponentMacro(
+                                occurrence,
+                                key,
+                                commandLineOptions.DocumentSet.Type,
+                                [
+                                    [ commandLineOptions.Deployment.Unit.Subset, level  ]
+                                    commandLineOptions.Deployment.Unit.Subset,
+                                    level
+                                ])]
+
+                                [@debug
+                                    message="managementcontract Processing key:" + key + "..."
+                                    enabled=false
+                                /]
+                        [/#if]
+                    [/#list]
+                    [#local processingEnd = .now]
+                    [@timing
+                        message="Processed " + tier.Id + "/" + component.Id + "."
+                        context=
+                            {
+                                "Elapsed"  : (duration(processingEnd, start)/1000)?string["0.000"],
+                                "Duration" : (duration(processingEnd, occurrenceEnd)/1000)?string["0.000"]
+                            }
+                    /]
+                [/#list]
+            [/#if]
+        [/#list]
+    [/#list]
+    [@timing
+        message="Finished component processing."
+        context=
+            {
+                "Elapsed"  : (duration(.now, start)/1000)?string["0.000"]
+            }
+        /]
+[/#macro]
+
 
 [#----------------------------------------------------
 -- internal support functions for legacy processing --
