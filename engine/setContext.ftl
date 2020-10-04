@@ -5,6 +5,7 @@
 [#include "schema.ftl"]
 
 [#-- Shared Provider Configurations --]
+[@includeSharedComponentConfiguration component="shared" /]
 [@includeSharedComponentConfiguration component="baseline" /]
 
 [#-- Temporary AWS stuff --]
