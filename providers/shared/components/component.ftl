@@ -3,6 +3,9 @@
 [#-- Legacy type mappings --]
 [#assign legacyTypeMapping = {} ]
 
+[#-- Provides generic shared componenet implementations --]
+[#assign SHARED_COMPONENT_TYPE = "shared" ]
+
 [#-- Known component types --]
 [#assign ADAPTOR_COMPONENT_TYPE = "adaptor"]
 
