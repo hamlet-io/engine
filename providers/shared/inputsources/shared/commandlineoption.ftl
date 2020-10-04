@@ -1,6 +1,14 @@
 [#ftl]
 
 [#macro shared_input_shared_commandlineoption_seed ]
+    [#-- Document Set --]
+    [@addCommandLineOption
+        option={
+            "DocumentSet" : {
+                "Type" : documentSet!"deployment"
+            }
+        }
+    /]
 
     [#-- Input data control --]
     [@addCommandLineOption

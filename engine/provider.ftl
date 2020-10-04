@@ -134,6 +134,22 @@
                 /]
             [/#list]
 
+            [#-- Determine the document sets for the provider --]
+            [#local directories =
+                internalGetPluginFiles(
+                    [providerMarker.Path, "documentsets"],
+                    [
+                        ["[^/]+"]
+                    ]
+                )
+            ]
+            [#list directories as directory]
+                [@internalIncludeTemplatesInDirectory
+                    directory,
+                    [ "id" ]
+                /]
+            [/#list]
+
             [#-- Determine the tasks for the provider --]
             [#local directories =
                 internalGetPluginFiles(
@@ -500,13 +516,25 @@
         ["component", "id", "name"]
     /]
 
+    [#-- aws/views/view.ftl --]
+    [@internalIncludeTemplatesInDirectory
+        [providerMarker.Path, "views"],
+        [ "view" ]
+    /]
+
     [#-- aws/references/reference.ftl --]
     [@internalIncludeTemplatesInDirectory
         [providerMarker.Path, "references"],
         ["reference" ]
     /]
 
-    [#-- aws/references/reference.ftl --]
+    [#-- aws/documentsets/documentset.ftl --]
+    [@internalIncludeTemplatesInDirectory
+        [providerMarker.Path, "documentsets"],
+        ["documentset" ]
+    /]
+
+    [#-- aws/tasks/task.ftl --]
     [@internalIncludeTemplatesInDirectory
         [providerMarker.Path, "tasks"],
         ["task" ]

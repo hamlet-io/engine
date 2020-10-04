@@ -16,6 +16,9 @@
 [#include "inputdata/definition.ftl" ]
 [#include "inputdata/seed.ftl" ]
 
+[#-- document sets --]
+[#include "documentSet.ftl" ]
+
 [#-- Task loading --]
 [#include "task.ftl" ]
 
