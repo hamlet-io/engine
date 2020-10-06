@@ -241,7 +241,7 @@
             [#return
                 targetSubOccurrence +
                 {
-                    "Direction" : direction?lower_case,
+                    "Direction" : direction,
                     "Role" : role,
                     "IncludeInContext" : link.IncludeInContext![]
                 } ]
