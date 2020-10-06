@@ -18,10 +18,17 @@
             [#return true]
         [/#if]
 
+        [#local unitDeploymentGroup = (obj["deployment:Group"])!deploymentGroupOverride ]
+
+        [#if groupDeploymentUnits!false ]
+            [#if unitDeploymentGroup == group  ]
+                [#return true]
+            [/#if]
+        [/#if]
+
         [#if getDeploymentUnitId(obj)?has_content && getDeploymentUnitId(obj) == unit ]
             [#if includeGroupMembership ]
-                [#local deploymentGroup = (obj["deployment:Group"])!deploymentGroupOverride ]
-                [#if deploymentGroup == group || group == "*" ]
+                [#if unitDeploymentGroup == group || group == "*" ]
                     [#return true ]
                 [/#if]
             [#else]

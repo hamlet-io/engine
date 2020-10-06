@@ -307,6 +307,15 @@
     )
 ]
 
+[#-- Cludge for now to get placement profiles working --]
+[#assign placementProfiles =
+    (blueprintObject.PlacementProfiles)!{} +
+    mergeObjects(
+        (productObject.PlacementProfiles)!{},
+        (tenantObject.PlacementProfiles)!{}
+    ) ]
+
+
 [#-- Segments --]
 [#assign segments = (blueprintObject.Segments)!{} ]
 [#assign segmentObject = (blueprintObject.Segment)!(segments[segment])!{} ]
@@ -355,17 +364,8 @@
 
     [/#if]
 
-    [#-- Cludge for now to get placement profiles working --]
-    [#assign placementProfiles =
-        (blueprintObject.PlacementProfiles)!{} +
-        mergeObjects(
-            (productObject.PlacementProfiles)!{},
-            (tenantObject.PlacementProfiles)!{}
-        ) ]
-
     [#if (commandLineOptions.Deployment.Provider.Names)?seq_contains("aws")]
-    [#assign segmentSeed = getExistingReference(formatSegmentSeedId()) ]
-
+        [#assign segmentSeed = getExistingReference(formatSegmentSeedId()) ]
 
         [#assign legacyVpc = getExistingReference(formatVPCId())?has_content ]
         [#if legacyVpc ]

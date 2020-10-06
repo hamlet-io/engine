@@ -10,7 +10,8 @@
 [#macro processModelScope framework model scope level="" ]
     [#local macroOptions =
         [
-            [framework, "model", model, "scope", scope ]
+            [framework, "model", model, "scope", scope ],
+            [DEFAULT_DEPLOYMENT_FRAMEWORK, "model", model, "scope", scope ]
         ]
     ]
 
@@ -19,7 +20,7 @@
         [@(.vars[macro]) level=level /]
     [#else]
         [@debug
-            message="Unable to invoke any of the macro options"
+            message="Unable to invoke any of the model scope macro options"
             context=macroOptions
             enabled=false
         /]

@@ -28,6 +28,9 @@
     [#return (commandLineOptions["Deployment"]["Unit"]["Name"])!"" ]
 [/#function]
 
+[#function getDeploymentGroup ]
+    [#return (commandLineOptions["Deployment"]["Group"]["Name"])!"" ]
+[/#function]
 [#-----------------------------------------------------
 -- Internal support functions for blueprint processing --
 -------------------------------------------------------]

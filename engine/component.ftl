@@ -283,7 +283,7 @@
     [#return profile[key]!{} ]
 [/#function]
 
-[#function invokeComponentMacro occurrence resourceGroup documentSet qualifiers=[] parent={}]
+[#function invokeComponentMacro occurrence resourceGroup documentSet="" qualifiers=[] parent={} includeShared=true ]
     [#local placement = (occurrence.State.ResourceGroups[resourceGroup].Placement)!{} ]
     [#if placement?has_content]
         [#local macroOptions = [] ]
@@ -292,7 +292,8 @@
                 [
                     [placement.Provider, occurrence.Core.Type, resourceGroup, placement.DeploymentFramework, documentSet ] + asArray(qualifier),
                     [placement.Provider, occurrence.Core.Type, placement.DeploymentFramework, documentSet ] + asArray(qualifier),
-                    [placement.Provider, resourceGroup, placement.DeploymentFramework, documentSet ] + asArray(qualifier)
+                    [placement.Provider, resourceGroup, placement.DeploymentFramework, documentSet ] + asArray(qualifier),
+                    [placement.Provider, resourceGroup, placement.DeploymentFramework  ] + asArray(qualifier)
                 ]]
         [/#list]
 
@@ -300,26 +301,29 @@
             [
                 [placement.Provider, occurrence.Core.Type, resourceGroup, placement.DeploymentFramework, documentSet],
                 [placement.Provider, occurrence.Core.Type, placement.DeploymentFramework, documentSet],
-                [placement.Provider, resourceGroup, placement.DeploymentFramework, documentSet]
+                [placement.Provider, resourceGroup, placement.DeploymentFramework, documentSet],
+                [placement.Provider, resourceGroup, placement.DeploymentFramework ]
             ]]
-        [#list qualifiers as qualifier]
-            [#local macroOptions +=
-                [
-                    [ SHARED_PROVIDER, occurrence.Core.Type, resourceGroup, placement.DeploymentFramework, documentSet ] + asArray(qualifier),
-                    [ SHARED_PROVIDER, occurrence.Core.Type, placement.DeploymentFramework, documentSet ] + asArray(qualifier),
-                    [ SHARED_PROVIDER, resourceGroup, placement.DeploymentFramework, documentSet ] + asArray(qualifier),
-                    [ SHARED_PROVIDER, placement.DeploymentFramework, documentSet ] + asArray(qualifier),
-                    [ SHARED_PROVIDER, documentSet ] + asArray(qualifier)
-                ]]
-        [/#list]
+        [#if includeShared ]
+            [#list qualifiers as qualifier]
+                [#local macroOptions +=
+                    [
+                        [ SHARED_PROVIDER, occurrence.Core.Type, resourceGroup, placement.DeploymentFramework, documentSet ] + asArray(qualifier),
+                        [ SHARED_PROVIDER, occurrence.Core.Type, placement.DeploymentFramework, documentSet ] + asArray(qualifier),
+                        [ SHARED_PROVIDER, resourceGroup, placement.DeploymentFramework, documentSet ] + asArray(qualifier),
+                        [ SHARED_PROVIDER, placement.DeploymentFramework, documentSet ] + asArray(qualifier),
+                        [ SHARED_PROVIDER, documentSet ] + asArray(qualifier)
+                    ]]
+            [/#list]
 
-        [#local macroOptions += [
-            [ SHARED_PROVIDER, occurrence.Core.Type, resourceGroup, placement.DeploymentFramework, documentSet],
-            [ SHARED_PROVIDER, occurrence.Core.Type, placement.DeploymentFramework, documentSet],
-            [ SHARED_PROVIDER, resourceGroup, placement.DeploymentFramework, documentSet],
-            [ SHARED_PROVIDER, placement.DeploymentFramework, documentSet ],
-            [ SHARED_PROVIDER, documentSet ]
-        ]]
+            [#local macroOptions += [
+                [ SHARED_PROVIDER, occurrence.Core.Type, resourceGroup, placement.DeploymentFramework, documentSet],
+                [ SHARED_PROVIDER, occurrence.Core.Type, placement.DeploymentFramework, documentSet],
+                [ SHARED_PROVIDER, resourceGroup, placement.DeploymentFramework, documentSet],
+                [ SHARED_PROVIDER, placement.DeploymentFramework, documentSet ],
+                [ SHARED_PROVIDER, documentSet ]
+            ]]
+        [/#if]
         [#local macro = getFirstDefinedDirective(macroOptions)]
         [#if macro?has_content]
             [#if parent?has_content ]
@@ -358,9 +362,10 @@
         invokeComponentMacro(
             occurrence,
             resourceGroup,
-            "state",
-            [],
-            parent
+            "",
+            [ "state" ],
+            parent,
+            false
         )]
 [/#function]
 
