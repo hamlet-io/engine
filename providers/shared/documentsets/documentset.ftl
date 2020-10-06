@@ -1,7 +1,8 @@
 [#ftl]
 
 [#-- Shared Document Sets --]
-[#assign SETUP_DOCUMENTSET_TYPE             = "setup" ]
+[#assign DEPLOYMENT_DOCUMENTSET_TYPE        = "deployment" ]
+[#assign DEPLOYMENTTEST_DOCUMENTSET_TYPE    = "deploymenttest" ]
 [#assign BLUEPRINT_DOCUMENTSET_TYPE         = "blueprint" ]
 [#assign BUILDBLUEPRINT_DOCUMENTSET_TYPE    = "buildblueprint" ]
 [#assign UNITLIST_DOCUMENTSET_TYPE          = "unitlist" ]

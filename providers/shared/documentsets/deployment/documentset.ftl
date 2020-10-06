@@ -8,7 +8,7 @@
 [#list ((deploymentGroupDetails.ResourceSets)!{})?values?filter(s -> s.Enabled ) as resourceSet ]
     [#if getDeploymentUnit() == resourceSet["deployment:Unit"] ]
 
-        [#assign allDeploymentUnits = true]
+        [#assign groupDeploymentUnits = true]
         [#assign ignoreDeploymentUnitSubsetInOutputs = true]
 
         [#assign contractSubsets = []]
@@ -18,10 +18,8 @@
         [/#list]
 
         [#if (commandLineOptions.Deployment.Unit.Subset!"") == "generationcontract"]
-            [#assign allDeploymentUnits = false]
+            [#assign groupDeploymentUnits = false]
             [#assign ignoreDeploymentUnitSubsetInOutputs = false]
-
-            [@initialiseDefaultScriptOutput format=commandLineOptions.Deployment.Output.Format /]
             [@addDefaultGenerationContract subsets=contractSubsets /]
 
         [#else]
@@ -41,11 +39,6 @@
         [/#if]
     [/#if]
 [/#list]
-
-
-[#if (commandLineOptions.Deployment.Unit.Subset!"") == "generationcontract" ]
-    [@addDefaultGenerationContract subsets="testcase" /]
-[/#if]
 
 [@generateOutput
     deploymentFramework=commandLineOptions.Deployment.Framework.Name

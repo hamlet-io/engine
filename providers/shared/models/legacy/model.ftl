@@ -176,54 +176,56 @@
                     "Name" : key
                 } + value ]
 
-            [#if deploymentRequired(component, getDeploymentUnit(), "", "", true, false)]
+            [#assign multiAZ = component.MultiAZ!solnMultiAZ]
+            [#local occurrenceStart = .now]
+            [#list requiredOccurrences(
+                getOccurrences(tier, component),
+                getDeploymentUnit(),
+                getDeploymentGroup(),
+                "",
+                true) as occurrence]
+                [#local occurrenceEnd = .now]
+                [@timing
+                    message= "Got " + tier.Id + "/" + component.Id + " occurrences ..."
+                    context=
+                        {
+                            "Elapsed" : (duration(occurrenceEnd, start)/1000)?string["0.000"],
+                            "Duration" : (duration(occurrenceEnd, occurrenceStart)/1000)?string["0.000"]
+                        }
+                /]
 
-                [#assign multiAZ = component.MultiAZ!solnMultiAZ]
-                [#local occurrenceStart = .now]
-                [#list requiredOccurrences(
-                    getOccurrences(tier, component),
-                    getDeploymentUnit(),
-                    getDeploymentGroup(),
-                    "",
-                    true) as occurrence]
-                    [#local occurrenceEnd = .now]
-                    [@timing
-                        message= "Got " + tier.Id + "/" + component.Id + " occurrences ..."
-                        context=
-                            {
-                                "Elapsed" : (duration(occurrenceEnd, start)/1000)?string["0.000"],
-                                "Duration" : (duration(occurrenceEnd, occurrenceStart)/1000)?string["0.000"]
-                            }
-                    /]
+                [#list occurrence.State.ResourceGroups as key,value]
+                    [#if invokeComponentMacro(
+                            occurrence,
+                            key,
+                            commandLineOptions.DocumentSet.Type,
+                            [
+                                [ commandLineOptions.Deployment.Unit.Subset, level  ]
+                                commandLineOptions.Deployment.Unit.Subset,
+                                level
+                            ])]
 
-                    [#list occurrence.State.ResourceGroups as key,value]
-                        [#if invokeComponentMacro(
-                                occurrence,
-                                key,
-                                commandLineOptions.DocumentSet.Type,
-                                [
-                                    [ commandLineOptions.Deployment.Unit.Subset, level  ]
-                                    commandLineOptions.Deployment.Unit.Subset,
-                                    level
-                                ])]
-
-                                [@debug
-                                    message="managementcontract Processing key:" + key + "..."
-                                    enabled=false
-                                /]
-                        [/#if]
-                    [/#list]
-                    [#local processingEnd = .now]
-                    [@timing
-                        message="Processed " + tier.Id + "/" + component.Id + "."
-                        context=
-                            {
-                                "Elapsed"  : (duration(processingEnd, start)/1000)?string["0.000"],
-                                "Duration" : (duration(processingEnd, occurrenceEnd)/1000)?string["0.000"]
-                            }
-                    /]
+                            [@debug
+                                message="Component Processing resourceGroup: " + key + "..."
+                                context={
+                                    "documentSet" : commandLineOptions.DocumentSet.Type,
+                                    "subset" : commandLineOptions.Deployment.Unit.Subset,
+                                    "level" : level
+                                }
+                                enabled=true
+                            /]
+                    [/#if]
                 [/#list]
-            [/#if]
+                [#local processingEnd = .now]
+                [@timing
+                    message="Processed " + tier.Id + "/" + component.Id + "."
+                    context=
+                        {
+                            "Elapsed"  : (duration(processingEnd, start)/1000)?string["0.000"],
+                            "Duration" : (duration(processingEnd, occurrenceEnd)/1000)?string["0.000"]
+                        }
+                /]
+            [/#list]
         [/#list]
     [/#list]
     [@timing

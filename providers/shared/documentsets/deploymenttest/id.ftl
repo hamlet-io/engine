@@ -1,7 +1,7 @@
 [#ftl]
 
 [@addDocumentSet
-    type=SETUP_DOCUMENTSET_TYPE
+    type=DEPLOYMENTTEST_DOCUMENTSET_TYPE
     properties=
         [
             {

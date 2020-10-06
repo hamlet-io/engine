@@ -6,7 +6,7 @@
 
 [#-- Default build blueprint --]
 [#macro shared_buildblueprint_generationcontract occurrence ]
-    [@addDefaultGenerationContract subsets="config" /]
+    [@addDefaultGenerationContract subsets=[ "config" ] /]
 [/#macro]
 
 [#macro shared_buildblueprint_config occurrence ]
@@ -19,7 +19,7 @@
 
 [#-- Default management contract --]
 [#macro shared_unitlist_generationcontract occurrence ]
-    [@addDefaultGenerationContract subsets="managementcontract" /]
+    [@addDefaultGenerationContract subsets=[ "managementcontract" ] /]
 [/#macro]
 
 [#macro shared_unitlist_managementcontract occurrence ]
@@ -43,7 +43,11 @@
 [/#macro]
 
 [#-- Default testcase --]
-[#macro shared_setup_testcase occurrence ]
+[#macro shared_deploymenttest_generationcontract occurrence ]
+    [@addDefaultGenerationContract subsets=[ "testcase" ] /]
+[/#macro]
+
+[#macro shared_deploymenttest_testcase occurrence ]
     [#local solution = occurrence.Configuration.Solution ]
     [#local componentType = occurrence.Core.Type ]
 
