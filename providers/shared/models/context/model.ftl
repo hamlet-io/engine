@@ -3,7 +3,6 @@
 [#-------------------------------------------------------
 -- Public functions for context based model processing --
 ---------------------------------------------------------]
-[#import "internal.ftl" as internal_model_context ]
 
 [#-- Temporary model for transition to context as default --]
 [#function default_model_context args=[] ]
