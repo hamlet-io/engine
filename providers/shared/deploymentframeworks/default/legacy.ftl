@@ -146,7 +146,7 @@
         [#return
             internalCreateOccurrenceFromExternalLink(occurrence, link) +
             {
-                "Direction" : link.Direction!"outbound",
+                "Direction" : (link.Direction?lower_case)!"outbound",
                 "Role" : link.Role!"external",
                 "IncludeInContext" : link.IncludeInContext![]
             }
@@ -233,7 +233,7 @@
             [/#if]
 
             [#-- Determine the role --]
-            [#local direction = link.Direction!"outbound"]
+            [#local direction = (link.Direction?lower_case)!"outbound"]
 
             [#local role =
                 link.Role!getOccurrenceDefaultRole(targetSubOccurrence, direction)]
@@ -241,7 +241,7 @@
             [#return
                 targetSubOccurrence +
                 {
-                    "Direction" : direction,
+                    "Direction" : direction?lower_case,
                     "Role" : role,
                     "IncludeInContext" : link.IncludeInContext![]
                 } ]

@@ -35,7 +35,7 @@
         [/#if]
         [#if linkTarget.Role != "networkacl" ]
             [#local role = getOccurrenceRole(linkTarget, "Outbound", linkTarget.Role) ]
-            [#if (linkTarget.Direction == "outbound") && role?has_content  ]
+            [#if (linkTarget.Direction?lower_case == "outbound") && role?has_content  ]
                 [#local roles += asArray(role![]) ]
             [/#if]
         [/#if]

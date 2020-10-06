@@ -74,7 +74,7 @@
         [#return
             internalCreateOccurrenceFromContextExternalLink(occurrence, link) +
             {
-                "Direction" : fullLink.Direction,
+                "Direction" : fullLink.Direction?lower_case,
                 "Role" : fullLink.Role,
                 "IncludeInContext" : fullLink.IncludeInContext![]
             }
@@ -126,12 +126,12 @@
 
         [#-- Determine the role --]
         [#local role =
-            fullLink.Role!getOccurrenceDefaultRole(targetOccurrence, fullLink.Direction)]
+            fullLink.Role!getOccurrenceDefaultRole(targetOccurrence, fullLink.Direction?lower_case)]
 
         [#return
             targetOccurrence +
             {
-                "Direction" : fullLink.Direction,
+                "Direction" : fullLink.Direction?lower_case,
                 "Role" : role,
                 "IncludeInContext" : fullLink.IncludeInContext![]
             } ]

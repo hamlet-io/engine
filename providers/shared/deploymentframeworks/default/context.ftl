@@ -758,7 +758,7 @@ The roles available are defined as part of the state of the target component.
             "Name" : name,
             "Enabled" : enabled,
             "Filter" : filter,
-            "Direction" : direction,
+            "Direction" : direction?lower_case,
             "Attributes" : attributes
         } +
         attributeIfContent("Role", role)]
@@ -781,7 +781,7 @@ The roles available are defined as part of the state of the target component.
             link.Id!"COTFatal: Id not provided on link",
             link.Name!"COTFatal: Name not provided on link",
             removeObjectAttributes(link, ["Id", "Name", "Direction", "Role", "Attributes", "Enabled", "Type"]),
-            link.Direction!OUTBOUND_LINK_DIRECTION,
+            (link.Direction?lower_case)!OUTBOUND_LINK_DIRECTION,
             link.Role!"",
             link.Attributes!{},
             link.Enabled!true

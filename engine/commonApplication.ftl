@@ -117,7 +117,7 @@
 [#function getDefaultLinkVariables links includeInbound=false]
     [#local result = {"Links" : links, "Environment": {} }]
     [#list links as name,value]
-        [#if (value.Direction != "inbound") || includeInbound]
+        [#if (value.Direction?lower_case != "inbound") || includeInbound]
             [#local result = addLinkVariablesToContext(result, name, name, value.IncludeInContext, false) ]
         [/#if]
     [/#list]
@@ -127,7 +127,7 @@
 [#function getDefaultBaselineVariables links ]
     [#local result = {"Links" : links, "Environment": {} }]
     [#list links as name,value]
-        [#if (value.Direction != "inbound") || includeInbound]
+        [#if (value.Direction?lower_case != "inbound") || includeInbound]
             [#local result = addLinkVariablesToContext(result, name, name, [], false, false, false) ]
         [/#if]
     [/#list]
@@ -868,7 +868,7 @@
                 [#local egressRules += [ linkTargetRoles.Outbound["networkacl"] ]]
             [/#if]
 
-            [#if linkTarget.Direction == "Inbound" && linkTarget.Role == "networkacl" ]
+            [#if linkTarget.Direction?lower_case == "Inbound" && linkTarget.Role == "networkacl" ]
                 [#local linkIngressRules += [  mergeObjects( linkTargetRoles.Inbound["networkacl"],  { "Ports" : inboundPorts } ) ] ]]
             [/#if]
 
