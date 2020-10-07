@@ -283,45 +283,45 @@
     [#return profile[key]!{} ]
 [/#function]
 
-[#function invokeComponentMacro occurrence resourceGroup documentSet="" qualifiers=[] parent={} includeShared=true ]
+[#function invokeComponentMacro occurrence resourceGroup entrance="" qualifiers=[] parent={} includeShared=true ]
     [#local placement = (occurrence.State.ResourceGroups[resourceGroup].Placement)!{} ]
     [#if placement?has_content]
         [#local macroOptions = [] ]
         [#list qualifiers as qualifier]
             [#local macroOptions +=
                 [
-                    [placement.Provider, occurrence.Core.Type, resourceGroup, placement.DeploymentFramework, documentSet ] + asArray(qualifier),
-                    [placement.Provider, occurrence.Core.Type, placement.DeploymentFramework, documentSet ] + asArray(qualifier),
-                    [placement.Provider, resourceGroup, placement.DeploymentFramework, documentSet ] + asArray(qualifier),
+                    [placement.Provider, occurrence.Core.Type, resourceGroup, placement.DeploymentFramework, entrance ] + asArray(qualifier),
+                    [placement.Provider, occurrence.Core.Type, placement.DeploymentFramework, entrance ] + asArray(qualifier),
+                    [placement.Provider, resourceGroup, placement.DeploymentFramework, entrance ] + asArray(qualifier),
                     [placement.Provider, resourceGroup, placement.DeploymentFramework  ] + asArray(qualifier)
                 ]]
         [/#list]
 
         [#local macroOptions +=
             [
-                [placement.Provider, occurrence.Core.Type, resourceGroup, placement.DeploymentFramework, documentSet],
-                [placement.Provider, occurrence.Core.Type, placement.DeploymentFramework, documentSet],
-                [placement.Provider, resourceGroup, placement.DeploymentFramework, documentSet],
+                [placement.Provider, occurrence.Core.Type, resourceGroup, placement.DeploymentFramework, entrance],
+                [placement.Provider, occurrence.Core.Type, placement.DeploymentFramework, entrance],
+                [placement.Provider, resourceGroup, placement.DeploymentFramework, entrance],
                 [placement.Provider, resourceGroup, placement.DeploymentFramework ]
             ]]
         [#if includeShared ]
             [#list qualifiers as qualifier]
                 [#local macroOptions +=
                     [
-                        [ SHARED_PROVIDER, occurrence.Core.Type, resourceGroup, placement.DeploymentFramework, documentSet ] + asArray(qualifier),
-                        [ SHARED_PROVIDER, occurrence.Core.Type, placement.DeploymentFramework, documentSet ] + asArray(qualifier),
-                        [ SHARED_PROVIDER, resourceGroup, placement.DeploymentFramework, documentSet ] + asArray(qualifier),
-                        [ SHARED_PROVIDER, placement.DeploymentFramework, documentSet ] + asArray(qualifier),
-                        [ SHARED_PROVIDER, documentSet ] + asArray(qualifier)
+                        [ SHARED_PROVIDER, occurrence.Core.Type, resourceGroup, placement.DeploymentFramework, entrance ] + asArray(qualifier),
+                        [ SHARED_PROVIDER, occurrence.Core.Type, placement.DeploymentFramework, entrance ] + asArray(qualifier),
+                        [ SHARED_PROVIDER, resourceGroup, placement.DeploymentFramework, entrance ] + asArray(qualifier),
+                        [ SHARED_PROVIDER, placement.DeploymentFramework, entrance ] + asArray(qualifier),
+                        [ SHARED_PROVIDER, entrance ] + asArray(qualifier)
                     ]]
             [/#list]
 
             [#local macroOptions += [
-                [ SHARED_PROVIDER, occurrence.Core.Type, resourceGroup, placement.DeploymentFramework, documentSet],
-                [ SHARED_PROVIDER, occurrence.Core.Type, placement.DeploymentFramework, documentSet],
-                [ SHARED_PROVIDER, resourceGroup, placement.DeploymentFramework, documentSet],
-                [ SHARED_PROVIDER, placement.DeploymentFramework, documentSet ],
-                [ SHARED_PROVIDER, documentSet ]
+                [ SHARED_PROVIDER, occurrence.Core.Type, resourceGroup, placement.DeploymentFramework, entrance],
+                [ SHARED_PROVIDER, occurrence.Core.Type, placement.DeploymentFramework, entrance],
+                [ SHARED_PROVIDER, resourceGroup, placement.DeploymentFramework, entrance],
+                [ SHARED_PROVIDER, placement.DeploymentFramework, entrance ],
+                [ SHARED_PROVIDER, entrance ]
             ]]
         [/#if]
         [#local macro = getFirstDefinedDirective(macroOptions)]

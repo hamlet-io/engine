@@ -4,8 +4,8 @@
     [#-- Document Set --]
     [@addCommandLineOption
         option={
-            "DocumentSet" : {
-                "Type" : documentSet!"deployment"
+            "Entrance" : {
+                "Type" : entrance!"deployment"
             }
         }
     /]

@@ -154,10 +154,10 @@
                 /]
             [/#list]
 
-            [#-- Determine the document sets for the provider --]
+            [#-- Determine the entrances for the provider --]
             [#local directories =
                 internalGetPluginFiles(
-                    [providerMarker.Path, "documentsets"],
+                    [providerMarker.Path, "entrances"],
                     [
                         ["[^/]+"]
                     ]
@@ -166,7 +166,7 @@
             [#list directories as directory]
                 [@internalIncludeTemplatesInDirectory
                     directory,
-                    [ "id" ]
+                    [ "id", "entrance" ]
                 /]
             [/#list]
 
@@ -577,10 +577,10 @@
         ["reference" ]
     /]
 
-    [#-- aws/documentsets/documentset.ftl --]
+    [#-- aws/entrances/entrance.ftl --]
     [@internalIncludeTemplatesInDirectory
-        [providerMarker.Path, "documentsets"],
-        ["documentset" ]
+        [providerMarker.Path, "entrances"],
+        [ "entrance" ]
     /]
 
     [#-- aws/tasks/task.ftl --]
