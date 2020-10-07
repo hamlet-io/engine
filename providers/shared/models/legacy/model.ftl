@@ -163,8 +163,8 @@
     [#return {} ]
 [/#function]
 
-[#-- Main component processing loop --]
-[#macro default_model_legacy_scope_components level ]
+[#-- Main component processing flow --]
+[#macro default_model_legacy_flow_components level ]
 
     [#local start = .now]
     [@timing message="Starting component processing ..." /]
@@ -198,7 +198,7 @@
                     [#if invokeComponentMacro(
                             occurrence,
                             key,
-                            commandLineOptions.DocumentSet.Type,
+                            commandLineOptions.Entrance.Type,
                             [
                                 [ commandLineOptions.Deployment.Unit.Subset, level  ]
                                 commandLineOptions.Deployment.Unit.Subset,
@@ -208,7 +208,7 @@
                             [@debug
                                 message="Component Processing resourceGroup: " + key + "..."
                                 context={
-                                    "documentSet" : commandLineOptions.DocumentSet.Type,
+                                    "entrance" : commandLineOptions.Entrance.Type,
                                     "subset" : commandLineOptions.Deployment.Unit.Subset,
                                     "level" : level
                                 }

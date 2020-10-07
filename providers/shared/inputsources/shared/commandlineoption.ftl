@@ -29,7 +29,7 @@
                 "Framework" : {
                     "Name" : deploymentFramework!"",
                     "Model" : deploymentFrameworkModel!"legacy",
-                    "Scope" : deploymentFrameworkScope!COMPONENTS_MODEL_SCOPE
+                    "Flow" : deploymentFrameworkScope!COMPONENTS_MODEL_FLOW
                 },
                 "Output" : {
                     "Type" : outputType!"",
