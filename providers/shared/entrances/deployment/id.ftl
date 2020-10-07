@@ -1,12 +1,12 @@
 [#ftl]
 
-[@addDocumentSet
-    type=BLUEPRINT_DOCUMENTSET_TYPE
+[@addEntrance
+    type=DEPLOYMENT_ENTRANCE_TYPE
     properties=
         [
             {
                 "Type"  : "Description",
-                "Value" : "Provides a detailed reppresentation of everything in a given segment, this includes its parent, environment, product and tenant"
+                "Value" : "Generates the required documents to deploy a given deployment unit / deployment group combination"
             }
         ]
     commandlineoptions=[

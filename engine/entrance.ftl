@@ -1,11 +1,11 @@
 [#ftl]
 
-[#-- Document Sets --]
-[#-- The Hamlet engine uses the CMDB and blueprint to generate different artefacts --]
-[#-- A collection of aretefacts for a particular purpose is defined as a document set --]
-[#-- Document sets allow you to override and define command line options which will be used as part of the output processing --]
+[#-- Entrances --]
+[#-- An entrance provides a way into the hamlet engine --]
+[#-- The entrance itself can override or define actions to perform to set the path that will be taken --]
+[#-- Entrances can also be used by flows to provide document generation based on the entrance that was used --]
 
-[#assign documentSetConfiguration = {}]
+[#assign entranceConfiguration = {}]
 
 [#assign mandatoryCommandLineOptions = [
     {
@@ -63,10 +63,9 @@
 ]]
 
 
-
 [#-- Macros to assemble the component configuration --]
-[#macro addDocumentSet type commandlineoptions=[] properties=[]   ]
-    [@internalDocumentSetConfiguration
+[#macro addEntrance type commandlineoptions=[] properties=[]   ]
+    [@internalEntranceConfiguration
         type=type
         configuration=
             {
@@ -77,31 +76,61 @@
 [/#macro]
 
 
-[#function getDocumentSet type ]
-    [#if ((documentSetConfiguration[type])!{})?has_content]
-        [#local documentSetConfig = (documentSetConfiguration[type])!{} ]
+[#function getEntrance type ]
+    [#if ((entranceConfiguration[type])!{})?has_content]
+        [#local entranceConfig = (entranceConfiguration[type])!{} ]
     [/#if]
 
-    [#if ! documentSetConfig?has_content ]
+    [#if ! entrance?has_content ]
         [@fatal
             message="Could not find document set"
             detail=label
         /]
     [/#if]
 
-    [#return documentSetConfig ]
+    [#return entranceConfig!{} ]
 [/#function]
+
+[#macro invokeEntranceMacro entranceType ]
+
+    [#local macroOptions = []]
+    [#list commandLineOptions.Deployment.Provider.Names as provider ]
+        [#local macroOptions +=
+            [
+                [ provider, "entrance", entranceType ]
+            ]
+        ]
+    [/#list]
+
+    [#local macroOptions +=
+        [
+            [ SHARED_PROVIDER, "entrance", entranceType ]
+        ]
+    ]
+
+    [#local macro = getFirstDefinedDirective(macroOptions)]
+    [#if macro?has_content]
+        [@(.vars[macro]) /]
+    [#else]
+        [@fatal
+            message="Could not find entrance macro with provided options"
+            context=macroOptions
+            enabled=false
+        /]
+        [#stop "HamletFatal: Unable to find an entrance macro" ]
+    [/#if]
+[/#macro]
 
 
 [#-------------------------------------------------------
--- Internal support functions for documentset processing      --
+-- Internal support functions for entrance  processing      --
 ---------------------------------------------------------]
 
 [#-- Helper macro - not for general use --]
-[#macro internalDocumentSetConfiguration type configuration]
-    [#assign documentSetConfiguration =
+[#macro internalEntranceConfiguration type configuration]
+    [#assign entranceConfiguration =
         mergeObjects(
-            documentSetConfiguration,
+            entranceConfiguration,
             {
                 type : configuration
             }

@@ -1,12 +1,12 @@
 [#ftl]
 
-[@addDocumentSet
-    type=SCHEMA_DOCUMENTSET_TYPE
+[@addEntrance
+    type=UNITLIST_ENTRANCE_TYPE
     properties=
         [
             {
                 "Type"  : "Description",
-                "Value" : "Povides JSON schema representations of input configuration"
+                "Value" : "Provides details on all deployment unit | deployment group combinations"
             }
         ]
     commandlineoptions=[
