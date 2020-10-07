@@ -93,7 +93,7 @@
 [/#macro]
 
 [#macro createResourceSetManagementContractStep deploymentGroupDetails ]
-    [#list (deploymentGroupDetails.ResourceSets)?values as resourceSet ]
+    [#list ((deploymentGroupDetails.ResourceSets)!{})?values?filter(s -> s.Enabled ) as resourceSet ]
         [@createManagementContractStage
             deploymentUnit=resourceSet["deployment:Unit"]
             deploymentGroup=deploymentGroupDetails.Name
