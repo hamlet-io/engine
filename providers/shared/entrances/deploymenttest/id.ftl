@@ -1,12 +1,12 @@
 [#ftl]
 
-[@addDocumentSet
-    type=UNITLIST_DOCUMENTSET_TYPE
+[@addEntrance
+    type=DEPLOYMENTTEST_ENTRANCE_TYPE
     properties=
         [
             {
                 "Type"  : "Description",
-                "Value" : "Provides details on all deployment unit | deployment group combinations"
+                "Value" : "Generates the required documents to deploy a given deployment unit / deployment group combination"
             }
         ]
     commandlineoptions=[

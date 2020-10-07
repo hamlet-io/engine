@@ -1,12 +1,12 @@
 [#ftl]
 
-[@addDocumentSet
-    type=DEPLOYMENTTEST_DOCUMENTSET_TYPE
+[@addEntrance
+    type=BUILDBLUEPRINT_ENTRANCE_TYPE
     properties=
         [
             {
                 "Type"  : "Description",
-                "Value" : "Generates the required documents to deploy a given deployment unit / deployment group combination"
+                "Value" : "Provides a given deployment units occurrences and their suboccurrences"
             }
         ]
     commandlineoptions=[
