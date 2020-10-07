@@ -3,13 +3,13 @@
 -- Public functions for passthrough processing --
 --------------------------------------------]
 
-[#-- Legacy processing doesn't have a model --]
+[#-- passthrough model has now  data model  --]
 [#function default_model_passthrough args=[] ]
     [#return {} ]
 [/#function]
 
 [#-- Main component processing loop --]
-[#macro default_model_passthrough_scope_view level ]
+[#macro default_model_passthrough_flow_view level ]
 
     [@includeProviderViewDefinitionConfiguration
         provider=SHARED_PROVIDER
@@ -33,7 +33,7 @@
 
     [#if invokeViewMacro(
             (commandLineOptions.Deployment.Provider.Names)![0],
-            commandLineOptions.DocumentSet.Type,
+            commandLineOptions.Entrance.Type,
             commandLineOptions.Deployment.Framework.Name,
             [
                 commandLineOptions.Deployment.Unit.Subset

@@ -1,17 +1,17 @@
 [#ftl]
-[#-- Model Engine --]
-[#-- The model defines a data layout that the engine creates from the various input sources --]
-[#-- Models implement scopes that represent a specifc portion of the data --]
-[#-- Each scope is defined as part of the engine and models implement the scope based on the engine deinfed schema to ensure compatability --]
+[#-- Models and Flows--]
+[#-- Before processing a flow you can use the model to define a common data structure or setup across multiple flows --]
+[#-- Flows provide a path throught the hamlet engine to generate an output --]
+[#-- Flows can be used to generate multiple outputs and essentially perform preprocessing of hamlet input data to reduce duplication across multiple output types --]
 
-[#assign COMPONENTS_MODEL_SCOPE = "components" ]
-[#assign VIEW_MODEL_SCOPE = "view" ]
+[#assign COMPONENTS_MODEL_FLOW = "components" ]
+[#assign VIEW_MODEL_FLOW = "view" ]
 
-[#macro processModelScope framework model scope level="" ]
+[#macro processModelFlow framework model flow level="" ]
     [#local macroOptions =
         [
-            [framework, "model", model, "scope", scope ],
-            [DEFAULT_DEPLOYMENT_FRAMEWORK, "model", model, "scope", scope ]
+            [framework, "model", model, "flow", flow ],
+            [DEFAULT_DEPLOYMENT_FRAMEWORK, "model", model, "flow", flow ]
         ]
     ]
 
@@ -19,10 +19,11 @@
     [#if macro?has_content]
         [@(.vars[macro]) level=level /]
     [#else]
-        [@debug
-            message="Unable to invoke any of the model scope macro options"
+        [@fatal
+            message="Unable to invoke any of the model flow macro options"
             context=macroOptions
             enabled=false
         /]
+        [#stop "HamletFatal: Unable to invoke any of the model flow macro options" ]
     [/#if]
 [/#macro]
