@@ -3,7 +3,7 @@
 [#-- Legacy type mappings --]
 [#assign legacyTypeMapping = {} ]
 
-[#-- Provides generic shared componenet implementations --]
+[#-- Provides generic component macros --]
 [#assign SHARED_COMPONENT_TYPE = "shared" ]
 
 [#-- Known component types --]
