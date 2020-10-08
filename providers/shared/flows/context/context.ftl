@@ -755,6 +755,7 @@ The roles available are defined as part of the state of the target component.
 
 
 [#-- Get the occurrence for a link --]
+[#-- Get the occurrence for a link --]
 [#function getLinkTarget occurrence link activeOnly=true activeRequired=false]
 
     [#if !occurrence.Context?has_content]
@@ -793,7 +794,7 @@ The roles available are defined as part of the state of the target component.
         [#return
             internalCreateOccurrenceFromContextExternalLink(occurrence, link) +
             {
-                "Direction" : fullLink.Direction,
+                "Direction" : fullLink.Direction?lower_case,
                 "Role" : fullLink.Role,
                 "IncludeInContext" : fullLink.IncludeInContext![]
             }
@@ -845,12 +846,12 @@ The roles available are defined as part of the state of the target component.
 
         [#-- Determine the role --]
         [#local role =
-            fullLink.Role!getOccurrenceDefaultRole(targetOccurrence, fullLink.Direction)]
+            fullLink.Role!getOccurrenceDefaultRole(targetOccurrence, fullLink.Direction?lower_case)]
 
         [#return
             targetOccurrence +
             {
-                "Direction" : fullLink.Direction,
+                "Direction" : fullLink.Direction?lower_case,
                 "Role" : role,
                 "IncludeInContext" : fullLink.IncludeInContext![]
             } ]
