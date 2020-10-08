@@ -176,6 +176,10 @@
                             "Type" : NUMBER_TYPE
                         },
                         {
+                            "Names" : "ValidityExpression",
+                            "Type" : STRING_TYPE
+                        },
+                        {
                             "Names" : "Arns",
                             "Type" : ARRAY_OF_STRING_TYPE
                         },
@@ -504,14 +508,16 @@
                 [#local Authorizer = value.Authorizer!{} ]
                 [#if Authorizer?has_content]
                     [#switch Authorizer.Type]
+                        [#-- Default validity expression is for bearer based JWT --]
                         [#case "token"]
                             [#local scheme +=
                                 {
                                     "x-amazon-apigateway-authorizer": {
                                         "type": "token",
                                         "authorizerUri" : formatLambdaArnUsingStageVariable(context, Authorizer.Variable),
-                                        "authorizerResultTtlInSeconds" : Authorizer.TTL ! 300
-                                    }
+                                        "authorizerResultTtlInSeconds" : Authorizer.TTL ! 300,
+                                        "identityValidationExpression" : Authorizer.ValidityExpression ! r"^[ \t]*bearer[ \t]+[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+[ \t]*$"
+                                    )
                                 }
                             ]
                             [#break]
