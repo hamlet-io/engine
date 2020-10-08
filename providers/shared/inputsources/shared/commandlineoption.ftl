@@ -1,11 +1,20 @@
 [#ftl]
 
 [#macro shared_input_shared_commandlineoption_seed ]
-    [#-- Document Set --]
+    [#-- Entrance --]
     [@addCommandLineOption
         option={
             "Entrance" : {
                 "Type" : entrance!"deployment"
+            }
+        }
+    /]
+
+    [#-- Flows --]
+    [@addCommandLineOption
+        option={
+            "Flow" : {
+                "Names" : asArray( flows?split(",") )![]
             }
         }
     /]
@@ -27,9 +36,7 @@
                     "Names" : asArray( providers?split(",") )![]
                 },
                 "Framework" : {
-                    "Name" : deploymentFramework!"",
-                    "Model" : deploymentFrameworkModel!"legacy",
-                    "Flow" : deploymentFrameworkScope!COMPONENTS_MODEL_FLOW
+                    "Name" : deploymentFramework!"default"
                 },
                 "Output" : {
                     "Type" : outputType!"",

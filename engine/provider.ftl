@@ -98,10 +98,10 @@
                 [#continue]
             [/#if]
 
-            [#-- Determine the models for the provider --]
+            [#-- Determine the flows for the provider --]
             [#local directories =
                 internalGetPluginFiles(
-                    [providerMarker.Path, "models"],
+                    [providerMarker.Path, "flows"],
                     [
                         ["[^/]+"]
                     ]
@@ -113,7 +113,7 @@
                     [#local deploymentFrameworks += [directory.Filename] ]
                     [@internalIncludeTemplatesInDirectory
                         directory,
-                        ["model"]
+                        ["flow"]
                     /]
                 [/#if]
             [/#list]
@@ -133,7 +133,7 @@
                     [#local deploymentFrameworks += [directory.Filename] ]
                     [@internalIncludeTemplatesInDirectory
                         directory,
-                        ["output", "model"]
+                        ["output"]
                     /]
                 [/#if]
             [/#list]
@@ -212,7 +212,7 @@
                 )
             ]
             [#list directories as directory]
-                    [@internalIncludeProviderResourceGroupConfiguration directory.File deploymentFrameworks /]
+                [@internalIncludeProviderResourceGroupConfiguration directory.File deploymentFrameworks /]
             [/#list]
 
             [#-- Determine the scenarios for the provider --]
@@ -604,7 +604,7 @@
     [#-- aws/deploymentframeworks/output.ftl --]
     [@internalIncludeTemplatesInDirectory
         [providerMarker.Path, "deploymentframeworks"],
-        ["output", "model"]
+        ["output"]
     /]
 
     [#-- aws/scenarios/scenario.ftl --]
