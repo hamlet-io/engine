@@ -9,18 +9,18 @@
 
 [#assign mandatoryCommandLineOptions = [
     {
-        "Names" : "Deployment",
+        "Names" : "Flow",
         "Children" : [
             {
-                "Names" : "Unit",
-                "Children" : [
-                    {
-                        "Names" : "Subset",
-                        "Mandatory" : true,
-                        "Type" : STRING_TYPE
-                    }
-                ]
-            },
+                "Names" : "Names",
+                "Type" : ARRAY_OF_STRING_TYPE,
+                "Mandatory" : true
+            }
+        ]
+    },
+    {
+        "Names" : "Deployment",
+        "Children" : [
             {
                 "Names" : "Output",
                 "Children" : [
@@ -63,7 +63,7 @@
 ]]
 
 
-[#-- Macros to assemble the component configuration --]
+[#-- Macros to assemble the entrance configuration --]
 [#macro addEntrance type commandlineoptions=[] properties=[]   ]
     [@internalEntranceConfiguration
         type=type
@@ -79,11 +79,9 @@
 [#function getEntrance type ]
     [#if ((entranceConfiguration[type])!{})?has_content]
         [#local entranceConfig = (entranceConfiguration[type])!{} ]
-    [/#if]
-
-    [#if ! entrance?has_content ]
+    [#else]
         [@fatal
-            message="Could not find document set"
+            message="Could not find entrance"
             detail=label
         /]
     [/#if]
@@ -91,20 +89,20 @@
     [#return entranceConfig!{} ]
 [/#function]
 
-[#macro invokeEntranceMacro entranceType ]
+[#macro invokeEntranceMacro type ]
 
     [#local macroOptions = []]
     [#list commandLineOptions.Deployment.Provider.Names as provider ]
         [#local macroOptions +=
             [
-                [ provider, "entrance", entranceType ]
+                [ provider, "entrance", type ]
             ]
         ]
     [/#list]
 
     [#local macroOptions +=
         [
-            [ SHARED_PROVIDER, "entrance", entranceType ]
+            [ SHARED_PROVIDER, "entrance", type ]
         ]
     ]
 
@@ -117,7 +115,7 @@
             context=macroOptions
             enabled=false
         /]
-        [#stop "HamletFatal: Unable to find an entrance macro" ]
+        [#stop "HamletFatal: Unable to find an entrance macro: ${type}" ]
     [/#if]
 [/#macro]
 
