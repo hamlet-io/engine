@@ -150,23 +150,45 @@
 [/#macro]
 
 
-[#-- MODEL_DEFAULT_OUTPUT_TYPE --]
+[#-- Schema --]
+[#macro default_output_schema level="" include=""]
+    [@processFlows
+        level=level
+        framework=DEFAULT_DEPLOYMENT_FRAMEWORK
+        flows=commandLineOptions.Flow.Names
+    /]
 
-[#macro default_output_model level include]
-    [@initialiseJsonOutput
-        name=MODEL_DEFAULT_OUTPUT_TYPE
-        messagesAttribute="COTMessages"
-    /]
+    [#local schemaType = commandLineOptions.Deployment.Unit.Name]
+    [#switch schemaType]
+
+        [#default]
+            [#local schema = getOutputContent(
+                "schema",
+                schemaType)!{}]
+            [#break]
+
+    [/#switch]
+
+    [#if schema?has_content || logMessages?has_content ]
+        [@toJSON
+            schema +
+            attributeIfContent("COTMessages", logMessages)
+        /]
+    [/#if]
+
+    [@serialiseOutput name=JSON_DEFAULT_OUTPUT_TYPE /]
+[/#macro]
+
+[#macro addSchemaToDefaultJsonOutput section config schemaId]
     [@mergeWithJsonOutput
-        name=MODEL_DEFAULT_OUTPUT_TYPE
-        content=model
-    /]
-    [@addMessagesToJsonOutput
-        name=MODEL_DEFAULT_OUTPUT_TYPE
-        messages=logMessages
-    /]
-    [@serialiseOutput
-        name=MODEL_DEFAULT_OUTPUT_TYPE
+        name="schema"
+        section=section
+        content=
+            mergeObjects(
+                { "$schema" : HamletSchemas.Root },
+                formatJsonSchemaBaseType(config, schemaId),
+                { "definitions" : config }
+            )
     /]
 [/#macro]
 
