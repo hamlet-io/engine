@@ -3,15 +3,15 @@
 [#-- Views --]
 [#-- Views allow for a freeform output generation using a similar approach to component processing --]
 [#-- Providers can offer their own views which can be used to provide a specific output based on any part of a CMDB --]
-[#-- Views are invoked through a Model Scope which allows for the view to be implemented across different models --]
+[#-- View components use the views flow to generate their output --]
 
 [#function invokeViewMacro provider deploymentFramework entrance qualifiers=[] ]
     [#local macroOptions = [] ]
-    [#list qualifiers as qualifier]
+    [#list asArray(qualifiers) as qualifier]
         [#local macroOptions +=
             [
-                [ provider, "view", deploymentFramework, entrance ] + asArray(qualifier),
-                [ provider, "view", entrance ] + asArray(qualifier)
+                [ provider, "view", deploymentFramework, entrance ] + asFlattenedArray(qualifier, true),
+                [ provider, "view", entrance ] + asFlattenedArray(qualifier, true)
             ]]
     [/#list]
 
@@ -24,8 +24,8 @@
     [#list qualifiers as qualifier]
         [#local macroOptions +=
             [
-                [ SHARED_PROVIDER, "view", deploymentFramework, entrance ] + asArray(qualifier),
-                [ SHARED_PROVIDER, "view", entrance ] + asArray(qualifier)
+                [ SHARED_PROVIDER, "view", deploymentFramework, entrance ] + asFlattenedArray(qualifier, true),
+                [ SHARED_PROVIDER, "view", entrance ] + asFlattenedArray(qualifier, true)
             ]]
     [/#list]
 

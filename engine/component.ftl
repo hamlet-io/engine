@@ -287,13 +287,13 @@
     [#local placement = (occurrence.State.ResourceGroups[resourceGroup].Placement)!{} ]
     [#if placement?has_content]
         [#local macroOptions = [] ]
-        [#list qualifiers as qualifier]
+        [#list asArray(qualifiers) as qualifier]
             [#local macroOptions +=
                 [
-                    [placement.Provider, occurrence.Core.Type, resourceGroup, placement.DeploymentFramework, entrance ] + asArray(qualifier),
-                    [placement.Provider, occurrence.Core.Type, placement.DeploymentFramework, entrance ] + asArray(qualifier),
-                    [placement.Provider, resourceGroup, placement.DeploymentFramework, entrance ] + asArray(qualifier),
-                    [placement.Provider, resourceGroup, placement.DeploymentFramework  ] + asArray(qualifier)
+                    [placement.Provider, occurrence.Core.Type, resourceGroup, placement.DeploymentFramework, entrance ] + asFlattenedArray(qualifier, true),
+                    [placement.Provider, occurrence.Core.Type, placement.DeploymentFramework, entrance ] + asFlattenedArray(qualifier, true),
+                    [placement.Provider, resourceGroup, placement.DeploymentFramework, entrance ] + asFlattenedArray(qualifier, true),
+                    [placement.Provider, resourceGroup, placement.DeploymentFramework  ] + asFlattenedArray(qualifier, true)
                 ]]
         [/#list]
 
@@ -305,14 +305,14 @@
                 [placement.Provider, resourceGroup, placement.DeploymentFramework ]
             ]]
         [#if includeShared ]
-            [#list qualifiers as qualifier]
+            [#list asArray(qualifiers) as qualifier]
                 [#local macroOptions +=
                     [
-                        [ SHARED_PROVIDER, occurrence.Core.Type, resourceGroup, placement.DeploymentFramework, entrance ] + asArray(qualifier),
-                        [ SHARED_PROVIDER, occurrence.Core.Type, placement.DeploymentFramework, entrance ] + asArray(qualifier),
-                        [ SHARED_PROVIDER, resourceGroup, placement.DeploymentFramework, entrance ] + asArray(qualifier),
-                        [ SHARED_PROVIDER, placement.DeploymentFramework, entrance ] + asArray(qualifier),
-                        [ SHARED_PROVIDER, entrance ] + asArray(qualifier)
+                        [ SHARED_PROVIDER, occurrence.Core.Type, resourceGroup, placement.DeploymentFramework, entrance ] + asFlattenedArray(qualifier, true),
+                        [ SHARED_PROVIDER, occurrence.Core.Type, placement.DeploymentFramework, entrance ] + asFlattenedArray(qualifier, true),
+                        [ SHARED_PROVIDER, resourceGroup, placement.DeploymentFramework, entrance ] + asFlattenedArray(qualifier, true),
+                        [ SHARED_PROVIDER, placement.DeploymentFramework, entrance ] + asFlattenedArray(qualifier, true),
+                        [ SHARED_PROVIDER, entrance ] + asFlattenedArray(qualifier, true)
                     ]]
             [/#list]
 
