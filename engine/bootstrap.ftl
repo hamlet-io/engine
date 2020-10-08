@@ -3,11 +3,8 @@
 [#-- Core helper routines --]
 [#include "base.ftl" ]
 
-[#-- model --]
-[#include "model.ftl" ]
-
-[#-- context --]
-[#include "context.ftl" ]
+[#-- flow --]
+[#include "flow.ftl" ]
 
 [#-- logging --]
 [#include "logging.ftl" ]
@@ -90,14 +87,3 @@
 
 [#-- Set the context for templates processing --]
 [#include "setContext.ftl" ]
-
-[#-- Populate the model to be used --]
-[#assign model =
-    invokeFunction(
-        getFirstDefinedDirective(
-            [
-                [commandLineOptions.Deployment.Framework.Name, "model", commandLineOptions.Deployment.Framework.Model],
-                [DEFAULT_DEPLOYMENT_FRAMEWORK, "model", commandLineOptions.Deployment.Framework.Model]
-            ]
-        )
-    ) ]

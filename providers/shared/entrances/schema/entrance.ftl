@@ -7,13 +7,14 @@
       option={
         "Deployment" : {
           "Framework" : {
-              "Name" : DEFAULT_DEPLOYMENT_FRAMEWORK,
-              "Model" : "passthrough",
-              "Flow" : VIEW_MODEL_FLOW
+              "Name" : DEFAULT_DEPLOYMENT_FRAMEWORK
           }
         },
         "View" : {
           "Name" : SCHEMA_VIEW_TYPE
+        },
+        "Flow" : {
+          "Names" : [ "views" ]
         }
       }
   /]

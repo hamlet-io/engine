@@ -15,10 +15,11 @@
               "Name" : "*"
           },
           "Framework" : {
-              "Name" : DEFAULT_DEPLOYMENT_FRAMEWORK,
-              "Model" : "passthrough",
-              "Flow" : VIEW_MODEL_FLOW
+              "Name" : DEFAULT_DEPLOYMENT_FRAMEWORK
           }
+        },
+        "Flow" : {
+          "Names" : [ "views" ]
         },
         "View" : {
             "Name" : BLUEPRINT_VIEW_TYPE
