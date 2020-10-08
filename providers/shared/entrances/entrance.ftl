@@ -1,6 +1,6 @@
 [#ftl]
 
-[#-- Shared Document Sets --]
+[#-- Shared Entrances --]
 [#assign DEPLOYMENT_ENTRANCE_TYPE        = "deployment" ]
 [#assign DEPLOYMENTTEST_ENTRANCE_TYPE    = "deploymenttest" ]
 [#assign BLUEPRINT_ENTRANCE_TYPE         = "blueprint" ]

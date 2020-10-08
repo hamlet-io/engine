@@ -6,7 +6,7 @@
         [
             {
                 "Type"  : "Description",
-                "Value" : "Provides a detailed reppresentation of everything in a given segment, this includes its parent, environment, product and tenant"
+                "Value" : "Provides a detailed representation of everything in a given segment, this includes its parent, environment, product and tenant"
             }
         ]
     commandlineoptions=[
