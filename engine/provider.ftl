@@ -107,10 +107,9 @@
                     ]
                 )
             ]
-            [#local deploymentFrameworks = [] ]
+
             [#list directories as directory]
                 [#if directory.IsDirectory!false ]
-                    [#local deploymentFrameworks += [directory.Filename] ]
                     [@internalIncludeTemplatesInDirectory
                         directory,
                         ["flow"]
