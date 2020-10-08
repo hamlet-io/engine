@@ -1,15 +1,9 @@
 [#ftl]
-[#------------------------------------------
--- Public functions for passthrough processing --
---------------------------------------------]
 
-[#-- passthrough model has now  data model  --]
-[#function default_model_passthrough args=[] ]
-    [#return {} ]
-[/#function]
+[#-- The views flow provides dynamically loaded output processing without the component and occurrence context established before processing]
 
 [#-- Main component processing loop --]
-[#macro default_model_passthrough_flow_view level ]
+[#macro default_flow_views level ]
 
     [@includeProviderViewDefinitionConfiguration
         provider=SHARED_PROVIDER

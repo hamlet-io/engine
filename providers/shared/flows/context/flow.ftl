@@ -1,17 +1,13 @@
 [#ftl]
 
 [#-------------------------------------------------------
--- Public functions for context based model processing --
+-- Public functions for context based flow processing --
 ---------------------------------------------------------]
 
-[#-- Temporary model for transition to context as default --]
-[#function default_model_context args=[] ]
-    [#return internal_model_context.internalDefaultModel(args)  ]
-[/#function]
-
 [#-- Main component processing loop --]
-[#macro default_model_context_scope_components level=""]
+[#macro default_flow_context level=""]
 
+    [#include "context.ftl"]
     [#-- Construct the match corresponding to provided values --]
     [#-- This can later be provided as an explicit parameter  --]
     [#local match =
@@ -281,6 +277,7 @@
         context=matches
     /]
 
+    [#local model = internalDefaultModel(args)]
     [#-- Find matches including their ancestors --]
     [#local contextLists =
         internalFindDeploymentUnitContexts(
