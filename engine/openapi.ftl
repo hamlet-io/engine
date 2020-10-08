@@ -173,11 +173,13 @@
                         },
                         {
                             "Names" : "TTL",
-                            "Type" : NUMBER_TYPE
+                            "Type" : NUMBER_TYPE,
+                            "Default" : 300
                         },
                         {
                             "Names" : "ValidityExpression",
-                            "Type" : STRING_TYPE
+                            "Type" : STRING_TYPE,
+                            "Default" : r"^[ \t]*bearer[ \t]+[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+[ \t]*$"
                         },
                         {
                             "Names" : "Arns",
@@ -515,8 +517,8 @@
                                     "x-amazon-apigateway-authorizer": {
                                         "type": "token",
                                         "authorizerUri" : formatLambdaArnUsingStageVariable(context, Authorizer.Variable),
-                                        "authorizerResultTtlInSeconds" : Authorizer.TTL ! 300,
-                                        "identityValidationExpression" : Authorizer.ValidityExpression ! r"^[ \t]*bearer[ \t]+[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+[ \t]*$"
+                                        "authorizerResultTtlInSeconds" : Authorizer.TTL,
+                                        "identityValidationExpression" : Authorizer.ValidityExpression
                                     )
                                 }
                             ]
