@@ -220,6 +220,21 @@
             {
                 "Names" : "Encryption",
                 "Children" : s3EncryptionChildConfiguration
+            },
+            {
+                "Names" : "Replication",
+                "Children" : [
+                    {
+                        "Names" : "Prefixes",
+                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Default" : [ "" ]
+                    },
+                    {
+                        "Names" : "Enabled",
+                        "Type" : BOOLEAN_TYPE,
+                        "Default" : true
+                    }
+                ]
             }
         ]
     parent=BASELINE_COMPONENT_TYPE
