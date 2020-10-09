@@ -519,7 +519,7 @@
                                         "authorizerUri" : formatLambdaArnUsingStageVariable(context, Authorizer.Variable),
                                         "authorizerResultTtlInSeconds" : Authorizer.TTL,
                                         "identityValidationExpression" : Authorizer.ValidityExpression
-                                    )
+                                    }
                                 }
                             ]
                             [#break]
