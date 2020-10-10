@@ -371,7 +371,7 @@
         [#if legacyVpc ]
             [#assign vpc = getExistingReference(formatVPCId())]
             [#-- Make sure the baseline component has been added to existing deployments --]
-            [#assign segmentSeed = segmentSeed!"COTFatal: baseline component not deployed - Please run a deployment of the baseline component" ]
+            [#assign segmentSeed = segmentSeed!"HamletFatal: baseline component not deployed - Please run a deployment of the baseline component" ]
         [/#if]
     [/#if]
 
@@ -672,7 +672,7 @@
                 [#else]
                     [#local occurrenceTier = getTier(occurrence.Core.Tier.Id) ]
                     [#local network = getLinkTarget(occurrence, occurrenceTier.Network.Link, false )]
-                    [#local networkCIDR = (network.Configuration.Solution.Address.CIDR)!"COTFatal: local network configuration not found" ]
+                    [#local networkCIDR = (network.Configuration.Solution.Address.CIDR)!"HamletFatal: local network configuration not found" ]
                 [/#if]
 
                 [#return

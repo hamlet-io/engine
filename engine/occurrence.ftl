@@ -15,7 +15,7 @@
             valueIfTrue(
                 "",
                 emptyIfNotProvided,
-                "COTFatal: Build reference not found"
+                "HamletFatal: Build reference not found"
             )
         ) ]
 [/#function]
@@ -27,7 +27,7 @@
             valueIfTrue(
                 "",
                 emptyIfNotProvided,
-                "COTFatal: Build unit not found"
+                "HamletFatal: Build unit not found"
             )
         ) ]
 [/#function]

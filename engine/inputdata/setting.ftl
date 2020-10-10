@@ -98,7 +98,7 @@
             valueIfTrue(
                 {"Value" : ""},
                 emptyIfNotProvided,
-                {"Value" : "COTFatal: Setting not provided"}
+                {"Value" : "HamletFatal: Setting not provided"}
             )
         ) ]
 [/#function]
@@ -144,7 +144,7 @@
                 [#continue]
             [/#if]
         [#else]
-            [#local result += { key, "COTFatal:Internal error - setting is not a hash" } ]
+            [#local result += { key, "HamletFatal:Internal error - setting is not a hash" } ]
         [/#if]
     [/#list]
     [#return result ]

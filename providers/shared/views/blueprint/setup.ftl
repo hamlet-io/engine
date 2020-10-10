@@ -19,7 +19,7 @@
                 }
             ]
         } +
-        attributeIfContent("COTMessages", logMessages)]
+        attributeIfContent("HamletMessages", logMessages)]
     [#return result]
 [/#function]
 

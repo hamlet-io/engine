@@ -133,7 +133,7 @@
 [#function concatenate args separator]
     [#local content = []]
     [#list asFlattenedArray(args) as arg]
-        [#local argValue = arg!"COT:ERROR_INVALID_ARG_TO_CONCATENATE"]
+        [#local argValue = arg!"Hamlet:ERROR_INVALID_ARG_TO_CONCATENATE"]
         [#if argValue?is_hash]
             [#switch separator]
                 [#case "X"]
@@ -712,8 +712,8 @@ are added.
                 [#local inhibitEnabled = true ]
             [/#if]
             [#if attribute?is_hash ]
-                [#local names = attribute.Names!"COT:Missing" ]
-                [#if (names?is_string) && (names == "COT:Missing") ]
+                [#local names = attribute.Names!"Hamlet:Missing" ]
+                [#if (names?is_string) && (names == "Hamlet:Missing") ]
                     [@fatal
                         message="Attribute must have a \"Names\" attribute"
                         context=attribute

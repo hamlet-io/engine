@@ -195,7 +195,7 @@
                                 "EffectiveInstance" : instanceToMatch,
                                 "EffectiveVersion" : versionToMatch
                             }
-                        detail="COTFatal:Link target not active/deployed"
+                        detail="HamletFatal:Link target not active/deployed"
                         enabled=true
                     /]
                 [/#if]
@@ -227,7 +227,7 @@
                 "EffectiveInstance" : instanceToMatch,
                 "EffectiveVersion" : versionToMatch
             }
-        detail="COTFatal:Link not found"
+        detail="HamletFatal:Link not found"
     /]
     [#return {} ]
 [/#function]
