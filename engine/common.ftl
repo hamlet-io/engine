@@ -885,7 +885,13 @@ behaviour.
 
 [/#function]
 
-[#function syncFilesToBucketScript filesArrayName region bucket prefix cleanup=true]
+[#function syncFilesToBucketScript filesArrayName region bucket prefix cleanup=true excludes=[] ]
+
+    [#local excludeSwitches = ""]
+    [#list asArray(excludes) as exclude]
+        [#local excludeSwitches += " --exclude \"${exclude}\""]
+    [/#list]
+
     [#return
         [
             "case $\{STACK_OPERATION} in",
@@ -905,6 +911,7 @@ behaviour.
                    "\"" + prefix         + "\"" + " " +
                    "\"" + filesArrayName + "\"" + " " +
                    valueIfTrue("--delete", cleanup, "") +
+                   excludeSwitches +
                    " || return $?",
             "    ;;",
             " esac",
