@@ -14,6 +14,7 @@
 [#assign MODEL_DEFAULT_OUTPUT_TYPE = "model"]
 [#assign SCHEMA_DEFAULT_OUTPUT_TYPE = "schema"]
 [#assign CONTRACT_DEFAULT_OUTPUT_TYPE = "contract"]
+[#assign INFO_DEFAULT_OUTPUT_TYPE = "info" ]
 
 [#-- SCRIPT_DEFAULT_OUTPUT_TYPE --]
 
@@ -104,6 +105,10 @@
     /]
 [/#macro]
 
+[#-- Initialise the possible outputs to make sure they are available to all steps --]
+[@initialiseDefaultScriptOutput format=BASH_DEFAULT_OUTPUT_FORMAT /]
+[@initialiseJsonOutput name=JSON_DEFAULT_OUTPUT_TYPE /]
+
 [#-- JSON_DEFAULT_OUTPUT_TYPE --]
 
 [#macro default_output_json level include]
@@ -149,6 +154,50 @@
     /]
 [/#macro]
 
+[#-- Info --]
+[#macro default_output_info level="" include="" ]
+    [@initialiseJsonOutput name="providers" /]
+    [@initialiseJsonOutput name="entrances" /]
+
+    [@processFlows
+        level=level
+        framework=DEFAULT_DEPLOYMENT_FRAMEWORK
+        flows=commandLineOptions.Flow.Names
+    /]
+
+    [@toJSON
+        {
+            "Metadata" : {
+                "Id" : "hamlet-info",
+                "Prepared" : .now?iso_utc,
+                "RunId" : commandLineOptions.Run.Id,
+                "RequestReference" : commandLineOptions.References.Request,
+                "ConfigurationReference" : commandLineOptions.References.Configuration
+            },
+            "Providers" : getOutputContent("providers"),
+            "Entrances" : getOutputContent("entrances")
+        } +
+        attributeIfContent("COTMessages", logMessages)
+    /]
+[/#macro]
+
+[#macro infoProvider id details ]
+    [@mergeWithJsonOutput
+        name="providers"
+        content={
+            id : details
+        }
+    /]
+[/#macro]
+
+[#macro infoEntrance id details ]
+    [@mergeWithJsonOutput
+        name="entrances"
+        content={
+            id : details
+        }
+    /]
+[/#macro]
 
 [#-- Schema --]
 [#macro default_output_schema level="" include=""]
@@ -197,10 +246,10 @@
 [#assign CONTRACT_EXECUTION_MODE_PARALLEL = "parallel" ]
 [#assign CONTRACT_EXECUTION_MODE_PRIORITY = "priority" ]
 
-[@initialiseJsonOutput name="stages" /]
-[@initialiseJsonOutput name="steps" /]
-
 [#macro default_output_contract level="" include=""]
+    [@initialiseJsonOutput name="stages" /]
+    [@initialiseJsonOutput name="steps" /]
+
     [#-- Resources --]
     [#if include?has_content]
         [#include include?ensure_starts_with("/")]
@@ -361,10 +410,6 @@
     [/#list]
 [/#macro]
 
-[#-- Initialise the possible outputs to make sure they are available to all steps --]
-[@initialiseDefaultScriptOutput format=BASH_DEFAULT_OUTPUT_FORMAT /]
-[@initialiseJsonOutput name=JSON_DEFAULT_OUTPUT_TYPE /]
-
 [#-- Add Output Step mappings for each output --]
 [@addGenerationContractStepOutputMapping
     provider=SHARED_PROVIDER
@@ -436,6 +481,15 @@
     outputType=CONTRACT_DEFAULT_OUTPUT_TYPE
     outputFormat=""
     outputSuffix="managementcontract.json"
+/]
+
+
+[@addGenerationContractStepOutputMapping
+    provider=SHARED_PROVIDER
+    subset="info"
+    outputType=INFO_DEFAULT_OUTPUT_TYPE
+    outputFormat=""
+    outputSuffix="info.json"
 /]
 
 

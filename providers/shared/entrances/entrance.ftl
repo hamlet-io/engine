@@ -7,3 +7,4 @@
 [#assign BUILDBLUEPRINT_ENTRANCE_TYPE    = "buildblueprint" ]
 [#assign UNITLIST_ENTRANCE_TYPE          = "unitlist" ]
 [#assign SCHEMA_ENTRANCE_TYPE            = "schema" ]
+[#assign INFO_ENTRANCE_TYPE               = "info" ]

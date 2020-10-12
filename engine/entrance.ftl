@@ -75,6 +75,9 @@
     /]
 [/#macro]
 
+[#function getEntranceTypes ]
+    [#return entranceConfiguration?keys ]
+[/#function]
 
 [#function getEntrance type ]
     [#if ((entranceConfiguration[type])!{})?has_content]
@@ -87,6 +90,14 @@
     [/#if]
 
     [#return entranceConfig!{} ]
+[/#function]
+
+[#function getEntranceProperties type ]
+    [#return (getEntrance(type).Properties)![] ]
+[/#function]
+
+[#function getEntranceCommandLineOptions type ]
+    [#return (getEntrance(type).CommandLineOptions)![] ]
 [/#function]
 
 [#macro invokeEntranceMacro type ]
