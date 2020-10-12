@@ -174,8 +174,8 @@
                 "RequestReference" : commandLineOptions.References.Request,
                 "ConfigurationReference" : commandLineOptions.References.Configuration
             },
-            "Providers" : getOutputContent("providers"),
-            "Entrances" : getOutputContent("entrances")
+            "Providers" : getOutputContent("providers")?values,
+            "Entrances" : getOutputContent("entrances")?values
         } +
         attributeIfContent("COTMessages", logMessages)
     /]
@@ -194,7 +194,7 @@
     [@mergeWithJsonOutput
         name="entrances"
         content={
-            id : details
+            id :  details
         }
     /]
 [/#macro]
