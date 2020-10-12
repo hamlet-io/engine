@@ -12,20 +12,10 @@
 
         [#case "component"]
 
-            [#-- incl. provider configuration --]
-            [#list findProviderMarkers() as providerMarker]
-                [@internalIncludeProviderConfiguration
-                providerMarker=providerMarker
-                /]
-            [/#list]
-
-            [#-- incl. all component definitions --]
-            [#list findComponentMarkers() as component]
-            [@includeProviderComponentDefinitionConfiguration
-                provider=component.Path?split("/")[1]
-                component=component.Path?split("/")[3]
+            [@includeAllComponentConfiguration
+                SHARED_PROVIDER
+                commandLineOptions.Deployment.Provider.Names
             /]
-            [/#list]
 
             [#list componentConfiguration as id,configuration]
             [#assign schemaComponentAttributes = []]
