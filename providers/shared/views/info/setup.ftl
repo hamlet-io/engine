@@ -22,6 +22,7 @@
 
         [#local providerDetails =
             {
+                "Name" : id,
                 "Location" : providerLocation,
                 "Components" : getProviderComponentNames(id),
                 "Views" : getProviderViewNames(id)
