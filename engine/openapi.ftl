@@ -379,6 +379,12 @@
                     "Default" : true
                 },
                 {
+                    "Names" : ["ScopeBehaviour"],
+                    "Type" : STRING_TYPE,
+                    "Values" : [REPLACE_COMBINE_BEHAVIOUR, UNIQUE_COMBINE_BEHAVIOUR],
+                    "Default" : UNIQUE_COMBINE_BEHAVIOUR
+                },
+                {
                     "Names" : ["Scopes"],
                     "Type" : ARRAY_OF_STRING_TYPE,
                     "Default" : []
@@ -603,7 +609,7 @@ doesn't handle very well.
 
 The elements in the array are alternatives, while the attributes of each
 array object are ANDed. Configured schemes are added into each array object,
-thus adding o the requirements specified in the definition itself.
+thus adding to the requirements specified in the definition itself.
 
 A security attribute is explicitly written out every time so technically
 the method security attribute will always override the global one, but it
@@ -632,19 +638,20 @@ is useful to see what the global settings are from a debug perspective
             [#local option = definitionOption]
             [#list configuration as scheme,value]
                 [#if value.Enabled]
-                    [#-- Merge with any existing definition --]
+                    [#-- Combine scopes with any existing definition --]
                     [#local option +=
                         {
                             scheme :
-                                getUniqueArrayElements(
+                                combineEntities(
                                     (option[scheme])![],
-                                    value.Scopes
+                                    value.Scopes,
+                                    value.ScopeBehaviour
                                 )
                         }
                     ]
                 [/#if]
             [/#list]
-            [#local result = [option] ]
+            [#local result += [option] ]
         [/#list]
     [#else]
         [#-- Rely on the configured schemes alone --]
