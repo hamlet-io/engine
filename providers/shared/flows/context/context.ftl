@@ -838,7 +838,7 @@ The roles available are defined as part of the state of the target component.
                             "Link" : link,
                             "FullLink" : fullLink
                         }
-                    detail="COTFatal:Link target not active/deployed"
+                    detail="HamletFatal:Link target not active/deployed"
                 /]
             [/#if]
             [#return {} ]
@@ -865,7 +865,7 @@ The roles available are defined as part of the state of the target component.
                 "Link" : link,
                 "FullLink" : fullLink
             }
-        detail="COTFatal:Link not found"
+        detail="HamletFatal:Link not found"
     /]
     [#return {} ]
 [/#function]
@@ -897,8 +897,8 @@ The roles available are defined as part of the state of the target component.
     [#-- TODO(mfl) Remove exclusion of "Type" once external link support not needed --]
     [#return
         createLink(
-            link.Id!"COTFatal: Id not provided on link",
-            link.Name!"COTFatal: Name not provided on link",
+            link.Id!"HamletFatal: Id not provided on link",
+            link.Name!"HamletFatal: Name not provided on link",
             removeObjectAttributes(link, ["Id", "Name", "Direction", "Role", "Attributes", "Enabled", "Type"]),
             (link.Direction?lower_case)!OUTBOUND_LINK_DIRECTION,
             link.Role!"",

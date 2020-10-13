@@ -483,7 +483,7 @@
                 "host" : context["FQDN"],
                 "info" : {
                     "version" : version,
-                    "description" : "**COT Deployment** " + context["Name"] + "/n" + configuration.OpenAPI.Information.Description
+                    "description" : "**Hamlet Deployment** " + context["Name"] + "/n" + configuration.OpenAPI.Information.Description
                 }
             }
         ]
@@ -503,7 +503,7 @@
             [#case "apiKey"]
                 [#local scheme +=
                     {
-                        "name" : value.Header!("COTFatal: No header specified for scheme " + key),
+                        "name" : value.Header!("HamletFatal: No header specified for scheme " + key),
                         "in" : value.In
                     }
                 ]

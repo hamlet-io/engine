@@ -10,7 +10,7 @@
             contentIfContent(
                 getOccurrenceSettingValue(
                     occurrence, ["Registries", type, "Registry"], true),
-                "COTFatal: Unknown registry of type " + type
+                "HamletFatal: Unknown registry of type " + type
             )
         ) ]
 [/#function]
@@ -98,7 +98,7 @@
                         linkAttributes[attribute?upper_case]) ]
             [#else]
                 [#if !ignoreIfNotDefined]
-                   [#local result = addVariableToContext(result, variableName, "COTFatal: Attribute " + attribute?upper_case + " not found for link " + link) ]
+                   [#local result = addVariableToContext(result, variableName, "HamletFatal: Attribute " + attribute?upper_case + " not found for link " + link) ]
                 [/#if]
             [/#if]
         [/#list]
@@ -107,7 +107,7 @@
             [#if ignoreIfNotDefined]
                 [#local result = addVariableToContext(result, name, "Ignoring link " + link) ]
             [#else]
-                [#local result = addVariableToContext(result, name, "COTFatal: No attributes found for link " + link) ]
+                [#local result = addVariableToContext(result, name, "HamletFatal: No attributes found for link " + link) ]
             [/#if]
         [/#if]
     [/#if]
@@ -174,7 +174,7 @@
         [#if value?is_string]
             [#local name = value]
         [#else]
-            [#return valueIfTrue(true, asBoolean, "COTFatal: Value for " + key + " must be a string or hash") ]
+            [#return valueIfTrue(true, asBoolean, "HamletFatal: Value for " + key + " must be a string or hash") ]
         [/#if]
     [/#if]
     [#return
@@ -182,7 +182,7 @@
             true,
             asBoolean,
             _context.DefaultEnvironment[formatSettingName(true, name)]!
-                "COTFatal: Variable " + name + " not found"
+                "HamletFatal: Variable " + name + " not found"
         ) ]
 [/#function]
 
@@ -281,7 +281,7 @@
         [#local volumeName = _context.DataVolumes[volumeLinkId].Name ]
         [#local volumeEngine = _context.DataVolumes[volumeLinkId].Engine ]
     [#else]
-        [#local volumeName = name!"COTFatal: Volume Name or VolumeLinkId not provided" ]
+        [#local volumeName = name!"HamletFatal: Volume Name or VolumeLinkId not provided" ]
     [/#if]
 
     [#switch volumeEngine ]
@@ -301,7 +301,7 @@
                 (_context.Volumes!{}) +
                 {
                     volumeName : {
-                        "ContainerPath" : containerPath!"COTFatal : Container Path Not provided",
+                        "ContainerPath" : containerPath!"HamletFatal : Container Path Not provided",
                         "HostPath" : hostPath,
                         "ReadOnly" : readOnly,
                         "PersistVolume" : persist?is_string?then(
@@ -547,7 +547,7 @@
     [#local hasBaselineLinks = (context.BaselineLinks!{})?has_content]
 
     [#local operationsBucket = hasBaselineLinks?then(
-                                context.BaselineLinks["OpsData"].State.Attributes["BUCKET"]!"COTFatal: asFile configured but could not find opsBucket",
+                                context.BaselineLinks["OpsData"].State.Attributes["BUCKET"]!"HamletFatal: asFile configured but could not find opsBucket",
                                 ""
     )]
 
@@ -756,7 +756,7 @@
                     valueIfTrue(
                         ecs.State.Resources["lg"].Id!"",
                         ecs.Configuration.Solution.ClusterLogGroup,
-                        "COTFatal: Logs type is awslogs but no group defined"
+                        "HamletFatal: Logs type is awslogs but no group defined"
                     )
                 )
             ) ]

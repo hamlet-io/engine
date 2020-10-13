@@ -153,7 +153,7 @@
         [#local comments =
             [
                     "",
-                    "--COTMessages",
+                    "--HamletMessages",
                     ""
             ] ]
         [#list messages as message]
@@ -196,9 +196,9 @@
             formatCommentsForTextOutput(
                 name,
                 [
-                    "--COT-RequestReference=${commandLineOptions.References.Request}",
-                    "--COT-ConfigurationReference=${commandLineOptions.References.Configuration}",
-                    "--COT-RunId=${commandLineOptions.Run.Id}"
+                    "--Hamlet-RequestReference=${commandLineOptions.References.Request}",
+                    "--Hamlet-ConfigurationReference=${commandLineOptions.References.Configuration}",
+                    "--Hamlet-RunId=${commandLineOptions.Run.Id}"
                 ]
             )
         treatAsContent=false

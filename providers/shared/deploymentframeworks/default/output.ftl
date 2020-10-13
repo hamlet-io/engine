@@ -109,7 +109,7 @@
 [#macro default_output_json level include]
     [@initialiseJsonOutput
         name=JSON_DEFAULT_OUTPUT_TYPE
-        messagesAttribute="COTMessages"
+        messagesAttribute="HamletMessages"
     /]
 
     [#if include?has_content]
@@ -172,7 +172,7 @@
     [#if schema?has_content || logMessages?has_content ]
         [@toJSON
             schema +
-            attributeIfContent("COTMessages", logMessages)
+            attributeIfContent("HamletMessages", logMessages)
         /]
     [/#if]
 
@@ -266,7 +266,7 @@
                 },
                 "Stages" : contractStages
             } +
-            attributeIfContent("COTMessages", logMessages)
+            attributeIfContent("HamletMessages", logMessages)
         /]
     [/#if]
     [@serialiseOutput name=JSON_DEFAULT_OUTPUT_TYPE /]
