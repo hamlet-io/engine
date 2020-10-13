@@ -998,7 +998,7 @@ behaviour.
         [
             "cp" + " " +
                "\"" + filepath                      + "\"" + " " +
-               "\"" + "$\{tmpdir}/$\{tmp_filename}" + "\"",
+               "\"" + "$\{tmpdir}/$\{tmp_filename}" + "\"" + " || return $?",
             "#",
             "addToArray" + " " +
                filesArrayName + " " +
