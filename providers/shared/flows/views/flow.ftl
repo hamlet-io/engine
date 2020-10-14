@@ -15,18 +15,20 @@
         view=commandLineOptions.View.Name
     /]
 
+    [#local primaryProvider = ((commandLineOptions.Deployment.Provider.Names)[0])!SHARED_PROVIDER ]
+
     [@includeProviderViewDefinitionConfiguration
-        provider=(commandLineOptions.Deployment.Provider.Names)[0]
+        provider=primaryProvider
         view=commandLineOptions.View.Name
     /]
 
     [@includeProviderViewConfiguration
-        provider=(commandLineOptions.Deployment.Provider.Names)[0]
+        provider=primaryProvider
         view=commandLineOptions.View.Name
     /]
 
     [#if invokeViewMacro(
-            (commandLineOptions.Deployment.Provider.Names)![0],
+            primaryProvider,
             commandLineOptions.Entrance.Type,
             commandLineOptions.Deployment.Framework.Name,
             [
