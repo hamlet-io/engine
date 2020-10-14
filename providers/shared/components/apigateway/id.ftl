@@ -223,6 +223,11 @@ object.
                 "Children" : logMetricChildrenConfiguration
             },
             {
+                "Names" : "LogStore",
+                "Description" : "The logging destination for the API Gateway.",
+                "Type" : STRING_TYPE
+            },
+            {
                 "Names" : "BasePathBehaviour",
                 "Description" : "How to handle base paths provided in the spec",
                 "Type" : STRING_TYPE,
