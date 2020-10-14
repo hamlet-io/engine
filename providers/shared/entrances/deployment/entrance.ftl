@@ -21,6 +21,9 @@
             [#if (commandLineOptions.Deployment.Unit.Subset!"") == "generationcontract"]
                 [#assign groupDeploymentUnits = false]
                 [#assign ignoreDeploymentUnitSubsetInOutputs = false]
+
+                [#-- We need to initialise the outputs here since we are adding to it out side of the component flow --]
+                [@setupContractOutputs /]
                 [@addDefaultGenerationContract subsets=contractSubsets /]
 
             [#else]

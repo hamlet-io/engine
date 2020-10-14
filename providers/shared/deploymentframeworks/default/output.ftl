@@ -246,9 +246,16 @@
 [#assign CONTRACT_EXECUTION_MODE_PARALLEL = "parallel" ]
 [#assign CONTRACT_EXECUTION_MODE_PRIORITY = "priority" ]
 
+[#macro setupContractOutputs ]
+    [#if ! getOutputContent("stages")?has_content ]
+        [@initialiseJsonOutput name="stages" /]
+        [@initialiseJsonOutput name="steps" /]
+    [/#if]
+[/#macro]
+
 [#macro default_output_contract level="" include=""]
-    [@initialiseJsonOutput name="stages" /]
-    [@initialiseJsonOutput name="steps" /]
+
+    [@setupContractOutputs /]
 
     [#-- Resources --]
     [#if include?has_content]
