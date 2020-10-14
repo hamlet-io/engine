@@ -207,6 +207,11 @@
                     "Default" : true
                 },
                 {
+                    "Names" : "Template",
+                    "Type" : STRING_TYPE,
+                    "Default" : "[{ \"Code\": code, \"Title\": title, \"Detail\": (arrayIfContent(\"Description: \" + description, description) + arrayIfContent(\"Action: \" + action, action) + [\"Diagnostics: $context.error.message\"])?join(\", \") }]"
+                },
+                {
                     "Names" : "Map",
                     "SubObjects" : true,
                     "Children" : [
@@ -224,6 +229,10 @@
                             "Names" : "Title",
                             "Type" : STRING_TYPE,
                             "Mandatory" : true
+                        },
+                        {
+                            "Names" : "Description",
+                            "Type" : STRING_TYPE
                         },
                         {
                             "Names" : "Action",
@@ -746,27 +755,16 @@ is useful to see what the global settings are from a debug perspective
     [#local result = {}]
     [#if configuration.GatewayErrorReporting.Enabled]
         [#local templates = {}]
+
         [#list configuration.GatewayErrorReporting.Map as key,value]
-            [#local detail =
-                arrayIfContent(
-                    "Description:" + value.Description!"",
-                    value.Description!""
-                ) +
-                arrayIfContent(
-                    "Action:" + value.Action!"",
-                    value.Action!""
-                ) +
-                ["Diagnostics:$context.error.message"]
-            ]
-            [#local template =
-                [
-                    {
-                        "Code" : value.Code,
-                        "Title" : value.Title,
-                        "Detail" : detail?join(", ")
-                    }
-                ]
-            ]
+            [#local code = value.Code]
+            [#local title = value.Title]
+            [#local description = value.Description!""]
+            [#local action = value.Action!""]
+
+            [#-- Apply the desired template format --]
+            [#local template = configuration.GatewayErrorReporting.Template?eval]
+
             [#local templates +=
                 {
                   key :
