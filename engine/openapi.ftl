@@ -179,7 +179,7 @@
                         {
                             "Names" : "ValidityExpression",
                             "Type" : STRING_TYPE,
-                            "Default" : r"^[ \t]*bearer[ \t]+[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+[ \t]*$"
+                            "Default" : r"^[ \t]*((?i)bearer)[ \t]+[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+[ \t]*$"
                         },
                         {
                             "Names" : "Arns",
