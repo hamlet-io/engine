@@ -37,7 +37,7 @@
                 "AUTHORIZER_FAILURE": {
                     "Status" : 403,
                     "Code" : "gen04",
-                    "Title" : "Internal API failure",
+                    "Title" : "Authorisation Failure",
                     "Action" : "Please contact the API provider"
                 },
                 "BAD_REQUEST_PARAMETERS": {
