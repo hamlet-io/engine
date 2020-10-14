@@ -225,7 +225,8 @@ object.
             {
                 "Names" : "LogStore",
                 "Description" : "The logging destination for the API Gateway.",
-                "Type" : STRING_TYPE
+                "Type" : STRING_TYPE,
+                "Values" : []
             },
             {
                 "Names" : "BasePathBehaviour",
