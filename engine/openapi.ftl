@@ -35,7 +35,7 @@
                     "Action" : "Please contact the API provider"
                 },
                 "AUTHORIZER_FAILURE": {
-                    "Status" : 500,
+                    "Status" : 403,
                     "Code" : "gen04",
                     "Title" : "Internal API failure",
                     "Action" : "Please contact the API provider"
