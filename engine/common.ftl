@@ -429,7 +429,7 @@ behaviour.
     [#local networkEndpoints = {}]
 
     [#local regionObject = regions[region]]
-    [#local zoneNetworkEndpoints = regionObject.Zones[zone].NetworkEndpoints ]
+    [#local zoneNetworkEndpoints = (regionObject.Zones[zone].NetworkEndpoints)![] ]
 
     [#list endpointGroups as endpointGroup ]
         [#if networkEndpointGroups[endpointGroup]?? ]
