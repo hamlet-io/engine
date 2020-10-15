@@ -216,6 +216,10 @@
                     "SubObjects" : true,
                     "Children" : [
                         {
+                            "Names" : "Template",
+                            "Type" : STRING_TYPE
+                        },
+                        {
                             "Names" : "Status",
                             "Type" : NUMBER_TYPE,
                             "Mandatory" : true
@@ -755,6 +759,7 @@ is useful to see what the global settings are from a debug perspective
     [#local result = {}]
     [#if configuration.GatewayErrorReporting.Enabled]
         [#local templates = {}]
+        [#local defaultTemplate = configuration.GatewayErrorReporting.Template ]
 
         [#list configuration.GatewayErrorReporting.Map as key,value]
             [#local code = value.Code]
@@ -763,7 +768,7 @@ is useful to see what the global settings are from a debug perspective
             [#local action = value.Action!""]
 
             [#-- Apply the desired template format --]
-            [#local template = configuration.GatewayErrorReporting.Template?eval]
+            [#local template = (value.Template!defaultTemplate)?eval]
 
             [#local templates +=
                 {
