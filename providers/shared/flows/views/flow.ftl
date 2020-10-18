@@ -29,8 +29,8 @@
 
     [#if invokeViewMacro(
             primaryProvider,
-            commandLineOptions.Entrance.Type,
             commandLineOptions.Deployment.Framework.Name,
+            commandLineOptions.Entrance.Type,
             [
                 commandLineOptions.Deployment.Unit.Subset
             ])]
