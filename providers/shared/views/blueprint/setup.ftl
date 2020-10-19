@@ -108,11 +108,11 @@
     [#return result ]
 [/#function]
 
-[#macro shared_view_blueprint_default_generationcontract  ]
+[#macro shared_view_default_blueprint_generationcontract  ]
     [@addDefaultGenerationContract subsets="config" /]
 [/#macro]
 
-[#macro shared_view_blueprint_default_config ]
+[#macro shared_view_default_blueprint_config ]
     [@addToDefaultJsonOutput
         content=mergeObjects(getTenantBlueprint(), logMessages)
     /]

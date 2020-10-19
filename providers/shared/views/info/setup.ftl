@@ -1,10 +1,10 @@
 [#ftl]
 
-[#macro shared_view_info_default_generationcontract  ]
+[#macro shared_view_default_info_generationcontract  ]
     [@addDefaultGenerationContract subsets=[ "info" ] /]
 [/#macro]
 
-[#macro shared_view_info_default ]
+[#macro shared_view_default_info ]
 
     [#-- Load sections which are dynamically loaded through discovery --]
     [#local providersList = asFlattenedArray( [ SHARED_PROVIDER, commandLineOptions.Deployment.Provider.Names ] ) ]
