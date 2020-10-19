@@ -18,31 +18,50 @@
             /]
 
             [#list componentConfiguration as id,configuration]
-            [#assign schemaComponentAttributes = []]
-            [#list providerDictionary?keys as provider]
-                [#if (configuration.ResourceGroups["default"].Attributes[provider]!{})?has_content]
+                [#assign schemaComponentAttributes = []]
+                
+                [#-- Construct Component Attributes --]
+                [#list providerDictionary?keys as provider]
 
-                [#assign schemaComponentAttributes = combineEntities(
-                    schemaComponentAttributes,
-                    configuration.ResourceGroups["default"].Attributes[provider],
-                    ADD_COMBINE_BEHAVIOUR)]
+                    [#if (configuration.ResourceGroups["default"].Attributes[provider]!{})?has_content]
 
+                        [#assign schemaComponentAttributes = combineEntities(
+                            schemaComponentAttributes,
+                            configuration.ResourceGroups["default"].Attributes[provider],
+                            ADD_COMBINE_BEHAVIOUR)]
+
+                    [/#if]
+                [/#list]
+
+                [#-- Construct SubComponent References as Attributes--]
+                [#if (configuration.Components![])?has_content]
+                    [#list configuration.Components as subComponent]
+                        [#assign schemaComponentAttributes = combineEntities(
+                            schemaComponentAttributes,
+                            [{
+                                "Names" : subComponent.Component,
+                                "Type" : REF_TYPE,
+                                "Path" : formatPath(false, "definitions", id)
+                            }],
+                            ADD_COMBINE_BEHAVIOUR)]
+
+                    [/#list]
                 [/#if]
-            [/#list]
 
-            [@addSchema
-                section="component"
-                subset=id
-                configuration=
-                formatJsonSchemaFromComposite(
-                    {
-                    "Names" : id,
-                    "Type" : OBJECT_TYPE,
-                    "SubObjects" : true,
-                    "Children" : schemaComponentAttributes
-                    }
-                )
-            /]
+                [@addSchema
+                    section="component"
+                    subset=id
+                    configuration=
+                    formatJsonSchemaFromComposite(
+                        {
+                            "Names" : id,
+                            "Type" : OBJECT_TYPE,
+                            "SubObjects" : true,
+                            "Children" : schemaComponentAttributes
+                        },
+                        metaparameters
+                    )
+                /]
 
             [/#list]
             [#break]
@@ -56,11 +75,37 @@
                 configuration=
                     formatJsonSchemaFromComposite(
                         {
-                        "Names" : configuration.Type.Plural,
+                            "Names" : configuration.Type.Plural,
+                            "Type" : OBJECT_TYPE,
+                            "SubObjects" : true,
+                            "Children" : configuration.Attributes
+                        },
+                        metaparameters)
+            /]
+            [/#list]
+            [#break]
+
+        [#case "metaparameter"]
+
+            [#-- Key Value Pairs of Metaparameter Name : Configuration --]
+            [#assign metaparametersConfiguration = {
+                "Links" : linkChildrenConfiguration
+            }]
+
+            [#list metaparametersConfiguration as id,childrenConfiguration]
+            [@addSchema
+                section="metaparameter"
+                subset=id
+                configuration=
+                formatJsonSchemaFromComposite(
+                    {
+                        "Names" : id,
                         "Type" : OBJECT_TYPE,
                         "SubObjects" : true,
-                        "Children" : configuration.Attributes
-                        })
+                        "Children" : childrenConfiguration
+                    },
+                    metaparameters
+                )
             /]
             [/#list]
             [#break]

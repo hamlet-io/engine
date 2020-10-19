@@ -405,6 +405,7 @@ are added.
 [#assign BOOLEAN_TYPE = "boolean" ]
 [#assign ANY_TYPE = "any" ]
 [#assign UNKNOWN_TYPE = "unknown" ]
+[#assign REF_TYPE = r"$ref"]
 [#assign ARRAY_OF_OBJECT_TYPE  = [ARRAY_TYPE, OBJECT_TYPE] ]
 [#assign ARRAY_OF_STRING_TYPE  = [ARRAY_TYPE, STRING_TYPE] ]
 [#assign ARRAY_OF_NUMBER_TYPE  = [ARRAY_TYPE, NUMBER_TYPE] ]

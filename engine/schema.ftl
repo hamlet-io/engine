@@ -3,7 +3,9 @@
 [#assign HamletSchemas = {
     "Root" : "http://json-schema.org/draft-07/schema#"
 }]
-
+[#assign metaparameters = [
+    "Links"
+]]
 [#assign rootSchemaPath = "https://hamlet.io/schema"]
 [#assign patternPropertiesRegex = r'^[A-Za-z_][A-Za-z0-9_]*$']
 [#assign schemaConfiguration = {}]
@@ -55,6 +57,8 @@
             [#else]
                 [#local optionSets += composite.Type?map(t -> [{ "type" : t }])]
             [/#if]
+        [#elseif composite.Type == REF_TYPE]
+            [#local result += formatJsonSchemaReference(composite.Path, composite.File)]
         [#else]
             [#local result += { "type" : composite.Type }]
         [/#if]
@@ -87,79 +91,132 @@
     [/#switch]
 [/#function]
 
-[#function formatJsonSchemaFromComposite composite schemaId=""]
+[#function formatJsonSchemaFromComposite composite references=[] schemaId=""]
     [#local jsonSchema = {}]
     [#local required = []]
     [#local childrenConfiguration = {}]
 
     [#if composite?is_hash]
         [#local schemaName = formatJsonSchemaBaseName(composite)]
-        
-        [#if schemaId?has_content]
-            [#local section = commandLineOptions.Deployment.Unit.Name]
-            [#local schemaId = formatPath(false, schemaId?remove_ending(".json"), section + ".json")]
-        [/#if]
+        [#if !references?seq_contains(schemaName)]
+            [#if schemaId?has_content]
+                [#local section = commandLineOptions.Deployment.Unit.Name]
+                [#local schemaId = formatPath(false, schemaId?remove_ending(".json"), section + ".json")]
+            [/#if]
 
-        [#local subObjects = hasSubObjects(composite)]
+            [#local subObjects = hasSubObjects(composite)]
 
-        [#local jsonSchema = mergeObjects(
-            jsonSchema,
-            formatJsonSchemaBaseType(composite),
-            attributeIfContent("description", composite.Description!""),
-            attributeIfTrue("default", composite.Default?has_content, composite.Default!false),
-            attributeIfContent("enum", composite.Values![]))]
+            [#local jsonSchema = mergeObjects(
+                jsonSchema,
+                formatJsonSchemaBaseType(composite),
+                attributeIfContent("description", composite.Description!""),
+                attributeIfTrue("default", composite.Default?has_content, composite.Default!false),
+                attributeIfContent("enum", composite.Values![]))]
 
-        [#if composite.Children?has_content]
+            [#if composite.Children?has_content]
 
-            [#-- required --]
-            [#local required = composite.Children
-                ?filter(c -> c?is_hash && c.Mandatory!false)
-                ?map(c -> formatJsonSchemaBaseName(c))]
+                [#-- required --]
+                [#local required = composite.Children
+                    ?filter(c -> c?is_hash && c.Mandatory!false)
+                    ?map(c -> formatJsonSchemaBaseName(c))]
 
-            [#list composite.Children as child]
+                [#list composite.Children as child]
 
-                [#if child?is_hash]
+                    [#if child?is_hash]
 
-                    [#local childSchemaName = formatJsonSchemaBaseName(child)]
-        
-                    [#local childrenConfiguration = mergeObjects(
-                        childrenConfiguration,
-                        subObjects?then(
-                            {
-                                "patternProperties" : {
-                                    patternPropertiesRegex : {
+                        [#local childSchemaName = formatJsonSchemaBaseName(child)]
+                        [#if !references?seq_contains(childSchemaName)]
+                            [#local childrenConfiguration = mergeObjects(
+                                childrenConfiguration,
+                                subObjects?then(
+                                    {
+                                        "patternProperties" : {
+                                            patternPropertiesRegex : {
+                                                "properties" : {
+                                                    childSchemaName : formatJsonSchemaFromComposite(child, references) 
+                                                },
+                                                "additionalProperties" : false
+                                            } +
+                                            attributeIfContent("required", required)
+                                        }
+                                    },
+                                    {   
                                         "properties" : {
-                                            childSchemaName : formatJsonSchemaFromComposite(child) 
+                                            childSchemaName : formatJsonSchemaFromComposite(child, references) 
                                         },
                                         "additionalProperties" : false
                                     } +
                                     attributeIfContent("required", required)
-                                }
-                            },
-                            {   
-                                "properties" : {
-                                    childSchemaName : formatJsonSchemaFromComposite(child) 
-                                },
-                                "additionalProperties" : false
-                            } +
-                            attributeIfContent("required", required)
-                        )
-                    )]
-                [#else]
-                    [@debug
-                        message="Found child composite of unknown structure: "
-                        context={ "Child" : child, "Parent" : composite }
-                        enabled=false
-                    /]
-                [/#if]
-            [/#list]
-        [/#if]
+                                )
+                            )]
+                        [#else]
+                            [#-- Create a Reference to schema --]
+                            [#local childrenConfiguration = mergeObjects(
+                                childrenConfiguration,
+                                subObjects?then(
+                                    {
+                                        "patternProperties" : {
+                                            patternPropertiesRegex : {
+                                                "properties" : {
+                                                    childSchemaName : formatJsonSchemaFromComposite(
+                                                        {
+                                                            "Names" : childSchemaName,
+                                                            "Type" : REF_TYPE,
+                                                            "File" : "metaparameter-schema.json",
+                                                            "Path" : formatPath(false, "definitions", childSchemaName)
+                                                        }
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "properties" : {
+                                            childSchemaName : formatJsonSchemaFromComposite(
+                                                {
+                                                    "Names" : childSchemaName,
+                                                    "Type" : REF_TYPE,
+                                                    "File" : "metaparameter-schema.json",
+                                                    "Path" : formatPath(false, "#definitions", childSchemaName)
+                                                }
+                                            )
+                                        }
+                                    }
+                                )
+                            )]
+                        [/#if]
+                    [#else]
+                        [@debug
+                            message="Found child composite of unknown structure: "
+                            context={ "Child" : child, "Parent" : composite }
+                            enabled=false
+                        /]
+                    [/#if]
+                [/#list]
+            [/#if]
 
-        [#if childrenConfiguration?has_content]
+            [#if childrenConfiguration?has_content]
+                [#local jsonSchema =
+                    mergeObjects(
+                        jsonSchema,
+                        childrenConfiguration
+                    )]
+            [/#if]
+        [#else]
             [#local jsonSchema =
                 mergeObjects(
                     jsonSchema,
-                    childrenConfiguration
+                    {
+                        schemaName : 
+                            formatJsonSchemaFromComposite(
+                                {
+                                    "Names" : schemaName,
+                                    "Type" : REF_TYPE,
+                                    "File" : "metaparameter-schema.json",
+                                    "Path" : formatPath(false, "#definitions", schemaName)
+                                }
+                            ) 
+                    }
                 )]
         [/#if]
     [#else]
@@ -170,6 +227,10 @@
         /]
     [/#if]
     [#return jsonSchema ]
+[/#function]
+
+[#function formatJsonSchemaReference path file=""]
+    [#return { r"$ref": concatenate([file, path?ensure_starts_with("#/")], '') }]
 [/#function]
 
 [#-------------------------------------------------------
