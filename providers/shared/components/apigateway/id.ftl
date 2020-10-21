@@ -223,10 +223,10 @@ object.
                 "Children" : logMetricChildrenConfiguration
             },
             {
-                "Names" : "LogStore",
-                "Description" : "The logging destination for the API Gateway.",
-                "Type" : STRING_TYPE,
-                "Values" : []
+                "Names" : "LogToOpsData",
+                "Description" : "Output APIGateway logs to the Baseline OpsData databucket.",
+                "Type" : BOOLEAN_TYPE,
+                "Default" : false
             },
             {
                 "Names" : "BasePathBehaviour",
