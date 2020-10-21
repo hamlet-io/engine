@@ -35,6 +35,9 @@
 [#-- Component handling --]
 [#include "component.ftl" ]
 
+[#-- Service Handling --]
+[#include "services.ftl" ]
+
 [#-- View handling --]
 [#include "view.ftl" ]
 
