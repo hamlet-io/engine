@@ -220,6 +220,41 @@
     [/#list]
 [/#macro]
 
+[#macro includeAllServicesConfiguration provider deploymentFramework="" ]
+
+    [#-- Process each provider --]
+    [#list providerMarkers as providerMarker ]
+
+        [#if providerMarker.Path?keep_after_last("/") != provider]
+            [#continue]
+        [/#if]
+
+        [#-- Determine the components available from a provider --]
+        [#local directories =
+            internalGetPluginFiles(
+                [providerMarker.Path, "services"],
+                [
+                    ["[^/]+"]
+                ]
+            )
+        ]
+
+        [#local providerServices = []]
+        [#list directories as directory]
+            [#if directory.IsDirectory!false ]
+                [#local providerServices += [directory.Filename] ]
+            [/#if]
+        [/#list]
+
+        [@includeServicesConfiguration
+            provider=provider
+            services=providerServices
+            deploymentFramework=deploymentFramework
+        /]
+
+    [/#list]
+[/#macro]
+
 [#macro includeServicesConfiguration provider services deploymentFramework]
     [#local templates = [] ]
 
