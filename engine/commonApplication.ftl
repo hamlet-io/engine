@@ -864,7 +864,8 @@
             attributeIfContent("InboundPorts", inboundPorts) +
             attributeIfContent("RunCapabilities", container.RunCapabilities) +
             attributeIfContent("ContainerNetworkLinks", container.ContainerNetworkLinks) +
-            attributeIfContent("PlacementConstraints", container.PlacementConstraints![] )
+            attributeIfContent("PlacementConstraints", container.PlacementConstraints![] ) +
+            attributeIfContent("Ulimits", container.Ulimits )
         ]
 
 

@@ -1109,6 +1109,31 @@
         "Description" : "A per container setting which can be used by the app to determine run mode for a container in a task - defaults to the second half of a dash separated id",
         "Type" : STRING_TYPE,
         "Default" : ""
+    },
+    {
+        "Names" : "Ulimits",
+        "Description" : "Linux OS based limits for the container",
+        "Subobjects" : true,
+        "Children" : [
+            {
+                "Names" : "Name",
+                "Description" : "The name of the ulimit to apply",
+                "Type" : STRING_TYPE,
+                "Mandatory" : true
+            },
+            {
+                "Names" : "HardLimit",
+                "Description" : "The OS level hard limit to apply",
+                "Type" : NUMBER_TYPE,
+                "Default" : 1024
+            },
+            {
+                "Names" : "SoftLimit",
+                "Description" : "The User level limit to apply",
+                "Type" : NUMBER_TYPE,
+                "Default" : 1024
+            }
+        ]
     }
 ]]
 
