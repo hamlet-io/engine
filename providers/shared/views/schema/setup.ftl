@@ -1,10 +1,10 @@
 [#ftl]
 
-[#macro shared_view_schema_default_generationcontract  ]
+[#macro shared_view_default_schema_generationcontract  ]
     [@addDefaultGenerationContract subsets="schema" /]
 [/#macro]
 
-[#macro shared_view_schema_default_schema ]
+[#macro shared_view_default_schema ]
 
     [#local section = commandLineOptions.Deployment.Unit.Name]
 
@@ -12,14 +12,14 @@
 
         [#case "component"]
 
-            [@includeAllComponentConfiguration
+            [@includeAllComponentDefinitionConfiguration
                 SHARED_PROVIDER
                 commandLineOptions.Deployment.Provider.Names
             /]
 
             [#list componentConfiguration as id,configuration]
                 [#assign schemaComponentAttributes = []]
-                
+
                 [#-- Construct Component Attributes --]
                 [#list providerDictionary?keys as provider]
 
