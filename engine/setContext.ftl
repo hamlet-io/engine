@@ -577,6 +577,7 @@
                 {
                     "Id" : groupId,
                     "IsOpen" : true,
+                    "IsLocal" : false,
                     "CIDR" : []
                 }]
         [/#if]
@@ -592,7 +593,8 @@
                 {
                     "Id" : groupId,
                     "Name" : groupId,
-                    "IsOpen" : true
+                    "IsOpen" : true,
+                    "IsLocal" : false
                 } ]
             [#break]
 
@@ -615,6 +617,7 @@
                     "Id" : groupId,
                     "Name" : groupId,
                     "IsOpen" : false,
+                    "IsLocal" : true,
                     "CIDR" : segmentCIDR
                 } ]
             [#break]
@@ -643,6 +646,7 @@
                         "Id" : groupDetailId,
                         "Name" : groupDetailId,
                         "IsOpen" : false,
+                        "IsLocal" : true,
                         "CIDR" : tierSubnets
                     } ]
             [#else]
@@ -680,6 +684,7 @@
                     "Id" : groupId,
                     "Name" : groupId,
                     "IsOpen" : false,
+                    "IsLocal" : true,
                     "CIDR" : [ networkCIDR ]
                 } ]
             [#else]
@@ -706,6 +711,7 @@
                     "Id" : groupId,
                     "Name" : groupId,
                     "IsOpen" : false,
+                    "IsLocal" : true,
                     "CIDR" : [ "127.0.0.1/32" ]
                 } ]
             [#break]
@@ -722,6 +728,7 @@
                     {
                         "Id" : groupId,
                         "IsOpen" : true,
+                        "IsLocal" : false,
                         "CIDR" : []
                     } ]
             [/#if]
