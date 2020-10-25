@@ -527,7 +527,7 @@
     [/#list]
 [/#macro]
 
-[#macro includeAllComponentConfiguration providers... ]
+[#macro includeAllComponentDefinitionConfiguration providers... ]
 
     [#list asFlattenedArray(providers) as provider ]
 
@@ -564,6 +564,46 @@
         [/#list]
     [/#list]
 [/#macro]
+
+
+[#macro includeAllComponentConfiguration providers... ]
+
+    [#list asFlattenedArray(providers) as provider ]
+
+        [#-- Process each provider --]
+        [#list providerMarkers as providerMarker ]
+
+            [#if providerMarker.Path?keep_after_last("/") != provider]
+                [#continue]
+            [/#if]
+
+            [#-- Determine the components available from a provider --]
+            [#local directories =
+                internalGetPluginFiles(
+                    [providerMarker.Path, "components"],
+                    [
+                        ["[^/]+"]
+                    ]
+                )
+            ]
+
+            [#local providerComponents = []]
+            [#list directories as directory]
+                [#if directory.IsDirectory!false ]
+                    [#local providerComponents += [directory.Filename] ]
+                [/#if]
+            [/#list]
+
+            [#list providerComponents as providerComponent ]
+                [@includeProviderComponentConfiguration
+                    provider=provider
+                    component=providerComponent
+                /]
+            [/#list]
+        [/#list]
+    [/#list]
+[/#macro]
+
 
 [#--- Query Provider Dictionary --]
 [#function getProviderComponentNames provider ]

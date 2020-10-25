@@ -8,7 +8,7 @@
 
     [#-- Load sections which are dynamically loaded through discovery --]
     [#local providersList = asFlattenedArray( [ SHARED_PROVIDER, commandLineOptions.Deployment.Provider.Names ] ) ]
-    [@includeAllComponentConfiguration providersList /]
+    [@includeAllComponentDefinitionConfiguration providersList /]
     [@includeAllViewConfiguration providersList /]
 
     [#list providerDictionary as id,provider ]
