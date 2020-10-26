@@ -254,6 +254,7 @@
     [/#if]
     [#return [] ]
 [/#function]
+
 [#-------------------
 -- Object handling --
 ---------------------]
@@ -1214,4 +1215,215 @@ are added.
 
 [#function formatRelativePath parts...]
     [#return formatPath(false, parts)]
+[/#function]
+
+[#------------------
+-- Semver support --
+--------------------]
+
+[#-- Comparisons/naming roughly aligned to https://github.com/npm/node-semver --]
+
+[#--
+Strip any leading "v" (note we handle leading = in semver_satisfies)
+Convert any range indicators ("x" or "X") to 0
+* not supported as substitute for x
+--]
+
+[#function semverClean version]
+    [#-- Handle the full format --]
+    [#local match = version?matches(r"^v?(0|[1-9][0-9]*|x|X)\.(0|[1-9][0-9]*|x|X)\.(0|[1-9][0-9]*|x|X)(\-([^+]+))?(\+(.*))?$") ]
+    [#if match]
+        [#local major = match?groups[1]?replace("x", "0", "i")?number ]
+        [#local minor = match?groups[2]?replace("x", "0", "i")?number ]
+        [#local patch = match?groups[3]?replace("x", "0", "i")?number ]
+        [#local pre   = match?groups[5] ]
+        [#local build = match?groups[7] ]
+
+        [#return
+            [
+                major + "." + minor + "." + patch +
+                    valueIfContent(
+                        "-" + pre,
+                        pre,
+                        ""
+                    ) +
+                    valueIfContent(
+                        "+" + build,
+                        build,
+                        ""
+                    ),
+                major,
+                minor,
+                patch,
+                pre,
+                build
+            ]
+        ]
+    [/#if]
+
+    [#-- Handle major.minor --]
+    [#local match = version?matches(r"^v?(0|[1-9][0-9]*|x|X)\.(0|[1-9][0-9]*|x|X)$") ]
+    [#if match]
+        [#local major = match?groups[1]?replace("x", "0", "i")?number ]
+        [#local minor = match?groups[2]?replace("x", "0", "i")?number ]
+        [#local patch = 0 ]
+        [#return
+            [
+                major + "." + minor + "." + patch,
+                major,
+                minor,
+                patch,
+                "",
+                ""
+            ]
+        ]
+    [/#if]
+
+    [#-- Handle major --]
+    [#local match = version?matches(r"^v?(0|[1-9][0-9]*|x|X)$") ]
+    [#if match]
+        [#local major = match?groups[1]?replace("x", "0", "i")?number ]
+        [#local minor = 0 ]
+        [#local patch = 0 ]
+        [#return
+            [
+                major + "." + minor + "." + patch,
+                major,
+                minor,
+                patch,
+                "",
+                ""
+            ]
+        ]
+    [/#if]
+
+    [#return [] ]
+[/#function]
+
+[#assign SEMVER_GREATER_THAN = 1]
+[#assign SEMVER_EQUAL = 0]
+[#assign SEMVER_LESS_THAN = -1]
+[#assign SEMVER_FORMAT_ERROR = -2]
+
+[#function semverCompare version1 version2]
+
+    [#local v1 = semverClean(version1) ]
+    [#local v2 = semverClean(version2) ]
+
+    [#if ! (v1?has_content && v2?has_content) ]
+        [#-- format error --]
+        [#return SEMVER_FORMAT_ERROR]
+    [/#if]
+
+    [#-- major, minor, patch comparison --]
+    [#list 1..3 as index]
+        [#if v1[index] < v2[index] ]
+            [#return SEMVER_LESS_THAN]
+        [/#if]
+        [#if v1[index] > v2[index] ]
+            [#return SEMVER_GREATER_THAN]
+        [/#if]
+    [/#list]
+
+    [#-- prerelease should compare with the ASCII order --]
+    [#if ! v1[4]?has_content && v2[4]?has_content ]
+        [#return SEMVER_LESS_THAN]
+    [/#if]
+    [#if v1[4]?has_content && ! v2[4]?has_content ]
+        [#return SEMVER_GREATER_THAN]
+    [/#if]
+    [#if v1[4]?has_content && v2[4]?has_content ]
+        [#if v1[4] < v2[4] ]
+            [#return SEMVER_LESS_THAN]
+        [/#if]
+        [#if v1[4] > v2[4] ]
+            [#return SEMVER_GREATER_THAN]
+        [/#if]
+    [/#if]
+
+    [#-- equal --]
+    [#return SEMVER_EQUAL]
+[/#function]
+
+[#assign SEMVER_SATISFIED = 1]
+[#assign SEMVER_NOT_SATISFIED = 0]
+
+[#--
+A range is a list of comparator sets joined by "||"" or "|", true if one of sets is true
+A comparator set is a list of comparators, true if all comparators are true
+A comparator is an operator and a version
+--]
+[#function semverSatisfies version range]
+
+    [#-- First determine the comparator sets    --]
+    [#-- Standardise on single "|" as separator --]
+    [#local comparatorSets = range?replace("||", "|")?split("|") ]
+
+    [#list comparatorSets as comparatorSet]
+
+        [#-- assume all comparators will succeed --]
+        [#local comparatorSetMatch = true ]
+
+        [#-- determine the comparators for each set --]
+        [#list comparatorSet?split(r"\s+","r") as comparator]
+
+            [#-- determine the comparator operator and version --]
+            [#local match = comparator?matches(r"^(<|<=|>|>=|=)(.+)$") ]
+            [#if !match]
+                [#return SEMVER_FORMAT_ERROR]
+            [/#if]
+
+            [#-- obtain the result of the version comparison --]
+            [#local compareResult = semverCompare(version, match?groups[1]) ]
+            [#if compareResult == SEMVER_FORMAT_ERROR]
+                [#return SEMVER_FORMAT_ERROR]
+            [/#if]
+
+            [#-- check the provided operator against the version comparison result --]
+            [#switch match?groups[1]]
+                [#case r"<"]
+                    [#if compareResult == SEMVER_LESS_THAN]
+                        [#continue]
+                    [/#if]
+                    [#break]
+
+                [#case r"<="]
+                    [#if (compareResult == SEMVER_LESS_THAN) || (compareResult == SEMVER_EQUAL) ]
+                        [#continue]
+                    [/#if]
+                    [#break]
+
+                [#case r">"]
+                    [#if compareResult == SEMVER_GREATER_THAN]
+                        [#continue]
+                    [/#if]
+                    [#break]
+
+                [#case r">="]
+                    [#if (compareResult == SEMVER_GREATER_THAN) || (compareResult == SEMVER_EQUAL) ]
+                        [#continue]
+                    [/#if]
+                    [#break]
+
+                [#case r">"]
+                    [#if compareResult == SEMVER_EQUAL]
+                        [#continue]
+                    [/#if]
+                    [#break]
+
+                [#default]
+                    [#return SEMVER_FORMAT_ERROR]
+            [/#switch]
+
+            [#-- at least one comparison failed --]
+            [#local comparatorSetMatch = false ]
+            [#break]
+        [/#list]
+
+        [#if comparatorSetMatch]
+            [#return SEMVER_SATISFIED]
+        [/#if]
+    [/#list]
+
+    [#return SEMVER_NOT_SATISFIED]
 [/#function]
