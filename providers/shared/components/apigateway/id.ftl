@@ -79,17 +79,6 @@ object.
                 "Names" : "Logging",
                 "Children" : [
                     {
-                        "Names" : "Execution",
-                        "Children" : [
-                            {
-                                "Names" : "Enabled",
-                                "Description" : "Logging of the API Gateway Execution Logs.",
-                                "Type" : BOOLEAN_TYPE,
-                                "Default" : false
-                            }
-                        ]
-                    },
-                    {
                         "Names" : "Access",
                         "Children" : [
                             {
