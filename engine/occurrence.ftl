@@ -214,7 +214,7 @@
             occurrence,
             {
                 "Configuration" : {
-                    "SettingNamespaces" : internalGetOccurrenceSettingNamepsaces(occurrence)
+                    "SettingNamespaces" : internalGetOccurrenceSettingNamespaces(occurrence)
                 }
             }
         )
@@ -515,7 +515,7 @@
     [#return result]
 [/#function]
 
-[#function internalGetOccurrenceSettingNamepsaces occurrence ]
+[#function internalGetOccurrenceSettingNamespaces occurrence ]
     [#local deploymentUnit = getOccurrenceDeploymentUnit(occurrence) ]
     [#local solutionNamespaces = (occurrence.Configuration.Solution.SettingNamespaces)!{}]
 
