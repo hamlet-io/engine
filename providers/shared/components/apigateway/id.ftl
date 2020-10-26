@@ -76,18 +76,13 @@ object.
                 "Default" : ""
             },
             {
-                "Names" : "Logging",
+                "Names" : "AccessLogging",
                 "Children" : [
                     {
-                        "Names" : "Access",
-                        "Children" : [
-                            {
-                                "Names" : "Enabled",
-                                "Description" : "Logging of the API Gateway Access Logs.",
-                                "Type" : BOOLEAN_TYPE,
-                                "Default" : true
-                            }
-                        ]
+                        "Names" : "Enabled",
+                        "Description" : "Logging of the API Gateway Access Logs.",
+                        "Type" : BOOLEAN_TYPE,
+                        "Default" : true
                     }
                 ]
             },
