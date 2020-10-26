@@ -208,6 +208,19 @@
             }
         ) ]
 
+    [#-- define the setting namespaces for the component --]
+    [#local occurrence =
+        mergeObjects(
+            occurrence,
+            {
+                "Configuration" : {
+                    "SettingNamespaces" : internalGetOccurrenceSettingNamepsaces(occurrence)
+                }
+            }
+        )
+    ]
+
+    [#-- use the namespaces to determine settings --]
     [#local occurrence =
         mergeObjects(
             occurrence,
@@ -502,6 +515,25 @@
     [#return result]
 [/#function]
 
+[#function internalGetOccurrenceSettingNamepsaces occurrence ]
+    [#local deploymentUnit = getOccurrenceDeploymentUnit(occurrence) ]
+    [#local solutionNamespaces = (occurrence.Configuration.Solution.SettingNamespaces)!{}]
+
+    [#local namespaces =
+        solutionNamespaces?has_content?then(
+            getSettingNamespaces(occurrence, solutionNamespaces),
+            []
+        ) +
+        [
+            {"Key" : occurrence.Core.Name, "Match" : "partial"},
+            {"Key" : occurrence.Core.TypedName, "Match" : "partial"},
+            {"Key" : occurrence.Core.ShortName, "Match" : "partial"},
+            {"Key" : occurrence.Core.ShortTypedName, "Match" : "partial"},
+            {"Key" : deploymentUnit, "Match" : "exact"}
+        ]
+    ]
+    [#return namespaces ]
+[/#function]
 
 [#function internalCreateOccurrenceSettings possibilities root prefixes alternatives]
 
@@ -578,29 +610,14 @@
 [/#function]
 
 [#function internalCreateOccurrenceBuildSettings occurrence]
-    [#local deploymentUnit = getOccurrenceDeploymentUnit(occurrence) ]
-    [#local settingNamespaces = (occurrence.Configuration.Solution.SettingNamespaces)!{}]
-
-    [#local alternatives =
-        settingNamespaces?has_content?then(
-            getSettingNamespaces(occurrence, settingNamespaces),
-            []
-        ) +
-        [
-            {"Key" : occurrence.Core.Name, "Match" : "partial"},
-            {"Key" : occurrence.Core.TypedName, "Match" : "partial"},
-            {"Key" : occurrence.Core.ShortName, "Match" : "partial"},
-            {"Key" : occurrence.Core.ShortTypedName, "Match" : "partial"},
-            {"Key" : deploymentUnit, "Match" : "exact"}
-        ]
-    ]
+    [#local namespaces = occurrence.Configuration.SettingNamespaces ]
 
     [#local occurrenceBuild =
         internalCreateOccurrenceSettings(
             (settingsObject.Builds.Products)!{},
             productName,
             cmdbProductLookupPrefixes,
-            alternatives
+            namespaces
         ) ]
 
     [#-- a local unit build commit/tag takes preference over a shared one --]
@@ -670,46 +687,17 @@
 [/#function]
 
 [#function internalCreateOccurrenceProductSettings occurrence ]
-    [#local deploymentUnit = getOccurrenceDeploymentUnit(occurrence) ]
-    [#local settingNamespaces = (occurrence.Configuration.Solution.SettingNamespaces)!{}]
-
-    [#local alternatives =
-        settingNamespaces?has_content?then(
-            getSettingNamespaces(occurrence, settingNamespaces),
-            []
-        ) +
-        [
-            {"Key" : occurrence.Core.Name, "Match" : "partial"},
-            {"Key" : occurrence.Core.TypedName, "Match" : "partial"},
-            {"Key" : occurrence.Core.ShortName, "Match" : "partial"},
-            {"Key" : occurrence.Core.ShortTypedName, "Match" : "partial"},
-            {"Key" : deploymentUnit, "Match" : "exact"}
-        ] ]
-
+    [#local namespaces = occurrence.Configuration.SettingNamespaces ]
     [#return
         internalCreateOccurrenceSettings(
             (settingsObject.Settings.Products)!{},
             productName,
             cmdbProductLookupPrefixes,
-            alternatives) ]
+            namespaces) ]
 [/#function]
 
 [#function internalCreateOccurrenceSensitiveSettings occurrence]
-    [#local deploymentUnit = getOccurrenceDeploymentUnit(occurrence) ]
-    [#local settingNamespaces = (occurrence.Configuration.Solution.SettingNamespaces)!{}]
-
-    [#local alternatives =
-        settingNamespaces?has_content?then(
-            getSettingNamespaces(occurrence, settingNamespaces),
-            []
-        ) +
-        [
-            {"Key" : occurrence.Core.Name, "Match" : "partial"},
-            {"Key" : occurrence.Core.TypedName, "Match" : "partial"},
-            {"Key" : occurrence.Core.ShortName, "Match" : "partial"},
-            {"Key" : occurrence.Core.ShortTypedName, "Match" : "partial"},
-            {"Key" : deploymentUnit, "Match" : "exact"}
-        ] ]
+    [#local namespaces = occurrence.Configuration.SettingNamespaces ]
 
     [#return
         markAsSensitiveSettings(
@@ -717,7 +705,7 @@
                 (settingsObject.Sensitive.Products)!{},
                 productName,
                 cmdbProductLookupPrefixes,
-                alternatives) ) ]
+                namespaces) ) ]
 [/#function]
 
 [#function internalGetOccurrenceSettingsAsEnvironment occurrence format]
