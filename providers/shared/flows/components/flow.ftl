@@ -356,6 +356,13 @@
                         }
                     ]
 
+                    [#-- check we don't already have this occurrence cached --]
+                    [#-- if cached return it from cache and skip processing this occurrence --]
+                    [#if isOccurrenceCached(tierId, component.Id, ((formatId(subComponentId))!""), instanceKey, versionKey) ]
+                        [#local occurrences += [ getOccurrenceFromCache(tierId, component.Id, ((formatId(subComponentId))!""), instanceKey, versionKey) ]]
+                        [#continue]
+                    [/#if]
+
                     [#-- Determine the occurrence deployment and placement profiles based on normal cmdb hierarchy --]
                     [#local profiles =
                         getCompositeObject(
@@ -525,12 +532,23 @@
                         [/#list]
                     [/#list]
 
+                    [#local occurrence = occurrence + attributeIfContent("Occurrences", subOccurrences) ]
+
+                    [@addOccurrenceToCache
+                        tierId=tierId
+                        componentId=component.Id
+                        subComponentId=(formatId(subComponentId))!""
+                        instanceId=instanceKey
+                        versionId=versionKey
+                        occurrence=occurrence
+                    /]
+
                     [#local occurrences +=
                         [
-                            occurrence +
-                            attributeIfContent("Occurrences", subOccurrences)
+                            occurrence
                         ]
                     ]
+
                 [/#if]
             [/#list]
         [/#if]
