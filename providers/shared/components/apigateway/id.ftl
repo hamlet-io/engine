@@ -76,6 +76,33 @@ object.
                 "Default" : ""
             },
             {
+                "Names" : "Logging",
+                "Children" : [
+                    {
+                        "Names" : "Execution",
+                        "Children" : [
+                            {
+                                "Names" : "Enabled",
+                                "Description" : "Logging of the API Gateway Execution Logs.",
+                                "Type" : BOOLEAN_TYPE,
+                                "Default" : false
+                            }
+                        ]
+                    },
+                    {
+                        "Names" : "Access",
+                        "Children" : [
+                            {
+                                "Names" : "Enabled",
+                                "Description" : "Logging of the API Gateway Access Logs.",
+                                "Type" : BOOLEAN_TYPE,
+                                "Default" : true
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
                 "Names" : "Links",
                 "Subobjects" : true,
                 "Children" : linkChildrenConfiguration
@@ -221,12 +248,6 @@ object.
                 "Names" : "LogMetrics",
                 "Subobjects" : true,
                 "Children" : logMetricChildrenConfiguration
-            },
-            {
-                "Names" : "LogToOpsData",
-                "Description" : "Output APIGateway logs to the Baseline OpsData databucket.",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : false
             },
             {
                 "Names" : "BasePathBehaviour",
