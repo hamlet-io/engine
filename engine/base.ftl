@@ -1225,17 +1225,16 @@ are added.
 
 [#--
 Strip any leading "v" (note we handle leading = in semver_satisfies)
-Convert any range indicators ("x" or "X") to 0
-* not supported as substitute for x
+Convert any range indicators ("x" or "X" or "*") to 0
 --]
 
 [#function semverClean version]
     [#-- Handle the full format --]
     [#local match = version?matches(r"^v?(0|[1-9][0-9]*|x|X)\.(0|[1-9][0-9]*|x|X)\.(0|[1-9][0-9]*|x|X)(\-([^+]+))?(\+(.*))?$") ]
     [#if match]
-        [#local major = match?groups[1]?replace("x", "0", "i")?number ]
-        [#local minor = match?groups[2]?replace("x", "0", "i")?number ]
-        [#local patch = match?groups[3]?replace("x", "0", "i")?number ]
+        [#local major = match?groups[1]?replace("[x*]", "0", "ir")?number ]
+        [#local minor = match?groups[2]?replace("[x*]", "0", "ir")?number ]
+        [#local patch = match?groups[3]?replace("[x*]", "0", "ir")?number ]
         [#local pre   = match?groups[5] ]
         [#local build = match?groups[7] ]
 
@@ -1264,8 +1263,8 @@ Convert any range indicators ("x" or "X") to 0
     [#-- Handle major.minor --]
     [#local match = version?matches(r"^v?(0|[1-9][0-9]*|x|X)\.(0|[1-9][0-9]*|x|X)$") ]
     [#if match]
-        [#local major = match?groups[1]?replace("x", "0", "i")?number ]
-        [#local minor = match?groups[2]?replace("x", "0", "i")?number ]
+        [#local major = match?groups[1]?replace("[x*]", "0", "ir")?number ]
+        [#local minor = match?groups[2]?replace("[x*]", "0", "ir")?number ]
         [#local patch = 0 ]
         [#return
             [
@@ -1282,7 +1281,7 @@ Convert any range indicators ("x" or "X") to 0
     [#-- Handle major --]
     [#local match = version?matches(r"^v?(0|[1-9][0-9]*|x|X)$") ]
     [#if match]
-        [#local major = match?groups[1]?replace("x", "0", "i")?number ]
+        [#local major = match?groups[1]?replace("[x*]", "0", "ir")?number ]
         [#local minor = 0 ]
         [#local patch = 0 ]
         [#return
