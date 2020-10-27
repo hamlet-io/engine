@@ -611,6 +611,7 @@
 
 [#function internalCreateOccurrenceBuildSettings occurrence]
     [#local namespaces = occurrence.Configuration.SettingNamespaces ]
+    [#local deploymentUnit = getOccurrenceDeploymentUnit(occurrence) ]
 
     [#local occurrenceBuild =
         internalCreateOccurrenceSettings(
