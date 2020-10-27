@@ -1,6 +1,4 @@
 [#ftl]
-[#include "engine.ftl"]
-[#include "common.ftl"]
 [#include "openapi.ftl"]
 [#include "schema.ftl"]
 

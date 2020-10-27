@@ -86,7 +86,7 @@
     [#local deploymentAttributes = [
         {
             "Names" : "Unit",
-            "Type" : "STRING_TYPE",
+            "Type" : STRING_TYPE,
             "Default" : defaultUnit
         } +
         attributeIfTrue(
