@@ -46,5 +46,7 @@
 [#assign NETWORKPROFILE_REFERENCE_TYPE = "NetworkProfile" ]
 [#assign SERVICEROLE_REFERENCE_TYPE = "ServiceRole" ]
 
+[#assign SCENARIOPROFILE_REFERENCE_TYPE = "ScenarioProfile" ]
+
 [#assign TESTCASE_REFERENCE_TYPE = "TestCase" ]
 [#assign TESTPROFILE_REFERENCE_TYPE = "TestProfile" ]
