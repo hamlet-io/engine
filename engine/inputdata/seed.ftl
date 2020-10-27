@@ -41,32 +41,38 @@
     [/#list]
 [/#macro]
 
-[#macro seedScenarioConfiguration provider scenarios ]
-    [#list scenarios as scenario ]
-        [#if isConfigurationIncluded([provider, "scenario", scenario]) ]
-            [#return]
-        [/#if]
+[#macro seedScenarioData provider name parameters={} ]
 
-        [#-- load in the scenarios --]
-        [#list [ "scenario" ] as level ]
-            [#local scenarioMacroOptions =
-                [
-                    [ provider, "scenario", scenario ]
-                ]]
+    [#-- Run the scenario to load the data --]
+    [#local scenarioMacroOptions =
+        [
+            [ provider, "scenario", name ]
+        ]]
 
-            [#local scenarioMacro = getFirstDefinedDirective(scenarioMacroOptions)]
-            [#if scenarioMacro?has_content ]
-                [@(.vars[scenarioMacro]) /]
-            [#else]
-                [@debug
-                    message="Unable to invoke any of the setting scenario macro options"
-                    context=scenarioMacroOptions
-                    enabled=false
-                /]
-            [/#if]
-        [/#list]
+    [#local scenarioMacro = getFirstDefinedDirective(scenarioMacroOptions)]
 
+    [#local parameterConfig = {}]
+    [#list parameters?values as parameter ]
+        [#local parameterConfig = mergeObjects(
+                                    parameterConfig,
+                                    {
+                                        parameter.Key : parameter.Value
+                                    }
+
+                                )]
     [/#list]
+
+    [#local scenarioDetails = getScenarioDetails(name, provider, parameterConfig)]
+
+    [#if scenarioMacro?has_content && scenarioDetails?has_content ]
+        [@(.vars[scenarioMacro])?with_args(scenarioDetails.Parameters) /]
+    [#else]
+        [@debug
+            message="Unable to invoke scenario or parmeters were invalid"
+            context=scenarioMacroOptions
+            enabled=false
+        /]
+    [/#if]
 [/#macro]
 
 [#------------------------------------------------------

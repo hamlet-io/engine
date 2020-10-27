@@ -2,6 +2,8 @@
 
 [#-- Core helper routines --]
 [#include "base.ftl" ]
+[#include "engine.ftl"]
+[#include "common.ftl"]
 
 [#-- flow --]
 [#include "flow.ftl" ]
@@ -30,7 +32,6 @@
 
 [#-- Scenerio Loading --]
 [#include "scenario.ftl" ]
-[#include "testcase.ftl" ]
 
 [#-- Component handling --]
 [#include "component.ftl" ]
@@ -70,23 +71,24 @@
 [@includeCoreProviderConfiguration SHARED_PROVIDER /]
 [@includeCoreProviderConfiguration commandLineOptions.Deployment.Provider.Names /]
 
-[#-- Load Scenarios --]
-[#if scenarioList?has_content ]
-    [@seedScenarioConfiguration
-        provider=SHARED_PROVIDER
-        scenarios=scenarioList
-    /]
-
-    [#list commandLineOptions.Deployment.Provider.Names as provider ]
-        [@seedScenarioConfiguration
-            provider=provider
-            scenarios=scenarioList
-        /]
-    [/#list]
-[/#if]
-
 [#-- Determine input source input data --]
 [@seedProviderInputSourceData SHARED_PROVIDER, commandLineOptions.Deployment.Provider.Names /]
+
+[#-- Load Scenarios --]
+[#assign refreshInputData = false ]
+[#list getScenariosFromProfiles() as id, scenario ]
+    [#assign refreshInputData = true ]
+    [@seedScenarioData
+        provider=scenario.Provider
+        name=scenario.Name
+        parameters=scenario.Parameters
+    /]
+[/#list]
+
+[#-- refresh the input data once we've loaded the scenarios to ensure the CMDB is perferred --]
+[#if refreshInputData ]
+    [@seedProviderInputSourceData SHARED_PROVIDER, commandLineOptions.Deployment.Provider.Names /]
+[/#if]
 
 [#-- Set the context for templates processing --]
 [#include "setContext.ftl" ]
