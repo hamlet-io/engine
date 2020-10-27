@@ -16,6 +16,13 @@
             "Default" : true
         },
         {
+            "Names" : "Operations",
+            "Description" : "The deployment operations to complete for each deployment",
+            "Type" : ARRAY_OF_STRING_TYPE,
+            "Values" : [ "create", "update", "delete" ],
+            "Default" : [ "update" ]
+        },
+        {
             "Names" : "ExecutionPolicy",
             "Description" : "Defines how groups can be used in this deployment mode",
             "Type" : STRING_TYPE,
@@ -70,18 +77,28 @@
 
 [#function getDeploymentModeDetails deploymentMode  ]
     [#local deploymentModes = getReferenceData(DEPLOYMENTMODE_REFERENCE_TYPE)]
+    [#local deploymentModeDetails = {}]
 
-    [#if ! (deploymentModes[deploymentMode]!{})?has_content || ! ( deploymentModes[deploymentMode].Enabled )  ]
-        [#return {}]
+    [#if (deploymentModes[deploymentMode]!{})?has_content && deploymentModes[deploymentMode].Enabled ]
+        [#local deploymentModeDetails = deploymentModes[deploymentMode]]
     [/#if]
 
-    [#return
-        mergeObjects(
-            {
-                "Id" : deploymentMode,
-                "Name" : (deploymentModes[deploymentMode].Name)!deploymentMode
-            },
-            deploymentModes[deploymentMode]
-        )
-    ]
+    [#if (deploymentModes["_default"]!{})?has_content && deploymentModes["_default"].Enabled  ]
+        [#local deploymentModeDetails = deploymentModes["_default"]]
+    [/#if]
+
+    [#if deploymentModeDetails?has_content ]
+        [#return
+            mergeObjects(
+                {
+                    "Id" : deploymentMode,
+                    "Name" : (deploymentModeDetails.Name)!deploymentMode,
+                    "Enabled" : (deploymentModeDetails.Enabled)!false
+                },
+                deploymentModeDetails
+            )
+        ]
+    [#else]
+        [#return {}]
+    [/#if]
 [/#function]

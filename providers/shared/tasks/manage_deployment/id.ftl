@@ -18,6 +18,16 @@
             "Names" : "DeploymentGroup",
             "Type" : STRING_TYPE,
             "Mandatory" : true
+        },
+        {
+            "Names" : "Operations",
+            "Type" : ARRAY_OF_STRING_TYPE,
+            "Mandatory" : true
+        },
+        {
+            "Names" : "DeploymentProvider",
+            "Type" : STRING_TYPE,
+            "Mandatory" : true
         }
     ]
 /]
