@@ -593,10 +593,21 @@
             "Default" : false
         },
         {
+            "Names" : "Logging",
+            "Children" : [ 
+                {
+                    "Names" : "Enabled",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : true
+                }
+            ]
+        },
+        {
             "Names" : "Profiles",
             "Children" : [
                 {
                     "Names" : "Logging",
+                    "Description" : "Logging profile to process WAF Logs that are stored in the OpsData DataBucket.",
                     "Type"  : STRING_TYPE,
                     "Default" : "waf"
                 }
