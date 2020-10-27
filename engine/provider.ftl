@@ -169,6 +169,22 @@
                 /]
             [/#list]
 
+            [#-- Determine the scenerios for the provider --]
+            [#local directories =
+                internalGetPluginFiles(
+                    [providerMarker.Path, "scenarios"],
+                    [
+                        ["[^/]+"]
+                    ]
+                )
+            ]
+            [#list directories as directory]
+                [@internalIncludeTemplatesInDirectory
+                    directory,
+                    ["id", "scenario"]
+                /]
+            [/#list]
+
             [#-- Determine the tasks for the provider --]
             [#local directories =
                 internalGetPluginFiles(
