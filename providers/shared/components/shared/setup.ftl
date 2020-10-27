@@ -23,6 +23,7 @@
 [/#macro]
 
 [#macro shared_unitlist_managementcontract occurrence ]
+
     [@createOccurrenceManagementContractStep
         occurrence=occurrence
     /]

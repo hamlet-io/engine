@@ -1710,8 +1710,16 @@
           }
         },
         "DeploymentModes" : {
+          "_default" : {
+            "Operations" : [ "update" ],
+            "Membership" : "priority",
+            "Priority" : {
+              "GroupFilter" : ".*",
+              "Order" : "LowestFirst"
+            }
+          },
           "update" : {
-            "Actions" : [ "update" ],
+            "Operations" : [ "update" ],
             "Membership" : "priority",
             "Priority" : {
               "GroupFilter" : ".*",
@@ -1719,7 +1727,7 @@
             }
           },
           "stop" : {
-            "Actions" : [ "delete" ],
+            "Operations" : [ "delete" ],
             "Membership" : "priority",
             "Priority" : {
               "GroupFilter" : ".*",
@@ -1727,7 +1735,7 @@
             }
           },
           "stopstart" : {
-            "Actions" : [ "delete", "update" ],
+            "Operations" : [ "delete", "update" ],
             "Membership" : "priority",
             "Priority" : {
               "GroupFilter" : ".*",

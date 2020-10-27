@@ -4,7 +4,7 @@
 [#assign DEFAULT_DEPLOYMENT_FRAMEWORK = "default"]
 
 [#-- Management Contracts --]
-[#macro createManagementContractStage deploymentUnit deploymentPriority deploymentGroup deploymentMode=getDeploymentMode() ]
+[#macro createManagementContractStage deploymentUnit deploymentPriority deploymentGroup deploymentProvider deploymentMode=getDeploymentMode() ]
 
     [#local deploymentModeDetails = getDeploymentModeDetails(deploymentMode)]
     [#local deploymentGroupDetails = getDeploymentGroupDetails(deploymentGroup) ]
@@ -74,7 +74,9 @@
                 parameters=
                     {
                         "DeploymentUnit" : deploymentUnit,
-                        "DeploymentGroup" : deploymentGroupDetails.Name
+                        "DeploymentGroup" : deploymentGroupDetails.Name,
+                        "DeploymentProvider" : deploymentProvider,
+                        "Operations" : deploymentModeDetails.Operations
                     }
             /]
         [/#if]
@@ -83,11 +85,14 @@
 
 [#macro createOccurrenceManagementContractStep occurrence ]
     [#local solution = occurrence.Configuration.Solution ]
+    [#local resourceGroups = occurrence.State.ResourceGroups ]
+
     [#if ((solution["deployment:Group"])!"")?has_content ]
         [@createManagementContractStage
             deploymentUnit=getOccurrenceDeploymentUnit(occurrence)
             deploymentGroup=solution["deployment:Group"]
             deploymentPriority=solution["deployment:Priority"]
+            deploymentProvider=resourceGroups["default"].Placement.Provider
         /]
     [/#if]
 [/#macro]
@@ -98,6 +103,7 @@
             deploymentUnit=resourceSet["deployment:Unit"]
             deploymentGroup=deploymentGroupDetails.Name
             deploymentPriority=resourceSet["deployment:Priority"]
+            deploymentProvider=(commandLineOptions.Deployment.Provider.Names)[0]
         /]
     [/#list]
 [/#macro]
