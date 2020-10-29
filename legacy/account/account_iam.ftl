@@ -21,6 +21,7 @@
             [@createServiceLinkedRole
                 id=serviceLinkedRoleId
                 serviceName=serviceRole.ServiceName
+                description=serviceRole.Description
             /]
 
         [/#if]
