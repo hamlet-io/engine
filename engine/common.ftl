@@ -419,6 +419,11 @@ behaviour.
     [#return (networkProfiles[profileName])!{} ]
 [/#function]
 
+[#function getComputeProviderProfile profileName  ]
+    [#local computeProviders = getReferenceData(COMPUTEPROVIDER_REFERENCE_TYPE)]
+    [#return (computeProviders[profileName])!{} ]
+[/#function]
+
 [#function getLoggingProfile profileName  ]
     [#local loggingProfiles = getReferenceData(LOGGINGPROFILE_REFERENCE_TYPE)]
     [#return (loggingProfiles[profileName])!{} ]

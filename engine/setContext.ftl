@@ -53,6 +53,9 @@
 [@addReferenceData type=PROCESSOR_REFERENCE_TYPE base=blueprintObject /]
 [#assign processors = getReferenceData(PROCESSOR_REFERENCE_TYPE) ]
 
+[#-- ComputeProvider Profiles --]
+[@addReferenceData type=COMPUTEPROVIDER_REFERENCE_TYPE base=blueprintObject /]
+
 [#-- Ports --]
 [@addReferenceData type=PORT_REFERENCE_TYPE base=blueprintObject /]
 [#assign ports = getReferenceData(PORT_REFERENCE_TYPE) ]
