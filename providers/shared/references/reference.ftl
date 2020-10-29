@@ -24,6 +24,7 @@
 [#assign LOGFILEPROFILE_REFERENCE_TYPE = "LogFileProfile" ]
 
 [#-- Compute Reference Types --]
+[#assign COMPUTEPROVIDER_REFERENCE_TYPE = "ComputeProvider" ]
 [#assign PROCESSOR_REFERENCE_TYPE = "Processor" ]
 [#assign STORAGE_REFERENCE_TYPE = "Storage" ]
 
