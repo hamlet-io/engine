@@ -28,7 +28,7 @@
     [#assign consoleLogBucketName = formatAccountSSMSessionManagerLogBucketName() ]
     [#assign consoleLogBucketPrefix = formatAccountSSMSessionManagerLogBucketPrefix()]
 
-    [#assign consoleLoggingDestinations = (accountObject.Console.LoggingDestinations)![ "s3" ]]
+    [#assign consoleLoggingDestinations = accountObject.Console.LoggingDestinations ]
 
     [#assign consoleDocumentDependencies = []]
 

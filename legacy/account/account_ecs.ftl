@@ -10,15 +10,9 @@
         deploymentFramework=commandLineOptions.Deployment.Framework.Name
     /]
 
-    [#assign ecsAccountSettings = {
-                "serviceLongArnFormat" : true,
-                "taskLongArnFormat" : true,
-                "containerInstanceLongArnFormat" : true,
-                "awsvpcTrunking" : true
-    }]
 
     [#-- Allow of overriding the settings if required --]
-    [#assign ecsAccountSettings = mergeObjects( ecsAccountSettings, (accountObject["aws:ecsAccountSettings"])!{} )]
+    [#assign ecsAccountSettings = accountObject["aws:ecsAccountSettings"])]
 
     [#assign ecsAccountCommands = [] ]
     [#list ecsAccountSettings as setting,state ]

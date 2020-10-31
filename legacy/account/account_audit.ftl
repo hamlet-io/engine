@@ -7,7 +7,7 @@
             [@addDefaultGenerationContract subsets="template" /]
         [/#if]
 
-        [#assign s3EncryptionEnabled = (accountObject.S3.Encryption.Enabled)!false ]
+        [#assign s3EncryptionEnabled = accountObject.S3.Encryption.Enabled  ]
 
         [#if deploymentSubsetRequired("audit", true)]
             [#assign lifecycleRules = []]
