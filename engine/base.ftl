@@ -313,6 +313,19 @@
     [#return filterObjectAttributes(obj, attributes, true)]
 [/#function]
 
+[#function findAttributeInObject obj keyPath  ]
+    [#list keyPath as key ]
+        [#if obj[key]?? ]
+            [#if key?is_last ]
+                [#return obj[key]]
+            [#else]
+                [#return findAttributeInObject(obj[key], keyPath[ (key?index +1) ..])]
+            [/#if]
+        [/#if]
+        [#return ""]
+    [/#list]
+[/#function]
+
 [#--------------------
 -- Combine entities --
 ----------------------
