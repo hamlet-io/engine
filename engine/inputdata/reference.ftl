@@ -20,7 +20,7 @@
 
     [@internalMergeReferenceConfiguration
         type=type
-        configuration=configuration  
+        configuration=configuration
     /]
 [/#macro]
 
@@ -53,6 +53,12 @@
     [/#if]
 [/#function]
 
+[#macro includeReferences ]
+    [#list referenceConfiguration as id, reference ]
+        [@addReferenceData type=reference.Type.Singular base=blueprintObject /]
+    [/#list]
+[/#macro]
+
 [#-------------------------------------------------------
 -- Internal support functions for component processing --
 ---------------------------------------------------------]
@@ -76,12 +82,14 @@
     [#if referenceConfig?has_content ]
         [#if data?has_content ]
             [#list data as id,content ]
+
+                [#local compositeData = getCompositeObject(referenceConfig.Attributes, content) ]
                 [#assign referenceData =
                     mergeObjects(
                         referenceData,
                         {
                             referenceConfig.Type.Plural: {
-                                id : getCompositeObject( referenceConfig.Attributes, content)
+                                id : compositeData
                             }
                         }
                     )]
