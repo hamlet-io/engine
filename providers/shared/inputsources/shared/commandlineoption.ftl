@@ -59,6 +59,19 @@
         }
     /]
 
+    [#-- Layer Details --]
+    [@addCommandLineOption
+        option={
+            "Layers" : {
+                "Tenant" : tenant!"",
+                "Account" : account!"",
+                "Product" : product!"",
+                "Environment" : environment!"",
+                "Segment" : segment!""
+            }
+        }
+    /]
+
     [#-- Logging Details --]
     [@addCommandLineOption
         option={

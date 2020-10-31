@@ -1,12 +1,12 @@
 [#ftl]
 
-[@addReference
-    type=ENVIRONMENT_REFERENCE_TYPE
-    pluralType="Environments"
+[@addLayer
+    type=ENVIRONMENT_LAYER_TYPE
+    referenceLookupType=ENVIRONMENT_LAYER_REFERENCE_TYPE
     properties=[
             {
                 "Type"  : "Description",
-                "Value" : "A instance of a product"
+                "Value" : "The environment layer"
             }
         ]
     attributes=[
@@ -28,8 +28,7 @@
         },
         {
             "Names" : "Category",
-            "Type" : STRING_TYPE,
-            "Mandatory" : true
+            "Type" : STRING_TYPE
         },
         {
             "Names" : "MultiAZ",
@@ -43,6 +42,11 @@
                     "Names" : "Deployment",
                     "Type" : ARRAY_OF_STRING_TYPE,
                     "Default" : []
+                },
+                {
+                    "Names" : "Policy",
+                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Default" : []
                 }
             ]
         }
@@ -51,7 +55,8 @@
             "Children" : [
                 {
                     "Names" : "Expiration",
-                    "Type" : NUMBER_TYPE
+                    "Type" : NUMBER_TYPE,
+                    "Default" : 7
                 },
                 {
                     "Names" : "Offline",
