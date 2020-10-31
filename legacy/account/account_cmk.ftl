@@ -14,7 +14,7 @@
         deploymentFramework=CLOUD_FORMATION_DEPLOYMENT_FRAMEWORK
     /]
 
-    [#if (accountObject.Encryption.Alias.IncludeSeed)!false ]
+    [#if accountObject.Encryption.Alias.IncludeSeed ]
         [#assign cmkKeyAliasName = formatRelativePath( "alias", formatName("account", "cmk", accountObject.Seed)) ]
         [#assign consoleKeyAliasName = formatRelativePath( "alias", formatName("account", "cmk", "console", accountObject.Seed)) ]
         [#assign volumeEncryptionKeyAliasName = formatRelativePath( "alias", formatName("account", "cmk", "volume", "encrypt", accountObject.Seed)) ]
@@ -55,7 +55,7 @@
             /]
         [/#if]
 
-        [#if (accountObject.Volume.Encryption.Enabled)!false ]
+        [#if accountObject.Volume.Encryption.Enabled ]
 
             [#assign volumeEncryptionKmsKeyId = formatEc2AccountVolumeEncryptionKMSKeyId()]
             [#assign volumeEncryptionKmsKeyName = formatName("account", "cmk", "volume", "encrypt")]
@@ -136,7 +136,7 @@
             [/#if]
         [/#if]
 
-        [#if (accountObject.Console.Encryption.DedicatedKey)!false ]
+        [#if accountObject.Console.Encryption.DedicatedKey ]
 
             [#assign consoleKeyId = formatAccountSSMSessionManagerKMSKeyId() ]
             [#assign consoleKeyName = formatName("account", "cmk", "console")]

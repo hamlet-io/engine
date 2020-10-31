@@ -19,7 +19,7 @@
 
     [#assign volumeEncryptionEnabled = true ]
 
-    [#if (accountObject.Volume.Encryption.Enabled)!false ]
+    [#if accountObject.Volume.Encryption.Enabled ]
         [#if deploymentSubsetRequired("epilogue", false) ]
 
             [#if ! volumeEncryptKmsKeyArn?has_content ]

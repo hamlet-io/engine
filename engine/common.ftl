@@ -106,7 +106,7 @@
 [/#function]
 
 [#function getAppDataPublicFilePrefix occurrence={} ]
-    [#if (segmentObject.Data.Public.Enabled)!false]
+    [#if segmentObject.Data.Public.Enabled ]
         [#if occurrence?has_content]
             [#local override =
                 getOccurrenceSettingValue(

@@ -1,6 +1,4 @@
 [#ftl]
-[#include "openapi.ftl"]
-[#include "schema.ftl"]
 
 [#-- Shared Provider Configurations --]
 [@includeSharedComponentConfiguration component="shared" /]
@@ -100,23 +98,6 @@
     [#assign accountRegionObject = regions[accountRegionId] ]
 [/#if]
 
-[#-- Tenants --]
-[#assign tenants = (blueprintObject.Tenants)!{} ]
-[#assign tenantObject = (blueprintObject.Tenant)!(tenants[tenant])!{} ]
-[#if tenantObject?has_content]
-    [#assign tenantId = tenantObject.Id!tenant]
-    [#assign tenantName = tenantObject.Name!tenantId]
-    [#assign tenants +=
-        {
-            tenantId :
-                {
-                    "Id" : tenantId,
-                    "Name" : tenantName
-                } +
-                tenantObject
-        } ]
-[/#if]
-
 [#-- Domains --]
 [#assign domains =
     addIdNameToObjectAttributes(blueprintObject.Domains!{}) ]
@@ -125,21 +106,22 @@
 [#assign certificates =
     addIdNameToObjectAttributes(blueprintObject.Certificates!{}) ]
 
+[#-- Tenants --]
+[#assign tenants = getLayer(TENANT_LAYER_TYPE) ]
+[#assign tenantObject = getActiveLayer( TENANT_LAYER_TYPE )]
+
+[#if tenantObject?has_content ]
+    [#assign tenantId = tenantObject.Id ]
+    [#assign tenantName = tenantObject.Name ]
+[/#if]
+
 [#-- Accounts --]
-[#assign accounts = (blueprintObject.Accounts)!{} ]
-[#assign accountObject = (blueprintObject.Account)!(accounts[account])!{} ]
+[#assign accounts = getLayer(ACCOUNT_LAYER_TYPE) ]
+[#assign accountObject = getActiveLayer(ACCOUNT_LAYER_TYPE)]
+
 [#if accountObject?has_content]
-    [#assign accountId = accountObject.Id!account]
-    [#assign accountName = accountObject.Name!accountId]
-    [#assign accounts +=
-        {
-            accountId :
-                {
-                    "Id" : accountId,
-                    "Name" : accountName
-                } +
-                accountObject
-        } ]
+    [#assign accountId = accountObject.Id ]
+    [#assign accountName = accountObject.Name ]
 
     [#if (commandLineOptions.Deployment.Provider.Names)?seq_contains("aws")]
         [#assign credentialsBucket = getExistingReference(formatAccountS3Id("credentials"))]
@@ -156,55 +138,14 @@
 
 [/#if]
 
-[#function getAWSAccountIds accountIds ]
-    [#local AWSAccountIds = [] ]
-
-    [#list accountIds as accountId ]
-        [#switch accountId]
-            [#case "_tenant"]
-            [#case "_tenant_"]
-            [#case "__tenant__"]
-                [#list accounts as id,account ]
-                    [#local AWSAccountIds += [ (account.AWSId)!""]  ]
-                [/#list]
-                [#break]
-
-            [#case "_environment"]
-            [#case "_environment_"]
-            [#case "__environment__"]
-                [#local AWSAccountIds += [ accountObject.AWSId ] ]
-                [#break]
-
-            [#case "_global" ]
-            [#case "_global_" ]
-            [#case "__global__" ]
-                [#local AWSAccountIds += [ "*" ]]
-                [#break]
-
-            [#default]
-                [#local AWSAccountIds += [ (accounts[accountId].AWSId)!"" ]]
-        [/#switch]
-    [/#list]
-    [#return AWSAccountIds ]
-[/#function]
-
 [#-- Products --]
-[#assign products = (blueprintObject.Products)!{} ]
-[#assign productObject = (blueprintObject.Product)!(products[product])!{} ]
-[#if productObject?has_content]
-    [#assign productId = (productObject.Id!product)!"" ]
-    [#assign productName = productObject.Name!productId]
-    [#assign products +=
-        {
-            productId :
-                {
-                    "Id" : productId,
-                    "Name" : productName
-                } +
-                productObject
-        } ]
+[#assign products = getLayer(PRODUCT_LAYER_TYPE) ]
+[#assign productObject = getActiveLayer(PRODUCT_LAYER_TYPE) ]
 
-    [#assign productDomain = productObject.Domain!""]
+[#if productObject?has_content]
+    [#assign productId = productObject.Id ]
+    [#assign productName = productObject.Name ]
+    [#assign productDomain = productObject.Domain ]
 
     [#assign shortNamePrefixes += [productId] ]
     [#assign fullNamePrefixes += [productName] ]
@@ -213,91 +154,21 @@
 
 [/#if]
 
-[#function forceProfileComponentTypesToLowerCase profiles]
-    [#local result = {} ]
-    [#list profiles as name,profile ]
-        [#if profile?is_hash ]
-            [#list profile.Modes as mode,modeProfile ]
-                [#if modeProfile?is_hash ]
-                    [#list modeProfile as type,config ]
-                        [#local result =
-                            mergeObjects(
-                                result,
-                                {
-                                    name : {
-                                        "Modes" : {
-                                            mode : {
-                                                type?lower_case : config
-                                            }
-                                        }
-                                    }
-                                }
-                            )
-                        ]
-                    [/#list]
-                [/#if]
-            [/#list]
-        [/#if]
-    [/#list]
-    [#return result]
-[/#function]
-
-[#-- Deployment Profiles use the standard CMDB override mechanism --]
-[#-- Deployment profiles for tenant and account are provided for  --]
-[#-- backwards compatability                                      --]
-[#assign deploymentProfiles =
-    forceProfileComponentTypesToLowerCase(
-        mergeObjects(
-            blueprintObject.DeploymentProfiles!{},
-            productObject.DeploymentProfiles!{},
-            tenantObject.DeploymentProfiles!{},
-            accountObject.DeploymentProfiles!{}
-        )
-    )
-]
-
-[#-- Policy Profiles reflect the desired enforcement hierarchy --]
-[#assign policyProfiles =
-    forceProfileComponentTypesToLowerCase(
-        mergeObjects(
-            blueprintObject.PolicyProfiles!{},
-            productObject.PolicyProfiles!{},
-            accountObject.PolicyProfiles!{},
-            tenantObject.PolicyProfiles!{}
-        )
-    )
-]
-
-[#-- Cludge for now to get placement profiles working --]
-[#assign placementProfiles =
-    (blueprintObject.PlacementProfiles)!{} +
-    mergeObjects(
-        (productObject.PlacementProfiles)!{},
-        (tenantObject.PlacementProfiles)!{}
-    ) ]
-
-
 [#-- Segments --]
-[#assign segments = (blueprintObject.Segments)!{} ]
-[#assign segmentObject = (blueprintObject.Segment)!(segments[segment])!{} ]
-[#if segmentObject?has_content]
-    [#assign segmentId = (segmentObject.Id!segment)!""]
-    [#assign segmentName = segmentObject.Name!segmentId]
-    [#assign segments +=
-        {
-            segmentId :
-                {
-                    "Id" : segmentId,
-                    "Name" : segmentName
-                } +
-                segmentObject
-        } ]
+[#assign segments = getLayer(SEGMENT_LAYER_TYPE) ]
+[#assign segmentObject = getActiveLayer(SEGMENT_LAYER_TYPE)]
 
-    [#if blueprintObject.Environment?? ]
-        [#assign environmentId = blueprintObject.Environment.Id ]
-        [#assign environmentObject =
-            addIdNameToObject(environments[environmentId], environmentId) ]
+[#assign environments = getLayer(ENVIRONMENT_LAYER_TYPE) ]
+[#assign environmentObject = getActiveLayer(ENVIRONMENT_LAYER_TYPE) ]
+
+[#if segmentObject?has_content]
+    [#assign segmentId = segmentObject.Id ]
+    [#assign segmentName = segmentObject.Name ]
+
+    [#if environmentObject?has_content ]
+        [#assign environmentId = environmentObject.Id ]
         [#assign environmentName = environmentObject.Name ]
+
         [#assign categoryId = segmentObject.Category!environmentObject.Category ]
         [#assign categoryName = categoryId ]
         [#assign categoryObject =
@@ -336,55 +207,119 @@
         [/#if]
     [/#if]
 
-    [#assign network = segmentObject.Network!segmentObject ]
+    [#assign rotateKeys = segmentObject.RotateKeys ]
 
+    [#assign network = segmentObject.Network ]
     [#assign internetAccess = network.InternetAccess]
 
-    [#assign natEnabled = internetAccess && ((segmentObject.NAT.Enabled)!true)]
-    [#assign natHosted = (segmentObject.NAT.Hosted)!false]
+    [#assign natEnabled = internetAccess && segmentObject.NAT.Enabled ]
+    [#assign natHosted = segmentObject.NAT.Hosted]
 
-    [#assign rotateKeys = (segmentObject.RotateKeys)!true]
+    [#assign sshEnabled = segmentObject.Bastion.Enabled ]
+    [#assign sshActive = sshEnabled && segmentObject.Bastion.Active ]
 
-    [#assign sshEnabled = ((segmentObject.SSH.Enabled)!(segmentObject.Bastion.Enabled)!true)]
-    [#assign sshActive = sshEnabled &&
-                            ((segmentObject.SSH.Active)!(segmentObject.Bastion.Active)!false)]
     [#if (commandLineOptions.Deployment.Provider.Names)?seq_contains("aws")]
         [#assign sshFromProxySecurityGroup = getExistingReference(formatSSHFromProxySecurityGroupId())]
     [/#if]
 
     [#assign operationsExpiration =
-        (segmentObject.Operations.Expiration)!
-        (environmentObject.Operations.Expiration)!""]
+                    getActiveLayerAttributes( ["Operations", "Expiration"], [ SEGMENT_LAYER_TYPE, ENVIRONMENT_LAYER_TYPE ], "" )[0] ]
+
     [#assign operationsOffline =
-        (segmentObject.Operations.Offline)!
-        (environmentObject.Operations.Offline)!""]
+                    getActiveLayerAttributes( ["Operations", "Offline"], [ SEGMENT_LAYER_TYPE, ENVIRONMENT_LAYER_TYPE ], "" )[0] ]
+
     [#assign dataExpiration =
-        (segmentObject.Data.Expiration)!
-        (environmentObject.Data.Expiration)!""]
-    [#assign dataOffline =
-        (segmentObject.Data.Offline)!
-        (environmentObject.Data.Offline)!""]
+                    getActiveLayerAttributes( ["Data", "Expiration"], [ SEGMENT_LAYER_TYPE, ENVIRONMENT_LAYER_TYPE ], "" )[0] ]
+
+    [#assign dataExpiration =
+                    getActiveLayerAttributes( ["Data", "Offline"], [ SEGMENT_LAYER_TYPE, ENVIRONMENT_LAYER_TYPE ], "" )[0] ]
+
     [#assign dataPublicEnabled =
-        (segmentObject.Data.Public.Enabled)!
-        (environmentObject.Data.Public.Enabled)!false]
+                    getActiveLayerAttributes( ["Data", "Public", "Enabled" ], [ SEGMENT_LAYER_TYPE, ENVIRONMENT_LAYER_TYPE ], "" )[0] ]
+
     [#assign dataPublicIPAddressGroups =
-        (segmentObject.Data.Public.IPAddressGroups)!
-        (environmentObject.Data.Public.IPAddressGroups)!
-        (segmentObject.Data.Public.IPWhitelist)!
-        (environmentObject.Data.Public.IPWhitelist)![] ]
+                    getActiveLayerAttributes( ["Data", "Public", "IPAddressGroups" ], [ SEGMENT_LAYER_TYPE, ENVIRONMENT_LAYER_TYPE ], "" )[0] ]
+
 [/#if]
 
 [#-- Solution --]
-[#if blueprintObject.Solution?has_content]
-    [#assign solutionObject = blueprintObject.Solution]
-    [#assign solnMultiAZ = solutionObject.MultiAZ!(environmentObject.MultiAZ)!false]
-    [#assign RDSAutoMinorVersionUpgrade = (segmentObject.RDS.AutoMinorVersionUpgrade)!(solutionObject.RDS.AutoMinorVersionUpgrade)!(environmentObject.RDS.AutoMinorVersionUpgrade)!true]
+[#assign solutionObject = getActiveLayer(SOLUTION_LAYER_TYPE) ]
+[#if solutionObject?has_content ]
+    [#assign solnMultiAZ =
+                getActiveLayerAttributes( ["MultiAZ" ], [ SOLUTION_LAYER_TYPE, ENVIRONMENT_LAYER_TYPE ], false )[0] ]
+    [#assign RDSAutoMinorVersionUpgrade =
+                getActiveLayerAttributes( ["RDS", "AutoMinorVersionUpgrade" ], [ SEGMENT_LAYER_TYPE, SOLUTION_LAYER_TYPE, ENVIRONMENT_LAYER_TYPE ], true )[0] ]
+
     [#assign natPerAZ = natEnabled &&
                         (
                             (natHosted && solnMultiAZ) ||
                             ((segmentObject.NAT.MultiAZ)!false)
                         ) ]
 [/#if]
+
+[#function forceProfileComponentTypesToLowerCase profiles]
+    [#local result = {} ]
+    [#list profiles as name,profile ]
+        [#if profile?is_hash ]
+            [#list profile.Modes as mode,modeProfile ]
+                [#if modeProfile?is_hash ]
+                    [#list modeProfile as type,config ]
+                        [#local result =
+                            mergeObjects(
+                                result,
+                                {
+                                    name : {
+                                        "Modes" : {
+                                            mode : {
+                                                type?lower_case : config
+                                            }
+                                        }
+                                    }
+                                }
+                            )
+                        ]
+                    [/#list]
+                [/#if]
+            [/#list]
+        [/#if]
+    [/#list]
+    [#return result]
+[/#function]
+
+[#-- Deployment Profiles use the standard CMDB override mechanism --]
+[#-- Deployment profiles for tenant and account are provided for  --]
+[#-- backwards compatability                                      --]
+
+[#assign deploymentProfiles =
+    forceProfileComponentTypesToLowerCase(
+        mergeObjects(
+            blueprintObject.DeploymentProfiles!{},
+            productObject.DeploymentProfiles!{},
+            tenantObject.DeploymentProfiles!{},
+            accountObject.DeploymentProfiles!{}
+        )
+    )
+]
+
+[#-- Policy Profiles reflect the desired enforcement hierarchy --]
+[#assign policyProfiles =
+    forceProfileComponentTypesToLowerCase(
+        mergeObjects(
+            blueprintObject.PolicyProfiles!{},
+            productObject.PolicyProfiles!{},
+            accountObject.PolicyProfiles!{},
+            tenantObject.PolicyProfiles!{}
+        )
+    )
+]
+
+[#-- Cludge for now to get placement profiles working --]
+[#assign placementProfiles =
+    (blueprintObject.PlacementProfiles)!{} +
+    mergeObjects(
+        (productObject.PlacementProfiles)!{},
+        (tenantObject.PlacementProfiles)!{}
+    ) ]
 
 [#-- Required tiers --]
 [#list segmentObject.Tiers.Order as tierId]
@@ -462,6 +397,50 @@
     [#return result]
 [/#function]
 
+[#-- AWS Account Query --]
+[#function getAWSAccountIds accountIds ]
+    [#local AWSAccountIds = [] ]
+
+    [#list accountIds as accountId ]
+        [#switch accountId]
+            [#case "_tenant"]
+            [#case "_tenant_"]
+            [#case "__tenant__"]
+                [#list accounts as id,account ]
+                    [#local AWSAccountIds += [ (account.AWSId)!""]  ]
+                [/#list]
+                [#break]
+
+            [#case "_environment"]
+            [#case "_environment_"]
+            [#case "__environment__"]
+                [#local AWSAccountIds += [ accountObject.AWSId ] ]
+                [#break]
+
+            [#case "_global" ]
+            [#case "_global_" ]
+            [#case "__global__" ]
+                [#local AWSAccountIds += [ "*" ]]
+                [#break]
+
+            [#default]
+                [#local AWSAccountIds += [ (accounts[accountId].AWSId)!"" ]]
+        [/#switch]
+    [/#list]
+    [#return AWSAccountIds ]
+[/#function]
+
+[#-- Country Groups --]
+[#assign countryGroups = getReferenceData(COUNTRYGROUP_REFERENCE_TYPE, true) ]
+
+[#-- IP Address Groups - "global" is default --]
+[#if blueprintObject.IPAddressGroups?has_content ]
+    [@addReferenceData type=IPADDRESSGROUP_REFERENCE_TYPE
+        data=getEffectiveIPAddressGroups(blueprintObject.IPAddressGroups)
+    /]
+[/#if]
+[#assign ipAddressGroups = getReferenceData(IPADDRESSGROUP_REFERENCE_TYPE, true) ]
+
 [#-- Filter out open cidrs --]
 [#function getEffectiveIPAddressGroup group]
     [#-- Support manually forcing group to always be considered open --]
@@ -509,18 +488,6 @@
     [/#list]
     [#return result ]
 [/#function]
-
-[#-- Country Groups --]
-[@addReferenceData type=COUNTRYGROUP_REFERENCE_TYPE base=blueprintObject /]
-[#assign countryGroups = getReferenceData(COUNTRYGROUP_REFERENCE_TYPE, true) ]
-
-[#-- IP Address Groups - "global" is default --]
-[#if blueprintObject.IPAddressGroups?has_content ]
-    [@addReferenceData type=IPADDRESSGROUP_REFERENCE_TYPE
-        data=getEffectiveIPAddressGroups(blueprintObject.IPAddressGroups)
-    /]
-[/#if]
-[#assign ipAddressGroups = getReferenceData(IPADDRESSGROUP_REFERENCE_TYPE, true) ]
 
 [#function getIPAddressGroup group occurrence={}]
     [#local groupId = group?is_hash?then(group.Id, group) ]
