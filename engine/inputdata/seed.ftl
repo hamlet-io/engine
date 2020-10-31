@@ -41,15 +41,15 @@
     [/#list]
 [/#macro]
 
-[#macro seedScenarioData provider name parameters={} ]
+[#macro seedModuleData provider name parameters={} ]
 
-    [#-- Run the scenario to load the data --]
-    [#local scenarioMacroOptions =
+    [#-- Run the module macro to load the data --]
+    [#local moduleMacroOptions =
         [
-            [ provider, "scenario", name ]
+            [ provider, "module", name ]
         ]]
 
-    [#local scenarioMacro = getFirstDefinedDirective(scenarioMacroOptions)]
+    [#local moduleMacro = getFirstDefinedDirective(moduleMacroOptions)]
 
     [#local parameterConfig = {}]
     [#list parameters?values as parameter ]
@@ -62,15 +62,15 @@
                                 )]
     [/#list]
 
-    [#local scenarioDetails = getScenarioDetails(name, provider, parameterConfig)]
+    [#local moduleDetails = getModuleDetails(name, provider, parameterConfig)]
 
-    [#if scenarioMacro?has_content && scenarioDetails?has_content ]
-        [@(.vars[scenarioMacro])?with_args(scenarioDetails.Parameters) /]
+    [#if moduleMacro?has_content && moduleDetails?has_content ]
+        [@(.vars[moduleMacro])?with_args(moduleDetails.Parameters) /]
     [#else]
         [@debug
-            message="Unable to invoke scenario or parmeters were invalid"
-            context=scenarioMacroOptions
-            enabled=false
+            message="Unable to invoke module or parmeters were invalid"
+            context=moduleMacroOptions
+            enabled=true
         /]
     [/#if]
 [/#macro]

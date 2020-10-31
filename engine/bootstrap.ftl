@@ -31,8 +31,8 @@
 [#-- Resource Labels --]
 [#include "resourceLabel.ftl" ]
 
-[#-- Scenerio Loading --]
-[#include "scenario.ftl" ]
+[#-- Module Loading --]
+[#include "module.ftl" ]
 
 [#-- Component handling --]
 [#include "component.ftl" ]
@@ -49,6 +49,12 @@
 
 [#-- Output handling --]
 [#include "output.ftl" ]
+
+[#-- openapi handling --]
+[#include "openapi.ftl"]
+
+[#-- Schema handling --]
+[#include "schema.ftl"]
 
 [#-- Provider handling --]
 [#include "provider.ftl" ]
@@ -75,21 +81,30 @@
 [#-- Determine input source input data --]
 [@seedProviderInputSourceData SHARED_PROVIDER, commandLineOptions.Deployment.Provider.Names /]
 
-[#-- Load Scenarios --]
+[#-- Discover the layers which have been defined
+[#--This needs to be done before module loading as layers define the modules to load and their parameters --]
+[#-- This also has the added benefit of locking layers, since they are specific to a deployment people shouldn't be modifying layers with modules --]
+[@includeLayers /]
+
+[#-- Load Modules --]
 [#assign refreshInputData = false ]
-[#list getScenariosFromProfiles() as id, scenario ]
+
+[#list getActiveModulesFromLayers() as module ]
     [#assign refreshInputData = true ]
-    [@seedScenarioData
-        provider=scenario.Provider
-        name=scenario.Name
-        parameters=scenario.Parameters
+    [@seedModuleData
+        provider=module.Provider
+        name=module.Name
+        parameters=module.Parameters
     /]
 [/#list]
 
-[#-- refresh the input data once we've loaded the scenarios to ensure the CMDB is perferred --]
+[#-- refresh the input data once we've loaded the modules to ensure the CMDB is perferred --]
 [#if refreshInputData ]
     [@seedProviderInputSourceData SHARED_PROVIDER, commandLineOptions.Deployment.Provider.Names /]
 [/#if]
+
+[#-- Load reference data for any references defined by providers --]
+[@includeReferences /]
 
 [#-- Set the context for templates processing --]
 [#include "setContext.ftl" ]

@@ -188,7 +188,7 @@
             [#-- Determine the scenerios for the provider --]
             [#local directories =
                 internalGetPluginFiles(
-                    [providerMarker.Path, "scenarios"],
+                    [providerMarker.Path, "modules"],
                     [
                         ["[^/]+"]
                     ]
@@ -197,7 +197,7 @@
             [#list directories as directory]
                 [@internalIncludeTemplatesInDirectory
                     directory,
-                    ["id", "scenario"]
+                    ["id", "module"]
                 /]
             [/#list]
 
@@ -246,8 +246,8 @@
                 [@internalIncludeProviderResourceGroupConfiguration directory.File deploymentFrameworks /]
             [/#list]
 
-            [#-- Determine the scenarios for the provider --]
-            [@internalIncludeTemplatesInDirectory [providerMarker.Path, "scenarios"] /]
+            [#-- Determine the modules for the provider --]
+            [@internalIncludeTemplatesInDirectory [providerMarker.Path, "modules"] /]
         [/#list]
     [/#list]
 [/#macro]
@@ -819,10 +819,10 @@
         ["output"]
     /]
 
-    [#-- aws/scenarios/scenario.ftl --]
+    [#-- aws/modules/module.ftl --]
     [@internalIncludeTemplatesInDirectory
-        [providerMarker.Path, "scenarios"],
-        ["scenario"]
+        [providerMarker.Path, "modules"],
+        ["module"]
     /]
 
 [/#macro]
