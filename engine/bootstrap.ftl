@@ -12,6 +12,7 @@
 [#include "logging.ftl" ]
 
 [#-- Input data handling --]
+[#include "inputdata/layer.ftl" ]
 [#include "inputdata/commandLineOptions.ftl" ]
 [#include "inputdata/masterdata.ftl" ]
 [#include "inputdata/blueprint.ftl" ]
