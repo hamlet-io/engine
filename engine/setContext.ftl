@@ -22,105 +22,65 @@
 [#assign cmdbProductLookupPrefixes = [] ]
 [#assign segmentQualifiers = [] ]
 
-[#-- Deployment Controls --]
-[@addReferenceData type=DEPLOYMENTGROUP_REFERENCE_TYPE base=blueprintObject /]
-[@addReferenceData type=DEPLOYMENTMODE_REFERENCE_TYPE base=blueprintObject /]
-
 [#-- Testing --]
-[@addReferenceData type=TESTCASE_REFERENCE_TYPE base=blueprintObject /]
 [#assign testCases = getReferenceData(TESTCASE_REFERENCE_TYPE) ]
-
-[@addReferenceData type=TESTPROFILE_REFERENCE_TYPE base=blueprintObject /]
 [#assign testProfiles = getReferenceData(TESTPROFILE_REFERENCE_TYPE) ]
 
 [#-- Regions --]
-[@addReferenceData type=REGION_REFERENCE_TYPE base=blueprintObject /]
 [#assign regions = getReferenceData(REGION_REFERENCE_TYPE) ]
 
 [#-- Categories --]
-[@addReferenceData type=CATEGORY_REFERENCE_TYPE base=blueprintObject /]
 [#assign categories = getReferenceData(CATEGORY_REFERENCE_TYPE) ]
 
-[#-- Environments --]
-[@addReferenceData type=ENVIRONMENT_REFERENCE_TYPE base=blueprintObject /]
-[#assign environments = getReferenceData(ENVIRONMENT_REFERENCE_TYPE) ]
-
 [#-- Storage Profiles --]
-[@addReferenceData type=STORAGE_REFERENCE_TYPE base=blueprintObject /]
 [#assign storage = getReferenceData(STORAGE_REFERENCE_TYPE) ]
 
 [#-- Processor Profiles --]
-[@addReferenceData type=PROCESSOR_REFERENCE_TYPE base=blueprintObject /]
 [#assign processors = getReferenceData(PROCESSOR_REFERENCE_TYPE) ]
 
 [#-- Ports --]
-[@addReferenceData type=PORT_REFERENCE_TYPE base=blueprintObject /]
 [#assign ports = getReferenceData(PORT_REFERENCE_TYPE) ]
 
 [#-- PortMappings --]
-[@addReferenceData type=PORTMAPPING_REFERENCE_TYPE base=blueprintObject /]
 [#assign portMappings = getReferenceData(PORTMAPPING_REFERENCE_TYPE) ]
 
-[#-- Logging Profiles --]
-[@addReferenceData type=LOGGINGPROFILE_REFERENCE_TYPE base=blueprintObject /]
-
 [#-- Log Files --]
-[@addReferenceData type=LOGFILE_REFERENCE_TYPE base=blueprintObject /]
 [#assign logFiles = getReferenceData(LOGFILE_REFERENCE_TYPE) ]
 
 [#-- Log File Groups --]
-[@addReferenceData type=LOGFILEGROUP_REFERENCE_TYPE base=blueprintObject /]
 [#assign logFileGroups = getReferenceData(LOGFILEGROUP_REFERENCE_TYPE) ]
 
 [#-- Log File Profiles --]
-[@addReferenceData type=LOGFILEPROFILE_REFERENCE_TYPE base=blueprintObject /]
 [#assign logFileProfiles = getReferenceData(LOGFILEPROFILE_REFERENCE_TYPE) ]
 
 [#-- CORS Profiles --]
-[@addReferenceData type=CORSPROFILE_REFERENCE_TYPE base=blueprintObject /]
 [#assign CORSProfiles = getReferenceData(CORSPROFILE_REFERENCE_TYPE) ]
 
 [#-- Script Stores --]
-[@addReferenceData type=SCRIPTSTORE_REFERENCE_TYPE base=blueprintObject /]
 [#assign scriptStores = getReferenceData(SCRIPTSTORE_REFERENCE_TYPE) ]
 
 [#-- Bootstraps --]
-[@addReferenceData type=BOOTSTRAP_REFERENCE_TYPE base=blueprintObject /]
 [#assign bootstraps = getReferenceData(BOOTSTRAP_REFERENCE_TYPE, true) ]
 
 [#-- Bootstrap Profiles--]
-[@addReferenceData type=BOOTSTRAPPROFILE_REFERENCE_TYPE base=blueprintObject /]
 [#assign bootstrapProfiles = getReferenceData(BOOTSTRAPPROFILE_REFERENCE_TYPE, true) ]
 
 [#-- Security Profiles --]
-[@addReferenceData type=SECURITYPROFILE_REFERENCE_TYPE base=blueprintObject /]
 [#assign securityProfiles = getReferenceData(SECURITYPROFILE_REFERENCE_TYPE) ]
 
 [#-- Network Profiles --]
-[@addReferenceData type=NETWORKPROFILE_REFERENCE_TYPE base=blueprintObject /]
 [#assign networkProfiles = getReferenceData(NETWORKPROFILE_REFERENCE_TYPE) ]
 
 [#-- Baseline Profiles --]
-[@addReferenceData type=BASELINEPROFILE_REFERENCE_TYPE base=blueprintObject /]
 [#assign baselineProfiles = getReferenceData(BASELINEPROFILE_REFERENCE_TYPE) ]
 
 [#-- Log Filters --]
-[@addReferenceData type=LOGFILTER_REFERENCE_TYPE base=blueprintObject /]
 [#assign logFilters = getReferenceData(LOGFILTER_REFERENCE_TYPE) ]
 
 [#-- Network Endpoint Groups --]
-[@addReferenceData type=NETWORKENDPOINTGROUP_REFERENCE_TYPE base=blueprintObject /]
 [#assign networkEndpointGroups = getReferenceData(NETWORKENDPOINTGROUP_REFERENCE_TYPE) ]
 
-[#-- Service Roles --]
-[@addReferenceData type=SERVICEROLE_REFERENCE_TYPE base=blueprintObject /]
-
 [#-- WAF --]
-[@addReferenceData type=WAFPROFILE_REFERENCE_TYPE base=blueprintObject /]
-[@addReferenceData type=WAFRULEGROUP_REFERENCE_TYPE base=blueprintObject /]
-[@addReferenceData type=WAFRULE_REFERENCE_TYPE base=blueprintObject /]
-[@addReferenceData type=WAFCONDITION_REFERENCE_TYPE base=blueprintObject /]
-[@addReferenceData type=WAFVALUESET_REFERENCE_TYPE base=blueprintObject /]
 [#assign wafProfiles = getReferenceData(WAFPROFILE_REFERENCE_TYPE) ]
 [#assign wafRuleGroups = getReferenceData(WAFRULEGROUP_REFERENCE_TYPE) ]
 [#assign wafRules = getReferenceData(WAFRULE_REFERENCE_TYPE) ]
