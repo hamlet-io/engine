@@ -1,9 +1,13 @@
 [#ftl]
 
-[#-- CodeOnTap Core Reference Types --]
+[#-- Hamlet Core Reference Types --]
 [#assign CATEGORY_REFERENCE_TYPE = "Category" ]
-[#assign ENVIRONMENT_REFERENCE_TYPE = "Environment" ]
 [#assign REGION_REFERENCE_TYPE = "Region" ]
+
+[#assign DEPLOYMENTPROFILE_REFERENCE_TYPE = "DeploymentProfile" ]
+[#assign POLICYPROFILE_REFERENCE_TYPE = "PolicyProfile" ]
+
+[#assign PLACEMENTPROFILE_REFERENCE_TYPE = "PlacementProfile" ]
 
 [#-- Deployment Reference Types --]
 [#assign DEPLOYMENTGROUP_REFERENCE_TYPE = "DeploymentGroup" ]
@@ -46,8 +50,6 @@
 [#assign SECURITYPROFILE_REFERENCE_TYPE = "SecurityProfile" ]
 [#assign NETWORKPROFILE_REFERENCE_TYPE = "NetworkProfile" ]
 [#assign SERVICEROLE_REFERENCE_TYPE = "ServiceRole" ]
-
-[#assign SCENARIOPROFILE_REFERENCE_TYPE = "ScenarioProfile" ]
 
 [#assign TESTCASE_REFERENCE_TYPE = "TestCase" ]
 [#assign TESTPROFILE_REFERENCE_TYPE = "TestProfile" ]
