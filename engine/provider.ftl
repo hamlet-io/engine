@@ -137,6 +137,22 @@
                 [/#if]
             [/#list]
 
+            [#-- Determine the layers for the provider --]
+            [#local directories =
+                internalGetPluginFiles(
+                    [providerMarker.Path, "layers"],
+                    [
+                        ["[^/]+"]
+                    ]
+                )
+            ]
+            [#list directories as directory]
+                [@internalIncludeTemplatesInDirectory
+                    directory,
+                    ["id"]
+                /]
+            [/#list]
+
             [#-- Determine the reference data for the provider --]
             [#local directories =
                 internalGetPluginFiles(
@@ -759,6 +775,12 @@
     [@internalIncludeTemplatesInDirectory
         [providerMarker.Path, "views"],
         [ "view" ]
+    /]
+
+    [#-- aws/layers/layer.ftl --]
+    [@internalIncludeTemplatesInDirectory
+        [providerMarker.Path, "layers"],
+        ["layer" ]
     /]
 
     [#-- aws/references/reference.ftl --]
