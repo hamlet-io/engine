@@ -455,6 +455,17 @@ behaviour.
     [#return networkEndpoints]
 [/#function]
 
+
+[#-- Deployment/Policy Profiles --]
+
+[#assign deploymentProfileConfiguration = [
+    {
+        "Names" : "Modes",
+        "Description" : "A nested object with the deployment mode name as the root and childs based on component types",
+        "Type" : OBJECT_TYPE
+    }
+]]
+
 [#function getDeploymentProfile occurrenceProfiles deploymentMode ]
 
     [#-- Get the total list of deployment profiles --]
@@ -496,6 +507,35 @@ behaviour.
 
     [#return mergeObjects( (policyProfile.Modes["*"])!{}, (policyProfile.Modes[deploymentMode])!{})  ]
 [/#function]
+
+
+[#-- Placement Profiles --]
+[#assign placementProfileConfiguration = [
+    {
+        "Names" : "*",
+        "Subobjects" : true,
+        "Children"  : [
+            {
+                "Names" : "Provider",
+                "Description" : "The provider to use to host the component",
+                "Type" : STRING_TYPE,
+                "Mandatory" : true
+            },
+            {
+                "Names" : "Region",
+                "Description" : "The id of the region to host the component",
+                "Type" : STRING_TYPE,
+                "Mandatory" : true
+            },
+            {
+                "Names" : "DeploymentFramework",
+                "Description" : "The deployment framework to use to generate the outputs for deployment",
+                "Type" : STRING_TYPE,
+                "Mandatory" : true
+            }
+        ]
+    }
+]]
 
 [#function getPlacementProfile occurrenceProfile qualifiers...]
     [#local profile = occurrenceProfile]
@@ -547,6 +587,41 @@ behaviour.
     [/#if]
 [/#function]
 
+
+[#--Certificate/Domain Name handling --]
+
+[#assign certificateBehaviourConfiguration = [
+        {
+            "Names" : "External",
+            "Type" : BOOLEAN_TYPE
+        },
+        {
+            "Names" : "Wildcard",
+            "Type" : BOOLEAN_TYPE
+        },
+        {
+            "Names" : "IncludeInHost",
+            "Children" : [
+                {
+                    "Names" : "Product",
+                    "Type" : BOOLEAN_TYPE
+                },
+                {
+                    "Names" : "Segment",
+                    "Type" : BOOLEAN_TYPE
+                },
+                {
+                    "Names" : "Tier",
+                    "Type" : BOOLEAN_TYPE
+                }
+            ]
+        },
+        {
+            "Names" : "HostParts",
+            "Type" : ARRAY_OF_STRING_TYPE
+        }
+    ]
+]
 
 [#-- Primary is used on component attributes --]
 [#assign DOMAIN_ROLE_PRIMARY="primary" ]
