@@ -231,7 +231,7 @@
     [#assign dataExpiration =
                     getActiveLayerAttributes( ["Data", "Expiration"], [ SEGMENT_LAYER_TYPE, ENVIRONMENT_LAYER_TYPE ], "" )[0] ]
 
-    [#assign dataExpiration =
+    [#assign dataOffline =
                     getActiveLayerAttributes( ["Data", "Offline"], [ SEGMENT_LAYER_TYPE, ENVIRONMENT_LAYER_TYPE ], "" )[0] ]
 
     [#assign dataPublicEnabled =
