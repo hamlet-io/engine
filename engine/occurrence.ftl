@@ -8,25 +8,51 @@
 [#-- Occurrence Caching controls - Provides a collection of occurrences to save the processing time in looking up the occurrence details --]
 [#assign occurrenceCache = {}]
 
-[#macro addOccurrenceToCache tierId componentId subComponentId instanceId versionId occurrence ]
-    [@internalMergeOccurrenceCache
-        tierId=tierId
-        componentId=componentId
-        subComponentId=subComponentId
-        instanceId=instanceId
-        versionId=versionId
-        occurrence=occurrence
-    /]
+[#macro addOccurrenceToCache occurrence parentOccurrence={}  ]
+    [#if parentOccurrence?has_content ]
+        [@internalMergeOccurrenceCache
+            tierId=parentOccurrence.Core.Tier.Id
+            componentId=parentOccurrence.Core.Component.RawId
+            instanceId=parentOccurrence.Core.Instance.Id
+            versionId=parentOccurrence.Core.Version.Id
+            subComponentId=occurrence.Core.SubComponent.Id
+            subInstanceId=occurrence.Core.Instance.Id
+            subVersionId=occurrence.Core.Version.Id
+            occurrence=occurrence
+        /]
+    [#else]
+        [@internalMergeOccurrenceCache
+            tierId=occurrence.Core.Tier.Id
+            componentId=occurrence.Core.Component.RawId
+            instanceId=occurrence.Core.Instance.Id
+            versionId=occurrence.Core.Version.Id
+            occurrence=occurrence
+        /]
+    [/#if]
 [/#macro]
 
-[#function getOccurrenceDetailsFromCache tierId componentId subComponentId instanceId versionId ]
+
+[#function getOccurrenceDetailsFromCache occurrence parentOccurrence={} ]
     [#local occurrenceDetails = {}]
-    [#if subComponentId?has_content ]
+    [#if parentOccurrence?has_content  ]
+        [#local tierId = parentOccurrence.Core.Tier.Id ]
+        [#local componentId = parentOccurrence.Core.Component.RawId ]
+        [#local instanceId = parentOccurrence.Core.Instance.Id ]
+        [#local versionId = parentOccurrence.Core.Version.Id ]
+        [#local subComponentId = occurrence.Core.SubComponent.Id ]
+        [#local subInstanceId = occurrence.Core.Instance.Id ]
+        [#local subVersionId = occurrence.Core.Version.Id ]
+
         [#local occurrenceDetails =
-            (occurrenceCache[tierId][componentId]["SubComponents"][subComponentId][instanceId][versionId])!{} ]
+            (occurrenceCache[tierId][componentId][instanceId][versionId]["SubComponents"][subComponentId][subInstanceId][subVersionId])!{} ]
     [#else]
+        [#local tierId = occurrence.Core.Tier.Id ]
+        [#local componentId = occurrence.Core.Component.RawId ]
+        [#local instanceId = occurrence.Core.Instance.Id ]
+        [#local versionId = occurrence.Core.Version.Id ]
+
         [#local occurrenceDetails =
-            (occurrenceCache[tierId][componentId]["Component"][instanceId][versionId])!{} ]
+            (occurrenceCache[tierId][componentId][instanceId][versionId]["Component"])!{} ]
     [/#if]
 
     [#if occurrenceDetails?has_content ]
@@ -35,13 +61,13 @@
     [#return { "Present" : false, "Occurrence" : {} } ]
 [/#function]
 
-[#function getOccurrenceFromCache tierId componentId subComponentId instanceId versionId ]
-    [#local occurrenceCacheItem = getOccurrenceDetailsFromCache(tierId, componentId, subComponentId, instanceId, versionId )]
+[#function getOccurrenceFromCache occurrence parentOccurrence={} ]
+    [#local occurrenceCacheItem = getOccurrenceDetailsFromCache(occurrence, parentOccurrence)]
     [#return occurrenceCacheItem.Occurrence ]
 [/#function]
 
-[#function isOccurrenceCached tierId componentId subComponentId instanceId versionId ]
-    [#local occurrenceCacheItem = getOccurrenceDetailsFromCache(tierId, componentId, subComponentId, instanceId, versionId )]
+[#function isOccurrenceCached occurrence parentOccurrence={} ]
+    [#local occurrenceCacheItem = getOccurrenceDetailsFromCache(occurrence, parentOccurrence )]
     [#return occurrenceCacheItem.Present ]
 [/#function]
 
@@ -736,7 +762,7 @@
     [#return false]
 [/#function]
 
-[#macro internalMergeOccurrenceCache tierId componentId subComponentId instanceId versionId occurrence  ]
+[#macro internalMergeOccurrenceCache occurrence tierId componentId instanceId versionId subComponentId="" subInstanceId="" subVersionId="" ]
     [#if subComponentId?has_content ]
         [#assign occurrenceCache =
             mergeObjects(
@@ -744,12 +770,16 @@
                 {
                     tierId : {
                         componentId : {
-                            "SubComponents" : {
-                                subComponentId : {
-                                    instanceId : {
-                                        versionId : {
-                                            "Present" : true,
-                                            "Occurrence" : occurrence
+                            instanceId : {
+                                versionId : {
+                                    "SubComponents" : {
+                                        subComponentId : {
+                                            subInstanceId : {
+                                                subVersionId : {
+                                                    "Present" : true,
+                                                    "Occurrence" : occurrence
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -765,9 +795,9 @@
                 {
                     tierId : {
                         componentId : {
-                            "Component" : {
-                                instanceId : {
-                                    versionId : {
+                            instanceId : {
+                                versionId : {
+                                    "Component" : {
                                         "Present" : true,
                                         "Occurrence" : occurrence
                                     }
