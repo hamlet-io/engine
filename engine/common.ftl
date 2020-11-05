@@ -605,6 +605,31 @@ behaviour.
             "Type" : BOOLEAN_TYPE
         },
         {
+            "Names" : "Qualifiers",
+            "Type" : OBJECT_TYPE
+        },
+        {
+            "Names" : "Domain",
+            "Type" : STRING_TYPE
+        },
+        {
+            "Names" : "IncludeInDomain",
+            "Children" : [
+                {
+                    "Names" : "Product",
+                    "Type" : BOOLEAN_TYPE
+                },
+                {
+                    "Names" : "Environment",
+                    "Type" : BOOLEAN_TYPE
+                },
+                {
+                    "Names" : "Segment",
+                    "Type" : BOOLEAN_TYPE
+                }
+            ]
+        }
+        {
             "Names" : "IncludeInHost",
             "Children" : [
                 {
