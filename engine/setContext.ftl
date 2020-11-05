@@ -144,7 +144,7 @@
 
 [#if ((productObject.Id)!"")?has_content]
     [#assign productId = productObject.Id ]
-    [#assign productName = productObject.Name!productObject.Id ]
+    [#assign productName = productObject.Name ]
     [#assign productDomain = productObject.Domain ]
 
     [#assign shortNamePrefixes += [productId] ]
@@ -163,13 +163,13 @@
 
 [#if ((segmentObject.Id)!"")?has_content]
     [#assign segmentId = segmentObject.Id ]
-    [#assign segmentName = segmentObject.Name!segmentObject.Id ]
+    [#assign segmentName = segmentObject.Name ]
 
     [#if ((environmentObject.Id)!"")?has_content ]
         [#assign environmentId = environmentObject.Id ]
-        [#assign environmentName = environmentObject.Name!environmentObject.Id ]
+        [#assign environmentName = environmentObject.Name ]
 
-        [#assign categoryId = segmentObject.Category!environmentObject.Category!"unkown" ]
+        [#assign categoryId = segmentObject.Category!environmentObject.Category ]
         [#assign categoryName = categoryId ]
         [#assign categoryObject =
             {
