@@ -12,7 +12,7 @@
 
 
     [#-- Allow of overriding the settings if required --]
-    [#assign ecsAccountSettings = accountObject["aws:ecsAccountSettings"])]
+    [#assign ecsAccountSettings = accountObject["aws:ecsAccountSettings"]]
 
     [#assign ecsAccountCommands = [] ]
     [#list ecsAccountSettings as setting,state ]

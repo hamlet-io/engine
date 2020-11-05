@@ -110,7 +110,7 @@
 [#assign tenants = getLayer(TENANT_LAYER_TYPE) ]
 [#assign tenantObject = getActiveLayer( TENANT_LAYER_TYPE )]
 
-[#if tenantObject?has_content ]
+[#if ((tenantObject.Id)!"")?has_content ]
     [#assign tenantId = tenantObject.Id ]
     [#assign tenantName = tenantObject.Name ]
 [/#if]
@@ -119,7 +119,7 @@
 [#assign accounts = getLayer(ACCOUNT_LAYER_TYPE) ]
 [#assign accountObject = getActiveLayer(ACCOUNT_LAYER_TYPE)]
 
-[#if accountObject?has_content]
+[#if ((accountObject.Id)!"")?has_content]
     [#assign accountId = accountObject.Id ]
     [#assign accountName = accountObject.Name ]
 
@@ -142,9 +142,9 @@
 [#assign products = getLayer(PRODUCT_LAYER_TYPE) ]
 [#assign productObject = getActiveLayer(PRODUCT_LAYER_TYPE) ]
 
-[#if productObject?has_content]
+[#if ((productObject.Id)!"")?has_content]
     [#assign productId = productObject.Id ]
-    [#assign productName = productObject.Name ]
+    [#assign productName = productObject.Name!productObject.Id ]
     [#assign productDomain = productObject.Domain ]
 
     [#assign shortNamePrefixes += [productId] ]
@@ -161,15 +161,15 @@
 [#assign environments = getLayer(ENVIRONMENT_LAYER_TYPE) ]
 [#assign environmentObject = getActiveLayer(ENVIRONMENT_LAYER_TYPE) ]
 
-[#if segmentObject?has_content]
+[#if ((segmentObject.Id)!"")?has_content]
     [#assign segmentId = segmentObject.Id ]
-    [#assign segmentName = segmentObject.Name ]
+    [#assign segmentName = segmentObject.Name!segmentObject.Id ]
 
-    [#if environmentObject?has_content ]
+    [#if ((environmentObject.Id)!"")?has_content ]
         [#assign environmentId = environmentObject.Id ]
-        [#assign environmentName = environmentObject.Name ]
+        [#assign environmentName = environmentObject.Name!environmentObject.Id ]
 
-        [#assign categoryId = segmentObject.Category!environmentObject.Category ]
+        [#assign categoryId = segmentObject.Category!environmentObject.Category!"unkown" ]
         [#assign categoryName = categoryId ]
         [#assign categoryObject =
             {
@@ -177,7 +177,6 @@
                 "Name" : categoryName
             } +
             categories[categoryId] ]
-
         [#assign shortNamePrefixes += [environmentId] ]
         [#assign fullNamePrefixes += [environmentName] ]
         [#assign segmentQualifiers += [environmentId, environmentName, segmentId, segmentName] ]
@@ -244,7 +243,7 @@
 
 [#-- Solution --]
 [#assign solutionObject = getActiveLayer(SOLUTION_LAYER_TYPE) ]
-[#if solutionObject?has_content ]
+[#if ((solutionObject.Id)!"")?has_content ]
     [#assign solnMultiAZ =
                 getActiveLayerAttributes( ["MultiAZ" ], [ SOLUTION_LAYER_TYPE, ENVIRONMENT_LAYER_TYPE ], false )[0] ]
     [#assign RDSAutoMinorVersionUpgrade =
