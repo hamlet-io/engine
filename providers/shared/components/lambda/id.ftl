@@ -217,6 +217,37 @@
                 "Names" : "ReservedExecutions",
                 "Type" : NUMBER_TYPE,
                 "Default" : -1
+            },
+            {
+                "Names" : "Image",
+                "Description" : "Control the source of the image that is used for the function",
+                "Children" : [
+                    {
+                        "Names" : "Source",
+                        "Description" : "The source of the image - registry is the hamlet registry",
+                        "Type" : STRING_TYPE,
+                        "Mandatory" : true,
+                        "Values" : [ "registry", "url" ],
+                        "Default" : "registry"
+                    },
+                    {
+                        "Names" : "UrlSource",
+                        "Description" : "Url Source specific Configuration",
+                        "Children" : [
+                            {
+                                "Names" : "Url",
+                                "Description" : "The Url to the lambda zip file",
+                                "Type" : STRING_TYPE
+                            },
+                            {
+                                "Names" : "ImageHash",
+                                "Description" : "The expected sha1 hash of the Url if empty any will be accepted",
+                                "Type" : STRING_TYPE,
+                                "Default" : ""
+                            }
+                        ]
+                    }
+                ]
             }
         ]
     parent=LAMBDA_COMPONENT_TYPE

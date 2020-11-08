@@ -1140,6 +1140,37 @@ behaviour.
 
 [/#function]
 
+[#function getImageFromUrlScript region product environment segment occurrence sourceURL imageFormat registryFile expectedImageHash=""  ]
+
+    [#local registryBucket = getRegistryEndPoint(imageFormat, occurrence) ]
+    [#local registryPrefix =
+        formatRelativePath(
+            getRegistryPrefix(imageFormat, occurrence),
+            getOccurrenceBuildProduct(occurrence, product),
+            getOccurrenceBuildScopeExtension(occurrence),
+            getOccurrenceBuildUnit(occurrence)
+        )
+    ]
+    [#local buildUnit = getOccurrenceBuildUnit(occurrence) ]
+
+    [#return
+        [
+            r'get_url_image_to_registry ' +
+            r'   "' + sourceURL + r'" ' +
+            r'   "' + expectedImageHash + r'" ' +
+            r'   "' + imageFormat + r'" ' +
+            r'   "' + region + r'" ' +
+            r'   "' + registryBucket + r'" ' +
+            r'   "' + registryPrefix + r'" ' +
+            r'   "' + registryFile + r'" ' +
+            r'   "' + product + r'" ' +
+            r'   "' + environment + r'" ' +
+            r'   "' + segment + r'" ' +
+            r'   "' + buildUnit + r'" || exit $?'
+        ]
+    ]
+[/#function]
+
 [#function getResourceMetricDimensions resource resources]
     [#local resourceMetricAttributes = metricAttributes[resource.Type]!{} ]
 
