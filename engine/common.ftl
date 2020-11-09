@@ -637,11 +637,27 @@ behaviour.
                     "Type" : BOOLEAN_TYPE
                 },
                 {
+                    "Names" : "Environment",
+                    "Type" : BOOLEAN_TYPE
+                },
+                {
                     "Names" : "Segment",
                     "Type" : BOOLEAN_TYPE
                 },
                 {
                     "Names" : "Tier",
+                    "Type" : BOOLEAN_TYPE
+                },
+                {
+                    "Names" : "Component",
+                    "Type" : BOOLEAN_TYPE
+                },
+                {
+                    "Names" : "Instance",
+                    "Type" : BOOLEAN_TYPE
+                },
+                {
+                    "Names" : "Version",
                     "Type" : BOOLEAN_TYPE
                 }
             ]
