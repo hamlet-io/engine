@@ -86,14 +86,14 @@
                             "Names" : "DedicatedKey",
                             "Type" : BOOLEAN_TYPE,
                             "Default" : false
-                        },
-                        {
-                            "Names" : "LoggingDestinations",
-                            "Type" : ARRAY_OF_STRING_TYPE,
-                            "Values" : [ "cloudwatch", "s3" ],
-                            "Default" : [ "s3" ]
                         }
                     ]
+                },
+                {
+                    "Names" : "LoggingDestinations",
+                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Values" : [ "cloudwatch", "s3" ],
+                    "Default" : [ "s3" ]
                 }
             ]
         },
