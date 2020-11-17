@@ -396,8 +396,8 @@
     [#return result]
 [/#function]
 
-[#-- AWS Account Query --]
-[#function getAWSAccountIds accountIds ]
+[#-- Provider Account Query --]
+[#function getProviderAccountIds accountIds ]
     [#local ProviderAccountIds = [] ]
 
     [#list accountIds as accountId ]
