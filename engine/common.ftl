@@ -1131,7 +1131,7 @@ behaviour.
 [#function pseudoStackOutputScript description outputs filesuffix="" ]
     [#local outputString = ""]
 
-    [#list getCFTemplateCoreOutputs(regionId, accountObject.AWSId) as  key,value ]
+    [#list getCFTemplateCoreOutputs(regionId, accountObject.ProviderId) as  key,value ]
         [#if value?is_hash ]
             [#local outputs += { key, value.Value } ]
         [#else ]
