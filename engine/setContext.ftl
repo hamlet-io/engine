@@ -406,14 +406,14 @@
             [#case "_tenant_"]
             [#case "__tenant__"]
                 [#list accounts as id,account ]
-                    [#local AWSAccountIds += [ (account.AWSId)!""]  ]
+                    [#local AWSAccountIds += [ (account.ProviderId)!""]  ]
                 [/#list]
                 [#break]
 
             [#case "_environment"]
             [#case "_environment_"]
             [#case "__environment__"]
-                [#local AWSAccountIds += [ accountObject.AWSId ] ]
+                [#local AWSAccountIds += [ accountObject.ProviderId ] ]
                 [#break]
 
             [#case "_global" ]
@@ -423,7 +423,7 @@
                 [#break]
 
             [#default]
-                [#local AWSAccountIds += [ (accounts[accountId].AWSId)!"" ]]
+                [#local AWSAccountIds += [ (accounts[accountId].ProviderId)!"" ]]
         [/#switch]
     [/#list]
     [#return AWSAccountIds ]
