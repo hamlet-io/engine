@@ -57,12 +57,11 @@
             "Children"  : moduleReferenceConfiguration
         },
         {
-            "Names" : "AWSId",
-            "Type" : STRING_TYPE,
-            "Default" : ""
-        },
-        {
-            "Names" : "AzureId",
+            "Names" :[
+                "ProviderId", 
+                "AWSId", 
+                "AzureId"
+            ],
             "Type" : STRING_TYPE,
             "Default" : ""
         },
