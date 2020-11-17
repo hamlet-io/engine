@@ -20,7 +20,7 @@
                 },
                 "Id": "mockacct",
                 "Seed": "abc123",
-                "AWSId": "0123456789"
+                "ProviderId": "0123456789"
             },
             "Product": {
                 "Id": "mockedup",
