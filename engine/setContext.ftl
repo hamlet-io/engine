@@ -400,7 +400,7 @@
 
 [#-- AWS Account Query --]
 [#function getAWSAccountIds accountIds ]
-    [#local AWSAccountIds = [] ]
+    [#local ProviderAccountIds = [] ]
 
     [#list accountIds as accountId ]
         [#switch accountId]
@@ -408,27 +408,27 @@
             [#case "_tenant_"]
             [#case "__tenant__"]
                 [#list accounts as id,account ]
-                    [#local AWSAccountIds += [ (account.ProviderId)!""]  ]
+                    [#local ProviderAccountIds += [ (account.ProviderId)!""]  ]
                 [/#list]
                 [#break]
 
             [#case "_environment"]
             [#case "_environment_"]
             [#case "__environment__"]
-                [#local AWSAccountIds += [ accountObject.ProviderId ] ]
+                [#local ProviderAccountIds += [ accountObject.ProviderId ] ]
                 [#break]
 
             [#case "_global" ]
             [#case "_global_" ]
             [#case "__global__" ]
-                [#local AWSAccountIds += [ "*" ]]
+                [#local ProviderAccountIds += [ "*" ]]
                 [#break]
 
             [#default]
-                [#local AWSAccountIds += [ (accounts[accountId].ProviderId)!"" ]]
+                [#local ProviderAccountIds += [ (accounts[accountId].ProviderId)!"" ]]
         [/#switch]
     [/#list]
-    [#return AWSAccountIds ]
+    [#return ProviderAccountIds ]
 [/#function]
 
 [#-- Country Groups --]
