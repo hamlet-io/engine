@@ -15,6 +15,12 @@
             "Type" : STRING_TYPE
         },
         {
+            "Names" : "Provider",
+            "Type" : STRING_TYPE,
+            "Default" : "aws",
+            "Description" : "Define which provider this account applies to"
+        },
+        {
             "Names" : "Name",
             "Type" : STRING_TYPE
         },
