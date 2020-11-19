@@ -1,5 +1,5 @@
 [#-- Account level CMK --]
-[#if getDeploymentUnit()?contains("cmk") || (allDeploymentUnits!false) ]
+[#if getDeploymentUnit()?contains("cmk") || (groupDeploymentUnits!false) ]
     [#if deploymentSubsetRequired("generationcontract", false)]
         [@addDefaultGenerationContract subsets="template" /]
     [/#if]

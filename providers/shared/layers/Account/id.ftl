@@ -211,6 +211,15 @@
                     ]
                 }
             ]
+        },
+        {
+            "Names" : "Operations",
+            "Children" : [
+                {
+                    "Names" : "Expiration",
+                    "Type" : NUMBER_TYPE
+                }
+            ]
         }
     ]
 /]
