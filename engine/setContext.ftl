@@ -91,11 +91,11 @@
 [#-- Regions --]
 [#if commandLineOptions.Regions.Segment?has_content]
     [#assign regionId = commandLineOptions.Regions.Segment]
-    [#assign regionObject = regions[regionId] ]
+    [#assign regionObject = (regions[regionId])!{} ]
 [/#if]
 [#if commandLineOptions.Regions.Account?has_content]
     [#assign accountRegionId = commandLineOptions.Regions.Account]
-    [#assign accountRegionObject = regions[accountRegionId] ]
+    [#assign accountRegionObject = (regions[accountRegionId])!{} ]
 [/#if]
 
 [#-- Domains --]
@@ -358,7 +358,7 @@
 [#-- Required zones --]
 [#assign zones = [] ]
 [#list segmentObject.Network.Zones.Order as zoneId]
-    [#if regions[commandLineOptions.Regions.Segment].Zones[zoneId]?has_content]
+    [#if ((regions[commandLineOptions.Regions.Segment].Zones[zoneId])!"")?has_content]
         [#assign zone = regions[commandLineOptions.Regions.Segment].Zones[zoneId] ]
         [#assign zones +=
             [
