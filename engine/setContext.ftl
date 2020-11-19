@@ -136,6 +136,8 @@
 
     [#assign categoryName = "account"]
 
+    [#assign operationsExpiration =
+                    getActiveLayerAttributes( ["Operations", "Expiration"], [ ACCOUNT_LAYER_TYPE ], "" )[0] ]
 [/#if]
 
 [#-- Products --]

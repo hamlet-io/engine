@@ -1,5 +1,5 @@
 [#-- API Gateway --]
-[#if getDeploymentUnit()?contains("apigateway") || (allDeploymentUnits!false) ]
+[#if getDeploymentUnit()?contains("apigateway") || (groupDeploymentUnits!false) ]
     [#if deploymentSubsetRequired("generationcontract", false)]
         [@addDefaultGenerationContract subsets="template" /]
     [/#if]

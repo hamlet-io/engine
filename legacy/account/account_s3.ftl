@@ -1,5 +1,5 @@
 [#-- Standard set of buckets for an account --]
-[#if getDeploymentUnit()?contains("s3") || (allDeploymentUnits!false) ]
+[#if getDeploymentUnit()?contains("s3") || (groupDeploymentUnits!false) ]
     [#if accountObject.Seed?has_content]
         [#if deploymentSubsetRequired("generationcontract", false)]
             [@addDefaultGenerationContract subsets=["template", "epilogue"] /]

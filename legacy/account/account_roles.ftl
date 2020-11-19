@@ -1,5 +1,5 @@
 [#-- Account level roles --]
-[#if getDeploymentUnit()?contains("roles")  || (allDeploymentUnits!false) ]
+[#if getDeploymentUnit()?contains("roles")  || (groupDeploymentUnits!false) ]
     [#if deploymentSubsetRequired("generationcontract", false)]
         [@addDefaultGenerationContract subsets="template" /]
     [/#if]

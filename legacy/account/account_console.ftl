@@ -1,4 +1,4 @@
-[#if getDeploymentUnit()?contains("console") || (allDeploymentUnits!false) ]
+[#if getDeploymentUnit()?contains("console") || (groupDeploymentUnits!false) ]
 
     [#if deploymentSubsetRequired("generationcontract", false)]
         [@addDefaultGenerationContract

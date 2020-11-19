@@ -1,5 +1,5 @@
 [#-- SMS --]
-[#if getDeploymentUnit()?contains("sms") || (allDeploymentUnits!false) ]
+[#if getDeploymentUnit()?contains("sms") || (groupDeploymentUnits!false) ]
 
 
     [@includeProviderComponentDefinitionConfiguration

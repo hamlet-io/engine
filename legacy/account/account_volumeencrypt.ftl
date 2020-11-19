@@ -1,5 +1,5 @@
 [#-- Volume Encryption --]
-[#if getDeploymentUnit()?contains("volumeencrypt") || (allDeploymentUnits!false) ]
+[#if getDeploymentUnit()?contains("volumeencrypt") || (groupDeploymentUnits!false) ]
     [#if deploymentSubsetRequired("generationcontract", false)]
         [@addDefaultGenerationContract subsets="epilogue" /]
     [/#if]

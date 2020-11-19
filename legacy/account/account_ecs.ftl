@@ -1,5 +1,5 @@
 [#-- ECS Account Settings --]
-[#if getDeploymentUnit()?contains("ecs") || (allDeploymentUnits!false) ]
+[#if getDeploymentUnit()?contains("ecs") || (groupDeploymentUnits!false) ]
     [#if deploymentSubsetRequired("generationcontract", false)]
         [@addDefaultGenerationContract subsets="epilogue" /]
     [/#if]

@@ -1,5 +1,5 @@
 [#-- Generate certificate --]
-[#if getDeploymentUnit()?contains("cert") || (allDeploymentUnits!false) ]
+[#if getDeploymentUnit()?contains("cert") || (groupDeploymentUnits!false) ]
     [#if deploymentSubsetRequired("generationcontract", false)]
         [@addDefaultGenerationContract subsets="template" /]
     [/#if]
