@@ -318,7 +318,8 @@
                     "Prepared" : .now?iso_utc,
                     "RunId" : commandLineOptions.Run.Id,
                     "RequestReference" : commandLineOptions.References.Request,
-                    "ConfigurationReference" : commandLineOptions.References.Configuration
+                    "ConfigurationReference" : commandLineOptions.References.Configuration,
+                    "Providers" : getProviderStateMetadata()
                 },
                 "Stages" : contractStages
             } +
@@ -490,6 +491,13 @@
     outputSuffix="managementcontract.json"
 /]
 
+[@addGenerationContractStepOutputMapping
+    provider=SHARED_PROVIDER
+    subset="providercontract"
+    outputType=CONTRACT_DEFAULT_OUTPUT_TYPE
+    outputFormat=""
+    outputSuffix="providercontract.json"
+/]
 
 [@addGenerationContractStepOutputMapping
     provider=SHARED_PROVIDER

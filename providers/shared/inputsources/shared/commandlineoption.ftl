@@ -33,7 +33,11 @@
         option={
             "Deployment" : {
                 "Provider" : {
-                    "Names" : asArray( providers?split(",") )![]
+                    "Names" : asArray( providers?split(",") )![],
+                    "State" : (providerState!"")?has_content?then(
+                                    providerState?eval,
+                                    {}
+                    )
                 },
                 "Framework" : {
                     "Name" : deploymentFramework!"default"
