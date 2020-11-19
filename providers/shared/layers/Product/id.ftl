@@ -32,6 +32,11 @@
             "Children"  : moduleReferenceConfiguration
         },
         {
+            "Names" : "Providers",
+            "Subobjects" : true,
+            "Children" : providerReferenceConfiguration
+        },
+        {
             "Names" : "Profiles",
             "Children" : [
                 {

@@ -64,8 +64,8 @@
         },
         {
             "Names" :[
-                "ProviderId", 
-                "AWSId", 
+                "ProviderId",
+                "AWSId",
                 "AzureId"
             ],
             "Type" : STRING_TYPE,

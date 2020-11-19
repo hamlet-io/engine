@@ -59,3 +59,58 @@
         }
     ]
 ]
+
+[#assign providerReferenceConfiguration = [
+        {
+            "Names" : "Enabled",
+            "Description" : "To enable loading the provider",
+            "Type" : BOOLEAN_TYPE,
+            "Default" : true
+        },
+        {
+            "Names" : "ProviderName",
+            "Type" : STRING_TYPE,
+            "Description" : "The name of the provider to install",
+            "Mandatory" : true
+        },
+        {
+            "Names" : "Source",
+            "Description" : "Where the plugin for the provider can be found",
+            "Type" : STRING_TYPE,
+            "Values" : [ "local", "git" ],
+            "Mandatory" : true
+        },
+        {
+            "Names" : "git",
+            "Children" : [
+                {
+                    "Names" : "Url",
+                    "Description" : "The Url for the git repository",
+                    "Type" : STRING_TYPE
+                },
+                {
+                    "Names" : "Ref",
+                    "Description" : "The ref to clone from the repo",
+                    "Type" : STRING_TYPE,
+                    "Default" : "main"
+                },
+                {
+                    "Names" : "Directory",
+                    "Description" : "a Directory within in the plugin repo where the provider starts",
+                    "Type" : STRING_TYPE,
+                    "Default" : ""
+                }
+            ]
+        },
+        {
+            "Names" : "local",
+            "Children" : [
+                {
+                    "Names" : "Path",
+                    "Description" : "The path to the provider",
+                    "Type" : STRING_TYPE
+                }
+            ]
+        }
+    ]
+]
