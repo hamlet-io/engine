@@ -7,6 +7,21 @@
 [#assign providerDictionary = [] ]
 [#assign providerMarkers = [] ]
 
+[#function getActiveProvidersFromLayers  ]
+
+    [#local providers = [] ]
+    [#local possibleProviders = asFlattenedArray(getActiveLayerAttributes( [ "Providers" ] )) ]
+
+    [#list possibleProviders as providerInstance ]
+        [#list providerInstance?values as provider ]
+            [#if (provider.Enabled)!false]
+                [#local providers += [ provider ] ]
+            [/#if]
+        [/#list]
+    [/#list]
+    [#return providers ]
+[/#function]
+
 [#-- Only load configuration once --]
 [#function isConfigurationIncluded configuration]
     [#if getDictionaryEntry(providerDictionary, configuration)?has_content]
@@ -636,7 +651,6 @@
     [/#list]
 [/#macro]
 
-
 [#--- Query Provider Dictionary --]
 [#function getProviderComponentNames provider ]
     [#local providerComponents = getCacheSection(providerDictionary, [provider, "c"] ) ]
@@ -650,7 +664,6 @@
     [#return providerComponentNames ]
 [/#function]
 
-
 [#function getProviderViewNames provider ]
     [#local providerViews = getCacheSection(providerDictionary, [provider, "v"] ) ]
 
@@ -662,6 +675,16 @@
     [/#list]
     [#return providerViewNames ]
 [/#function]
+
+[#-- Provider Metadata --]
+[#function getProviderStateMetadata ]
+    [#local result = {} ]
+    [#list (commandLineOptions.Deployment.Provider.State.Providers)!{} as id, state ]
+        [#local result += { id, state.ref }]
+    [/#list]
+    [#return result ]
+[/#function]
+
 [#------------------------------------------------------
 -- Internal support functions for provider processing --
 --------------------------------------------------------]
