@@ -677,6 +677,12 @@
         "Description" : "The minimum number of instances which must be available during an update"
     },
     {
+        "Names" : "MinSuccessInstances",
+        "Type" : NUMBER_TYPE,
+        "Description" : "The minimum percantage of instances that must sucessfully update",
+        "Default" : 75
+    },
+    {
         "Names" : "ReplaceCluster",
         "Type" : BOOLEAN_TYPE,
         "Default" : false,
