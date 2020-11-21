@@ -148,6 +148,10 @@
                     "Default" : 7
                 }
             ]
+        },
+        {
+            "Names" : "OSPatching",
+            "Children" : osPatchingChildConfiguration
         }
     ]
 /]

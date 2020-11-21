@@ -91,6 +91,10 @@
                 "Names" : "Role",
                 "Description" : "Server configuration role",
                 "Default" : ""
+            },
+            {
+                "Names" : "OSPatching",
+                "Children" : osPatchingChildConfiguration
             }
         ]
 /]

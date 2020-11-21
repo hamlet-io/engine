@@ -1279,7 +1279,7 @@ behaviour.
     [/#switch]
 [/#function]
 
-[#function getMonitoredResources coreId resources, resourceQualifier ]
+[#function getMonitoredResources coreId resources resourceQualifier ]
     [#local monitoredResources = {} ]
 
     [#-- allow for a none type which disables dimension lookup --]
@@ -1347,3 +1347,26 @@ behaviour.
     [/#if]
     [#return addIdNameToObject(result, default) ]
 [/#function]
+
+
+[#-- OS Patching Config --]
+[#assign osPatchingChildConfiguration = [
+    {
+        "Names" : "Enabled",
+        "Description" : "Enable automatic OS Patching",
+        "Type" : BOOLEAN_TYPE,
+        "Default" : true
+    },
+    {
+        "Names" : "Schedule",
+        "Description" : "UTC based cron schedule to apply updates",
+        "Type" : STRING_TYPE,
+        "Default" : "59 13 * * *"
+    },
+    {
+        "Names" : "SecurityOnly",
+        "Description" : "Only apply security updates",
+        "Type" : BOOLEAN_TYPE,
+        "Default" : false
+    }
+]]
