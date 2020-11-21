@@ -145,6 +145,9 @@
             },
             "DomainBehaviours": {
               "Segment": "naked"
+            },
+            "OSPatching" : {
+              "SecurityOnly" : true
             }
           },
           "trn": {
