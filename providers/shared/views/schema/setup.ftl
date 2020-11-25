@@ -88,11 +88,21 @@
         [#case "metaparameter"]
 
             [#-- Key Value Pairs of Metaparameter Name : Configuration --]
-            [#assign metaparametersConfiguration = {
-                "Links" : linkChildrenConfiguration
-            }]
+            [#assign metaparametersConfiguration =
+                {
+                    "Links" : {
+                        "Names" : "Links",
+                        "Type" : {
+                            "Singular" : "Link",
+                            "Plural" : "Links"
+                        },
+                        "Properties" : [],
+                        "Attributes" : linkChildrenConfiguration
+                    }
+                }
+            ]
 
-            [#list metaparametersConfiguration as id,childrenConfiguration]
+            [#list metaparametersConfiguration as id,configuration]
             [@addSchema
                 section="metaparameter"
                 subset=id
@@ -102,9 +112,8 @@
                         "Names" : id,
                         "Type" : OBJECT_TYPE,
                         "SubObjects" : true,
-                        "Children" : childrenConfiguration
-                    },
-                    metaparameters
+                        "Children" : configuration.Attributes
+                    }
                 )
             /]
             [/#list]
