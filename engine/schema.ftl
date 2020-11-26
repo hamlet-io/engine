@@ -3,9 +3,7 @@
 [#assign HamletSchemas = {
     "Root" : "http://json-schema.org/draft-07/schema#"
 }]
-[#assign metaparameters = [
-    "Links"
-]]
+
 [#assign rootSchemaPath = "https://hamlet.io/schema"]
 [#assign patternPropertiesRegex = r'^[A-Za-z_][A-Za-z0-9_]*$']
 [#assign schemaConfiguration = {}]
