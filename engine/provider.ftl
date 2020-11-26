@@ -153,6 +153,22 @@
                 /]
             [/#list]
 
+            [#-- Determine the metaparameters for the provider --]
+            [#local directories = 
+                internalGetPluginFiles(
+                    [providerMarker.Path, "metaparameters"],
+                    [
+                        ["[^/]+"]
+                    ] 
+                )
+            ]
+            [#list directories as directory]
+                [@internalIncludeTemplatesInDirectory
+                    directory,
+                    ["id", "metaparameter"]
+                /]
+            [/#list]
+
             [#-- Determine the reference data for the provider --]
             [#local directories =
                 internalGetPluginFiles(
@@ -781,6 +797,12 @@
     [@internalIncludeTemplatesInDirectory
         [providerMarker.Path, "layers"],
         ["layer" ]
+    /]
+
+    [#-- engine/providers/shared/metaparameters/metaparameter.ftl --]
+    [@internalIncludeTemplatesInDirectory
+        [providerMarker.Path, "metaparameters"],
+        ["metaparameter" ]
     /]
 
     [#-- aws/references/reference.ftl --]
