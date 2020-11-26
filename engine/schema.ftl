@@ -55,10 +55,15 @@
             [#else]
                 [#local optionSets += composite.Type?map(t -> [{ "type" : t }])]
             [/#if]
-        [#elseif composite.Type == REF_TYPE]
-            [#local result += formatJsonSchemaReference(composite.Path, composite.File)]
         [#else]
             [#local result += { "type" : composite.Type }]
+        [/#if]
+    [#elseif composite.Ref!false]
+        [#-- If ref path is in the composite object, use a local ref else ref to file --]
+        [#if findAttributeInObject(composite, composite.Path?split('/'))?has_content]
+            [#local result += formatJsonSchemaReference(composite.Path)]
+        [#else]
+            [#local result += formatJsonSchemaReference(composite.Path, "metaparameter")]
         [/#if]
     [#else]
         [#local result += { "type" : OBJECT_TYPE }]
@@ -159,8 +164,7 @@
                                                     childSchemaName : formatJsonSchemaFromComposite(
                                                         {
                                                             "Names" : childSchemaName,
-                                                            "Type" : REF_TYPE,
-                                                            "File" : "metaparameter-schema.json",
+                                                            "Ref" : true,
                                                             "Path" : formatPath(false, "definitions", childSchemaName)
                                                         }
                                                     )
@@ -173,8 +177,7 @@
                                             childSchemaName : formatJsonSchemaFromComposite(
                                                 {
                                                     "Names" : childSchemaName,
-                                                    "Type" : REF_TYPE,
-                                                    "File" : "metaparameter-schema.json",
+                                                    "Ref" : true,
                                                     "Path" : formatPath(false, "#definitions", childSchemaName)
                                                 }
                                             )
@@ -209,8 +212,7 @@
                             formatJsonSchemaFromComposite(
                                 {
                                     "Names" : schemaName,
-                                    "Type" : REF_TYPE,
-                                    "File" : "metaparameter-schema.json",
+                                    "Ref" : true,
                                     "Path" : formatPath(false, "#definitions", schemaName)
                                 }
                             ) 
@@ -227,8 +229,14 @@
     [#return jsonSchema ]
 [/#function]
 
-[#function formatJsonSchemaReference path file=""]
-    [#return { r"$ref": concatenate([file, path?ensure_starts_with("#/")], '') }]
+[#function formatJsonSchemaReference path schema=""]
+    [#if schema?has_content]
+        [#-- return ref to specified schema --]
+        [#return { r"$ref": concatenate(["schema-", schema?lower_case, "-schema.json", path?ensure_starts_with("#/")], '') }]
+    [#else]
+        [#-- return ref to schema path in same file --]
+        [#return { r"$ref": path?ensure_starts_with("#/") }]
+    [/#if]
 [/#function]
 
 [#-------------------------------------------------------

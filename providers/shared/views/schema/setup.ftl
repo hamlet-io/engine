@@ -43,7 +43,7 @@
                             schemaComponentAttributes,
                             [{
                                 "Names" : subComponent.Component,
-                                "Type" : REF_TYPE,
+                                "Ref" : true,
                                 "Path" : formatPath(false, "definitions", id)
                             }],
                             ADD_COMBINE_BEHAVIOUR)]
