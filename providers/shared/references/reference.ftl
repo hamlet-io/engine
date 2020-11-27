@@ -41,7 +41,6 @@
 
 [#assign NETWORKENDPOINTGROUP_REFERENCE_TYPE = "NetworkEndpointGroup" ]
 [#assign ALERTPROFILE_REFERENCE_TYPE = "AlertProfile" ]
-[#assign ALERTRULE_REFERENCE_TYPE = "AlertRule" ]
 [#assign BASELINEPROFILE_REFERENCE_TYPE = "BaselineProfile" ]
 [#assign BOOTSTRAP_REFERENCE_TYPE = "Bootstrap" ]
 [#assign BOOTSTRAPPROFILE_REFERENCE_TYPE = "BootstrapProfile" ]
@@ -53,3 +52,29 @@
 
 [#assign TESTCASE_REFERENCE_TYPE = "TestCase" ]
 [#assign TESTPROFILE_REFERENCE_TYPE = "TestProfile" ]
+
+[#-----------------------------------------------------
+-- Gather definitions for ObjectInstances processing --
+------------------------------------------------------]
+
+[#function findDefinitions]
+    [#local definitions =
+        getPluginTree(
+            "/providers/shared/objectinstance/",
+            {
+                "Regex" : [r"def\.ftl"],
+                "AddEndingWildcard" : false,
+                "MinDepth" : 1,
+                "MaxDepth" : 1,
+                "FilenameGlob" : r"def.ftl"
+            }
+        )
+    ]
+    [#return definitions?sort_by("Path")]
+[/#function]
+
+[#assign files = findDefinitions()]
+[#list files as file]
+    [@debug message="KENR" context={ "path": file.Path, "file": file.File, "composite": "/providers/shared/objectinstance/"+file.Path+"/"+file.File}]
+    [#include "/providers/shared/objectinstance/"+file.Path+"/"+file.File]
+[/#list]

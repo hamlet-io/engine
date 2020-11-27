@@ -34,6 +34,9 @@
 [#-- Module Loading --]
 [#include "module.ftl" ]
 
+[#-- ObjectInstance handling --]
+[#include "objectinstance.ftl" ]
+
 [#-- Component handling --]
 [#include "component.ftl" ]
 
