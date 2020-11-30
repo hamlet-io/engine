@@ -38,10 +38,10 @@
                         "Subobjects" : true,
                         "Children" : [
                             {
-                                "Names" : "TrafficType",
+                                "Names" : "Action",
                                 "Type" : STRING_TYPE,
-                                "Description" : "The type of traffic to capture in the flow log",
-                                "Values" : [ "accept", "reject", "all" ],
+                                "Description" : "The action to capture in the flow log",
+                                "Values" : [ "accept", "reject", "any" ],
                                 "Mandatory" : true
                             },
                             {
