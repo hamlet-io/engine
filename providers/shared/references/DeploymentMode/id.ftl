@@ -83,7 +83,8 @@
         [#local deploymentModeDetails = deploymentModes[deploymentMode]]
     [/#if]
 
-    [#if (deploymentModes["_default"]!{})?has_content && deploymentModes["_default"].Enabled  ]
+    [#if !(deploymentModeDetails?has_content) &&
+            (deploymentModes["_default"]!{})?has_content && deploymentModes["_default"].Enabled  ]
         [#local deploymentModeDetails = deploymentModes["_default"]]
     [/#if]
 
