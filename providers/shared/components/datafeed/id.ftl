@@ -56,6 +56,24 @@
                         "Type" : STRING_TYPE,
                         "Description" : "The prefix appeneded to the object name when processing failed",
                         "Default" : "error/"
+                    },
+                    {
+                        "Names" : "Include",
+                        "Description" : "Details to add to prefix",
+                        "Children" : [
+                            {
+                                "Names" : "Order",
+                                "Description" : "The order of the included prefixes",
+                                "Type" : ARRAY_OF_STRING_TYPE,
+                                "Default" : [ "AccountId" ]
+                            }
+                            {
+                                "Names" : "AccountId",
+                                "Description" : "The deployment account id",
+                                "Type" : BOOLEAN_TYPE,
+                                "Default" : false
+                            }
+                        ]
                     }
                 ]
             },
