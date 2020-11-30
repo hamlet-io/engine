@@ -65,12 +65,18 @@
                                 "Names" : "Order",
                                 "Description" : "The order of the included prefixes",
                                 "Type" : ARRAY_OF_STRING_TYPE,
-                                "Default" : [ "AccountId" ]
+                                "Default" : [ "AccountId", "ComponentPath" ]
                             }
                             {
                                 "Names" : "AccountId",
                                 "Description" : "The deployment account id",
                                 "Type" : BOOLEAN_TYPE,
+                                "Default" : false
+                            },
+                            {
+                                "Names" : "ComponentPath",
+                                "Description" : "The full component path defaults",
+                                "Type": BOOLEAN_TYPE,
                                 "Default" : false
                             }
                         ]
