@@ -28,8 +28,46 @@
                 "Children" : [
                     {
                         "Names" : "EnableFlowLogs",
+                        "Description" : "Deprecated: Please use FlowLogs",
                         "Type" : BOOLEAN_TYPE,
                         "Default" : true
+                    },
+                    {
+                        "Names" : "FlowLogs",
+                        "Description" : "Log flows across the network",
+                        "Subobjects" : true,
+                        "Children" : [
+                            {
+                                "Names" : "TrafficType",
+                                "Type" : STRING_TYPE,
+                                "Description" : "The type of traffic to capture in the flow log",
+                                "Values" : [ "accept", "reject", "all" ],
+                                "Mandatory" : true
+                            },
+                            {
+                                "Names" : "DestinationType",
+                                "Description" : "The destination type to send the logs to",
+                                "Values" : [ "log", "s3" ],
+                                "Default" : "s3"
+                            },
+                            {
+                                "Names" : "s3",
+                                "Description" : "s3 specific destination configuration",
+                                "Children" : [
+                                    {
+                                        "Names" : "Link",
+                                        "Description" : "A link to the s3 bucket destination",
+                                        "Children" : linkChildrenConfiguration
+                                    },
+                                    {
+                                        "Names" : "Prefix",
+                                        "Description" : "A prefix for the s3 bucket destination",
+                                        "Type" : STRING_TYPE,
+                                        "Default" : "FlowLogs/"
+                                    }
+                                ]
+                            }
+                        ]
                     }
                 ]
             },
