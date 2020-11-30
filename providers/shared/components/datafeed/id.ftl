@@ -59,7 +59,7 @@
                     },
                     {
                         "Names" : "Include",
-                        "Description" : "Details to add to prefix",
+                        "Description" : "Deployment specific details to add to prefix",
                         "Children" : [
                             {
                                 "Names" : "Order",
