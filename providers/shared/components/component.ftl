@@ -102,6 +102,8 @@
 
 [#assign PRIVATE_SERVICE_COMPONENT_TYPE = "privateservice" ]
 
+[#assign QUEUEHOST_COMPONENT_TYPE = "queuehost" ]
+
 [#assign S3_COMPONENT_TYPE = "s3" ]
 
 [#assign SECRETSTORE_COMPONENT_TYPE = "secretstore" ]
