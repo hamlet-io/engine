@@ -89,8 +89,10 @@
 
 [#assign NETWORK_ACL_COMPONENT_TYPE = "networkacl"]
 [#assign NETWORK_COMPONENT_TYPE = "network" ]
+
 [#assign NETWORK_GATEWAY_COMPONENT_TYPE = "gateway"]
 [#assign NETWORK_GATEWAY_DESTINATION_COMPONENT_TYPE = "gatewaydestination"]
+
 [#assign NETWORK_ROUTE_TABLE_COMPONENT_TYPE = "networkroute"]
 
 [#assign NETWORK_ROUTER_COMPONENT_TYPE = "router"]
@@ -977,6 +979,114 @@
         ]
     }
 ]]
+
+
+[#assign secretTemplateConfiguration = [
+    {
+        "Names" : "Generated",
+        "Children" : [
+            {
+                "Names" : "Content",
+                "Description" : "A JSON object which contains the nonsensitve parts of the secret",
+                "Type" : OBJECT_TYPE,
+                "Default" : {
+                    "username" : "admin"
+                }
+            },
+            {
+                "Names" : "SecretKey",
+                "Description" : "The key in the JSON secret to set the generated secret to",
+                "Type" : STRING_TYPE,
+                "Default" : "password"
+            }
+        ]
+    }
+]]
+
+[#assign secretRotationConfiguration = [
+    {
+        "Names" : "Lifecycle",
+        "Description" : "The lifecycle for a given Secret.",
+        "Children" : [
+            {
+                "Names" : "Rotation",
+                "Description" : "The Secret rotation schedule, in number of days - accepts rate() or cron() formats.",
+                "Children" : [
+                    {
+                        "Names" : "Enabled",
+                        "Description" : "Enable Secret rotation.",
+                        "Type" : BOOLEAN_TYPE,
+                        "Default" : false
+                    }
+                ]
+            }
+        ]
+    }
+]]
+
+[#assign secretConfiguration = [
+    {
+        "Names" : "Source",
+        "Type" : STRING_TYPE,
+        "Values" : [ "user", "generated" ],
+        "Default" : "user"
+    },
+    {
+        "Names" : "Requirements",
+        "Description" : "Format requirements for the Secret",
+        "Children" : [
+            {
+                "Names" : "MinLength",
+                "Description" : "The minimum character length",
+                "Type" : NUMBER_TYPE,
+                "Default" : 20
+            },
+            {
+                "Names" : "MaxLength",
+                "Description" : "The maximum character length",
+                "Type" : NUMBER_TYPE,
+                "Default" : 30
+            },
+            {
+                "Names" : "IncludeUpper",
+                "Description" : "Include upper-case characters",
+                "Type" : BOOLEAN_TYPE,
+                "Default" : true
+            },
+            {
+                "Names" : "IncludeLower",
+                "Description" : "Include lower-case characters",
+                "Type" : BOOLEAN_TYPE,
+                "Default" : true
+            },
+            {
+                "Names" : "IncludeSpecial",
+                "Description" : "Include special characters",
+                "Type" : BOOLEAN_TYPE,
+                "Default" : false
+            },
+            {
+                "Names" : "IncludeNumber",
+                "Description" : "Include numbers characters",
+                "Type" : BOOLEAN_TYPE,
+                "Default": true
+            },
+            {
+                "Names" : "ExcludedCharacters",
+                "Description" : "Characters that must be excluded",
+                "Type" : ARRAY_OF_STRING_TYPE,
+                "Default" : [ r'"', r"'", r'$', r'@', r'/', r'\' ]
+            },
+            {
+                "Names" : "RequireAllIncludedTypes",
+                "Description" : "Require at least one of each included type",
+                "Type" : BOOLEAN_TYPE,
+                "Default" : true
+            }
+        ]
+    }
+    ]
+]
 
 [#assign networkRuleChildConfiguration = [
     {
