@@ -1187,6 +1187,35 @@ behaviour.
     ]
 [/#function]
 
+
+[#function getMetricDimensions alert monitoredResource resources environment={}]
+    [#switch alert.DimensionSource]
+        [#case "Resource" ]
+            [#return getResourceMetricDimensions(monitoredResource, resources)]
+            [#break]
+
+        [#case "Configured" ]
+            [#local dimensions = [] ]
+            [#list alert.Dimensions as id, dimension ]
+                [#local value = ""]
+                [#if ((dimension.SettingEnvName)!"")?has_content ]
+                    [#local value = (environment["Environment"][dimension.SettingEnvName])!"" ]
+                [#else]
+                    [#local value = (dimension.Value)!"" ]
+                [/#if]
+
+                [#local dimensions += [ {
+                    "Name" : dimension.Key,
+                    "Value" : value
+                }]]
+            [/#list]
+            [#return dimensions]
+            [#break]
+    [/#switch]
+
+    [#return []]
+[/#function]
+
 [#function getResourceMetricDimensions resource resources]
     [#local resourceMetricAttributes = metricAttributes[resource.Type]!{} ]
 

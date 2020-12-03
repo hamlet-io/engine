@@ -313,7 +313,15 @@
             "Default" : ""
         },
         {
+            "Names" : "DimensionSource",
+            "Description" : "The source of the alert dimensions - resource lookup or explicit configuration",
+            "Type" : STRING_TYPE,
+            "Values" : [ "Resouce", "Configured" ],
+            "Default" : "Resource"
+        },
+        {
             "Names" : "Resource",
+            "Description" : "Provide a component resource to determine the dimensions of the metric",
             "Children" : [
                 {
                     "Names" : "Id",
@@ -322,6 +330,28 @@
                 {
                     "Names" : "Type",
                     "Type" : STRING_TYPE
+                }
+            ]
+        },
+        {
+            "Names" : "Dimensions",
+            "Description" : "Explicit configured dimensions",
+            "Subobjects" : true,
+            "Children" : [
+                {
+                    "Names" : "Key",
+                    "Description" : "The Key of the dimension",
+                    "Type" : STRING_TYPE
+                },
+                {
+                    "Names" : "Value",
+                    "Description" : "The value of the dimension to match",
+                    "Type" : STRING_TYPE
+                },
+                {
+                    "Names" : "SettingEnvName",
+                    "Description" : "A setting name as env that will provide the dimension value",
+                    "Type": STRING_TYPE
                 }
             ]
         },
