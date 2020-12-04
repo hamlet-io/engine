@@ -316,7 +316,7 @@
             "Names" : "DimensionSource",
             "Description" : "The source of the alert dimensions - resource lookup or explicit configuration",
             "Type" : STRING_TYPE,
-            "Values" : [ "Resouce", "Configured" ],
+            "Values" : [ "Resource", "Configured" ],
             "Default" : "Resource"
         },
         {
