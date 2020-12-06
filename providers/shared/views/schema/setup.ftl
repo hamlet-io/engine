@@ -69,19 +69,19 @@
         [#case "reference"]
 
             [#list referenceConfiguration as id,configuration]
-            [@addSchema
-                section="reference"
-                subset=configuration.Type.Plural
-                configuration=
-                    formatJsonSchemaFromComposite(
-                        {
-                            "Names" : configuration.Type.Plural,
-                            "Type" : OBJECT_TYPE,
-                            "SubObjects" : true,
-                            "Children" : configuration.Attributes
-                        },
-                        metaparameters)
-            /]
+                [@addSchema
+                    section="reference"
+                    subset=configuration.Type.Plural
+                    configuration=
+                        formatJsonSchemaFromComposite(
+                            {
+                                "Names" : configuration.Type.Plural,
+                                "Type" : OBJECT_TYPE,
+                                "SubObjects" : true,
+                                "Children" : configuration.Attributes
+                            },
+                            metaparameters)
+                /]
             [/#list]
             [#break]
 
@@ -103,19 +103,19 @@
             ]
 
             [#list metaparametersConfiguration as id,configuration]
-            [@addSchema
-                section="metaparameter"
-                subset=id
-                configuration=
-                formatJsonSchemaFromComposite(
-                    {
-                        "Names" : id,
-                        "Type" : OBJECT_TYPE,
-                        "SubObjects" : true,
-                        "Children" : configuration.Attributes
-                    }
-                )
-            /]
+                [@addSchema
+                    section="metaparameter"
+                    subset=id
+                    configuration=
+                    formatJsonSchemaFromComposite(
+                        {
+                            "Names" : id,
+                            "Type" : OBJECT_TYPE,
+                            "SubObjects" : true,
+                            "Children" : configuration.Attributes
+                        }
+                    )
+                /]
             [/#list]
             [#break]
 
