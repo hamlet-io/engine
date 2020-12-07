@@ -122,6 +122,7 @@
 [#assign LASTRESTORE_ATTRIBUTE_TYPE = "lastrestore" ]
 [#assign REGION_ATTRIBUTE_TYPE = "region"]
 [#assign EVENTSTREAM_ATTRIBUTE_TYPE = "stream"]
+[#assign SECRET_ATTRIBUTE_TYPE = "secret"]
 
 [#-- special attribute type to handle references --]
 [#assign REFERENCE_ATTRIBUTE_TYPE = "ref" ]
@@ -146,4 +147,3 @@
             resourceId,
             QUALIFIER_ATTRIBUTE_TYPE) ]
 [/#function]
-

@@ -133,6 +133,12 @@
                         "Default" : "root"
                     },
                     {
+                        "Names" : "EncryptionScheme",
+                        "Type" : STRING_TYPE,
+                        "Description" : "A prefix appended to link attributes to show encryption status",
+                        "Default" : ""
+                    },
+                    {
                         "Names" : "Secret",
                         "Children" : secretConfiguration
                     },
