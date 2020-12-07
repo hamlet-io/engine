@@ -60,22 +60,34 @@
     ]
 ]
 
-[#assign providerReferenceConfiguration = [
+[#assign pluginReferenceConfiguration = [
         {
             "Names" : "Enabled",
-            "Description" : "To enable loading the provider",
+            "Description" : "To enable loading the plugin",
             "Type" : BOOLEAN_TYPE,
             "Default" : true
         },
         {
-            "Names" : "ProviderName",
+            "Names" : "Required",
+            "Type" : BOOLEAN_TYPE,
+            "Description" : "Ensure the provider loads at all times",
+            "Default" : false
+        },
+        {
+            "Names" : "Priority",
+            "Type" : NUMBER_TYPE,
+            "Description" : "The priority order to load plugins - lowest first",
+            "Default" : 100
+        },
+        {
+            "Names" : "Name",
             "Type" : STRING_TYPE,
-            "Description" : "The name of the provider to install",
+            "Description" : "The id of the plugin to install",
             "Mandatory" : true
         },
         {
             "Names" : "Source",
-            "Description" : "Where the plugin for the provider can be found",
+            "Description" : "Where the plugin for the plugin can be found",
             "Type" : STRING_TYPE,
             "Values" : [ "local", "git" ],
             "Mandatory" : true
@@ -95,8 +107,8 @@
                     "Default" : "main"
                 },
                 {
-                    "Names" : "Directory",
-                    "Description" : "a Directory within in the plugin repo where the provider starts",
+                    "Names" : "Path",
+                    "Description" : "a path within in the repository where the plugin starts",
                     "Type" : STRING_TYPE,
                     "Default" : ""
                 }
@@ -107,7 +119,7 @@
             "Children" : [
                 {
                     "Names" : "Path",
-                    "Description" : "The path to the provider",
+                    "Description" : "The path to the plugin",
                     "Type" : STRING_TYPE
                 }
             ]

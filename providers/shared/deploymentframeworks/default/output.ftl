@@ -493,10 +493,10 @@
 
 [@addGenerationContractStepOutputMapping
     provider=SHARED_PROVIDER
-    subset="providercontract"
+    subset="plugincontract"
     outputType=CONTRACT_DEFAULT_OUTPUT_TYPE
     outputFormat=""
-    outputSuffix="providercontract.json"
+    outputSuffix="plugincontract.json"
 /]
 
 [@addGenerationContractStepOutputMapping

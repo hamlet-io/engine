@@ -32,9 +32,9 @@
             "Children"  : moduleReferenceConfiguration
         },
         {
-            "Names" : "Providers",
+            "Names" : "Plugins",
             "Subobjects" : true,
-            "Children" : providerReferenceConfiguration
+            "Children" : pluginReferenceConfiguration
         },
         {
             "Names" : "Profiles",
