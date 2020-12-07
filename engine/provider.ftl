@@ -7,19 +7,29 @@
 [#assign providerDictionary = [] ]
 [#assign providerMarkers = [] ]
 
-[#function getActiveProvidersFromLayers  ]
+[#assign pluginMetadata = {}]
 
-    [#local providers = [] ]
-    [#local possibleProviders = asFlattenedArray(getActiveLayerAttributes( [ "Providers" ] )) ]
+[#macro addPluginMetadata id ref ]
+    [#assign pluginMetadata = mergeObjects( pluginMetadata, { id : ref } )]
+[/#macro]
 
-    [#list possibleProviders as providerInstance ]
-        [#list providerInstance?values as provider ]
-            [#if (provider.Enabled)!false]
-                [#local providers += [ provider ] ]
+[#function getPluginMetadata ]
+    [#return pluginMetadata]
+[/#function]
+
+[#function getActivePluginsFromLayers  ]
+
+    [#local plugins = [] ]
+    [#local possiblePlugins = asFlattenedArray(getActiveLayerAttributes( [ "Plugins" ] )) ]
+
+    [#list possiblePlugins as pluginInstance ]
+        [#list pluginInstance as id, plugin ]
+            [#if (plugin.Enabled)!false]
+                [#local plugins += [ { "Id" : id } + plugin ] ]
             [/#if]
         [/#list]
     [/#list]
-    [#return providers ]
+    [#return plugins ]
 [/#function]
 
 [#-- Only load configuration once --]
@@ -93,6 +103,55 @@
                 [@internalIncludeTemplatesInDirectory inputSource /]
             [/#list]
         [/#list]
+    [/#list]
+[/#macro]
+
+[#macro addPluginsFromLayers pluginState ]
+    [#local definedPlugins = getActivePluginsFromLayers() ]
+
+    [#list definedPlugins?sort_by("Priority") as plugin]
+        [#local pluginRequired = plugin.Required]
+        [#local pluginPath = formatRelativePath(plugin.Id, plugin.Name )]
+
+        [#local definedPluginState = (pluginState["Plugins"][plugin.Id])!{} ]
+
+        [#if pluginRequired && !(definedPluginState?has_content) ]
+            [@fatal
+                message="Plugin setup not complete"
+                detail="A plugin was required but plugin setup as not been run"
+                context=plugin
+            /]
+        [/#if]
+
+        [#if definedPluginState?has_content ]
+
+            [#local pluginProviderMarker = providerMarkers?filter(
+                                                marker -> marker.Path?keep_after_last("/") == plugin.Name ) ]
+
+            [#if !(pluginProviderMarker?has_content) && pluginRequired  ]
+                [@fatal
+                    message="Unable to load required provider"
+                    detail="The provider could not be found in the local state - please load hamlet plugins"
+                    context=plugin
+                /]
+                [#continue]
+            [/#if]
+
+            [@addPluginMetadata
+                id=plugin.Id
+                ref=definedPluginState.ref
+            /]
+
+            [@addCommandLineOption
+                option={
+                    "Deployment" : {
+                        "Provider" : {
+                            "Names" : combineEntities( (commandLineOptions.Deployment.Provider.Names)![], [ plugin.Name ], UNIQUE_COMBINE_BEHAVIOUR)
+                        }
+                    }
+                }
+            /]
+        [/#if]
     [/#list]
 [/#macro]
 
@@ -674,15 +733,6 @@
         [/#if]
     [/#list]
     [#return providerViewNames ]
-[/#function]
-
-[#-- Provider Metadata --]
-[#function getProviderStateMetadata ]
-    [#local result = {} ]
-    [#list (commandLineOptions.Deployment.Provider.State.Providers)!{} as id, state ]
-        [#local result += { id, state.ref }]
-    [/#list]
-    [#return result ]
 [/#function]
 
 [#------------------------------------------------------
