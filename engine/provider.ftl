@@ -17,6 +17,16 @@
     [#return pluginMetadata]
 [/#function]
 
+[#macro addEnginePluginMetadata pluginState ]
+    [#if (pluginState["Plugins"]["_engine"]!{})?has_content ]
+        [#local sharedPlugin = pluginState["Plugins"]["_engine" ]]
+        [@addPluginMetadata
+            id="_engine"
+            ref=sharedPlugin.ref
+        /]
+    [/#if]
+[/#macro]
+
 [#function getActivePluginsFromLayers  ]
 
     [#local plugins = [] ]

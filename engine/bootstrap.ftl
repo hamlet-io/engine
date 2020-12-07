@@ -80,6 +80,8 @@
 [@setupContractOutputs /]
 
 [#-- Update the providers list based on the plugins defined in the layer --]
+[@addEnginePluginMetadata commandLineOptions.Plugins.State /]
+
 [#if commandLineOptions.Entrance.Type != "loader" ]
     [@includeLayers /]
     [@addPluginsFromLayers commandLineOptions.Plugins.State /]
