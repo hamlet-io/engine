@@ -1,40 +1,21 @@
 [#ftl]
 
-[#-- Provider command line information --]
-[#macro seedCoreProviderInputSourceData providers... ]
-
-    [#list asFlattenedArray(providers) as provider]
-        [#-- First seed input data shared across the provider --]
-        [@internalSeedCoreProviderInputSourceData
-            provider=provider
-            inputSource="shared"
-        /]
-
-        [#-- Determine the input source specific input data --]
-        [#if commandLineOptions.Input.Source?has_content]
-            [@internalSeedCoreProviderInputSourceData
-                provider=provider
-                inputSource=commandLineOptions.Input.Source
-            /]
-        [/#if]
-    [/#list]
-
-[/#macro]
-
 [#-- Provider input data --]
-[#macro seedProviderInputSourceData providers... ]
+[#macro seedProviderInputSourceData providers inputTypes ]
 
     [#list asFlattenedArray(providers) as provider]
         [#-- First seed input data shared across the provider --]
-        [@internalSeedProviderInputSourceData
+        [@internalSeedInputSourceData
             provider=provider
+            inputTypes=inputTypes
             inputSource="shared"
         /]
 
         [#-- Determine the input source specific input data --]
         [#if commandLineOptions.Input.Source?has_content]
-            [@internalSeedProviderInputSourceData
+            [@internalSeedInputSourceData
                 provider=provider
+                inputTypes=inputTypes
                 inputSource=commandLineOptions.Input.Source
             /]
         [/#if]
@@ -78,37 +59,13 @@
 [#------------------------------------------------------
 -- Internal support functions for provider processing --
 --------------------------------------------------------]
+[#macro internalSeedInputSourceData provider inputSource inputTypes ]
 
-[#macro internalSeedCoreProviderInputSourceData provider inputSource ]
-
-    [#-- seed in data provided at the inputsources level for provider and inputSource --]
-    [#list [ "commandlineoption", "masterdata" ] as level ]
+    [#-- seed in data provided through inputsources  --]
+    [#list asFlattenedArray(inputTypes) as type ]
         [#local seedMacroOptions =
             [
-                [ provider, "input", inputSource, level, "seed" ]
-            ]]
-
-        [#local seedMacro = getFirstDefinedDirective(seedMacroOptions)]
-        [#if seedMacro?has_content ]
-            [@(.vars[seedMacro]) /]
-        [#else]
-            [@debug
-                message="Unable to invoke any of the setting seed macro options"
-                context=seedMacroOptions
-                enabled=false
-            /]
-        [/#if]
-    [/#list]
-
-[/#macro]
-
-[#macro internalSeedProviderInputSourceData provider inputSource ]
-
-    [#-- seed in data provided at the inputsources level for provider and inputSource --]
-    [#list [ "blueprint", "stackoutput", "setting", "definition"  ] as level ]
-        [#local seedMacroOptions =
-            [
-                [ provider, "input", inputSource, level, "seed" ]
+                [ provider, "input", inputSource, type, "seed" ]
             ]]
 
         [#local seedMacro = getFirstDefinedDirective(seedMacroOptions)]

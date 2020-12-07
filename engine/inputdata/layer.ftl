@@ -9,6 +9,11 @@
 [#assign layerData = {}]
 [#assign layerActiveData = {}]
 
+[#macro clearLayerData  ]
+    [#assign layerData = {}]
+    [#assign layerActiveData = {}]
+[/#macro]
+
 [#-- Macros to assemble the component configuration --]
 [#macro addLayer type referenceLookupType properties attributes ]
     [#local configuration = {
@@ -90,7 +95,7 @@
 [/#function]
 
 [#function getActiveLayer type ]
-    [#local layer = layerActiveData[type] ]
+    [#local layer = (layerActiveData[type])!{} ]
     [#if layer?has_content]
         [#return layer ]
     [#else]
