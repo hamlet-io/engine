@@ -21,5 +21,5 @@
             blueprintObject,
             blueprint
         )
-    ] 
+    ]
 [/#macro]

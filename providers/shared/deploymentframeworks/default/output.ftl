@@ -319,7 +319,7 @@
                     "RunId" : commandLineOptions.Run.Id,
                     "RequestReference" : commandLineOptions.References.Request,
                     "ConfigurationReference" : commandLineOptions.References.Configuration,
-                    "Providers" : getProviderStateMetadata()
+                    "Providers" : getPluginMetadata()
                 },
                 "Stages" : contractStages
             } +
@@ -386,8 +386,7 @@
             parameters=
                 getGenerationContractStepParameters(
                     "pregeneration",
-                    "primary",
-                    (commandLineOptions.Deployment.Provider.Names)[0]
+                    "primary"
                 )
         /]
 
@@ -410,8 +409,7 @@
                 parameters=
                     getGenerationContractStepParameters(
                         subset,
-                        alternative,
-                        (commandLineOptions.Deployment.Provider.Names)[0]
+                        alternative
                     )
             /]
         [/#list]

@@ -171,14 +171,14 @@
         [#assign environmentId = environmentObject.Id ]
         [#assign environmentName = environmentObject.Name ]
 
-        [#assign categoryId = segmentObject.Category!environmentObject.Category ]
+        [#assign categoryId = (segmentObject.Category!environmentObject.Category)!"" ]
         [#assign categoryName = categoryId ]
         [#assign categoryObject =
             {
                 "Id" : categoryId,
                 "Name" : categoryName
             } +
-            categories[categoryId] ]
+            categories[categoryId]!{} ]
         [#assign shortNamePrefixes += [environmentId] ]
         [#assign fullNamePrefixes += [environmentName] ]
         [#assign segmentQualifiers += [environmentId, environmentName, segmentId, segmentName] ]
