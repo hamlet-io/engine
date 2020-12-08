@@ -34,6 +34,9 @@
 [#-- Module Loading --]
 [#include "module.ftl" ]
 
+[#-- Extension loading --]
+[#include "extension.ftl" ]
+
 [#-- Component handling --]
 [#include "component.ftl" ]
 

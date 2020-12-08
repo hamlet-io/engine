@@ -185,7 +185,7 @@
                 /]
             [/#list]
 
-            [#-- Determine the scenerios for the provider --]
+            [#-- Determine the modules for the provider --]
             [#local directories =
                 internalGetPluginFiles(
                     [providerMarker.Path, "modules"],
@@ -198,6 +198,22 @@
                 [@internalIncludeTemplatesInDirectory
                     directory,
                     ["id", "module"]
+                /]
+            [/#list]
+
+            [#-- Determine the extensions for the provider --]
+            [#local directories =
+                internalGetPluginFiles(
+                    [providerMarker.Path, "extensions"],
+                    [
+                        ["[^/]+"]
+                    ]
+                )
+            ]
+            [#list directories as directory]
+                [@internalIncludeTemplatesInDirectory
+                    directory,
+                    ["id", "extension"]
                 /]
             [/#list]
 
