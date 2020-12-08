@@ -132,10 +132,6 @@
     [#return getTierNetwork(occurrence.Core.Tier.Id)]
 [/#function]
 
-[#function getOccurrenceFragmentBase occurrence]
-    [#return contentIfContent((occurrence.Configuration.Solution.Fragment)!"", occurrence.Core.Component.Id)]
-[/#function]
-
 [#function getOccurrenceDeploymentUnit occurrence]
     [#local solution = occurrence.Configuration.Solution ]
     [#return getDeploymentUnitId(solution) ]
