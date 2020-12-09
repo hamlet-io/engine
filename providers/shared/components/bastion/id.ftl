@@ -28,9 +28,10 @@
                 "Default" : "linux"
             },
             {
-                "Names" : ["Fragment", "Container"],
-                "Type" : STRING_TYPE,
-                "Default" : ""
+                "Names" : [ "Extensions", "Fragment", "Container" ],
+                "Description" : "Extensions to invoke as part of component processing",
+                "Type" : ARRAY_OF_STRING_TYPE,
+                "Default" : []
             },
             {
                 "Names" : "Links",
