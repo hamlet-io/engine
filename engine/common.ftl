@@ -1188,10 +1188,10 @@ behaviour.
 [/#function]
 
 
-[#function getMetricDimensions alert monitoredResource resources environment={}]
+[#function getMetricDimensions provider alert monitoredResource resources environment={}]
     [#switch alert.DimensionSource]
         [#case "Resource" ]
-            [#return getResourceMetricDimensions(monitoredResource, resources)]
+            [#return getResourceMetricDimensions(provider, monitoredResource, resources)]
             [#break]
 
         [#case "Configured" ]
@@ -1216,7 +1216,7 @@ behaviour.
     [#return []]
 [/#function]
 
-[#function getResourceMetricDimensions resource resources]
+[#function getResourceMetricDimensions provider resource resources]
     [#local resourceMetricAttributes = metricAttributes[resource.Type]!{} ]
 
     [#if resourceMetricAttributes?has_content ]
@@ -1240,14 +1240,14 @@ behaviour.
                     [#case "Output" ]
                         [#local occurrenceDimensions += [{
                             "Name" : name,
-                            "Value" : getReference(resource.Id, value)
+                            "Value" : getReference(provider, resource.Id, value)
                         }]]
                         [#break]
                     [#case "OtherOutput" ]
                         [#local otherResource = resources[value.Id]]
                         [#local occurrenceDimensions += [{
                             "Name" : name,
-                            "Value" : getReference(otherResource.Id, value.Property)
+                            "Value" : getReference(provider, otherResource.Id, value.Property)
                         }]]
                         [#break]
                     [#case "PseudoOutput" ]

@@ -77,7 +77,7 @@
                 [/#if]
 
                 [#assign SSMDocumentInput += {
-                    "s3BucketName": getReference(consoleLogBucketId),
+                    "s3BucketName": getReference(AWS_PROVIDER, consoleLogBucketId),
                     "s3KeyPrefix" : consoleLogBucketPrefix,
                     "s3EncryptionEnabled" : true
                 }]

@@ -794,7 +794,7 @@
                 },
                 "awslogs",
                 {
-                    "awslogs-group" : getReference(logGroupId),
+                    "awslogs-group" : getReference(AWS_PROVIDER, logGroupId),
                     "awslogs-region" : regionId,
                     "awslogs-stream-prefix" : core.Name
                 },

@@ -371,14 +371,14 @@
     [/#if]
 [/#list]
 
-[#function getSubnets tier networkResources zoneFilter="" asReferences=true includeZone=false]
+[#function getSubnets provider tier networkResources zoneFilter="" asReferences=true includeZone=false]
     [#local result = [] ]
     [#list networkResources.subnets[tier.Id] as zone, resources]
 
         [#local subnetId = resources["subnet"].Id ]
 
         [#local subnetId = asReferences?then(
-                                getReference(subnetId),
+                                getReference(provider, subnetId),
                                 subnetId)]
 
         [#if (zoneFilter?has_content && zoneFilter == zone) || !zoneFilter?has_content ]
