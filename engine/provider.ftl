@@ -833,6 +833,12 @@
         [ "entrance" ]
     /]
 
+    [#-- aws/extensions/extension.ftl --]
+    [@internalIncludeTemplatesInDirectory
+        [providerMarker.Path, "extensions"],
+        [ "extension" ]
+    /]
+
     [#-- aws/tasks/task.ftl --]
     [@internalIncludeTemplatesInDirectory
         [providerMarker.Path, "tasks"],

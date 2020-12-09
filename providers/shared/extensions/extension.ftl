@@ -24,75 +24,12 @@
     ]
 [/#macro]
 
-[#function addVariableToContext context name value upperCase=true]
-    [#return
-        mergeObjects(
-            context,
-            {
-                "Environment" : {
-                    formatSettingName(upperCase, name) : asSerialisableString(value)
-                }
-            }
-        ) ]
-[/#function]
-
 [#macro Variable name value upperCase=true ]
     [#assign _context = addVariableToContext(_context, name, value, upperCase) ]
 [/#macro]
 
 [#function getLinkResourceId link alias]
     [#return (_context.Links[link].State.Resources[alias].Id)!"" ]
-[/#function]
-
-[#function addLinkVariablesToContext context name link attributes rawName=false ignoreIfNotDefined=false requireLinkAttributes=false ]
-    [#local result = context ]
-    [#local linkAttributes = (context.Links[link].State.Attributes)!{} ]
-    [#local attributeList = valueIfContent(asArray(attributes), attributes, linkAttributes?keys) ]
-    [#if linkAttributes?has_content]
-        [#list attributeList as attribute]
-            [#local variableName = name + valueIfTrue("_" + attribute, !rawName, "") ]
-            [#if (linkAttributes[attribute?upper_case])??]
-                [#local result =
-                    addVariableToContext(
-                        result,
-                        variableName,
-                        linkAttributes[attribute?upper_case]) ]
-            [#else]
-                [#if !ignoreIfNotDefined]
-                   [#local result = addVariableToContext(result, variableName, "HamletFatal: Attribute " + attribute?upper_case + " not found for link " + link) ]
-                [/#if]
-            [/#if]
-        [/#list]
-    [#else]
-        [#if requireLinkAttributes ]
-            [#if ignoreIfNotDefined]
-                [#local result = addVariableToContext(result, name, "Ignoring link " + link) ]
-            [#else]
-                [#local result = addVariableToContext(result, name, "HamletFatal: No attributes found for link " + link) ]
-            [/#if]
-        [/#if]
-    [/#if]
-    [#return result]
-[/#function]
-
-[#function getDefaultLinkVariables links includeInbound=false]
-    [#local result = {"Links" : links, "Environment": {} }]
-    [#list links as name,value]
-        [#if (value.Direction?lower_case != "inbound") || includeInbound]
-            [#local result = addLinkVariablesToContext(result, name, name, value.IncludeInContext, false) ]
-        [/#if]
-    [/#list]
-    [#return result.Environment]
-[/#function]
-
-[#function getDefaultBaselineVariables links ]
-    [#local result = {"Links" : links, "Environment": {} }]
-    [#list links as name,value]
-        [#if (value.Direction?lower_case != "inbound") || includeInbound]
-            [#local result = addLinkVariablesToContext(result, name, name, [], false, false, false) ]
-        [/#if]
-    [/#list]
-    [#return result.Environment]
 [/#function]
 
 [#macro Link name link="" attributes=[] rawName=false ignoreIfNotDefined=false]

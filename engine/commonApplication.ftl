@@ -1,7 +1,6 @@
 [#ftl]
 
-[#-- Functions --]
-
+[#-- Registry definitions --]
 [#function getRegistryEndPoint type occurrence ]
     [#return
         contentIfContent(
@@ -17,41 +16,6 @@
 
 [#function getRegistryPrefix type occurrence ]
     [#return getOccurrenceSettingValue(occurrence, ["Registries", type, "Prefix"], true) ]
-[/#function]
-
-[#function getContainerId container]
-    [#return container?is_hash?then(
-                container.Id?split("-")[0],
-                container?split("-")[0])]
-[/#function]
-
-[#function getContainerName container]
-    [#return container.Name?split("-")[0]]
-[/#function]
-
-[#function getContainerMode container]
-    [#if container?is_hash && (container.RunMode!"")?has_content ]
-        [#return container.RunMode ]
-    [#else]
-        [#assign idParts = container?is_hash?then(
-                            container.Id?split("-"),
-                            container?split("-"))]
-        [#return idParts[1]?has_content?then(
-                    idParts[1]?upper_case,
-                    "WEB")]
-    [/#if]
-[/#function]
-
-[#assign ECS_DEFAULT_MEMORY_LIMIT_MULTIPLIER=1.5 ]
-
-[#function defaultEnvironment occurrence links baselineLinks]
-    [#return
-        occurrence.Configuration.Environment.General +
-        occurrence.Configuration.Environment.Build +
-        occurrence.Configuration.Environment.Sensitive +
-        getDefaultLinkVariables(links, true) +
-        getDefaultBaselineVariables(baselineLinks)
-    ]
 [/#function]
 
 [#function standardPolicies occurrence baselineIds ]
@@ -96,6 +60,81 @@
             permissions.AppPublic && getAppDataPublicFilePrefix(occurrence)?has_content,
             []
         )
+    ]
+[/#function]
+
+[#-- Environment Variable Management --]
+[#function addVariableToContext context name value upperCase=true]
+    [#return
+        mergeObjects(
+            context,
+            {
+                "Environment" : {
+                    formatSettingName(upperCase, name) : asSerialisableString(value)
+                }
+            }
+        ) ]
+[/#function]
+
+[#function addLinkVariablesToContext context name link attributes rawName=false ignoreIfNotDefined=false requireLinkAttributes=false ]
+    [#local result = context ]
+    [#local linkAttributes = (context.Links[link].State.Attributes)!{} ]
+    [#local attributeList = valueIfContent(asArray(attributes), attributes, linkAttributes?keys) ]
+    [#if linkAttributes?has_content]
+        [#list attributeList as attribute]
+            [#local variableName = name + valueIfTrue("_" + attribute, !rawName, "") ]
+            [#if (linkAttributes[attribute?upper_case])??]
+                [#local result =
+                    addVariableToContext(
+                        result,
+                        variableName,
+                        linkAttributes[attribute?upper_case]) ]
+            [#else]
+                [#if !ignoreIfNotDefined]
+                   [#local result = addVariableToContext(result, variableName, "HamletFatal: Attribute " + attribute?upper_case + " not found for link " + link) ]
+                [/#if]
+            [/#if]
+        [/#list]
+    [#else]
+        [#if requireLinkAttributes ]
+            [#if ignoreIfNotDefined]
+                [#local result = addVariableToContext(result, name, "Ignoring link " + link) ]
+            [#else]
+                [#local result = addVariableToContext(result, name, "HamletFatal: No attributes found for link " + link) ]
+            [/#if]
+        [/#if]
+    [/#if]
+    [#return result]
+[/#function]
+
+[#function getDefaultLinkVariables links includeInbound=false]
+    [#local result = {"Links" : links, "Environment": {} }]
+    [#list links as name,value]
+        [#if (value.Direction?lower_case != "inbound") || includeInbound]
+            [#local result = addLinkVariablesToContext(result, name, name, value.IncludeInContext, false) ]
+        [/#if]
+    [/#list]
+    [#return result.Environment]
+[/#function]
+
+[#function getDefaultBaselineVariables links ]
+    [#local result = {"Links" : links, "Environment": {} }]
+    [#list links as name,value]
+        [#if (value.Direction?lower_case != "inbound") || includeInbound]
+            [#local result = addLinkVariablesToContext(result, name, name, [], false, false, false) ]
+        [/#if]
+    [/#list]
+    [#return result.Environment]
+[/#function]
+
+
+[#function defaultEnvironment occurrence links baselineLinks]
+    [#return
+        occurrence.Configuration.Environment.General +
+        occurrence.Configuration.Environment.Build +
+        occurrence.Configuration.Environment.Sensitive +
+        getDefaultLinkVariables(links, true) +
+        getDefaultBaselineVariables(baselineLinks)
     ]
 [/#function]
 
@@ -158,6 +197,32 @@
                 )
         } ]
 [/#function]
+
+[#-- Shared Task processing for ECS and containers --]
+[#function getContainerId container]
+    [#return container?is_hash?then(
+                container.Id?split("-")[0],
+                container?split("-")[0])]
+[/#function]
+
+[#function getContainerName container]
+    [#return container.Name?split("-")[0]]
+[/#function]
+
+[#function getContainerMode container]
+    [#if container?is_hash && (container.RunMode!"")?has_content ]
+        [#return container.RunMode ]
+    [#else]
+        [#assign idParts = container?is_hash?then(
+                            container.Id?split("-"),
+                            container?split("-"))]
+        [#return idParts[1]?has_content?then(
+                    idParts[1]?upper_case,
+                    "WEB")]
+    [/#if]
+[/#function]
+
+[#assign ECS_DEFAULT_MEMORY_LIMIT_MULTIPLIER=1.5 ]
 
 [#function getTaskContainers ecs task]
 
