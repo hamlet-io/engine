@@ -35,8 +35,11 @@
     [/#if]
 [/#function]
 
-[#function formatExtensionIds occurrence ]
-    [#local idBases = getOccurrenceExtensionBase(occurrence )]
+[#function formatExtensionIds occurrence ids=[] ]
+    [#local idBases = combineEntities(
+                            getOccurrenceExtensionBase(occurrence),
+                            ids,
+                            UNIQUE_COMBINE_BEHAVIOUR) ]
 
     [#local result = []]
     [#list asFlattenedArray(idBases) as id ]
@@ -55,7 +58,7 @@
 
 
 [#-- Define properties of an extension --]
-[#macro addExtension id description supportedTypes aliases=[] scopes=["setup"] provider="shared" ]
+[#macro addExtension id description supportedTypes aliases=[] entrances=["deployment"] scopes=["setup"] provider="shared" ]
 
     [#local extensionConfiguration = [
         "InhibitEnabled",
@@ -73,9 +76,12 @@
             "Mandatory" : true
         },
         {
+            "Names" : "Entrances",
+            "Type" : ARRAY_OF_STRING_TYPE
+        }
+        {
             "Names" : "Scopes",
-            "Type" : ARRAY_OF_STRING_TYPE,
-            "Values" : [ "state", "setup" ]
+            "Type" : ARRAY_OF_STRING_TYPE
         },
         {
             "Names" : "Description",
@@ -88,7 +94,8 @@
         "Aliases" : aliases,
         "Description" : description,
         "SupportedTypes" : supportedTypes,
-        "Scopes" : scopes
+        "Scopes" : scopes,
+        "Entrances" : entrances
     }]
 
     [@addExtensionAliases
@@ -124,7 +131,7 @@
     [/#list]
 [/#macro]
 
-[#function invokeExtensions occurrence context scope="setup" provider="shared" ]
+[#function invokeExtensions occurrence context baseOccurrence={} additionalIds=[] entrance="deployment" scope="setup" provider="shared"  ]
 
     [#-- Replace the global context with the components context --]
     [#assign _context = context ]
@@ -133,9 +140,15 @@
         "Instance" : occurrence.Core.Instance.Id,
         "Version" : occurrence.Core.Version.Id
     }]
-    #assign _context = mergeObjects(_context, occurrenceContext )]
+    [#assign _context = mergeObjects(_context, occurrenceContext )]
 
-    [#list formatExtensionIds(occurrence) as id]
+    [#-- Sets the occurrence we use to determine the extension id base --]
+    [#local baseOccurrence = valueIfContent(
+                                baseOccurrence,
+                                baseOccurrence,
+                                occurrence) ]
+
+    [#list formatExtensionIds(baseOccurrence, additionalIds) as id]
 
         [#local extensionContext = {
             "Id" : id,
@@ -152,7 +165,10 @@
         [#-- Find the extension function --]
         [#local extensionMacroOptions =
             [
-                [ provider, "extension", id, scope ]
+                [ provider, "extension", id, entrance, scope ],
+                [ provider, "extension", id, entrance ],
+                [ provider, "extension", id, scope ],
+                [ provider, "extension", id ]
             ]]
 
         [#local extensionMacro = getFirstDefinedDirective(extensionMacroOptions)]
