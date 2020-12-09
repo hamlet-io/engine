@@ -42,462 +42,6 @@
     [/#if]
 [/#function]
 
-[#-- Fragment List Macros --]
-[#macro lambdaAttributes
-        imageBucket=""
-        imagePrefix=""
-        zipFile=""
-        codeHash=""  ]
-
-    [#assign _context += {
-            "S3Bucket" : imageBucket,
-            "S3Prefix" : imagePrefix,
-            "ZipFile" : {
-                "Fn::Join" : [
-                    "\n",
-                    asArray(zipFile)
-                ]
-            },
-            "CodeHash" : codeHash
-        }
-    ]
-[/#macro]
-
-[#function addVariableToContext context name value upperCase=true]
-    [#return
-        mergeObjects(
-            context,
-            {
-                "Environment" : {
-                    formatSettingName(upperCase, name) : asSerialisableString(value)
-                }
-            }
-        ) ]
-[/#function]
-
-[#macro Variable name value upperCase=true ]
-    [#assign _context = addVariableToContext(_context, name, value, upperCase) ]
-[/#macro]
-
-[#function getLinkResourceId link alias]
-    [#return (_context.Links[link].State.Resources[alias].Id)!"" ]
-[/#function]
-
-[#function addLinkVariablesToContext context name link attributes rawName=false ignoreIfNotDefined=false requireLinkAttributes=false ]
-    [#local result = context ]
-    [#local linkAttributes = (context.Links[link].State.Attributes)!{} ]
-    [#local attributeList = valueIfContent(asArray(attributes), attributes, linkAttributes?keys) ]
-    [#if linkAttributes?has_content]
-        [#list attributeList as attribute]
-            [#local variableName = name + valueIfTrue("_" + attribute, !rawName, "") ]
-            [#if (linkAttributes[attribute?upper_case])??]
-                [#local result =
-                    addVariableToContext(
-                        result,
-                        variableName,
-                        linkAttributes[attribute?upper_case]) ]
-            [#else]
-                [#if !ignoreIfNotDefined]
-                   [#local result = addVariableToContext(result, variableName, "HamletFatal: Attribute " + attribute?upper_case + " not found for link " + link) ]
-                [/#if]
-            [/#if]
-        [/#list]
-    [#else]
-        [#if requireLinkAttributes ]
-            [#if ignoreIfNotDefined]
-                [#local result = addVariableToContext(result, name, "Ignoring link " + link) ]
-            [#else]
-                [#local result = addVariableToContext(result, name, "HamletFatal: No attributes found for link " + link) ]
-            [/#if]
-        [/#if]
-    [/#if]
-    [#return result]
-[/#function]
-
-[#function getDefaultLinkVariables links includeInbound=false]
-    [#local result = {"Links" : links, "Environment": {} }]
-    [#list links as name,value]
-        [#if (value.Direction?lower_case != "inbound") || includeInbound]
-            [#local result = addLinkVariablesToContext(result, name, name, value.IncludeInContext, false) ]
-        [/#if]
-    [/#list]
-    [#return result.Environment]
-[/#function]
-
-[#function getDefaultBaselineVariables links ]
-    [#local result = {"Links" : links, "Environment": {} }]
-    [#list links as name,value]
-        [#if (value.Direction?lower_case != "inbound") || includeInbound]
-            [#local result = addLinkVariablesToContext(result, name, name, [], false, false, false) ]
-        [/#if]
-    [/#list]
-    [#return result.Environment]
-[/#function]
-
-[#macro Link name link="" attributes=[] rawName=false ignoreIfNotDefined=false]
-    [#assign _context =
-        addLinkVariablesToContext(
-            _context,
-            name,
-            contentIfContent(link, name),
-            attributes,
-            rawName,
-            ignoreIfNotDefined) ]
-
-[/#macro]
-
-[#macro DefaultLinkVariables enabled=true ]
-    [#assign _context += { "DefaultLinkVariables" : enabled } ]
-[/#macro]
-
-[#macro DefaultBaselineVariables enabled=true ]
-    [#assign _context += { "DefaultBaselineVariables" : enabled } ]
-[/#macro]
-
-[#macro DefaultCoreVariables enabled=true ]
-    [#assign _context += { "DefaultCoreVariables" : enabled } ]
-[/#macro]
-
-[#macro DefaultEnvironmentVariables enabled=true ]
-    [#assign _context += { "DefaultEnvironmentVariables" : enabled } ]
-[/#macro]
-
-[#function getFragmentSettingValue key value asBoolean=false]
-    [#if value?is_hash]
-        [#local name = contentIfContent(value.Setting!"", key) ]
-
-        [#if (value.IgnoreIfMissing!false) &&
-            (!((_context.DefaultEnvironment[formatSettingName(true, name)])??)) ]
-                [#return valueIfTrue(false, asBoolean, "") ]
-        [/#if]
-    [#else]
-        [#if value?is_string]
-            [#local name = value]
-        [#else]
-            [#return valueIfTrue(true, asBoolean, "HamletFatal: Value for " + key + " must be a string or hash") ]
-        [/#if]
-    [/#if]
-    [#return
-        valueIfTrue(
-            true,
-            asBoolean,
-            _context.DefaultEnvironment[formatSettingName(true, name)]!
-                "HamletFatal: Variable " + name + " not found"
-        ) ]
-[/#function]
-
-[#macro AltSettings settings...]
-    [#list asFlattenedArray(settings) as setting]
-        [#if setting?is_hash]
-            [#list setting as key,value]
-                [#if getFragmentSettingValue(key, value, true)]
-                    [@Variable name=key value=getFragmentSettingValue(key, value) /]
-                [/#if]
-            [/#list]
-        [/#if]
-        [#if setting?is_string]
-            [@Variable name=setting value=getFragmentSettingValue(setting, setting) /]
-        [/#if]
-    [/#list]
-[/#macro]
-
-[#macro Settings settings...]
-    [#list asFlattenedArray(settings) as setting]
-        [#if setting?is_hash]
-            [#list setting as key,value]
-                [@Variable name=key value=value /]
-            [/#list]
-        [/#if]
-        [#if setting?is_string]
-            [@Variable name=setting value=getFragmentSettingValue(setting, setting) /]
-        [/#if]
-    [/#list]
-[/#macro]
-
-[#macro Variables variables...]
-    [@Settings  variables /]
-[/#macro]
-
-[#macro ContextSetting name value ]
-    [#assign _context =
-                mergeObjects(
-                    _context,
-                    {
-                        "ContextSettings" : {
-                            name : value
-                        }
-                    }
-                )]
-[/#macro]
-
-[#-- ECS Specific Macros --]
-
-[#macro Host name value]
-    [#assign _context +=
-        {
-            "Hosts" : (_context.Hosts!{}) + { name : value }
-        }
-    ]
-[/#macro]
-
-[#macro Hosts hosts]
-    [#if hosts?is_hash]
-        [#assign _context +=
-            {
-                "Hosts" : (_context.Hosts!{}) + hosts
-            }
-        ]
-    [/#if]
-[/#macro]
-
-[#macro Hostname hostname ]
-    [#assign _context +=
-        {
-            "Hostname" : hostname
-        }
-    ]
-[/#macro]
-
-[#macro Attributes name="" image="" version="" essential=true]
-    [#assign _context +=
-        {
-            "Essential" : essential
-        } +
-        attributeIfContent("Name", name) +
-        attributeIfContent("Image", image) +
-        attributeIfContent("ImageVersion", version)
-    ]
-[/#macro]
-
-
-[#macro taskPlacementConstraint expression ]
-    [#assign _context +=
-        {
-            "PlacementConstraints" : combineEntities( _context.PlacementConstraints![], [ expression ], UNIQUE_COMBINE_BEHAVIOUR)
-        }
-    ]
-[/#macro]
-
-[#macro WorkingDirectory workingDirectory ]
-    [#assign _context +=
-        {
-            "WorkingDirectory" : workingDirectory
-        }
-    ]
-[/#macro]
-
-[#macro Volume name="" containerPath="" hostPath="" readOnly=false persist=false volumeLinkId="" driverOpts={} autoProvision=false scope="" volumeEngine="local" ]
-
-    [#if volumeLinkId?has_content ]
-        [#if (_context.DataVolumes[volumeLinkId])?has_content]
-            [#local volumeName = _context.DataVolumes[volumeLinkId].Name ]
-            [#local volumeEngine = _context.DataVolumes[volumeLinkId].Engine ]
-        [#else]
-            [#local volumeName = "HamletFatal: VolumeLinkId not resolvable" ]
-        [/#if]
-    [#else]
-        [#local volumeName = name!"HamletFatal: Volume Name or VolumeLinkId not provided" ]
-    [/#if]
-
-    [#switch volumeEngine ]
-        [#case "ebs" ]
-            [#local volumeDriver = "rexray/ebs" ]
-            [#break]
-        [#case "efs"]
-            [#local volumeDriver = "efs"]
-            [#break]
-        [#default]
-            [#local volumeDriver = "local" ]
-    [/#switch]
-
-    [#assign _context +=
-        {
-            "Volumes" :
-                (_context.Volumes!{}) +
-                {
-                    volumeName : {
-                        "ContainerPath" : containerPath!"HamletFatal : Container Path Not provided",
-                        "HostPath" : hostPath,
-                        "ReadOnly" : readOnly,
-                        "PersistVolume" : persist?is_string?then(
-                                            persist?boolean,
-                                            persist),
-                        "Driver" : volumeDriver,
-                        "DriverOpts" : driverOpts,
-                        "AutoProvision" : autoProvision
-                    } +
-                    attributeIfContent(
-                        "Scope",
-                        scope
-                    ) +
-                    (volumeDriver == "efs" )?then(
-                        {
-                            "EFS" : _context.DataVolumes[volumeLinkId].EFS
-                        },
-                        {}
-                    )
-                }
-        }
-    ]
-[/#macro]
-
-[#macro Volumes volumes]
-    [#if volumes?is_hash]
-        [#assign _context +=
-            {
-                "Volumes" : (_context.Volumes!{}) + volumes
-            }
-        ]
-    [/#if]
-[/#macro]
-
-[#macro EntryPoint entrypoint ]
-    [#assign _context +=
-        {
-            "EntryPoint" : asArray(entrypoint)
-        }
-    ]
-[/#macro]
-
-[#macro Command command ]
-    [#assign _context +=
-        {
-            "Command" : asArray(command)
-        }
-    ]
-[/#macro]
-
-[#macro HealthCheck command useShell=true interval=30 retries=3 startPeriod=0 timeout=5  ]
-
-    [#local command = asArray(command) ]
-
-    [#if  !(command[0] == "CMD") && !(command[0] == "CMD-SHELL") ]
-        [#local command = [ useShell?then( "CMD-SHELL", "CMD") ] + command ]
-    [/#if]
-
-    [#assign _context +=
-        {
-            "HealthCheck" : {
-                "Command" : command,
-                "Interval" : interval,
-                "Retries" : retries,
-                "Timeout" : timeout
-            } +
-            attributeIfTrue(
-                "StartPeriod",
-                ( startPeriod > 0 ),
-                startPeriod
-            )
-        }
-    ]
-
-[/#macro]
-
-[#macro Policy statements...]
-    [#assign _context +=
-        {
-            "Policy" : (_context.Policy![]) + asFlattenedArray(statements)
-        }
-    ]
-[/#macro]
-
-[#macro ManagedPolicy arns...]
-    [#assign _context +=
-        {
-            "ManagedPolicy" : (_context.ManagedPolicy![]) + asFlattenedArray(arns)
-        }
-    ]
-[/#macro]
-
-[#-- Compute instance fragment macros --]
-[#macro File path mode="644" owner="root" group="root" content=[] ]
-    [#assign _context +=
-        {
-            "Files" : (_context.Files!{}) + {
-                path : {
-                    "mode" : mode,
-                    "owner" : owner,
-                    "group" : group,
-                    "content" : content
-                }
-            }
-        }]
-[/#macro]
-
-[#macro Directory path mode="755" owner="root" group="root" ]
-    [#assign _context +=
-        {
-            "Directories" : (_context.Directories!{}) + {
-                path : {
-                    "mode" : mode,
-                    "owner" : owner,
-                    "group" : group
-                }
-            }
-        }]
-[/#macro]
-
-[#macro DataVolumeMount volumeLinkId deviceId mountPath ]
-    [#assign _context +=
-        {
-            "VolumeMounts" :
-                (_context.VolumeMounts!{}) +
-                {
-                    volumeLinkId : {
-                        "DeviceId" : deviceId,
-                        "MountPath" : mountPath
-                    }
-                }
-        }]
-[/#macro]
-
-
-[#-- CloudFront Specific Fragment Macros --]
-[#macro cfCustomHeader name value ]
-    [#assign _context +=
-        {
-            "CustomOriginHeaders" : (_context.CustomOriginHeaders![]) + [
-                getCFHTTPHeader(
-                    name,
-                    value )
-            ]
-        }]
-[/#macro]
-
-[#macro cfForwardHeaders names... ]
-    [#assign _context +=
-        {
-            "ForwardHeaders" : (_context.ForwardHeaders![]) +
-                                    asArray(names)
-        }]
-[/#macro]
-
-[#-- User Specific Fragment Macros --]
-[#macro userTransferMount name s3LinkId mountPrefix s3Prefix  ]
-    [#list _context.Links as id,linkTarget ]
-        [#if id == s3LinkId && linkTarget.Core.Type == S3_COMPONENT_TYPE ]
-            [#local s3BucketName = linkTarget.State.Attributes["NAME"] ]
-        [/#if]
-    [/#list]
-
-    [#if s3BucketName?has_content ]
-        [#assign _context +=
-            {
-                "TransferMounts" :
-                    (_context.TransferMounts!{}) +
-                    {
-                        name : getTransferHomeDirectoryMapping(
-                                    mountPrefix,
-                                    s3BucketName,
-                                    s3Prefix
-                                )
-                    }
-            }
-        ]
-    [/#if]
-[/#macro]
-
-
 [#assign ECS_DEFAULT_MEMORY_LIMIT_MULTIPLIER=1.5 ]
 
 [#function defaultEnvironment occurrence links baselineLinks]
@@ -801,16 +345,19 @@
                 {}
             )]
 
-        [#assign contextLinks = getLinkTargets(task, containerLinks) ]
-        [#assign _context =
+        [#local contextLinks = getLinkTargets(task, containerLinks) ]
+
+        [#local containerDetails = {
+            "Id" : contentIfContent(
+                    (container.Extensions[0])!"",
+                    getContainerId(container)
+            ),
+            "Name" : getContainerName(container)
+        }]
+
+        [#local _context =
+            containerDetails +
             {
-                "Id" : contentIfContent(
-                        container.Fragment,
-                        getContainerId(container)
-                ),
-                "Name" : getContainerName(container),
-                "Instance" : core.Instance.Id,
-                "Version" : core.Version.Id,
                 "Essential" : true,
                 "RegistryEndPoint" : getRegistryEndPoint("docker", task),
                 "Image" : formatRelativePath(
@@ -901,7 +448,7 @@
                                 detail=ecs /]
                     [/#if]
 
-                    [#assign _context +=
+                    [#local _context +=
                         {
                             "DataVolumes" :
                                 (_context.DataVolumes!{}) +
@@ -915,7 +462,7 @@
                     [#break]
                 [#case EFS_COMPONENT_TYPE]
                 [#case EFS_MOUNT_COMPONENT_TYPE]
-                    [#assign _context +=
+                    [#local _context +=
                         {
                             "DataVolumes" :
                                 (_context.DataVolumes!{}) +
@@ -940,14 +487,22 @@
         [/#list]
 
         [#-- Add link based sec rules --]
-        [#assign _context += { "EgressRules" : egressRules }]
-        [#assign _context += { "LinkIngressRules" : linkIngressRules }]
+        [#local _context += { "EgressRules" : egressRules }]
+        [#local _context += { "LinkIngressRules" : linkIngressRules }]
 
-        [#-- Add in fragment specifics including override of defaults --]
-        [#assign fragmentId = formatFragmentId(_context)]
-        [#include fragmentList]
-
-        [#assign _context += getFinalEnvironment(task, _context) ]
+        [#-- Add in extension specifics including override of defaults --]
+        [#-- Extensions are based on occurrences so we need to create a fake occurrence --]
+        [#local containerOccurrence = mergeObjects( task, {
+            "Core" : {
+                "Component" : containerDetails
+            },
+            "Configuration" : {
+                "Solution" : container
+            }
+        })]
+        [#local _context = invokeExtensions( task, _context, containerOccurrence, [ container.Extensions ] )]
+        [#local _context += containerDetails ]
+        [#local _context += getFinalEnvironment(task, _context) ]
 
         [#-- validate fargate requirements from container context --]
         [#if solution.Engine == "fargate" ]
