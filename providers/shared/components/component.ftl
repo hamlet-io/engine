@@ -1147,10 +1147,10 @@
 
 [#assign containerChildrenConfiguration = [
     {
-        "Names" : "Fragment",
-        "Description" : "The fragment Id to use when evaluating component fragments - defaults to the container id",
-        "Type" : "string",
-        "Default" : ""
+        "Names" : [ "Extensions", "Fragment", "Container" ],
+        "Description" : "Extensions to invoke as part of component processing",
+        "Type" : ARRAY_OF_STRING_TYPE,
+        "Default" : []
     },
     {
         "Names" : "Cpu",
@@ -1296,9 +1296,10 @@
 
 [#assign containerHostAttributes = [
     {
-        "Names" : ["Fragment", "Container"],
-        "Type" : "string",
-        "Default" : ""
+        "Names" : [ "Extensions", "Fragment", "Container" ],
+        "Description" : "Extensions to invoke as part of component processing",
+        "Type" : ARRAY_OF_STRING_TYPE,
+        "Default" : []
     },
     {
         "Names" : "FixedIP",
