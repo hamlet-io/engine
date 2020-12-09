@@ -19,7 +19,7 @@
 /]
 
 
-[#macro shared_extension_hamlet_setup occurrence ]
+[#macro shared_extension_hamlet_deployment_setup occurrence ]
 
     [#local settings = _context.DefaultEnvironment]
 

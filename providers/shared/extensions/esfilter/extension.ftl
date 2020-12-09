@@ -18,7 +18,7 @@
     ]
 /]
 
-[#macro shared_extension_esfilter_setup occurrence ]
+[#macro shared_extension_esfilter_deployment_setup occurrence ]
 
     [#-- DATA and QUERY credentials (USERNAME, PASSWORD) expected in env --]
     [#-- TODO(mfl): change container to use standard ES atributes --]

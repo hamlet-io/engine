@@ -17,7 +17,7 @@
     ]
 /]
 
-[#macro shared_extension_cleanup_setup occurrence ]
+[#macro shared_extension_cleanup_deployment_setup occurrence ]
     [@Attributes image="cleanup" /]
 
     [@DefaultLinkVariables enabled=false /]

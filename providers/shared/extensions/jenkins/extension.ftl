@@ -9,6 +9,12 @@
         "Jenkins controller deployment based on the hamlet docker image",
         "Url: https://github.com/hamlet-io/docker-jenkins-master"
     ]
+    supportedTypes=[
+        ECS_SERVICE_COMPONENT_TYPE,
+        ECS_TASK_COMPONENT_TYPE,
+        CONTAINERSERVICE_COMPONENT_TYPE,
+        CONTAINERTASK_COMPONENT_TYPE
+    ]
 /]
 
 [#macro shared_extension_jenkins_setup occurrence ]
@@ -213,7 +219,7 @@
     ]
 /]
 
-[#macro shared_extension_jenkinsecs_setup occurrence ]
+[#macro shared_extension_jenkinsecs_deployment_setup occurrence ]
 
     [#local settings = _context.DefaultEnvironment]
 

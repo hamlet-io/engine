@@ -16,7 +16,7 @@
     ]
 /]
 
-[#macro shared_extension_redirector_setup occurrence ]
+[#macro shared_extension_redirector_deployment_setup occurrence ]
 
     [@DefaultLinkVariables enabled=false /]
     [@DefaultCoreVariables enabled=false /]

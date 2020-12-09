@@ -16,7 +16,7 @@
     ]
 /]
 
-[#macro shared_extension_couchdb_setup occurrence ]
+[#macro shared_extension_couchdb_deployment_setup occurrence ]
 
     [#-- COUCHDB credentials (USER, PASSWORD) expected in env --]
     [@Settings

@@ -16,7 +16,7 @@
     ]
 /]
 
-[#macro shared_extension_rabbit_setup occurrence ]
+[#macro shared_extension_rabbit_deployment_setup occurrence ]
 
     [@Attributes image="rabbitmq-autocluster" /]
 

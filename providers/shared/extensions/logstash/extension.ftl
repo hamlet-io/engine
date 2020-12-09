@@ -16,7 +16,7 @@
     ]
 /]
 
-[#macro shared_extension_logstash_setup occurrence ]
+[#macro shared_extension_logstash_deployment_setup occurrence ]
 
     [#local esLinkId = (_context.DefaultEnvironment["ES_LINK_ID"])!"es" ]
     [#local esLink = _context.Links[esLinkId]]
