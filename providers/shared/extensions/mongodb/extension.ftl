@@ -16,7 +16,7 @@
     ]
 /]
 
-[#macro shared_extension_mongodb_setup occurrence ]
+[#macro shared_extension_mongodb_deployment_setup occurrence ]
 
     [@Attributes image="mongodb" /]
     [@Volume "mongodb" "/data/db" "/codeontap/mongodb/db" /]

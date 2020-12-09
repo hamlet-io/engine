@@ -13,7 +13,7 @@
     ]
 /]
 
-[#macro shared_extension_noenv_setup occurrence ]
+[#macro shared_extension_noenv_deployment_setup occurrence ]
 
     [@DefaultLinkVariables enabled=false /]
     [@DefaultCoreVariables enabled=false /]

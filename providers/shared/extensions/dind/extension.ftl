@@ -18,7 +18,7 @@
     ]
 /]
 
-[#macro shared_extension_dind_setup occurrence ]
+[#macro shared_extension_dind_deployment_setup occurrence ]
 
     [@DefaultLinkVariables enabled=false /]
     [@DefaultCoreVariables enabled=false /]
