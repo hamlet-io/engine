@@ -70,7 +70,7 @@
         {
             "Names" : "Required",
             "Type" : BOOLEAN_TYPE,
-            "Description" : "Ensure the provider loads at all times",
+            "Description" : "Ensure the plugin loads at all times",
             "Default" : false
         },
         {
