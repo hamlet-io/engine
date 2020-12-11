@@ -165,10 +165,10 @@
         [#-- Find the extension function --]
         [#local extensionMacroOptions =
             [
-                [ provider, "extension", id, entrance, scope ],
-                [ provider, "extension", id, entrance ],
-                [ provider, "extension", id, scope ],
-                [ provider, "extension", id ]
+                [ provider, "extension", extensionDetails.Id, entrance, scope ],
+                [ provider, "extension", extensionDetails.Id, entrance ],
+                [ provider, "extension", extensionDetails.Id, scope ],
+                [ provider, "extension", extensionDetails.Id ]
             ]]
 
         [#local extensionMacro = getFirstDefinedDirective(extensionMacroOptions)]
