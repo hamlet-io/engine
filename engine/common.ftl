@@ -1187,6 +1187,35 @@ behaviour.
     ]
 [/#function]
 
+[#function getImageFromContainerRegistryScript
+        product
+        environment
+        segment
+        occurrence
+        sourceImage
+        imageFormat
+        registryHost
+        registryProvider
+        region=""
+    ]
+
+    [#local buildUnit = getOccurrenceBuildUnit(occurrence) ]
+
+    [#return
+        [
+            r'get_image_from_container_registry' +
+            r'   "' + sourceImage + r'" ' +
+            r'   "' + imageFormat + r'" ' +
+            r'   "' + product + r'" ' +
+            r'   "' + environment + r'" ' +
+            r'   "' + segment + r'" ' +
+            r'   "' + buildUnit + r'" ' +
+            r'   "' + registryHost + r'" ' +
+            r'   "' + registryProvider + r'" ' +
+            r'   "' + region + r'" || exit $? '
+        ]
+    ]
+[/#function]
 
 [#function getMetricDimensions alert monitoredResource resources environment={}]
     [#switch alert.DimensionSource]

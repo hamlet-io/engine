@@ -1235,9 +1235,28 @@
     },
     {
         "Names" : "Image",
-        "Type" : STRING_TYPE,
-        "Description" : "Overrides the image from the deployment unit",
-        "Default": ""
+        "Description" : "Set the source of the components image",
+        "Children" : [
+            {
+                "Names" : "Source",
+                "Description" : "The source of the image",
+                "Type" : STRING_TYPE,
+                "Mandatory" : true,
+                "Values" : [ "registry", "containerregistry" ],
+                "Default" : "Registry"
+            },
+            {
+                "Names" : "Source:containerregistry",
+                "Description" : "A docker container registry to source the image from",
+                "Children" : [
+                    {
+                        "Names" : "Image",
+                        "Description" : "The docker image that you want to use",
+                        "Type" : STRING_TYPE
+                    }
+                ]
+            }
+        ]
     },
     {
         "Names" : "Version",

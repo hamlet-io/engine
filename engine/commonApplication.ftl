@@ -813,18 +813,15 @@
                 "Version" : core.Version.Id,
                 "Essential" : true,
                 "RegistryEndPoint" : getRegistryEndPoint("docker", task),
-                "Image" : container.Image?has_content?then(
-                            container.Image,
-                            formatRelativePath(
-                                formatName(
-                                    getOccurrenceBuildProduct(task, productName),
-                                    getOccurrenceBuildScopeExtension(task)
-                                ),
-                                formatName(
-                                    getOccurrenceBuildUnit(task),
-                                    getOccurrenceBuildReference(task)
-                                )
-                            )
+                "Image" : formatRelativePath(
+                    formatName(
+                        getOccurrenceBuildProduct(task, productName),
+                        getOccurrenceBuildScopeExtension(task)
+                    ),
+                    formatName(
+                        getOccurrenceBuildUnit(task),
+                        getOccurrenceBuildReference(task)
+                    )
                 ),
                 "MemoryReservation" : container.MemoryReservation,
                 "Mode" : getContainerMode(container),
@@ -872,6 +869,9 @@
             attributeIfContent("Ulimits", container.Ulimits )
         ]
 
+        [#if container.Image.Source == "containerregistry" ]
+            [#assign _context += { "Image" : container.Image["Source:containerregistry"].Image }]
+        [/#if]
 
         [#local linkIngressRules = [] ]
         [#list _context.Links as linkId,linkTarget]
