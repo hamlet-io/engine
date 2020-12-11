@@ -49,7 +49,7 @@
     [#if !(resourceId?has_content)]
         [#return ""]
     [/#if]
-    [#if resourceId?is_hash]
+    [#if (resourceId?is_hash) && (resourceId.Ref?has_content)]
         [#return
             {
                 "Ref" : value.Ref
