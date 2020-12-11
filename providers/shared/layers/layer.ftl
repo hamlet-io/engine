@@ -93,7 +93,7 @@
             "Mandatory" : true
         },
         {
-            "Names" : "git",
+            "Names" : "Source:git",
             "Children" : [
                 {
                     "Names" : "Url",
@@ -111,16 +111,6 @@
                     "Description" : "a path within in the repository where the plugin starts",
                     "Type" : STRING_TYPE,
                     "Default" : ""
-                }
-            ]
-        },
-        {
-            "Names" : "local",
-            "Children" : [
-                {
-                    "Names" : "Path",
-                    "Description" : "The path to the plugin",
-                    "Type" : STRING_TYPE
                 }
             ]
         }

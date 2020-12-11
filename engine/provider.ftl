@@ -125,7 +125,7 @@
 
         [#local definedPluginState = (pluginState["Plugins"][plugin.Id])!{} ]
 
-        [#if pluginRequired && !(definedPluginState?has_content) ]
+        [#if pluginRequired && !(definedPluginState?has_content) && plugin.Source != "local" ]
             [@fatal
                 message="Plugin setup not complete"
                 detail="A plugin was required but plugin setup as not been run"
@@ -133,35 +133,33 @@
             /]
         [/#if]
 
-        [#if definedPluginState?has_content ]
 
-            [#local pluginProviderMarker = providerMarkers?filter(
-                                                marker -> marker.Path?keep_after_last("/") == plugin.Name ) ]
+        [#local pluginProviderMarker = providerMarkers?filter(
+                                            marker -> marker.Path?keep_after_last("/") == plugin.Name ) ]
 
-            [#if !(pluginProviderMarker?has_content) && pluginRequired  ]
-                [@fatal
-                    message="Unable to load required provider"
-                    detail="The provider could not be found in the local state - please load hamlet plugins"
-                    context=plugin
-                /]
-                [#continue]
-            [/#if]
-
-            [@addPluginMetadata
-                id=plugin.Id
-                ref=definedPluginState.ref
+        [#if !(pluginProviderMarker?has_content) && pluginRequired  ]
+            [@fatal
+                message="Unable to load required provider"
+                detail="The provider could not be found in the local state - please load hamlet plugins"
+                context=plugin
             /]
+            [#continue]
+        [/#if]
 
-            [@addCommandLineOption
-                option={
-                    "Deployment" : {
-                        "Provider" : {
-                            "Names" : combineEntities( (commandLineOptions.Deployment.Provider.Names)![], [ plugin.Name ], UNIQUE_COMBINE_BEHAVIOUR)
-                        }
+        [@addPluginMetadata
+            id=plugin.Id
+            ref=(definedPluginState.ref)!plugin.Source
+        /]
+
+        [@addCommandLineOption
+            option={
+                "Deployment" : {
+                    "Provider" : {
+                        "Names" : combineEntities( (commandLineOptions.Deployment.Provider.Names)![], [ plugin.Name ], UNIQUE_COMBINE_BEHAVIOUR)
                     }
                 }
-            /]
-        [/#if]
+            }
+        /]
     [/#list]
 [/#macro]
 
