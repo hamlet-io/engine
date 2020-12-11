@@ -3,9 +3,7 @@
 [#assign HamletSchemas = {
     "Root" : "http://json-schema.org/draft-07/schema#"
 }]
-[#assign metaparameters = [
-    "Links"
-]]
+
 [#assign rootSchemaPath = "https://hamlet.io/schema"]
 [#assign patternPropertiesRegex = r'^[A-Za-z_][A-Za-z0-9_]*$']
 [#assign schemaConfiguration = {}]
@@ -57,10 +55,17 @@
             [#else]
                 [#local optionSets += composite.Type?map(t -> [{ "type" : t }])]
             [/#if]
-        [#elseif composite.Type == REF_TYPE]
-            [#local result += formatJsonSchemaReference(composite.Path, composite.File)]
         [#else]
             [#local result += { "type" : composite.Type }]
+        [/#if]
+    [#elseif composite.Ref!false]
+        [#-- TODO(rossmurr4y): define lookup function that determines which schema a reference belongs to. --]
+        [#-- For now, if a ref is to a link, its a metaparameter ref else its a local ref.                 --]
+        [#-- This only works whilst there is a single ref type in another file.                            --]
+        [#if composite.Names == "Links"]
+            [#local result += formatJsonSchemaReference(composite.Path, "metaparameter")]
+        [#else]
+            [#local result += formatJsonSchemaReference(composite.Path)]
         [/#if]
     [#else]
         [#local result += { "type" : OBJECT_TYPE }]
@@ -161,8 +166,7 @@
                                                     childSchemaName : formatJsonSchemaFromComposite(
                                                         {
                                                             "Names" : childSchemaName,
-                                                            "Type" : REF_TYPE,
-                                                            "File" : "metaparameter-schema.json",
+                                                            "Ref" : true,
                                                             "Path" : formatPath(false, "definitions", childSchemaName)
                                                         }
                                                     )
@@ -175,8 +179,7 @@
                                             childSchemaName : formatJsonSchemaFromComposite(
                                                 {
                                                     "Names" : childSchemaName,
-                                                    "Type" : REF_TYPE,
-                                                    "File" : "metaparameter-schema.json",
+                                                    "Ref" : true,
                                                     "Path" : formatPath(false, "#definitions", childSchemaName)
                                                 }
                                             )
@@ -211,8 +214,7 @@
                             formatJsonSchemaFromComposite(
                                 {
                                     "Names" : schemaName,
-                                    "Type" : REF_TYPE,
-                                    "File" : "metaparameter-schema.json",
+                                    "Ref" : true,
                                     "Path" : formatPath(false, "#definitions", schemaName)
                                 }
                             ) 
@@ -229,8 +231,14 @@
     [#return jsonSchema ]
 [/#function]
 
-[#function formatJsonSchemaReference path file=""]
-    [#return { r"$ref": concatenate([file, path?ensure_starts_with("#/")], '') }]
+[#function formatJsonSchemaReference path schema=""]
+    [#if schema?has_content]
+        [#-- return ref to specified schema --]
+        [#return { r"$ref": concatenate(["schema-", schema?lower_case, "-schema.json", path?ensure_starts_with("#/")], '') }]
+    [#else]
+        [#-- return ref to schema path in same file --]
+        [#return { r"$ref": path?ensure_starts_with("#/") }]
+    [/#if]
 [/#function]
 
 [#-------------------------------------------------------
