@@ -163,6 +163,15 @@
         [#include fragmentList?ensure_starts_with("/")]
 
         [#-- Find the extension function --]
+        [#if !(extensionDetails?has_content) ]
+            [@debug
+                message="Extension not found matching id"
+                context=id
+                enabled=true
+            /]
+            [#continue]
+        [/#if]
+
         [#local extensionMacroOptions =
             [
                 [ provider, "extension", extensionDetails.Id, entrance, scope ],
