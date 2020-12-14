@@ -1,9 +1,9 @@
 [#ftl]
 
-[#-- Global Metaparameter Object --]
-[#assign metaparameterConfiguration = {}]
+[#-- Global AttributeSet Object --]
+[#assign attributeSetConfiguration = {}]
 
-[#macro addMetaparameter type pluralType properties attributes]
+[#macro addAttributeSet type pluralType properties attributes]
     [#local configuration = {
         "Type" : {
             "Singular"  : type,
@@ -12,20 +12,20 @@
         "Properties" : asArray(properties),
         "Attributes" : asArray(attributes)}]
 
-    [@internalMergeMetaparameterConfiguration
+    [@internalMergeAttributeSetConfiguration
         type=type
         configuration=configuration
     /]
 [/#macro]
 
 [#-----------------------------------------------------
--- Internal support functions for metaparameter processing --
+-- Internal support functions for AttributeSet processing --
 -------------------------------------------------------]
 
-[#macro internalMergeMetaparameterConfiguration type configuration]
-    [#assign metaparameterConfiguration =
+[#macro internalMergeAttributeSetConfiguration type configuration]
+    [#assign attributeSetConfiguration =
         mergeObjects(
-            metaparameterConfiguration,
+            attributeSetConfiguration,
             {
                 type : configuration
             }
