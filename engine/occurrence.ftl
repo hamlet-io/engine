@@ -504,7 +504,7 @@
         [#local namespaces +=
             [
                 {
-                    "Key" : formatName(parts),
+                    "Key" : (formatName(parts)?lower_case,
                     "Match" : namespaceObject.Match
                 }
             ]
@@ -551,11 +551,11 @@
             []
         ) +
         [
-            {"Key" : occurrence.Core.Name, "Match" : "partial"},
-            {"Key" : occurrence.Core.TypedName, "Match" : "partial"},
-            {"Key" : occurrence.Core.ShortName, "Match" : "partial"},
-            {"Key" : occurrence.Core.ShortTypedName, "Match" : "partial"},
-            {"Key" : deploymentUnit, "Match" : "exact"}
+            {"Key" : (occurrence.Core.Name)?lower_case, "Match" : "partial"},
+            {"Key" : (occurrence.Core.TypedName)?lower_case, "Match" : "partial"},
+            {"Key" : (occurrence.Core.ShortName)?lower_case, "Match" : "partial"},
+            {"Key" : (occurrence.Core.ShortTypedName)?lower_case, "Match" : "partial"},
+            {"Key" : deploymentUnit?lower_case, "Match" : "exact"}
         ]
     ]
     [#return namespaces ]
