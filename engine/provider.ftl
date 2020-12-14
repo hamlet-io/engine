@@ -153,10 +153,10 @@
                 /]
             [/#list]
 
-            [#-- Determine the metaparameters for the provider --]
+            [#-- Determine the AttributeSets for the provider --]
             [#local directories = 
                 internalGetPluginFiles(
-                    [providerMarker.Path, "metaparameters"],
+                    [providerMarker.Path, "attributesets"],
                     [
                         ["[^/]+"]
                     ] 
@@ -165,7 +165,7 @@
             [#list directories as directory]
                 [@internalIncludeTemplatesInDirectory
                     directory,
-                    ["id", "metaparameter"]
+                    ["id", "attributeset"]
                 /]
             [/#list]
 
@@ -799,10 +799,10 @@
         ["layer" ]
     /]
 
-    [#-- engine/providers/shared/metaparameters/metaparameter.ftl --]
+    [#-- engine/providers/shared/attributesets/attributeset.ftl --]
     [@internalIncludeTemplatesInDirectory
-        [providerMarker.Path, "metaparameters"],
-        ["metaparameter" ]
+        [providerMarker.Path, "attributesets"],
+        ["attributeset" ]
     /]
 
     [#-- aws/references/reference.ftl --]
