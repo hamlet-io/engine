@@ -4,26 +4,6 @@
 [#-- These macros help define sections of context which are used across components --]
 
 [#-- Extension List Macros --]
-[#macro lambdaAttributes
-        imageBucket=""
-        imagePrefix=""
-        zipFile=""
-        codeHash=""  ]
-
-    [#assign _context += {
-            "S3Bucket" : imageBucket,
-            "S3Prefix" : imagePrefix,
-            "ZipFile" : {
-                "Fn::Join" : [
-                    "\n",
-                    asArray(zipFile)
-                ]
-            },
-            "CodeHash" : codeHash
-        }
-    ]
-[/#macro]
-
 [#macro Variable name value upperCase=true ]
     [#assign _context = addVariableToContext(_context, name, value, upperCase) ]
 [/#macro]
@@ -127,6 +107,53 @@
                     }
                 )]
 [/#macro]
+
+[#-- Lambda Specific Macros --]
+[#macro lambdaAttributes
+        imageBucket=""
+        imagePrefix=""
+        zipFile=""
+        codeHash=""
+        versionDependencies=[]
+        createVersionInExtension=false ]
+
+    [#assign _context += {
+        "CreateVersionInExtension" : createVersionInExtension
+    } +
+        attributeIfContent(
+            "S3Bucket",
+            imageBucket
+        ) +
+        attributeIfContent(
+            "S3Prefix",
+            imagePrefix
+        ) +
+        attributeIfContent(
+            "CodeHash",
+            codeHash
+        ) +
+        attributeIfContent(
+            "VersionDependencies",
+            combineEntities(
+                    _context.VersionDependencies,
+                    versionDependencies,
+                UNIQUE_COMBINE_BEHAVIOUR
+            )
+        )
+    ]
+
+    [#if zipFile?has_content ]
+        [#assign _context += {
+            "ZipFile" : {
+                "Fn::Join" : [
+                    "\n",
+                    asArray(zipFile)
+                ]
+            }
+        }]
+    [/#if]
+[/#macro]
+
 
 [#-- ECS Specific Macros --]
 
