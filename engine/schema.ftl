@@ -88,7 +88,7 @@
 [#function formatSchemaId section version="latest"]
     [#switch section]
         [#default]
-            [#return formatPath(false, rootSchemaPath, version, "blueprint", section + "-schema.json")]
+            [#return formatPath(false, rootSchemaPath, version, "blueprint", "schema-" + section + "-schema.json")]
             [#break]
     [/#switch]
 [/#function]
