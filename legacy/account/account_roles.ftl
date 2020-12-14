@@ -19,7 +19,7 @@
         [#assign accessAccounts=[]]
         [#list accountObject.Access?values as accessAccount]
             [#if accessAccount?is_hash]
-                [#assign accessAccounts += [accessAccount.AWSId]]
+                [#assign accessAccounts += [accessAccount.ProviderId]]
             [/#if]
         [/#list]
 
