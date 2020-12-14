@@ -87,10 +87,10 @@
 
         [#case "attributeset"]
 
-            [#-- Key Value Pairs of Metaparameter Name : Configuration --]
-            [#list metaparameterConfiguration as id,configuration]
+            [#-- Key Value Pairs of AttributeSet Name : Configuration --]
+            [#list attributeSetConfiguration as id,configuration]
                 [@addSchema
-                    section="metaparameter"
+                    section="attributeset"
                     subset=id
                     configuration=
                     formatJsonSchemaFromComposite(
