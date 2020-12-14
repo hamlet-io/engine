@@ -722,8 +722,10 @@ are added.
                     "Children" : [],
                     "SubObjects" : false,
                     "PopulateMissingChildren" : true,
-                    "ReferenceType" : "",
-                    "ReferencePath" : ""
+                    "Reference" : {
+                        "Schema" : "",
+                        "Type" : ""
+                    }
                 } ]
             [#if normalisedAttribute.Names?seq_contains("InhibitEnabled") ]
                 [#local inhibitEnabled = true ]
@@ -748,8 +750,10 @@ are added.
                         "Children" : asArray(attribute.Children![]),
                         "SubObjects" : attribute.SubObjects!attribute.Subobjects!false,
                         "PopulateMissingChildren" : attribute.PopulateMissingChildren!true,
-                        "ReferenceType" : "",
-                        "ReferencePath" : "" 
+                        "Reference" : {
+                            "Schema" : "",
+                            "Type" : ""
+                        }
                     } ]
             [/#if]
             [#local normalisedAttributes += [normalisedAttribute] ]
@@ -770,8 +774,10 @@ are added.
                         "Children" : [],
                         "SubObjects" : false,
                         "PopulateMissingChildren" : true,
-                        "ReferenceType" : "",
-                        "ReferencePath" : ""
+                        "Reference" : {
+                            "Schema" : "",
+                            "Type" : ""
+                        }
                     }
                 ] +
                 normalisedAttributes ]
