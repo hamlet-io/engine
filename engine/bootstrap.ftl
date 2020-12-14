@@ -21,7 +21,7 @@
 [#include "inputdata/stackOutput.ftl" ]
 [#include "inputdata/definition.ftl" ]
 [#include "inputdata/seed.ftl" ]
-[#include "inputdata/metaparameter.ftl" ]
+[#include "inputdata/attributeset.ftl" ]
 
 [#-- entrances --]
 [#include "entrance.ftl" ]
