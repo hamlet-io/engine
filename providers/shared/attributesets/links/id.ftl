@@ -1,6 +1,6 @@
 [#ftl]
 
-[@addMetaparameter
+[@addAttributeSet
     type=LINK_ATTRIBUTESET_TYPE
     pluralType="Links"
     properties=[
