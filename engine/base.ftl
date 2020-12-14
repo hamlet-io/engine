@@ -723,7 +723,7 @@ are added.
                     "SubObjects" : false,
                     "PopulateMissingChildren" : true,
                     "Reference" : {
-                        "Schema" : "",
+                        "Schema" : "attributeset",
                         "Type" : ""
                     }
                 } ]
@@ -751,8 +751,8 @@ are added.
                         "SubObjects" : attribute.SubObjects!attribute.Subobjects!false,
                         "PopulateMissingChildren" : attribute.PopulateMissingChildren!true,
                         "Reference" : {
-                            "Schema" : "",
-                            "Type" : ""
+                            "Schema" : (attribute.Reference)?has_content?then(attribute.Reference.Schema, "attributeset"),
+                            "Type" : (attribute.Reference)?has_content?then(attribute.Reference.Type, "")
                         }
                     } ]
             [/#if]
@@ -775,7 +775,7 @@ are added.
                         "SubObjects" : false,
                         "PopulateMissingChildren" : true,
                         "Reference" : {
-                            "Schema" : "",
+                            "Schema" : "attributeset",
                             "Type" : ""
                         }
                     }
@@ -841,6 +841,51 @@ are added.
                     [#-- providedName just needs to have content --]
                     [#local providedName = "default" ]
                     [#local providedValue = "Mandatory value missing" ]
+                [/#if]
+            [/#if]
+
+            [#-- If attribute value is defined as a reference, evaluate the --]
+            [#-- reference and use the result as the attribute's Children.  --]
+            [#-- Reference.Schema is the type of schema referenced          --]
+            [#-- (component, reference, attributeset [default]) whilst      --]
+            [#-- Reference.Type is the key to reference within the          --]
+            [#-- schema composite object structure.                         --]
+            [#if attribute.Reference.Type?has_content ]
+                [#local attributeRefComposite = "Hamlet:Missing"]
+                [#-- Determine composite object reference belongs to        --]
+                [#switch attribute.Reference.Schema]
+                    [#case "attributeset" ]
+                        [#local attributeRefComposite = attributeSetConfiguration ]
+                        [#break]
+                    [#case "blueprint" ]
+                        [#local attributeRefComposite = blueprintObject ]
+                        [#break]
+                    [#case "component" ]
+                        [#local attributeRefComposite = componentConfiguration ]
+                        [#break]
+                    [#case "reference" ]
+                        [#local attributeRefComposite = referenceConfiguration ]
+                        [#break]
+                [/#switch]
+
+                [#local referenceResult = getObjectAttributes(
+                    attributeRefComposite,
+                    [attribute.Reference.Type]
+                )]
+
+                [#if referenceResult?has_content]
+                    [#-- reference becomes attribute children --]
+                    [#local attribute = mergeObjects(
+                        attribute,
+                        {
+                            "Children" : referenceResult
+                        }
+                    )]
+                [#else]
+                    [@fatal
+                        message="Unable to evaluate Attribute Reference. Incorrect Schema or Type."
+                        context=attribute.Reference
+                    /]
                 [/#if]
             [/#if]
 
