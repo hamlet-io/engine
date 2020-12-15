@@ -2,8 +2,8 @@
 
 [#-- Component Extensions --]
 [#-- Allows for the modification of a components state and its setup routine by users --]
-[#-- Generally used for advanced configuration scenarios including programitc settings and adding specialised resources --]
-[#-- Extensions are defined as part plugin but can also be added to users CMDBs as an embeded extension --]
+[#-- Generally used for advanced configuration scenarios including programmatic settings and adding specialised resource --]
+[#-- Extensions are defined as part plugin but can also be added to users CMDBs as an embedded extension --]
 
 [#-- the _context variable is used during context processing to store the changes resulting from the extension --]
 [#assign _context = {}]
@@ -187,7 +187,7 @@
             [#if ! extensionDetails?has_content ]
                 [@fatal
                     message="Could not find extension details"
-                    detail="An extension function was found by could not find its configuration details"
+                    detail="An extension function was found but could not find its configuration details"
                     context={
                         "id" : id,
                         "provider" : provider,
