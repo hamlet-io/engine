@@ -500,7 +500,7 @@
         [#local namespaces +=
             [
                 {
-                    "Key" : (formatName(parts)?lower_case,
+                    "Key" : formatName(parts)?lower_case,
                     "Match" : namespaceObject.Match
                 }
             ]
