@@ -11,6 +11,9 @@
 [#-- logging --]
 [#include "logging.ftl" ]
 
+[#-- AttributeSets --]
+[#include "attributeset.ftl"]
+
 [#-- Input data handling --]
 [#include "inputdata/layer.ftl" ]
 [#include "inputdata/commandLineOptions.ftl" ]
