@@ -31,7 +31,10 @@
             {
                 "Names" : "Links",
                 "Subobjects" : true,
-                "Children" : linkChildrenConfiguration
+                "Reference" : {
+                    "Schema" : "metaparameter",
+                    "Type" : LINK_METAPARAMETER_TYPE
+                }
             },
             {
                 "Names" : "SourceIPAddressGroups",
@@ -86,7 +89,10 @@
                     {
                         "Names" : "Link",
                         "Description" : "The link to the component",
-                        "Children" : linkChildrenConfiguration
+                        "Reference" : {
+                            "Schema" : "metaparameter",
+                            "Type" : LINK_METAPARAMETER_TYPE
+                        }
                     }
                 ]
             },
@@ -162,7 +168,10 @@
             {
                 "Names" : "Links",
                 "Subobjects" : true,
-                "Children" : linkChildrenConfiguration
+                "Reference" : {
+                    "Schema" : "metaparameter",
+                    "Type" : LINK_METAPARAMETER_TYPE
+                }
             },
             {
                 "Names" : "Profiles",

@@ -57,7 +57,10 @@
             {
                 "Names" : "Links",
                 "Subobjects" : true,
-                "Children" : linkChildrenConfiguration
+                "Reference" : {
+                    "Schema" : "metaparameter",
+                    "Type" : LINK_METAPARAMETER_TYPE
+                }
             },
             {
                 "Names" : "States",

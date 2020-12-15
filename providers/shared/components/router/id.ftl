@@ -76,7 +76,10 @@
                 "Names" : "Links",
                 "Description" : "Links to the routing destination",
                 "Subobjects" : true,
-                "Children" : linkChildrenConfiguration
+                "Reference" : {
+                    "Schema" : "metaparameter",
+                    "Type" : LINK_METAPARAMETER_TYPE
+                }
             }
         ]
     parent=NETWORK_ROUTER_COMPONENT_TYPE

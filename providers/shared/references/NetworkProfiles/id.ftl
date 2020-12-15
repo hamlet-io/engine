@@ -17,7 +17,10 @@
                     "Names" : "Links",
                     "Description" : "Apply network security rules based on links",
                     "Subobjects" : true,
-                    "Children" : linkChildrenConfiguration
+                    "Reference" : {
+                        "Schema" : "metaparameter",
+                        "Type" : LINK_METAPARAMETER_TYPE
+                    }
                 },
                 {
                     "Names" : "Outbound",

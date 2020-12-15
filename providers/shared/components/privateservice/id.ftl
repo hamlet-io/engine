@@ -24,7 +24,10 @@
             {
                 "Names" : "Links",
                 "Subobjects" : true,
-                "Children" : linkChildrenConfiguration
+                "Reference" : {
+                    "Schema" : "metaparameter",
+                    "Type" : LINK_METAPARAMETER_TYPE
+                }
             },
             {
                 "Names" : "Sharing",
@@ -57,7 +60,10 @@
                         "Names" : "Links",
                         "Description" : "Link to send alerts to",
                         "Subobjects" : true,
-                        "Children" : linkChildrenConfiguration
+                        "Reference" : {
+                            "Schema" : "metaparameter",
+                            "Type" : LINK_METAPARAMETER_TYPE
+                        }
                     }
                 ]
             }

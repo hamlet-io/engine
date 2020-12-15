@@ -149,15 +149,21 @@
                 "Children" : [
                     {
                         "Names" : "Link",
-                        "Children" : linkChildrenConfiguration,
-                        "Mandatory" : true
+                        "Mandatory" : true,
+                        "Reference" : {
+                            "Schema" : "metaparameter",
+                            "Type" : LINK_METAPARAMETER_TYPE
+                        }
                     }
                 ]
             }
             {
                 "Names" : "Links",
                 "Subobjects" : true,
-                "Children" : linkChildrenConfiguration
+                "Reference" : {
+                    "Schema" : "metaparameter",
+                    "Type" : LINK_METAPARAMETER_TYPE
+                }
             },
             {
                 "Names" : "LogWatchers",

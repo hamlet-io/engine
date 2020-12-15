@@ -128,7 +128,10 @@
             {
                 "Names" : "Links",
                 "Subobjects" : true,
-                "Children" : linkChildrenConfiguration
+                "Reference" : {
+                    "Schema" : "metaparameter",
+                    "Type" : LINK_METAPARAMETER_TYPE
+                }
             },
             {
                 "Names" : "DefaultClient",
@@ -271,11 +274,15 @@
                         "Mandatory" : true
                     }
                 ]
-            }
+            },
             {
                 "Names" : "Links",
+                "Description" : "Apply network security rules based on links",
                 "Subobjects" : true,
-                "Children" : linkChildrenConfiguration
+                "Reference" : {
+                    "Schema" : "metaparameter",
+                    "Type" : LINK_METAPARAMETER_TYPE
+                }
             }
         ]
     parent=USERPOOL_COMPONENT_TYPE
@@ -521,7 +528,10 @@
                         "Names" : "Link",
                         "Description" : "A link to the server resource represented by this resource",
                         "Mandatory" : true,
-                        "Children" : linkChildrenConfiguration
+                        "Reference" : {
+                            "Schema" : "metaparameter",
+                            "Type" : LINK_METAPARAMETER_TYPE
+                        }
                     },
                     {
                         "Names" : "LinkAttribute",
