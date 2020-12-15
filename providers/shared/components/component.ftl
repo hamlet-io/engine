@@ -299,8 +299,10 @@
         },
         {
             "Names" : "Links",
-            "Subobjects" : true,
-            "Children" : linkChildrenConfiguration
+            "Reference" : {
+                "Schema" : "metaparameter",
+                "Type" : LINK_METAPARAMETER_TYPE
+            }
         }
     ]
 ]
@@ -462,7 +464,10 @@
             "Children" : [
                 {
                     "Names" : "Link",
-                    "Children" : linkChildrenConfiguration
+                    "Reference" : {
+                        "Schema" : "metaparameter",
+                        "Type" : LINK_METAPARAMETER_TYPE
+                    }
                 },
                 {
                     "Names" : "MetricTrigger",
@@ -917,8 +922,10 @@
 [#assign s3NotificationChildConfiguration = [
     {
         "Names" : "Links",
-        "Subobjects" : true,
-        "Children" : linkChildrenConfiguration
+        "Reference" : {
+            "Schema" : "metaparameter",
+            "Type" : LINK_METAPARAMETER_TYPE
+        }
     },
     {
         "Names" : "Prefix",
@@ -1168,8 +1175,10 @@
     },
     {
         "Names" : "Links",
-        "Subobjects" : true,
-        "Children" : linkChildrenConfiguration
+        "Reference" : {
+            "Schema" : "metaparameter",
+            "Type" : LINK_METAPARAMETER_TYPE
+        }
     },
     {
         "Names" : "LocalLogging",
@@ -1353,8 +1362,10 @@
     },
     {
         "Names" : "Links",
-        "Subobjects" : true,
-        "Children" : linkChildrenConfiguration
+        "Reference" : {
+            "Schema" : "metaparameter",
+            "Type" : LINK_METAPARAMETER_TYPE
+        }
     },
     {
         "Names" : "Profiles",
@@ -1602,8 +1613,10 @@
     },
     {
         "Names" : "Links",
-        "Subobjects" : true,
-        "Children" : linkChildrenConfiguration
+        "Reference" : {
+            "Schema" : "metaparameter",
+            "Type" : LINK_METAPARAMETER_TYPE
+        }
     }
 ]]
 
@@ -1715,8 +1728,10 @@
     },
     {
         "Names" : "Links",
-        "Subobjects" : true,
-        "Children" : linkChildrenConfiguration
+        "Reference" : {
+            "Schema" : "metaparameter",
+            "Type" : LINK_METAPARAMETER_TYPE
+        }
     }
 ]]
 
