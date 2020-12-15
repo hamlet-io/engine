@@ -21,8 +21,11 @@
             "Children" : [
                 {
                     "Names" : "Links",
-                    "SubObjects" : true,
-                    "Children" : linkChildrenConfiguration
+                    "Subobjects" : true,
+                    "Reference" : {
+                        "Schema" : "metaparameter",
+                        "Type" : LINK_METAPARAMETER_TYPE
+                    }
                 }
             ]
         }

@@ -90,7 +90,10 @@ object.
             {
                 "Names" : "Links",
                 "Subobjects" : true,
-                "Children" : linkChildrenConfiguration
+                "Reference" : {
+                    "Schema" : "metaparameter",
+                    "Type" : LINK_METAPARAMETER_TYPE
+                }
             },
             {
                 "Names" : "WAF",
@@ -180,7 +183,10 @@ object.
                     {
                         "Names" : "Links",
                         "Subobjects" : true,
-                        "Children" : linkChildrenConfiguration
+                        "Reference" : {
+                            "Schema" : "metaparameter",
+                            "Type" : LINK_METAPARAMETER_TYPE
+                        }
                     },
                     {
                         "Names" : "Path",

@@ -20,12 +20,15 @@
                     "Description" : "The name of a Logfilter to apply to the forwarding rule",
                     "Types" : STRING_TYPE,
                     "Mandatory" : true
-                }
+                },
                 {
                     "Names" : "Links",
                     "Description" : "The links of components which will accept fowarded logs",
                     "Subobjects" : true,
-                    "Children" : linkChildrenConfiguration
+                    "Reference" : {
+                        "Schema" : "metaparameter",
+                        "Type" : LINK_METAPARAMETER_TYPE
+                    }
                 }
             ]
         }

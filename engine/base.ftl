@@ -825,7 +825,6 @@ are added.
                         mergeObjects(
                             attribute,
                             {
-                                "Subobjects" : true,
                                 "Children" : attributeRefValue.Attributes
                             }
                         )]
