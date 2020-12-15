@@ -751,8 +751,8 @@ are added.
                         "SubObjects" : attribute.SubObjects!attribute.Subobjects!false,
                         "PopulateMissingChildren" : attribute.PopulateMissingChildren!true,
                         "Reference" : {
-                            "Schema" : (attribute.Reference)?has_content?then(attribute.Reference.Schema, "attributeset"),
-                            "Type" : (attribute.Reference)?has_content?then(attribute.Reference.Type, "")
+                            "Schema" : (attribute.Reference)?has_content?then(attribute.Reference.Schema?has_content?then(attribute.Reference.Schema, "attributeset"), "attributeset"),
+                            "Type" : (attribute.Reference)?has_content?then(attribute.Reference.Type?has_content?then(attribute.Reference.Type, ""), "")
                         }
                     } ]
             [/#if]
@@ -784,10 +784,64 @@ are added.
         [/#if]
     [/#if]
 
-    [#-- Determine the attribute values --]
-    [#local result = {} ]
+    [#-- If attribute value is defined as a reference, evaluate the --]
+    [#-- reference and use the result as the attribute's Children.  --]
+    [#-- Reference.Schema is the type of schema referenced          --]
+    [#-- (component, reference, attributeset [default]) whilst      --]
+    [#-- Reference.Type is the key to reference within the          --]
+    [#-- schema composite object structure.                         --]
+    [#local evaluatedRefAttributes = []]
     [#if normalisedAttributes?has_content]
         [#list normalisedAttributes as attribute]
+            [#if attribute.Reference.Type?has_content ]
+            
+                [#-- Determine composite object --]
+                [#switch attribute.Reference.Schema]
+                    [#case "metaparameter" ]
+                        [#local attributeRefValue = metaparameterConfiguration[attribute.Reference.Type]!{} ]
+                        [#break]
+                    [#case "blueprint" ]
+                        [#local attributeRefValue = blueprintObject[attribute.Reference.Type]!{} ]
+                        [#break]
+                    [#case "component" ]
+                        [#local attributeRefValue = componentConfiguration[attribute.Reference.Type]!{} ]
+                        [#break]
+                    [#case "reference" ]
+                        [#local attributeRefValue = referenceConfiguration[attribute.Reference.Type]!{} ]
+                        [#break]
+                    [#default]
+                        [#local attributeRefValue = "Hamlet:Missing"]
+                        [#break]
+                [/#switch]
+
+                [#if (attributeRefValue?is_string && attributeRefValue == "Hamlet:Missing")]
+                    [@fatal
+                        message="Unable to evaluate Attribute Reference. Incorrect Schema or Type."
+                        context=attribute.Reference
+                    /]
+                [#else]
+                    [#-- reference becomes attribute children --]
+                    [#local evaluatedRefAttributes += [
+                        mergeObjects(
+                            attribute,
+                            {
+                                "Subobjects" : true,
+                                "Children" : attributeRefValue.Attributes
+                            }
+                        )]
+                    ]
+                [/#if]
+            [#else]
+                [#-- Attribute has no reference to evaluate, so add to results --]
+                [#local evaluatedRefAttributes += [attribute]]
+            [/#if]
+        [/#list]
+    [/#if]
+
+    [#-- Determine the attribute values --]
+    [#local result = {} ]
+    [#if evaluatedRefAttributes?has_content]
+        [#list evaluatedRefAttributes as attribute]
 
             [#local populateMissingChildren = attribute.PopulateMissingChildren ]
 
@@ -841,51 +895,6 @@ are added.
                     [#-- providedName just needs to have content --]
                     [#local providedName = "default" ]
                     [#local providedValue = "Mandatory value missing" ]
-                [/#if]
-            [/#if]
-
-            [#-- If attribute value is defined as a reference, evaluate the --]
-            [#-- reference and use the result as the attribute's Children.  --]
-            [#-- Reference.Schema is the type of schema referenced          --]
-            [#-- (component, reference, attributeset [default]) whilst      --]
-            [#-- Reference.Type is the key to reference within the          --]
-            [#-- schema composite object structure.                         --]
-            [#if attribute.Reference.Type?has_content ]
-                [#local attributeRefComposite = "Hamlet:Missing"]
-                [#-- Determine composite object reference belongs to        --]
-                [#switch attribute.Reference.Schema]
-                    [#case "attributeset" ]
-                        [#local attributeRefComposite = attributeSetConfiguration ]
-                        [#break]
-                    [#case "blueprint" ]
-                        [#local attributeRefComposite = blueprintObject ]
-                        [#break]
-                    [#case "component" ]
-                        [#local attributeRefComposite = componentConfiguration ]
-                        [#break]
-                    [#case "reference" ]
-                        [#local attributeRefComposite = referenceConfiguration ]
-                        [#break]
-                [/#switch]
-
-                [#local referenceResult = getObjectAttributes(
-                    attributeRefComposite,
-                    [attribute.Reference.Type]
-                )]
-
-                [#if referenceResult?has_content]
-                    [#-- reference becomes attribute children --]
-                    [#local attribute = mergeObjects(
-                        attribute,
-                        {
-                            "Children" : referenceResult
-                        }
-                    )]
-                [#else]
-                    [@fatal
-                        message="Unable to evaluate Attribute Reference. Incorrect Schema or Type."
-                        context=attribute.Reference
-                    /]
                 [/#if]
             [/#if]
 
