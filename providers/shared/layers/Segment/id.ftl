@@ -36,6 +36,11 @@
             "Children"  : moduleReferenceConfiguration
         },
         {
+            "Names" : "Plugins",
+            "Subobjects" : true,
+            "Children" : pluginReferenceConfiguration
+        },
+        {
             "Names" : "Profiles",
             "Children" : [
                 {

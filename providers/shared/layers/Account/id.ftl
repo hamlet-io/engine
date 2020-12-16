@@ -63,9 +63,14 @@
             "Children"  : moduleReferenceConfiguration
         },
         {
+            "Names" : "Plugins",
+            "Subobjects" : true,
+            "Children" : pluginReferenceConfiguration
+        },
+        {
             "Names" :[
-                "ProviderId", 
-                "AWSId", 
+                "ProviderId",
+                "AWSId",
                 "AzureId"
             ],
             "Type" : STRING_TYPE,

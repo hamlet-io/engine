@@ -23,7 +23,7 @@
             "Names" : "ServiceName",
             "Description" : "The Service domain name for the service you want to create the role for",
             "Type" : STRING_TYPE,
-            "Mandatory": true
+            "Mandatory": false
         },
         {
             "Names" : "Description",
