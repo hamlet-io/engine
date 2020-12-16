@@ -26,8 +26,8 @@
                     "Description" : "The links of components which will accept fowarded logs",
                     "Subobjects" : true,
                     "Reference" : {
-                        "Schema" : "metaparameter",
-                        "Type" : LINK_METAPARAMETER_TYPE
+                        "Schema" : "attributeset",
+                        "Type" : LINK_ATTRIBUTESET_TYPE
                     }
                 }
             ]

@@ -91,8 +91,8 @@ object.
                 "Names" : "Links",
                 "Subobjects" : true,
                 "Reference" : {
-                    "Schema" : "metaparameter",
-                    "Type" : LINK_METAPARAMETER_TYPE
+                    "Schema" : "attributeset",
+                    "Type" : LINK_ATTRIBUTESET_TYPE
                 }
             },
             {
@@ -184,8 +184,8 @@ object.
                         "Names" : "Links",
                         "Subobjects" : true,
                         "Reference" : {
-                            "Schema" : "metaparameter",
-                            "Type" : LINK_METAPARAMETER_TYPE
+                            "Schema" : "attributeset",
+                            "Type" : LINK_ATTRIBUTESET_TYPE
                         }
                     },
                     {
