@@ -141,8 +141,8 @@
         {
             "Names" : "Links",
             "Reference" : {
-                "Schema" : "metaparameter",
-                "Type" : LINK_METAPARAMETER_TYPE
+                "Schema" : "attributeset",
+                "Type" : LINK_ATTRIBUTESET_TYPE
             }
         }
     ]
@@ -306,8 +306,8 @@
                 {
                     "Names" : "Link",
                     "Reference" : {
-                        "Schema" : "metaparameter",
-                        "Type" : LINK_METAPARAMETER_TYPE
+                        "Schema" : "attributeset",
+                        "Type" : LINK_ATTRIBUTESET_TYPE
                     }
                 },
                 {
@@ -764,8 +764,8 @@
     {
         "Names" : "Links",
         "Reference" : {
-            "Schema" : "metaparameter",
-            "Type" : LINK_METAPARAMETER_TYPE
+            "Schema" : "attributeset",
+            "Type" : LINK_ATTRIBUTESET_TYPE
         }
     },
     {
@@ -1017,8 +1017,8 @@
     {
         "Names" : "Links",
         "Reference" : {
-            "Schema" : "metaparameter",
-            "Type" : LINK_METAPARAMETER_TYPE
+            "Schema" : "attributeset",
+            "Type" : LINK_ATTRIBUTESET_TYPE
         }
     },
     {
@@ -1204,8 +1204,8 @@
     {
         "Names" : "Links",
         "Reference" : {
-            "Schema" : "metaparameter",
-            "Type" : LINK_METAPARAMETER_TYPE
+            "Schema" : "attributeset",
+            "Type" : LINK_ATTRIBUTESET_TYPE
         }
     },
     {
@@ -1455,8 +1455,8 @@
     {
         "Names" : "Links",
         "Reference" : {
-            "Schema" : "metaparameter",
-            "Type" : LINK_METAPARAMETER_TYPE
+            "Schema" : "attributeset",
+            "Type" : LINK_ATTRIBUTESET_TYPE
         }
     }
 ]]
@@ -1570,8 +1570,8 @@
     {
         "Names" : "Links",
         "Reference" : {
-            "Schema" : "metaparameter",
-            "Type" : LINK_METAPARAMETER_TYPE
+            "Schema" : "attributeset",
+            "Type" : LINK_ATTRIBUTESET_TYPE
         }
     }
 ]]

@@ -18,8 +18,8 @@
                     "Description" : "Apply network security rules based on links",
                     "Subobjects" : true,
                     "Reference" : {
-                        "Schema" : "metaparameter",
-                        "Type" : LINK_METAPARAMETER_TYPE
+                        "Schema" : "attributeset",
+                        "Type" : LINK_ATTRIBUTESET_TYPE
                     }
                 },
                 {

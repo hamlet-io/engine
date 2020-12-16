@@ -797,8 +797,8 @@ are added.
             
                 [#-- Determine composite object --]
                 [#switch attribute.Reference.Schema]
-                    [#case "metaparameter" ]
-                        [#local attributeRefValue = metaparameterConfiguration[attribute.Reference.Type]!{} ]
+                    [#case "attributeset" ]
+                        [#local attributeRefValue = attributeSetConfiguration[attribute.Reference.Type]!{} ]
                         [#break]
                     [#case "blueprint" ]
                         [#local attributeRefValue = blueprintObject[attribute.Reference.Type]!{} ]

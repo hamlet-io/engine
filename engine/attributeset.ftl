@@ -1,3 +1,3 @@
 [#ftl]
 
-[#assign LINK_METAPARAMETER_TYPE = "Link"]
+[#assign LINK_ATTRIBUTESET_TYPE = "Link"]

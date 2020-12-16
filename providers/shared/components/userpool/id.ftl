@@ -129,8 +129,8 @@
                 "Names" : "Links",
                 "Subobjects" : true,
                 "Reference" : {
-                    "Schema" : "metaparameter",
-                    "Type" : LINK_METAPARAMETER_TYPE
+                    "Schema" : "attributeset",
+                    "Type" : LINK_ATTRIBUTESET_TYPE
                 }
             },
             {
@@ -280,8 +280,8 @@
                 "Description" : "Apply network security rules based on links",
                 "Subobjects" : true,
                 "Reference" : {
-                    "Schema" : "metaparameter",
-                    "Type" : LINK_METAPARAMETER_TYPE
+                    "Schema" : "attributeset",
+                    "Type" : LINK_ATTRIBUTESET_TYPE
                 }
             }
         ]
@@ -529,8 +529,8 @@
                         "Description" : "A link to the server resource represented by this resource",
                         "Mandatory" : true,
                         "Reference" : {
-                            "Schema" : "metaparameter",
-                            "Type" : LINK_METAPARAMETER_TYPE
+                            "Schema" : "attributeset",
+                            "Type" : LINK_ATTRIBUTESET_TYPE
                         }
                     },
                     {
