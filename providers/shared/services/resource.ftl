@@ -38,7 +38,7 @@
 [/#function]
 
 [#--function aws_getReference resourceId attributeType="" inRegion="" --]
-[#--function azure_getReference id name="" attributeType=""
+[#--function azure_getReference id attributeType=""
     [#if id?is_hash
         && id?keys?seq_contains("Id")
         && id?keys?seq_contains("Name")]
@@ -52,7 +52,7 @@
     [#if (resourceId?is_hash) && (resourceId.Ref?has_content)]
         [#return
             {
-                "Ref" : value.Ref
+                "Ref" : resourceId.Ref
             }
         ]
     [/#if]
