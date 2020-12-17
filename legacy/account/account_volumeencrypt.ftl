@@ -15,7 +15,8 @@
 
     [#assign volumeEncryptResourceId = formatEC2AccountVolumeEncryptionId() ]
     [#assign volumeEncryptionKmsKeyId = formatEc2AccountVolumeEncryptionKMSKeyId()]
-    [#assign volumeEncryptKmsKeyArn = getExistingReference(volumeEncryptionKmsKeyId, ARN_ATTRIBUTE_TYPE)]
+    [#-- TODO replace dodgy reference to AWS for legacy freemarker --]
+    [#assign volumeEncryptKmsKeyArn = getExistingReference(AWS_PROVIDER, volumeEncryptionKmsKeyId, ARN_ATTRIBUTE_TYPE)]
 
     [#assign volumeEncryptionEnabled = true ]
 

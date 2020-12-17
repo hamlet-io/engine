@@ -34,16 +34,18 @@
 
     [#assign consoleCMKId = getAccountSSMSessionManagerKMSKeyId()]
 
+    [#-- TODO replace dodgy reference to AWS for legacy freemarker --]
     [#if deploymentSubsetRequired("console", true) &&
-            ! getExistingReference(consoleCMKId)?has_content ]
+            ! getExistingReference(AWS_PROVIDER, consoleCMKId)?has_content ]
         [@fatal
             message="Account CMK not found"
             detail="Run the cmk deployment at the account level to create the CMK"
         /]
     [/#if]
 
+    [#-- TODO replace dodgy reference to AWS for legacy freemarker --]
     [#assign SSMDocumentInput = {
-        "kmsKeyId" : getExistingReference(consoleCMKId)
+        "kmsKeyId" : getExistingReference(AWS_PROVIDER, consoleCMKId)
     }]
 
     [#list consoleLoggingDestinations as loggingDestination ]
@@ -95,12 +97,13 @@
 
     [#-- We need to make sure the document hasn't been created via the console or through a script --]
     [#if deploymentSubsetRequired("prologue", false)]
+        [#-- TODO replace dodgy reference to AWS for legacy freemarker --]
         [@addToDefaultBashScriptOutput
             content=
                 [
                     r'info "Setting up for SSM Documents using CFN"'
                 ] +
-                ( ! (getExistingReference(consoleSSMDocumentId)?has_content ))?then(
+                ( ! (getExistingReference(AWS_PROVIDER, consoleSSMDocumentId)?has_content ))?then(
                     [
                         r'case ${STACK_OPERATION} in',
                         r'  create|update)',

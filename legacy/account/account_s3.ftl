@@ -19,8 +19,9 @@
         [#assign s3VersioningEnabled = (accountObject.S3.Versioning.Enabled)!false]
 
         [#if s3EncryptionEnabled ]
+            [#-- TODO replace dodgy reference to AWS for legacy freemarker --]
             [#if deploymentSubsetRequired("s3", true) &&
-                    ! getExistingReference(accountCMKId)?has_content ]
+                    ! getExistingReference(AWS_PROVIDER, accountCMKId)?has_content ]
                 [@fatal
                     message="Account CMK not found"
                     detail="Run the cmk deployment at the account level to create the CMK"
@@ -36,7 +37,8 @@
                 [#-- TODO: Should be using formatAccountS3Id() not formatS3Id() --]
                 [#-- TODO: Remove outputId parameter below when TODO addressed --]
 
-                [#assign existingName = getExistingReference(formatAccountS3Id(bucket))]
+                [#-- TODO replace dodgy reference to AWS for legacy freemarker --]
+                [#assign existingName = getExistingReference(AWS_PROVIDER, formatAccountS3Id(bucket))]
                 [#assign bucketName = valueIfContent(
                                             existingName,
                                             existingName,
@@ -92,12 +94,13 @@
             [/#list]
         [/#if]
         [#if deploymentSubsetRequired("epilogue", false)]
-            [#assign existingName = getExistingReference(formatAccountS3Id("code"))]
+            [#-- TODO replace dodgy reference to AWS for legacy freemarker --]
+            [#assign existingName = getExistingReference(AWS_PROVIDER, formatAccountS3Id("code"))]
             [#assign codeBucket = valueIfContent(
                         existingName,
                         existingName,
                         formatName("account", "code", accountObject.Seed))]
-            [#assign existingName = getExistingReference(formatAccountS3Id("registry"))]
+            [#assign existingName = getExistingReference(AWS_PROVIDER, formatAccountS3Id("registry"))]
             [#assign registryBucket = valueIfContent(
                         existingName,
                         existingName,

@@ -522,6 +522,7 @@
     [#if resources?is_hash]
         [#list resources as alias,resource]
             [#if resource.Id?has_content]
+                [#-- TODO determine provider to use for core freemarker --]
                 [#local result +=
                     {
                         alias :

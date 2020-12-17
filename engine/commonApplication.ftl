@@ -512,6 +512,7 @@
 
 [#function standardPolicies occurrence baselineIds ]
     [#local permissions = occurrence.Configuration.Solution.Permissions ]
+    [#-- TODO determine provider to use for core freemarker --]
     [#return
         valueIfTrue(
             cmkDecryptPermission(baselineIds["Encryption"]),

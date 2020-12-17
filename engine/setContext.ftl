@@ -124,14 +124,14 @@
     [#assign accountName = accountObject.Name ]
 
     [#if (commandLineOptions.Deployment.Provider.Names)?seq_contains("aws")]
-        [#assign credentialsBucket = getExistingReference(formatAccountS3Id("credentials"))]
-        [#assign credentialsBucketRegion = getExistingReference(formatAccountS3Id("credentials"), REGION_ATTRIBUTE_TYPE)]
+        [#assign credentialsBucket = getExistingReference(AWS_PROVIDER, formatAccountS3Id("credentials"))]
+        [#assign credentialsBucketRegion = getExistingReference(AWS_PROVIDER, formatAccountS3Id("credentials"), REGION_ATTRIBUTE_TYPE)]
 
-        [#assign codeBucket = getExistingReference(formatAccountS3Id("code")) ]
-        [#assign codeBucketRegion = getExistingReference(formatAccountS3Id("code"), REGION_ATTRIBUTE_TYPE)]
+        [#assign codeBucket = getExistingReference(AWS_PROVIDER, formatAccountS3Id("code")) ]
+        [#assign codeBucketRegion = getExistingReference(AWS_PROVIDER, formatAccountS3Id("code"), REGION_ATTRIBUTE_TYPE)]
 
-        [#assign registryBucket = getExistingReference(formatAccountS3Id("registry")) ]
-        [#assign registryBucketRegion = getExistingReference(formatAccountS3Id("registry"), REGION_ATTRIBUTE_TYPE)]
+        [#assign registryBucket = getExistingReference(AWS_PROVIDER, formatAccountS3Id("registry")) ]
+        [#assign registryBucketRegion = getExistingReference(AWS_PROVIDER, formatAccountS3Id("registry"), REGION_ATTRIBUTE_TYPE)]
     [/#if]
 
     [#assign categoryName = "account"]
@@ -198,11 +198,11 @@
     [/#if]
 
     [#if (commandLineOptions.Deployment.Provider.Names)?seq_contains("aws")]
-        [#assign segmentSeed = getExistingReference(formatSegmentSeedId()) ]
+        [#assign segmentSeed = getExistingReference(AWS_PROVIDER, formatSegmentSeedId()) ]
 
-        [#assign legacyVpc = getExistingReference(formatVPCId())?has_content ]
+        [#assign legacyVpc = getExistingReference(AWS_PROVIDER, formatVPCId())?has_content ]
         [#if legacyVpc ]
-            [#assign vpc = getExistingReference(formatVPCId())]
+            [#assign vpc = getExistingReference(AWS_PROVIDER, formatVPCId())]
             [#-- Make sure the baseline component has been added to existing deployments --]
             [#assign segmentSeed = segmentSeed!"HamletFatal: baseline component not deployed - Please run a deployment of the baseline component" ]
         [/#if]
@@ -220,7 +220,7 @@
     [#assign sshActive = sshEnabled && segmentObject.Bastion.Active ]
 
     [#if (commandLineOptions.Deployment.Provider.Names)?seq_contains("aws")]
-        [#assign sshFromProxySecurityGroup = getExistingReference(formatSSHFromProxySecurityGroupId())]
+        [#assign sshFromProxySecurityGroup = getExistingReference(AWS_PROVIDER, formatSSHFromProxySecurityGroupId())]
     [/#if]
 
     [#assign operationsExpiration =
@@ -532,8 +532,10 @@
         [#case "__segment__"]
             [#local segmentCIDR = [] ]
             [#list zones as zone]
+                [#-- TODO determine provider to use for core freemarker --]
                 [#local zoneIP =
                     getExistingReference(
+                        AWS_PROVIDER, 
                         formatComponentEIPId("mgmt", "nat", zone),
                         IP_ADDRESS_ATTRIBUTE_TYPE
                     ) ]

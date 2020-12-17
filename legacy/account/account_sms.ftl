@@ -92,12 +92,13 @@
                     ) +
                     attributeIfContent(
                         "DeliveryStatusIAMRole",
-                        getExistingReference(cloudWatchRoleId, ARN_ATTRIBUTE_TYPE)
+                        getExistingReference(AWS_PROVIDER, cloudWatchRoleId, ARN_ATTRIBUTE_TYPE)
                     ) +
                     attributeIfContent(
                         "UsageReportS3Bucket",
-                        getExistingReference(smsS3Id)
+                        getExistingReference(AWS_PROVIDER, smsS3Id)
                     )
+                    [#-- TODO replace dodgy reference to AWS for legacy freemarker --]
                 }
         /]
     [/#if]
