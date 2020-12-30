@@ -87,6 +87,9 @@
 [#assign MOBILENOTIFIER_COMPONENT_TYPE = "mobilenotifier" ]
 [#assign MOBILENOTIFIER_PLATFORM_COMPONENT_TYPE = "mobilenotifierplatform" ]
 
+[#assign MTA_COMPONENT_TYPE = "mta"]
+[#assign MTA_RULE_COMPONENT_TYPE = "mtarule" ]
+
 [#assign NETWORK_ACL_COMPONENT_TYPE = "networkacl"]
 [#assign NETWORK_COMPONENT_TYPE = "network" ]
 
@@ -250,6 +253,10 @@
         },
         {
             "Names" : "Secret",
+            "Type" : STRING_TYPE
+        },
+        {
+            "Names" : "Rule",
             "Type" : STRING_TYPE
         }
     ]
