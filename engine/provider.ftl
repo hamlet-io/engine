@@ -128,7 +128,7 @@
         [#if pluginRequired && !(definedPluginState?has_content) && plugin.Source != "local" ]
             [@fatal
                 message="Plugin setup not complete"
-                detail="A plugin was required but plugin setup as not been run"
+                detail="A plugin was required but plugin setup has not been run"
                 context=plugin
             /]
         [/#if]
@@ -236,12 +236,12 @@
             [/#list]
 
             [#-- Determine the metaparameters for the provider --]
-            [#local directories = 
+            [#local directories =
                 internalGetPluginFiles(
                     [providerMarker.Path, "metaparameters"],
                     [
                         ["[^/]+"]
-                    ] 
+                    ]
                 )
             ]
             [#list directories as directory]
