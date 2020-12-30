@@ -100,10 +100,15 @@
 /]
 
 [@includeCoreProviderConfiguration commandLineOptions.Deployment.Provider.Names /]
+
+[#-- TODO(MFL) Following can be deleted I think as it just does what the next piece --]
+[#-- processing will repeat                                                         --]
+[#--]
 [@seedProviderInputSourceData
     providers=commandLineOptions.Deployment.Provider.Names
     inputTypes=[ "masterdata" ]
 /]
+--]
 
 [#-- Input data Seeding --]
 [#-- This controls the collection of all input data provided to the engine --]
@@ -116,8 +121,10 @@
     inputTypes=seedInputTypes
 /]
 
-[#-- Set the base blueprint from the provider masterdata --]
-[@addBlueprint blueprint=getMasterData() /]
+[#-- Set the base of blueprint from the provider masterdata --]
+[#-- Rebase is needed to ensure any overrides of master     --]
+[#-- data within the blueprint don't get overwritten        --]
+[@rebaseBlueprint base=getMasterData() /]
 
 [#-- Discover the layers which have been defined --]
 [#-- This needs to be done before module loading as layers define the modules to load and their parameters --]
@@ -137,11 +144,18 @@
     [/#list]
 [/#if]
 
+[#-- TODO(MFL) Code below needs reviewing                                  --]
+[#-- As modules will have potentially added to the various types of input, --]
+[#-- it seems odd to then replay the inputs over the top of this again     --]
+[#-- Is this to ensure whatever was explicitly provided takes precedence   --]
+[#-- over modules? Think we don't want that for master data but do for     --]
+[#-- everything else                                                       --]
+
 [#-- Refresh seed to allow for data from modules to be included --]
 [#if refreshInputData ]
     [@seedProviderInputSourceData
         providers=seedProviders
-        inputTypes=seedInputTypes
+        inputTypes=[ "blueprint", "stackoutput", "setting", "definition" ]
     /]
 [/#if]
 
