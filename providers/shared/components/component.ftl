@@ -87,6 +87,9 @@
 [#assign MOBILENOTIFIER_COMPONENT_TYPE = "mobilenotifier" ]
 [#assign MOBILENOTIFIER_PLATFORM_COMPONENT_TYPE = "mobilenotifierplatform" ]
 
+[#assign MTA_COMPONENT_TYPE = "mta"]
+[#assign MTA_RULE_COMPONENT_TYPE = "mtarule" ]
+
 [#assign NETWORK_ACL_COMPONENT_TYPE = "networkacl"]
 [#assign NETWORK_COMPONENT_TYPE = "network" ]
 
@@ -101,6 +104,8 @@
 [#assign OBJECTSQL_COMPONENT_TYPE = "objectsql"]
 
 [#assign PRIVATE_SERVICE_COMPONENT_TYPE = "privateservice" ]
+
+[#assign QUEUEHOST_COMPONENT_TYPE = "queuehost" ]
 
 [#assign S3_COMPONENT_TYPE = "s3" ]
 
@@ -248,6 +253,10 @@
         },
         {
             "Names" : "Secret",
+            "Type" : STRING_TYPE
+        },
+        {
+            "Names" : "Rule",
             "Type" : STRING_TYPE
         }
     ]
@@ -1147,10 +1156,10 @@
 
 [#assign containerChildrenConfiguration = [
     {
-        "Names" : "Fragment",
-        "Description" : "The fragment Id to use when evaluating component fragments - defaults to the container id",
-        "Type" : "string",
-        "Default" : ""
+        "Names" : [ "Extensions", "Fragment", "Container" ],
+        "Description" : "Extensions to invoke as part of component processing",
+        "Type" : ARRAY_OF_STRING_TYPE,
+        "Default" : []
     },
     {
         "Names" : "Cpu",
@@ -1315,9 +1324,10 @@
 
 [#assign containerHostAttributes = [
     {
-        "Names" : ["Fragment", "Container"],
-        "Type" : "string",
-        "Default" : ""
+        "Names" : [ "Extensions", "Fragment", "Container" ],
+        "Description" : "Extensions to invoke as part of component processing",
+        "Type" : ARRAY_OF_STRING_TYPE,
+        "Default" : []
     },
     {
         "Names" : "FixedIP",

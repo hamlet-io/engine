@@ -1,10 +1,28 @@
-[#case "_cfredirect-v1"]
+[#ftl]
+
+[@addExtension
+    id="cfredirect"
+    aliases=[
+        "_cfredirect-v1"
+    ]
+    description=[
+        "AWS Lambda@Edge function used to send 301 redirections from any domains which are not the primary domain",
+        "The header - X-Redirect-Primary-Domain-Name defines the primary domain name where requests should be redirected"
+    ]
+    supportedTypes=[
+        LAMBDA_COMPONENT_TYPE,
+        LAMBDA_FUNCTION_COMPONENT_TYPE
+    ]
+/]
+
+[#macro shared_extension_cfredirect_deployment_setup occurrence ]
 
     [@DefaultLinkVariables enabled=false /]
     [@DefaultCoreVariables enabled=false /]
     [@DefaultEnvironmentVariables enabled=false /]
+    [@DefaultBaselineVariables enabled=false /]
 
-    [#assign redirectScript = [
+    [#local redirectScript = [
         "'use strict';",
         "/* This function is used to perform redirects when an application has moved domains",
         "    Any request that does not have a host header which matches the Primary Domain",
@@ -65,4 +83,4 @@
         zipFile=redirectScript
     /]
 
-    [#break]
+[/#macro]

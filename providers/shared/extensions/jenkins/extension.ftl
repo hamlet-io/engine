@@ -1,16 +1,34 @@
-[#case "jenkins"]
-[#case "_jenkins"]
+[#ftl]
 
-    [#assign settings = _context.DefaultEnvironment]
+[@addExtension
+    id="jenkins"
+    aliases=[
+        "_jenkins"
+    ]
+    description=[
+        "Jenkins controller deployment based on the hamlet docker image",
+        "Url: https://github.com/hamlet-io/docker-jenkins-master"
+    ]
+    supportedTypes=[
+        ECS_SERVICE_COMPONENT_TYPE,
+        ECS_TASK_COMPONENT_TYPE,
+        CONTAINERSERVICE_COMPONENT_TYPE,
+        CONTAINERTASK_COMPONENT_TYPE
+    ]
+/]
 
-    [#assign jenkinsImage = settings["JENKINS_IMAGE"]!"hamletio/jenkins"]
+[#macro shared_extension_jenkins_setup occurrence ]
+
+    [#local settings = _context.DefaultEnvironment]
+
+    [#local jenkinsImage = settings["JENKINS_IMAGE"]!"hamletio/jenkins"]
     [@Attributes image=jenkinsImage /]
 
-    [#assign pingInterval = (settings["AGENT_PING_INTERVAL"])!"300" ]
-    [#assign pingTimeout = (settings["AGENT_PING_TIMEOUT"])!"30"]
-    [#assign timeZone = (settings["TIMEZONE"])!"UTC" ]
+    [#local pingInterval = (settings["AGENT_PING_INTERVAL"])!"300" ]
+    [#local pingTimeout = (settings["AGENT_PING_TIMEOUT"])!"30"]
+    [#local timeZone = (settings["TIMEZONE"])!"UTC" ]
 
-    [#assign javaStandardOpts = [
+    [#local javaStandardOpts = [
                 "-Dorg.apache.commons.jelly.tags.fmt.timeZone=${timeZone}",
                 "-Duser.timezone=${timeZone}",
                 "-XX:+UnlockExperimentalVMOptions",
@@ -26,8 +44,8 @@
                 "-Djenkins.install.runSetupWizard=false"
     ]]
 
-    [#assign javaExtraOpts = (settings["JAVA_EXTRA_OPTS"]!"")?split(" ")]
-    [#assign javaOpts = (javaStandardOpts + javaExtraOpts)?join(" ")]
+    [#local javaExtraOpts = (settings["JAVA_EXTRA_OPTS"]!"")?split(" ")]
+    [#local javaOpts = (javaStandardOpts + javaExtraOpts)?join(" ")]
 
     [@Settings {
             "JAVA_OPTS" : javaOpts
@@ -113,9 +131,9 @@
 
     [#-- Persistant Volume Mounts --]
     [#-- Jenkins Home --]
-    [#assign JenkinsHomeFound = false ]
+    [#local JenkinsHomeFound = false ]
     [#if ((_context["Links"]["efs_jenkins_home"])!{})?has_content ]
-        [#assign JenkinsHomeFound = true]
+        [#local JenkinsHomeFound = true]
         [@Volume
             name="jenkins_home"
             containerPath="/var/jenkins_home"
@@ -124,7 +142,7 @@
 
     [#else]
         [#if settings["JENKINSHOMEVOLUME"]?has_content ]
-            [#assign JenkinsHomeFound = true]
+            [#local JenkinsHomeFound = true]
             [@Volume
                 name="jenkinsdata"
                 containerPath="/var/jenkins_home"
@@ -185,5 +203,43 @@
         [/#if]
 
     [/#if]
+[/#macro]
 
-    [#break]
+[@addExtension
+    id="jenkinsecs"
+    aliases=[
+        "_jenkinsecs"
+    ]
+    description=[
+        "Jenkins Container host specific configuration"
+    ]
+    supportedTypes=[
+        ECS_COMPONENT_TYPE,
+        CONTAINERHOST_COMPONENT_TYPE
+    ]
+/]
+
+[#macro shared_extension_jenkinsecs_deployment_setup occurrence ]
+
+    [#local settings = _context.DefaultEnvironment]
+
+    [#-- The docker stage dir is used to provide a staging location for docker in docker based builds which use the host docker instance --]
+    [#local dockerStageDirs =
+            (settings["DOCKER_STAGE_DIR"])?has_content?then(
+                    asArray(settings["DOCKER_STAGE_DIR"]),
+                    settings["DOCKER_STAGE_DIRS"]?has_content?then(
+                        asArray( (settings["DOCKER_STAGE_DIRS"]?split(",") )),
+                        [ "/tmp/docker-build" ]
+                    )
+            )]
+
+    [#list dockerStageDirs as dockerStageDir]
+        [@Directory
+            path=dockerStageDir
+            mode="775"
+            owner="1000"
+            group="1000"
+        /]
+    [/#list]
+
+[/#macro]

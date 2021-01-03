@@ -1,19 +1,37 @@
-[#case "codeontap"]
-[#case "_codeontap"]
-[#case "_hamlet"]
-[#case "hamlet"]
+[#ftl]
 
-    [#assign settings = _context.DefaultEnvironment]
+[@addExtension
+    id="hamlet"
+    aliases=[
+        "codeontap",
+        "_codeontap",
+        "_hamlet"
+    ]
+    description=[
+        "Hamlet agent task for use with CI/CD Pipelines"
+    ]
+    supportedTypes=[
+        ECS_SERVICE_COMPONENT_TYPE,
+        ECS_TASK_COMPONENT_TYPE,
+        CONTAINERSERVICE_COMPONENT_TYPE,
+        CONTAINERTASK_COMPONENT_TYPE
+    ]
+/]
 
-    [#assign jenkinsAgentImage = settings["DOCKER_AGENT_IMAGE"]!"hamletio/hamlet"]
 
-    [#assign awsAutomationUser = settings["AWS_AUTOMATION_USER"]!"ROLE" ]
-    [#assign awsAgentAutomationRole = settings["AWS_AUTOMATION_ROLE"]!"codeontap-automation" ]
+[#macro shared_extension_hamlet_deployment_setup occurrence ]
 
-    [#assign azureAuthMethod = settings["AZ_AUTH_METHOD"]!"service" ]
-    [#assign azureTenantId   = settings["AZ_TENANT_ID"]!""]
+    [#local settings = _context.DefaultEnvironment]
 
-    [#assign dockerStageDir = settings["DOCKER_STAGE_DIR"]!"/tmp/docker-build" ]
+    [#local jenkinsAgentImage = settings["DOCKER_AGENT_IMAGE"]!"hamletio/hamlet"]
+
+    [#local awsAutomationUser = settings["AWS_AUTOMATION_USER"]!"ROLE" ]
+    [#local awsAgentAutomationRole = settings["AWS_AUTOMATION_ROLE"]!"codeontap-automation" ]
+
+    [#local azureAuthMethod = settings["AZ_AUTH_METHOD"]!"service" ]
+    [#local azureTenantId   = settings["AZ_TENANT_ID"]!""]
+
+    [#local dockerStageDir = settings["DOCKER_STAGE_DIR"]!"/tmp/docker-build" ]
 
     [@Attributes image=jenkinsAgentImage /]
 
@@ -77,11 +95,11 @@
     [/#if]
 
     [#if (settings["AWS_AUTOMATION_ACCOUNTS"]!"")?has_content ]
-        [#assign automationAccounts = asArray( (settings["AWS_AUTOMATION_ACCOUNTS"]!"")?eval ) ]
+        [#local automationAccounts = asArray( (settings["AWS_AUTOMATION_ACCOUNTS"]!"")?eval ) ]
 
-        [#assign automationAccountRoles = []]
+        [#local automationAccountRoles = []]
         [#list automationAccounts as automationAccount ]
-            [#assign automationAccountRoles += [
+            [#local automationAccountRoles += [
                                                     formatGlobalArn(
                                                         "iam",
                                                         formatRelativePath("role", awsAgentAutomationRole),
@@ -98,10 +116,10 @@
 
     [#if (settings["JENKINS_PERMANENT_AGENT"]!"false")?boolean  ]
 
-        [#assign jenkinsUrl = settings["JENKINS_URL"] ]
+        [#local jenkinsUrl = settings["JENKINS_URL"] ]
 
         [#if (settings["JENKINS_LOCAL_FQDN"]!"")?has_content ]
-            [#assign jenkinsUrl = "http://" + settings["JENKINS_LOCAL_FQDN"] + ":8080" ]
+            [#local jenkinsUrl = "http://" + settings["JENKINS_LOCAL_FQDN"] + ":8080" ]
         [/#if]
 
         [@Command
@@ -115,8 +133,8 @@
     [/#if]
 
     [#-- Docker Agent Access --]
-    [#assign dockerEnabled = ((settings["ENABLE_DOCKER"])!"true")?boolean ]
-    [#assign dindEnabled = (settings["DIND_ENABLED"]!"false")?boolean ]
+    [#local dockerEnabled = ((settings["ENABLE_DOCKER"])!"true")?boolean ]
+    [#local dindEnabled = (settings["DIND_ENABLED"]!"false")?boolean ]
 
     [#if dockerEnabled && dindEnabled ]
         [@fatal
@@ -134,7 +152,7 @@
     [#-- This can cause issues with port conflicts and disk usage on the hosts. The AWS linux docker volumes dir is pretty small --]
     [#if dockerEnabled ]
 
-        [#assign dockerHostDaemon = settings["DOCKER_HOST_DAEMON"]!"/var/run/docker.sock"]
+        [#local dockerHostDaemon = settings["DOCKER_HOST_DAEMON"]!"/var/run/docker.sock"]
 
         [@Volume
             name="dockerDaemon"
@@ -157,11 +175,11 @@
     [#-- This requires the ecs host to have the ebs VolumeDriver Enabled --]
     [#if dindEnabled ]
 
-        [#assign dockerStageDir = settings["DOCKER_STAGE_DIR"]!"/home/jenkins"  ]
-        [#assign dockerStageSize = settings["DOCKER_STAGE_SIZE_GB"]!"20"        ]
-        [#assign dockerStagePersist = (settings["DOCKER_STAGE_PERSIST"]?boolean)!false ]
-        [#assign dindHost = settings["DIND_DOCKER_HOST_URL"]!"tcp://dind:2376"  ]
-        [#assign dindTLSVerify = settings["DIND_DOCKER_TLS_VERIFY"]!"true"      ]
+        [#local dockerStageDir = settings["DOCKER_STAGE_DIR"]!"/home/jenkins"  ]
+        [#local dockerStageSize = settings["DOCKER_STAGE_SIZE_GB"]!"20"        ]
+        [#local dockerStagePersist = (settings["DOCKER_STAGE_PERSIST"]?boolean)!false ]
+        [#local dindHost = settings["DIND_DOCKER_HOST_URL"]!"tcp://dind:2376"  ]
+        [#local dindTLSVerify = settings["DIND_DOCKER_TLS_VERIFY"]!"true"      ]
 
         [#if dindTLSVerify?boolean ]
             [@Settings
@@ -200,87 +218,4 @@
         /]
 
     [/#if]
-
-    [#break]
-
-[#case "_dind" ]
-[#case "dind" ]
-    [@DefaultLinkVariables enabled=false /]
-    [@DefaultCoreVariables enabled=false /]
-    [@DefaultEnvironmentVariables enabled=false /]
-    [@DefaultBaselineVariables enabled=false /]
-
-    [@Hostname hostname=_context.Name /]
-
-    [#assign dockerStageDir = settings["DOCKER_STAGE_DIR"]!"/home/jenkins"  ]
-    [#assign dockerStageSize = settings["DOCKER_STAGE_SIZE_GB"]!"20"        ]
-    [#assign dockerStagePersist = (settings["DOCKER_STAGE_PERSIST"]?boolean)!false ]
-    [#assign dockerLibSize = settings["DOCKER_LIB_VOLUME_SIZE"]!"20"         ]
-    [#assign dindTLSVerify = settings["DIND_DOCKER_TLS_VERIFY"]!"true"      ]
-
-
-    [#if dindTLSVerify?boolean ]
-        [@Settings
-            {
-                "DOCKER_TLS_CERTDIR" : "/docker/certs"
-            }
-        /]
-
-        [@Volume
-            name="dind_certs_client"
-            containerPath="/docker/certs/client"
-        /]
-    [/#if]
-
-    [@Volume
-        name="dockerStage"
-        containerPath=dockerStageDir
-        volumeEngine="ebs"
-        scope=dockerStagePersist?then(
-                    "shared",
-                    "task"
-        )
-        driverOpts={
-            "volumetype": "gp2",
-            "size": dockerStageSize
-        }
-    /]
-
-    [@Volume
-        name="dind_lib"
-        containerPath="/var/lib/docker"
-        volumeEngine="ebs"
-        scope="task"
-        scope=dockerStagePersist?then(
-            "shared",
-            "task"
-        )
-        driverOpts={
-            "volumetype": "gp2",
-            "size": dockerLibSize
-        }
-    /]
-    [#break]
-
-[#case "_jenkinsecs" ]
-    [#assign settings = _context.DefaultEnvironment]
-
-    [#-- The docker stage dir is used to provide a staging location for docker in docker based builds which use the host docker instance --]
-    [#assign dockerStageDirs =
-            (settings["DOCKER_STAGE_DIR"])?has_content?then(
-                    asArray(settings["DOCKER_STAGE_DIR"]),
-                    settings["DOCKER_STAGE_DIRS"]?has_content?then(
-                        asArray( (settings["DOCKER_STAGE_DIRS"]?split(",") )),
-                        [ "/tmp/docker-build" ]
-                    )
-            )]
-
-    [#list dockerStageDirs as dockerStageDir]
-        [@Directory
-            path=dockerStageDir
-            mode="775"
-            owner="1000"
-            group="1000"
-        /]
-    [/#list]
-    [#break]
+[/#macro]

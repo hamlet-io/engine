@@ -7,6 +7,41 @@
 [#assign providerDictionary = [] ]
 [#assign providerMarkers = [] ]
 
+[#assign pluginMetadata = {}]
+
+[#macro addPluginMetadata id ref ]
+    [#assign pluginMetadata = mergeObjects( pluginMetadata, { id : ref } )]
+[/#macro]
+
+[#function getPluginMetadata ]
+    [#return pluginMetadata]
+[/#function]
+
+[#macro addEnginePluginMetadata pluginState ]
+    [#if (pluginState["Plugins"]["_engine"]!{})?has_content ]
+        [#local sharedPlugin = pluginState["Plugins"]["_engine" ]]
+        [@addPluginMetadata
+            id="_engine"
+            ref=sharedPlugin.ref
+        /]
+    [/#if]
+[/#macro]
+
+[#function getActivePluginsFromLayers  ]
+
+    [#local plugins = [] ]
+    [#local possiblePlugins = asFlattenedArray(getActiveLayerAttributes( [ "Plugins" ] )) ]
+
+    [#list possiblePlugins as pluginInstance ]
+        [#list pluginInstance as id, plugin ]
+            [#if (plugin.Enabled)!false]
+                [#local plugins += [ { "Id" : id } + plugin ] ]
+            [/#if]
+        [/#list]
+    [/#list]
+    [#return plugins ]
+[/#function]
+
 [#-- Only load configuration once --]
 [#function isConfigurationIncluded configuration]
     [#if getDictionaryEntry(providerDictionary, configuration)?has_content]
@@ -78,6 +113,53 @@
                 [@internalIncludeTemplatesInDirectory inputSource /]
             [/#list]
         [/#list]
+    [/#list]
+[/#macro]
+
+[#macro addPluginsFromLayers pluginState ]
+    [#local definedPlugins = getActivePluginsFromLayers() ]
+
+    [#list definedPlugins?sort_by("Priority") as plugin]
+        [#local pluginRequired = plugin.Required]
+        [#local pluginPath = formatRelativePath(plugin.Id, plugin.Name )]
+
+        [#local definedPluginState = (pluginState["Plugins"][plugin.Id])!{} ]
+
+        [#if pluginRequired && !(definedPluginState?has_content) && plugin.Source != "local" ]
+            [@fatal
+                message="Plugin setup not complete"
+                detail="A plugin was required but plugin setup has not been run"
+                context=plugin
+            /]
+        [/#if]
+
+
+        [#local pluginProviderMarker = providerMarkers?filter(
+                                            marker -> marker.Path?keep_after_last("/") == plugin.Name ) ]
+
+        [#if !(pluginProviderMarker?has_content) && pluginRequired  ]
+            [@fatal
+                message="Unable to load required provider"
+                detail="The provider could not be found in the local state - please load hamlet plugins"
+                context=plugin
+            /]
+            [#continue]
+        [/#if]
+
+        [@addPluginMetadata
+            id=plugin.Id
+            ref=(definedPluginState.ref)!plugin.Source
+        /]
+
+        [@addCommandLineOption
+            option={
+                "Deployment" : {
+                    "Provider" : {
+                        "Names" : combineEntities( (commandLineOptions.Deployment.Provider.Names)![], [ plugin.Name ], UNIQUE_COMBINE_BEHAVIOUR)
+                    }
+                }
+            }
+        /]
     [/#list]
 [/#macro]
 
@@ -159,7 +241,7 @@
                     [providerMarker.Path, "attributesets"],
                     [
                         ["[^/]+"]
-                    ] 
+                    ]
                 )
             ]
             [#list directories as directory]
@@ -201,7 +283,7 @@
                 /]
             [/#list]
 
-            [#-- Determine the scenerios for the provider --]
+            [#-- Determine the modules for the provider --]
             [#local directories =
                 internalGetPluginFiles(
                     [providerMarker.Path, "modules"],
@@ -214,6 +296,22 @@
                 [@internalIncludeTemplatesInDirectory
                     directory,
                     ["id", "module"]
+                /]
+            [/#list]
+
+            [#-- Determine the extensions for the provider --]
+            [#local directories =
+                internalGetPluginFiles(
+                    [providerMarker.Path, "extensions"],
+                    [
+                        ["[^/]+"]
+                    ]
+                )
+            ]
+            [#list directories as directory]
+                [@internalIncludeTemplatesInDirectory
+                    directory,
+                    ["id", "extension"]
                 /]
             [/#list]
 
@@ -652,7 +750,6 @@
     [/#list]
 [/#macro]
 
-
 [#--- Query Provider Dictionary --]
 [#function getProviderComponentNames provider ]
     [#local providerComponents = getCacheSection(providerDictionary, [provider, "c"] ) ]
@@ -666,7 +763,6 @@
     [#return providerComponentNames ]
 [/#function]
 
-
 [#function getProviderViewNames provider ]
     [#local providerViews = getCacheSection(providerDictionary, [provider, "v"] ) ]
 
@@ -678,6 +774,7 @@
     [/#list]
     [#return providerViewNames ]
 [/#function]
+
 [#------------------------------------------------------
 -- Internal support functions for provider processing --
 --------------------------------------------------------]
@@ -815,6 +912,12 @@
     [@internalIncludeTemplatesInDirectory
         [providerMarker.Path, "entrances"],
         [ "entrance" ]
+    /]
+
+    [#-- aws/extensions/extension.ftl --]
+    [@internalIncludeTemplatesInDirectory
+        [providerMarker.Path, "extensions"],
+        [ "extension" ]
     /]
 
     [#-- aws/tasks/task.ftl --]

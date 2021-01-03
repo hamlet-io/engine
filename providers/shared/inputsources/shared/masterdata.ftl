@@ -650,6 +650,28 @@
               "Timeout": "5"
             }
           },
+          "rabbitmq": {
+            "Port": 5671,
+            "IPProtocol": "tcp",
+            "HealthCheck": {
+              "HealthyThreshold": "3",
+              "UnhealthyThreshold": "5",
+              "Interval": "30",
+              "Timeout": "5"
+            }
+          },
+          "rabbitmq-ui": {
+            "Port": 15671,
+            "Protocol": "HTTP",
+            "IPProtocol": "tcp",
+            "HealthCheck": {
+              "Path": "/",
+              "HealthyThreshold": "2",
+              "UnhealthyThreshold": "3",
+              "Interval": "30",
+              "Timeout": "5"
+            }
+          },
           "redis": {
             "Port": 6379,
             "Protocol": "TCP",

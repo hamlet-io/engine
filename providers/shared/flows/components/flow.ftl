@@ -94,7 +94,9 @@
                 "Occurrence" : occurrence,
                 "Link" : link,
                 "EffectiveInstance" : instanceToMatch,
-                "EffectiveVersion" : versionToMatch
+                "EffectiveVersion" : versionToMatch,
+                "ActiveOnly" : activeOnly,
+                "ActiveRequired" : activeRequired
             }
         enabled=false
     /]
@@ -181,7 +183,7 @@
                 [#continue]
             [/#if]
 
-            [@debug message="Link matched target" enabled=false /]
+            [@debug message="Link matched target" context=targetSubOccurrence enabled=false /]
 
             [#-- Determine if deployed --]
             [#if ( activeOnly || activeRequired ) && !isOccurrenceDeployed(targetSubOccurrence) ]
@@ -199,6 +201,7 @@
                         enabled=true
                     /]
                 [/#if]
+                [@debug message="Link matched undeployed target" enabled=false /]
                 [#return {} ]
             [/#if]
 

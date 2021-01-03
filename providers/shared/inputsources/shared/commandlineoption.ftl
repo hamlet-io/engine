@@ -28,12 +28,27 @@
         }
     /]
 
+    [#-- load the plugin state from setup --]
+    [@addCommandLineOption
+        option={
+            "Plugins" : {
+                "State" : (pluginState!"")?has_content?then(
+                                pluginState?eval,
+                                {}
+                )
+            }
+        }
+    /]
+
     [#-- Deployment Details --]
     [@addCommandLineOption
         option={
             "Deployment" : {
                 "Provider" : {
-                    "Names" : asArray( providers?split(",") )![]
+                    "Names" : (providers!"")?has_content?then(
+                                    providers?split(","),
+                                    []
+                    )
                 },
                 "Framework" : {
                     "Name" : deploymentFramework!"default"

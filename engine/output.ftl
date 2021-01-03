@@ -397,13 +397,13 @@
 [/#function]
 
 
-[#function getGenerationContractStepParameters subset alternative provider ]
+[#function getGenerationContractStepParameters subset alternative ]
     [#local outputMappings = getGenerationContractStepOutputMapping(
-                                (commandLineOptions.Deployment.Provider.Names)[0],
+                                ((commandLineOptions.Deployment.Provider.Names)[0])!SHARED_PROVIDER,
                                 subset
                             )]
     [#return {
-        "provider"      : (commandLineOptions.Deployment.Provider.Names)?join(","),
+        "provider"      : ((commandLineOptions.Deployment.Provider.Names)?join(","))!SHARED_PROVIDER,
         "framework"     : commandLineOptions.Deployment.Framework.Name,
         "outputType"    : outputMappings["OutputType"],
         "outputFormat"  : outputMappings["OutputFormat"],

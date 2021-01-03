@@ -14,17 +14,6 @@
             extensions) ]
 [/#function]
 
-[#function formatFragmentId context occurrence={}]
-    [#if context.Id?starts_with("_") ]
-        [#return context.Id ]
-    [#else]
-        [#return
-                formatName(
-                    context.Id,
-                    context.Instance!occurrence.Core.Instance.Id,
-                    context.Version!occurrence.Core.Version.Id)]
-    [/#if]
-[/#function]
 
 [#-- Resource id = type + ids --]
 
@@ -122,6 +111,7 @@
 [#assign LASTRESTORE_ATTRIBUTE_TYPE = "lastrestore" ]
 [#assign REGION_ATTRIBUTE_TYPE = "region"]
 [#assign EVENTSTREAM_ATTRIBUTE_TYPE = "stream"]
+[#assign SECRET_ATTRIBUTE_TYPE = "secret"]
 
 [#-- special attribute type to handle references --]
 [#assign REFERENCE_ATTRIBUTE_TYPE = "ref" ]
@@ -146,4 +136,3 @@
             resourceId,
             QUALIFIER_ATTRIBUTE_TYPE) ]
 [/#function]
-

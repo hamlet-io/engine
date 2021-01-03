@@ -63,9 +63,14 @@
             "Children"  : moduleReferenceConfiguration
         },
         {
+            "Names" : "Plugins",
+            "Subobjects" : true,
+            "Children" : pluginReferenceConfiguration
+        },
+        {
             "Names" :[
-                "ProviderId", 
-                "AWSId", 
+                "ProviderId",
+                "AWSId",
                 "AzureId"
             ],
             "Type" : STRING_TYPE,
@@ -223,6 +228,29 @@
                 {
                     "Names" : "Expiration",
                     "Type" : NUMBER_TYPE
+                }
+            ]
+        },
+        {
+            "Names" : "aws:SES",
+            "Description" : "AWS SES Account configuration",
+            "Children" : [
+                {
+                    "Names" : "RuleSet",
+                    "Description" : "Ruleset details. Only one active per account",
+                    "Children" : [
+                        {
+                            "Names" : "Name",
+                            "Description" : "Name of the ruleset",
+                            "Type" : STRING_TYPE,
+                            "Default" : "account-default"
+                        }
+                    ]
+                },
+                {
+                    "Names" : "IPAddressGroups",
+                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Default" : []
                 }
             ]
         }

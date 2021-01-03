@@ -23,8 +23,10 @@
                 "Mandatory" : true
             },
             {
-                "Names" : "Fragment",
-                "Type" : STRING_TYPE
+                "Names" : [ "Extensions", "Fragment", "Container" ],
+                "Description" : "Extensions to invoke as part of component processing",
+                "Type" : ARRAY_OF_STRING_TYPE,
+                "Default" : []
             },
             {
                 "Names" : "Parameters",
