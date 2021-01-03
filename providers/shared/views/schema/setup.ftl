@@ -12,9 +12,6 @@
 
         [#case "component"]
 
-            [#-- Attribute names that should be turned into refs --]
-            [#local createRefValues = ["Links"]]
-
             [@includeAllComponentDefinitionConfiguration
                 SHARED_PROVIDER
                 commandLineOptions.Deployment.Provider.Names
@@ -62,7 +59,7 @@
                             "SubObjects" : true,
                             "Children" : schemaComponentAttributes
                         },
-                        createRefValues
+                        attributeSetConfiguration?keys
                     )
                 /]
 
@@ -70,9 +67,6 @@
             [#break]
 
         [#case "reference"]
-
-            [#-- Attribute names that should be turned into refs --]
-            [#local createRefValues = ["Links"]]
 
             [#list referenceConfiguration as id,configuration]
                 [@addSchema
@@ -86,19 +80,17 @@
                                 "SubObjects" : true,
                                 "Children" : configuration.Attributes
                             },
-                            metaparameters)
+                            attributeSetConfiguration?keys)
                 /]
             [/#list]
             [#break]
 
-        [#case "metaparameter"]
+        [#case "attributeset"]
 
-            [#local createRefValues = []]
-
-            [#-- Key Value Pairs of Metaparameter Name : Configuration --]
-            [#list metaparameterConfiguration as id,configuration]
+            [#-- Key Value Pairs of AttributeSet Name : Configuration --]
+            [#list attributeSetConfiguration as id,configuration]
                 [@addSchema
-                    section="metaparameter"
+                    section="attributeset"
                     subset=id
                     configuration=
                     formatJsonSchemaFromComposite(
