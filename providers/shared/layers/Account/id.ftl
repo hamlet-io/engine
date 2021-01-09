@@ -218,7 +218,11 @@
                             "Type" : ARRAY_OF_STRING_TYPE,
                             "Default" : []
                         }
-                    ]
+                    ],
+                    "Names" : "ReplicaRegions",
+                    "Description" : "A list of regions to replicate registries to",
+                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Default" : []
                 }
             ]
         },
