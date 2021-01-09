@@ -1164,10 +1164,10 @@ behaviour.
             getRegistryPrefix(imageFormat, occurrence),
             getOccurrenceBuildProduct(occurrence, product),
             getOccurrenceBuildScopeExtension(occurrence),
-            getOccurrenceBuildUnit(occurrence)
+            occurrence.Core.Name
         )
     ]
-    [#local buildUnit = getOccurrenceBuildUnit(occurrence) ]
+    [#local buildUnit = occurrence.Core.Name ]
 
     [#return
         [
