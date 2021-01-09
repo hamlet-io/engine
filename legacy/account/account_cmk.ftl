@@ -61,14 +61,6 @@
             [#assign volumeEncryptionKmsKeyName = formatName("account", "cmk", "volume", "encrypt")]
             [#assign volumeEncryptionKmsKeyAliasId = formatDependentResourceId(AWS_CMK_ALIAS_RESOURCE_TYPE, volumeEncryptionKmsKeyId)]
 
-            [#-- Check that service linked role exists --]
-            [#if ! isSerivceLinkedRoleDeployed("autoscaling.amazonaws.com" ) ]
-                [@fatal
-                    message="autoscaling.amazonaws.com service linked role not deployed"
-                    detail="Run an account level iam deployment to enable the service"
-                /]
-            [/#if]
-
             [#if isPartOfCurrentDeploymentUnit(volumeEncryptionKmsKeyId)]
 
                 [@createCMK
