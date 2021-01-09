@@ -1,17 +1,35 @@
 [#ftl]
 
 [#-- Registry definitions --]
-[#function getRegistryEndPoint type occurrence ]
+
+[#function getRegistryEndpointValue occurrence qualfiers ]
+
     [#return
         contentIfContent(
             getOccurrenceSettingValue(
-                occurrence, ["Registries", type, "Endpoint"], true),
+                occurrence, asFlattenedArray(["Registries", qualfiers, "Endpoint"]), true),
+            getOccurrenceSettingValue(
+                    occurrence, asFlattenedArray(["Registries", qualfiers, "Registry"]), true)
+        )
+    ]
+[/#function]
+
+
+[#function getRegistryEndPoint type occurrence region="" ]
+
+    [#if !(region?has_content) ]
+        [#local region = occurrence.State.ResourceGroups["default"].Placement.Region ]
+    [/#if]
+
+    [#return
+        contentIfContent(
+            getRegistryEndpointValue(occurrence, [type, "RegionEndpoints", region]),
             contentIfContent(
-                getOccurrenceSettingValue(
-                    occurrence, ["Registries", type, "Registry"], true),
+                getRegistryEndpointValue(occurrence, [type ]),
                 "HamletFatal: Unknown registry of type " + type
             )
-        ) ]
+        )
+    ]
 [/#function]
 
 [#function getRegistryPrefix type occurrence ]
