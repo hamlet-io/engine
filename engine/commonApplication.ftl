@@ -2,14 +2,14 @@
 
 [#-- Registry definitions --]
 
-[#function getRegistryEndpointValue occurrence qualfiers ]
+[#function getRegistryEndpointValue occurrence qualifiers ]
 
     [#return
         contentIfContent(
             getOccurrenceSettingValue(
-                occurrence, asFlattenedArray(["Registries", qualfiers, "Endpoint"]), true),
+                occurrence, asFlattenedArray(["Registries", qualifiers, "Endpoint"]), true),
             getOccurrenceSettingValue(
-                    occurrence, asFlattenedArray(["Registries", qualfiers, "Registry"]), true)
+                    occurrence, asFlattenedArray(["Registries", qualifiers, "Registry"]), true)
         )
     ]
 [/#function]
