@@ -20,12 +20,17 @@
 
                 [#local replicationRoleId = formatAccountRoleId("s3replication", bucket) ]
 
+                [#local replicaionPolicies = s3ReplicaSourcePermission(bucketId) +
+                                s3ReplicationConfigurationPermission(bucketId) ]
+
+                [#if encryption ]
+                   [#local replicaionPolicies +=  s3EncryptionReadPermission(kmsKeyId, bucketName, "*", region)]
+                [/#if]
+
                 [#local rolePolicies =
                         [
                             getPolicyDocument(
-                                s3ReplicaSourcePermission(bucketId) +
-                                s3ReplicationConfigurationPermission(bucketId) +
-                                s3EncryptionReadPermission(kmsKeyId, bucketName, "*", region),
+                                replicaionPolicies,
                                 "replication"
                             )
                         ]
@@ -40,12 +45,15 @@
                 [#list replicaRegions as replicaRegion ]
 
                     [#local destinationBucketName = formatAccountS3ReplicaBucketName(bucket, replicaRegion) ]
-                    [#local replicaDestinationPolicies += s3ReplicaDestinationPermission(destinationBucketName) +
-                                                                s3EncryptionAllPermission(
+                    [#local replicaDestinationPolicies += s3ReplicaDestinationPermission(destinationBucketName) ]
+
+                    [#if getExistingReference(kmsKeyId, ARN_ATTRIBUTE_TYPE, replicaRegion)?has_content ]
+                        [#local replicaDestinationPolicies += s3EncryptionAllPermission(
                                                                                 kmsKeyId,
                                                                                 destinationBucketName,
                                                                                 "*",
                                                                                 replicaRegion)]
+                    [/#if]
 
                     [#local replicationRules +=
                         [
@@ -53,7 +61,7 @@
                                 formatGlobalArn("s3", destinationBucketName, ""),
                                 true
                                 "",
-                                true,
+                                getExistingReference(kmsKeyId, ARN_ATTRIBUTE_TYPE, replicaRegion)?has_content,
                                 getExistingReference(kmsKeyId, ARN_ATTRIBUTE_TYPE, replicaRegion),
                                 ""
                             )
