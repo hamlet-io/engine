@@ -1,0 +1,28 @@
+{
+  "name": "hamlet-plugin-support",
+  "version": "0.0.0",
+  "description": "Changelog support for hamlet",
+  "main": "",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "conventional-changelog-cli": "^2.1.1"
+  },
+  "devDependencies": {
+    "conventional-commit-cli": "^1.1.1"
+  },
+  "scripts": {
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s && git add CHANGELOG.md"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hamlet-io/engine-plugin-aws.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hamlet-io/engine-plugin-aws/issues"
+  },
+  "homepage": "https://github.com/hamlet-io/engine-plugin-aws#readme"
+}
