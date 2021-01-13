@@ -9,7 +9,7 @@
         "Set up an access within VPC to s3 items"
     ]
     supportedTypes=[
-        "*"
+        S3_COMPONENT_TYPE
     ]
 /]
 
