@@ -79,6 +79,12 @@
                 ]
             },
             {
+                "Names" : [ "Extensions" ],
+                "Description" : "Extensions to invoke as part of component processing",
+                "Type" : ARRAY_OF_STRING_TYPE,
+                "Default" : []
+            },
+            {
                 "Names" : "Style",
                 "Type" : STRING_TYPE,
                 "Description" : "TODO(mfl): Think this can be removed"
