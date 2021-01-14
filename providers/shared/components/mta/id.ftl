@@ -84,9 +84,10 @@
             },
             {
                 "Names" : "Links",
-                "Description" : "Target/role determines implementation of action",
-                "Subobjects" : true,
-                "Children" : linkChildrenConfiguration
+                "Reference" : {
+                    "Schema" : "attributeset",
+                    "Type" : LINK_ATTRIBUTESET_TYPE
+                }
             }
         ]
 /]
