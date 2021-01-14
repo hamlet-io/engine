@@ -53,7 +53,7 @@
                         [#break]
                 [/#switch]
             [#else]
-                [#local optionSets += composite.Type?map(t -> [{ "type" : t }])]
+                [#local optionSets += composite.Type?map(t -> { "type" : t })]
             [/#if]
         [#else]
             [#local result += { "type" : composite.Type }]
