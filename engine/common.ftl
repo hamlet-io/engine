@@ -1084,7 +1084,7 @@ behaviour.
 
 [/#function]
 
-[#function getBuildScript filesArrayName region registry product occurrence filename]
+[#function getBuildScript filesArrayName region registry product occurrence filename buildUnit=""]
     [#return
         [
             "copyFilesFromBucket" + " " +
@@ -1094,7 +1094,10 @@ behaviour.
                 getRegistryPrefix(registry, occurrence),
                 getOccurrenceBuildProduct(occurrence, product),
                 getOccurrenceBuildScopeExtension(occurrence),
-                getOccurrenceBuildUnit(occurrence),
+                buildUnit?has_content?then(
+                    buildUnit,
+                    getOccurrenceBuildUnit(occurrence)
+                ),
                 getOccurrenceBuildReference(occurrence)) + " " +
                 "\"$\{tmpdir}\" || return $?",
             "#",
@@ -1156,7 +1159,7 @@ behaviour.
 
 [/#function]
 
-[#function getImageFromUrlScript region product environment segment occurrence sourceURL imageFormat registryFile expectedImageHash=""  ]
+[#function getImageFromUrlScript region product environment segment occurrence sourceURL imageFormat registryFile expectedImageHash="" createZip=false  ]
 
     [#local registryBucket = getRegistryEndPoint(imageFormat, occurrence) ]
     [#local registryPrefix =
@@ -1182,7 +1185,8 @@ behaviour.
             r'   "' + product + r'" ' +
             r'   "' + environment + r'" ' +
             r'   "' + segment + r'" ' +
-            r'   "' + buildUnit + r'" || exit $?'
+            r'   "' + buildUnit + r'" ' +
+            r'   "' + createZip?c + r'" || exit $?'
         ]
     ]
 [/#function]
