@@ -87,7 +87,7 @@
                     },
                     {
                         "Names" : "Alert",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "default"
                     }
                 ]
