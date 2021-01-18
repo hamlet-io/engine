@@ -84,8 +84,18 @@
                         "Names" : "Security",
                         "Type" : STRING_TYPE,
                         "Default" : "default"
+                    },
+                    {
+                        "Names" : "Alert",
+                        "Types" : STRING_TYPE,
+                        "Default" : "default"
                     }
                 ]
+            },
+            {
+                "Names" : "Alerts",
+                "Subobjects" : true,
+                "Children" : alertChildrenConfiguration
             }
         ]
     parent=EXTERNALNETWORK_COMPONENT_TYPE
