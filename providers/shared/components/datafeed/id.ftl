@@ -150,20 +150,14 @@
                     {
                         "Names" : "Link",
                         "Mandatory" : true,
-                        "Reference" : {
-                            "Schema" : "attributeset",
-                            "Type" : LINK_ATTRIBUTESET_TYPE
-                        }
+                        "AttributeSet" : LINK_ATTRIBUTESET_TYPE
                     }
                 ]
             }
             {
                 "Names" : "Links",
                 "Subobjects" : true,
-                "Reference" : {
-                    "Schema" : "attributeset",
-                    "Type" : LINK_ATTRIBUTESET_TYPE
-                }
+                "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "LogWatchers",

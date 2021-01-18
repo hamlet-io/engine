@@ -17,10 +17,7 @@
                     "Names" : "Links",
                     "Description" : "Apply network security rules based on links",
                     "Subobjects" : true,
-                    "Reference" : {
-                        "Schema" : "attributeset",
-                        "Type" : LINK_ATTRIBUTESET_TYPE
-                    }
+                    "AttributeSet" : LINK_ATTRIBUTESET_TYPE
                 },
                 {
                     "Names" : "Outbound",

@@ -76,10 +76,7 @@
                 "Names" : "Links",
                 "Description" : "Links to the routing destination",
                 "Subobjects" : true,
-                "Reference" : {
-                    "Schema" : "attributeset",
-                    "Type" : LINK_ATTRIBUTESET_TYPE
-                }
+                "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             }
         ]
     parent=NETWORK_ROUTER_COMPONENT_TYPE

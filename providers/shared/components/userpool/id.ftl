@@ -128,10 +128,7 @@
             {
                 "Names" : "Links",
                 "Subobjects" : true,
-                "Reference" : {
-                    "Schema" : "attributeset",
-                    "Type" : LINK_ATTRIBUTESET_TYPE
-                }
+                "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "DefaultClient",
@@ -279,10 +276,7 @@
                 "Names" : "Links",
                 "Description" : "Apply network security rules based on links",
                 "Subobjects" : true,
-                "Reference" : {
-                    "Schema" : "attributeset",
-                    "Type" : LINK_ATTRIBUTESET_TYPE
-                }
+                "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             }
         ]
     parent=USERPOOL_COMPONENT_TYPE
@@ -528,10 +522,7 @@
                         "Names" : "Link",
                         "Description" : "A link to the server resource represented by this resource",
                         "Mandatory" : true,
-                        "Reference" : {
-                            "Schema" : "attributeset",
-                            "Type" : LINK_ATTRIBUTESET_TYPE
-                        }
+                        "AttributeSet" : LINK_ATTRIBUTESET_TYPE
                     },
                     {
                         "Names" : "LinkAttribute",

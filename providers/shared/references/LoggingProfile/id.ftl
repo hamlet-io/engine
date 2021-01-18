@@ -25,10 +25,7 @@
                     "Names" : "Links",
                     "Description" : "The links of components which will accept fowarded logs",
                     "Subobjects" : true,
-                    "Reference" : {
-                        "Schema" : "attributeset",
-                        "Type" : LINK_ATTRIBUTESET_TYPE
-                    }
+                    "AttributeSet" : LINK_ATTRIBUTESET_TYPE
                 }
             ]
         }
