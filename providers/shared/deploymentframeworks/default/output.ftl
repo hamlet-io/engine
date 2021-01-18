@@ -235,7 +235,7 @@
         content=
             mergeObjects(
                 { "$schema" : HamletSchemas.Root },
-                formatJsonSchemaBaseType(config, schemaId),
+                formatJsonSchemaBaseType(config + { "Types" : OBJECT_TYPE }, schemaId),
                 { "definitions" : config }
             )
     /]
