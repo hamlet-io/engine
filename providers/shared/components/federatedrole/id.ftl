@@ -25,10 +25,7 @@
             {
                 "Names" : "Links",
                 "Subobjects" : true,
-                "Reference" : {
-                    "Schema" : "attributeset",
-                    "Type" : LINK_ATTRIBUTESET_TYPE
-                }
+                "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "NoMatchBehaviour",
@@ -111,10 +108,7 @@
             {
                 "Names" : "Links",
                 "Subobjects" : true,
-                "Reference" : {
-                    "Schema" : "attributeset",
-                    "Type" : LINK_ATTRIBUTESET_TYPE
-                }
+                "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "Permissions",

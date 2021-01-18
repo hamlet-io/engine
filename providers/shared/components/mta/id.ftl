@@ -84,10 +84,8 @@
             },
             {
                 "Names" : "Links",
-                "Reference" : {
-                    "Schema" : "attributeset",
-                    "Type" : LINK_ATTRIBUTESET_TYPE
-                }
+                "Subobjects" : true,
+                "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             }
         ]
 /]

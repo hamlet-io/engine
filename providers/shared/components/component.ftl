@@ -140,10 +140,8 @@
         },
         {
             "Names" : "Links",
-            "Reference" : {
-                "Schema" : "attributeset",
-                "Type" : LINK_ATTRIBUTESET_TYPE
-            }
+            "Subobjects": true,
+            "AttributeSet" : LINK_ATTRIBUTESET_TYPE
         }
     ]
 ]
@@ -305,10 +303,7 @@
             "Children" : [
                 {
                     "Names" : "Link",
-                    "Reference" : {
-                        "Schema" : "attributeset",
-                        "Type" : LINK_ATTRIBUTESET_TYPE
-                    }
+                    "AttributeSet" : LINK_ATTRIBUTESET_TYPE
                 },
                 {
                     "Names" : "MetricTrigger",
@@ -763,10 +758,8 @@
 [#assign s3NotificationChildConfiguration = [
     {
         "Names" : "Links",
-        "Reference" : {
-            "Schema" : "attributeset",
-            "Type" : LINK_ATTRIBUTESET_TYPE
-        }
+        "Subobjects": true,
+        "AttributeSet" : LINK_ATTRIBUTESET_TYPE
     },
     {
         "Names" : "Prefix",
@@ -1016,10 +1009,8 @@
     },
     {
         "Names" : "Links",
-        "Reference" : {
-            "Schema" : "attributeset",
-            "Type" : LINK_ATTRIBUTESET_TYPE
-        }
+        "Subobjects": true,
+        "AttributeSet" : LINK_ATTRIBUTESET_TYPE
     },
     {
         "Names" : "LocalLogging",
@@ -1203,10 +1194,8 @@
     },
     {
         "Names" : "Links",
-        "Reference" : {
-            "Schema" : "attributeset",
-            "Type" : LINK_ATTRIBUTESET_TYPE
-        }
+        "Subobjects": true,
+        "AttributeSet" : LINK_ATTRIBUTESET_TYPE
     },
     {
         "Names" : "Profiles",
@@ -1454,10 +1443,8 @@
     },
     {
         "Names" : "Links",
-        "Reference" : {
-            "Schema" : "attributeset",
-            "Type" : LINK_ATTRIBUTESET_TYPE
-        }
+        "Subobjects": true,
+        "AttributeSet" : LINK_ATTRIBUTESET_TYPE
     }
 ]]
 
@@ -1569,10 +1556,8 @@
     },
     {
         "Names" : "Links",
-        "Reference" : {
-            "Schema" : "attributeset",
-            "Type" : LINK_ATTRIBUTESET_TYPE
-        }
+        "Subobjects": true,
+        "AttributeSet" : LINK_ATTRIBUTESET_TYPE
     }
 ]]
 
