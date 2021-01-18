@@ -179,11 +179,13 @@
                 "Children" : [
                     {
                         "Names" : "NewVersionOnDeploy",
+                        "Types" : STRING_TYPE,
                         "Description" : "Create a new version on each deployment",
                         "Default" : false
                     },
                     {
                         "Names" : "CodeHash",
+                        "Types" : STRING_TYPE,
                         "Description" : "A sha256 hash of the code zip file",
                         "Default" : ""
                     }

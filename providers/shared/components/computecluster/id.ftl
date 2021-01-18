@@ -84,6 +84,7 @@
             },
             {
                 "Names" : "Role",
+                "Types" : STRING_TYPE,
                 "Description" : "Server configuration role",
                 "Default" : ""
             },

@@ -129,10 +129,12 @@
 [#assign coreComponentChildConfiguration = [
     {
         "Names" : ["Export"],
+        "Types" : ARRAY_OF_STRING_TYPE,
         "Default" : []
     },
     {
         "Names" : ["DeploymentUnits"],
+        "Types" : ARRAY_OF_STRING_TYPE,
         "Default" : []
     }
 ] ]

@@ -16,6 +16,7 @@
     attributes=[
         {
             "Names" : "Engine",
+            "Types" : STRING_TYPE,
             "Description" : "The type of secret store",
             "Values" : [],
             "Mandatory" : true

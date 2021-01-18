@@ -47,6 +47,7 @@
             },
             {
                 "Names" : "EndpointType",
+                "Types" : STRING_TYPE,
                 "Description" : "The type of the route resource",
                 "Values" : [ "Peering", "NetworkInterface", "Instance" ]
             },
@@ -107,6 +108,7 @@
                 "Children" : [
                     {
                         "Names" : "Network",
+                        "Types" : STRING_TYPE,
                         "Description" : "The network profile for the gateway",
                         "Default" : "default"
                     }

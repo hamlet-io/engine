@@ -514,6 +514,7 @@
                     },
                     {
                         "Names" : "LinkAttribute",
+                        "Types" : STRING_TYPE,
                         "Description" : "The link targets attribute which defines the url",
                         "Default" : "URL"
                     },
