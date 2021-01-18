@@ -46,6 +46,7 @@
                             },
                             {
                                 "Names" : "DestinationType",
+                                "Types" : STRING_TYPE,
                                 "Description" : "The destination type to send the logs to",
                                 "Values" : [ "log", "s3" ],
                                 "Default" : "s3"

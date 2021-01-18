@@ -55,6 +55,7 @@
                 "Children" : [
                     {
                         "Names" : "SettingName",
+                        "Types" : STRING_TYPE,
                         "Description"  : "The name of setting where the key is stored"
                     }
                 ]

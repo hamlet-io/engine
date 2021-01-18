@@ -28,6 +28,7 @@
         [
             {
                 "Names" : "Engine",
+                "Types" : STRING_TYPE,
                 "Mandatory" : true
             },
             {

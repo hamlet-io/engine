@@ -38,6 +38,7 @@
                     {
                         "Names" : "ApprovalRequired",
                         "Description" : "Manual approval required for the service to be consumed",
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     }
                 ]

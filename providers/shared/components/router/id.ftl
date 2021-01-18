@@ -39,6 +39,7 @@
                     },
                     {
                         "Names" : "ECMP",
+                        "Types" : BOOLEAN_TYPE,
                         "Description" : "Enabled Equal Cost multipath routing where supported",
                         "Default" : true
                     }
