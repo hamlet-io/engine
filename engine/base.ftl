@@ -921,6 +921,7 @@ are added.
                                                     },
                                                     {
                                                         "Names" : "Name",
+                                                        "Types" : STRING_TYPE,
                                                         "Mandatory" : true
                                                     }
                                                 ] +

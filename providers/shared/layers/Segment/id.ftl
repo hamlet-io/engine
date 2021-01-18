@@ -87,7 +87,7 @@
                     "Children" : [
                         {
                             "Names" : "Enabled",
-                            "Type"  : BOOLEAN_TYPE
+                            "Types"  : BOOLEAN_TYPE
                         },
                         {
                             "Names" : "Expiration",
