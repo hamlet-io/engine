@@ -16,19 +16,19 @@
     attributes=[
         {
             "Names" : "Enabled",
-            "Type" : BOOLEAN_TYPE,
+            "Types" : BOOLEAN_TYPE,
             "Default" : true
         },
         {
             "Names" : "ServiceName",
             "Description" : "The Service domain name for the service you want to create the role for",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Mandatory": false
         },
         {
             "Names" : "Description",
             "Description" : "A description to include as part of the Role",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Default" : ""
         }
     ]

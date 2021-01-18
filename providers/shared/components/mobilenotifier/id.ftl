@@ -26,7 +26,7 @@
             },
             {
                 "Names" : "SuccessSampleRate",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Default" : "100"
             },
             {
@@ -34,7 +34,7 @@
                 "Children" : [
                     {
                         "Names" : "EncryptionScheme",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Values" : ["base64"],
                         "Default" : "base64"
                     }
@@ -45,7 +45,7 @@
                 "Children" : [
                     {
                         "Names" : "Logging",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "default"
                     }
                 ]
@@ -84,18 +84,18 @@
         [
             {
                 "Names" : "Engine",
-                "Type" : STRING_TYPE
+                "Types" : STRING_TYPE
             },
             {
                 "Names" : "SuccessSampleRate",
-                "Type" : STRING_TYPE
+                "Types" : STRING_TYPE
             },
             {
                 "Names" : "Credentials",
                 "Children" : [
                     {
                         "Names" : "EncryptionScheme",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Values" : ["base64"]
                     }
                 ]
@@ -120,12 +120,12 @@
                 "Children" : [
                     {
                         "Names" : "Alert",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "default"
                     },
                     {
                         "Names" : "Logging",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "default"
                     }
                 ]

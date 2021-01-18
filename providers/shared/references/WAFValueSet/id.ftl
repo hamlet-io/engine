@@ -12,7 +12,7 @@
     attributes=[
         {
             "Names" : "*",
-            "Type" : ANY_TYPE
+            "Types" : ANY_TYPE
         }
     ]
 /]

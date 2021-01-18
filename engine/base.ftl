@@ -1053,7 +1053,7 @@ are added.
                     [
                         {
                             "Names" : "Parent",
-                            "Type" : STRING_TYPE
+                            "Types" : STRING_TYPE
                         }
                     ],
                     base
@@ -1063,7 +1063,7 @@ are added.
                     [
                         {
                             "Names" : "Parents",
-                            "Type" : ARRAY_OF_STRING_TYPE
+                            "Types" : ARRAY_OF_STRING_TYPE
                         }
                     ],
                     base

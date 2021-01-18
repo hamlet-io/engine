@@ -11,22 +11,22 @@
     attributes=[
         {
             "Names" : "DeploymentUnit",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Mandatory" : true
         },
         {
             "Names" : "DeploymentGroup",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Mandatory" : true
         },
         {
             "Names" : "Operations",
-            "Type" : ARRAY_OF_STRING_TYPE,
+            "Types" : ARRAY_OF_STRING_TYPE,
             "Mandatory" : true
         },
         {
             "Names" : "DeploymentProvider",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Mandatory" : true
         }
     ]

@@ -18,18 +18,18 @@
         [
             {
                 "Names" : "Engine",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Values" : [ "rabbitmq" ],
                 "Mandatory" : true
             },
             {
                 "Names" : "EngineVersion",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Mandatory" : true
             },
             {
                 "Names" : "IPAddressGroups",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : [ "_localnet" ]
             },
             {
@@ -43,12 +43,12 @@
                     [
                         {
                             "Names" : "Alert",
-                            "Type" : STRING_TYPE,
+                            "Types" : STRING_TYPE,
                             "Default" : "default"
                         },
                         {
                             "Names" : "Network",
-                            "Type" : STRING_TYPE,
+                            "Types" : STRING_TYPE,
                             "Default" : "default"
                         }
                     ]
@@ -58,7 +58,7 @@
                 "Children" : [
                     {
                         "Names" : "Type",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Mandatory" : true
                     }
                 ]
@@ -68,12 +68,12 @@
                 "Children" : [
                     {
                         "Names" : "Enabled",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : false
                     },
                     {
                         "Names" : "StartUpMode",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Values" : ["replace"],
                         "Default" : "replace"
                     }
@@ -86,7 +86,7 @@
             },
             {
                 "Names" : "Encrypted",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
@@ -94,7 +94,7 @@
                 "Children" : [
                     {
                         "Names" : "DayOfTheWeek",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Values" : [
                             "Sunday",
                             "Monday",
@@ -108,19 +108,19 @@
                     },
                     {
                         "Names" : "TimeOfDay",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "00:00"
                     },
                     {
                         "Names" : "TimeZone",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "UTC"
                     }
                 ]
             },
             {
                 "Names" : "AutoMinorUpgrade",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : true
             },
             {
@@ -129,12 +129,12 @@
                 "Children" : [
                     {
                         "Names" : "Username",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "root"
                     },
                     {
                         "Names" : "EncryptionScheme",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Description" : "A prefix appended to link attributes to show encryption status",
                         "Default" : ""
                     },

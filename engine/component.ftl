@@ -86,7 +86,7 @@
     [#local deploymentAttributes = [
         {
             "Names" : "Unit",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Default" : defaultUnit
         } +
         attributeIfTrue(
@@ -96,7 +96,7 @@
         ),
         {
             "Names" : "Group",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Default" : defaultGroup
         } +
         attributeIfTrue(
@@ -106,7 +106,7 @@
         ),
         {
             "Names" : "Priority",
-            "Type" : NUMBER_TYPE,
+            "Types" : NUMBER_TYPE,
             "Default" : defaultPriority
         } +
         attributeIfTrue(

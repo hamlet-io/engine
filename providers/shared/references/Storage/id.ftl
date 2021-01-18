@@ -19,22 +19,22 @@
                     "Children" : [
                         {
                             "Names" : "Device",
-                            "Type" : STRING_TYPE,
+                            "Types" : STRING_TYPE,
                             "Mandatory" : true
                         },
                         {
                             "Names" : "Size",
-                            "Type" : NUMBER_TYPE,
+                            "Types" : NUMBER_TYPE,
                             "Mandatory" : true
                         },
                         {
                             "Names":  "Type",
-                            "Type" : STRING_TYPE,
+                            "Types" : STRING_TYPE,
                             "Default" : "gp2"
                         },
                         {
                             "Names" : "Iops",
-                            "Type" : NUMBER_TYPE
+                            "Types" : NUMBER_TYPE
                         }
                     ]
                 }

@@ -19,7 +19,7 @@
             {
                 "Names" : [ "Extensions", "Fragment", "Container" ],
                 "Description" : "Extensions to invoke as part of component processing",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : []
             },
             {
@@ -32,19 +32,19 @@
                 "Children" : [
                     {
                         "Names" : "Formats",
-                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Types" : ARRAY_OF_STRING_TYPE,
                         "Values" : ["system", "console"],
                         "Default"  : [ "system" ]
                     }
                     {
                         "Names" : "EncryptionScheme",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Values" : ["base64"],
                         "Default" : ""
                     },
                     {
                         "Names" : "CharacterLength",
-                        "Type" : NUMBER_TYPE,
+                        "Types" : NUMBER_TYPE,
                         "Default" : 20
                     }
                 ]
@@ -65,22 +65,22 @@
                 "Children" : [
                     {
                         "Names" : "Decrypt",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Names" : "AsFile",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Names" : "AppData",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Names" : "AppPublic",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     }
                 ]

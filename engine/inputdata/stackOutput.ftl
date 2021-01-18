@@ -16,27 +16,27 @@
     "Attributes" : [
         {
             "Names" : ["Account", "Subscription"],
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Mandatory" : true
         },
         {
             "Names" : "Region",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Mandatory" : true
         },
         {
             "Names" : "Level",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Default" : ""
         },
         {
             "Names" : "DeploymentUnit",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Default" : ""
         },
         {
             "Names" : "*",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         }
     ]
 }]

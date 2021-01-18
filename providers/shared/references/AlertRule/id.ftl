@@ -12,7 +12,7 @@
     attributes=[
         {
             "Names" : "Severity",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Values" : [ "debug", "info", "warn", "error", "fatal"],
             "Mandatory" : true
         },

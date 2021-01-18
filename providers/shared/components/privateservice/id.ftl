@@ -32,7 +32,7 @@
                     {
                         "Names" : "Principals",
                         "Description" : "A list of external entities to share the service with",
-                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Types" : ARRAY_OF_STRING_TYPE,
                         "Default" : []
                     },
                     {
@@ -49,7 +49,7 @@
                 "Children" : [
                     {
                         "Names" : "Events",
-                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Types" : ARRAY_OF_STRING_TYPE,
                         "Values" : [ "Accept", "Connect", "Delete", "Reject" ],
                         "Default" : [ "Accept", "Reject" ]
                     },

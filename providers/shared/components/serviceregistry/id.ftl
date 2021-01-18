@@ -55,21 +55,21 @@
             {
                 "Names" : "RecordTypes",
                 "Description" : "The types of DNS records that an instance can register with the service",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Values" : [ "A", "AAAA", "CNAME", "SRV" ],
                 "Default" : [ "A" ]
             },
             {
                 "Names" : "RecordTTL",
                 "Description" : "DNS record TTL ( in seconds)",
-                "Type" : NUMBER_TYPE,
+                "Types" : NUMBER_TYPE,
                 "Default" : 300
             },
             {
                 "Names" : "RoutingPolicy",
                 "Description" : "How the service returns records to the client",
                 "Values" : [ "AllAtOnce", "OnlyOne" ],
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Default" : "OnlyOne"
             }
         ]

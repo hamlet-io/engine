@@ -12,19 +12,19 @@
     attributes=[
         {
             "Names" : "Id",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "Name",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "Title",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "Description",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "Modules",
@@ -41,17 +41,17 @@
             "Children" : [
                 {
                     "Names" : "Deployment",
-                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Types" : ARRAY_OF_STRING_TYPE,
                     "Default" : []
                 },
                 {
                     "Names" : "Policy",
-                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Types" : ARRAY_OF_STRING_TYPE,
                     "Default" : []
                 },
                 {
                     "Names" : "Placement",
-                    "Type" : STRING_TYPE,
+                    "Types" : STRING_TYPE,
                     "Default" : ""
                 }
             ]
@@ -68,7 +68,7 @@
                     "Children" : [
                         {
                             "Names" : "Environment",
-                            "Type" : STRING_TYPE
+                            "Types" : STRING_TYPE
                         }
                     ]
                 }
@@ -79,14 +79,14 @@
             "Children" : [
                 {
                     "Names" : "Region",
-                    "Type" : STRING_TYPE,
+                    "Types" : STRING_TYPE,
                     "Default" : ""
                 }
             ]
         },
         {
             "Names" : "Domain",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Default" : ""
         },
         {

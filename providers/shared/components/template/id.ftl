@@ -19,13 +19,13 @@
             {
                 "Names" : "RootFile",
                 "Description" : "The name of the root template file in the build aretefact",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Mandatory" : true
             },
             {
                 "Names" : [ "Extensions", "Fragment", "Container" ],
                 "Description" : "Extensions to invoke as part of component processing",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : []
             },
             {
@@ -34,12 +34,12 @@
                 "Children" : [
                     {
                         "Names" : "Key",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Mandatory" : true
                     },
                     {
                         "Names" : "Value",
-                        "Type" : STRING_TYPE
+                        "Types" : STRING_TYPE
                     }
                 ]
             },
@@ -50,7 +50,7 @@
                     {
                         "Names" : "TemplateOutputKey",
                         "Description" : "The name of the template output you want to map to an attribte",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Mandatory" : true
                     },
                     {
@@ -68,14 +68,14 @@
                             PASSWORD_ATTRIBUTE_TYPE,
                             REGION_ATTRIBUTE_TYPE
                         ],
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Mandatory" : true
                     }
                 ]
             },
             {
                 "Names" : "NetworkAccess",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
@@ -90,7 +90,7 @@
                     {
                         "Names" : "Source",
                         "Description" : "The source of the image - registry is the hamlet registry",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Mandatory" : true,
                         "Values" : [ "registry", "url" ],
                         "Default" : "registry"
@@ -102,12 +102,12 @@
                             {
                                 "Names" : "Url",
                                 "Description" : "The Url to the lambda zip file",
-                                "Type" : STRING_TYPE
+                                "Types" : STRING_TYPE
                             },
                             {
                                 "Names" : "ImageHash",
                                 "Description" : "The expected sha1 hash of the Url if empty any will be accepted",
-                                "Type" : STRING_TYPE,
+                                "Types" : STRING_TYPE,
                                 "Default" : ""
                             }
                         ]

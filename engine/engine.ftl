@@ -4,7 +4,7 @@
 
 [#-- Configuration Objects
 
-CodeOnTap reflects each concept present in a typical IT landscape as a
+Hamlet reflects each concept present in a typical IT landscape as a
 configuration object.
 
 Each object has a set of attributes. Framework specific attributes of
@@ -21,7 +21,7 @@ Title and Description are entirely for human consumption and targetted at
 the automated generation of documentation.
 --]
 
-[#assign frameworkObjectAttributes = ["Type", "Id", "Name", "Title", "Description"]]
+[#assign frameworkObjectAttributes = ["Types", "Id", "Name", "Title", "Description"]]
 
 [#function getFrameworkObjectAttributes obj]
     [#return getObjectAttributes(obj, frameworkObjectAttributes)]
@@ -32,7 +32,7 @@ the automated generation of documentation.
 [/#function]
 
 [#function getObjectType obj]
-    [#return obj.Type!""]
+    [#return obj.Types!""]
 [/#function]
 
 [#function getObjectId obj]

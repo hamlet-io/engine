@@ -4,27 +4,27 @@
     [
         {
             "Names" : "MinPerZone",
-            "Type" : NUMBER_TYPE
+            "Types" : NUMBER_TYPE
         },
         {
             "Names" : "MaxPerZone",
-            "Type" : NUMBER_TYPE
+            "Types" : NUMBER_TYPE
         },
         {
             "Names" : "DesiredPerZone",
-            "Type" : NUMBER_TYPE
+            "Types" : NUMBER_TYPE
         },
         {
             "Names" : "MaxCount",
-            "Type" : NUMBER_TYPE
+            "Types" : NUMBER_TYPE
         },
         {
             "Names" : "MinCount",
-            "Type" : NUMBER_TYPE
+            "Types" : NUMBER_TYPE
         },
         {
             "Names" : "DesiredCount",
-            "Type" : NUMBER_TYPE
+            "Types" : NUMBER_TYPE
         }
     ]
 ]
@@ -44,7 +44,7 @@
             "Children" : [
                 {
                     "Names" : "Processor",
-                    "Type" : STRING_TYPE
+                    "Types" : STRING_TYPE
                 }
             ]
         },
@@ -53,7 +53,7 @@
             "Children" : [
                 {
                     "Names" : "Processor",
-                    "Type" : STRING_TYPE
+                    "Types" : STRING_TYPE
                 }
             ]
         },
@@ -62,7 +62,7 @@
             "Children" : [
                 {
                     "Names" : "Processor",
-                    "Type" : STRING_TYPE
+                    "Types" : STRING_TYPE
                 }
             ]
         },
@@ -71,7 +71,7 @@
             "Children" : [
                 {
                     "Names" : "Processor",
-                    "Type" : STRING_TYPE
+                    "Types" : STRING_TYPE
                 }
             ] +
             nodeCountChildConfiguration
@@ -85,7 +85,7 @@
             "Children" : [
                 {
                     "Names" : "Processor",
-                    "Type" : STRING_TYPE
+                    "Types" : STRING_TYPE
                 }
             ] +
             nodeCountChildConfiguration
@@ -95,7 +95,7 @@
             "Children" : [
                 {
                     "Names" : "Processor",
-                    "Type" : STRING_TYPE
+                    "Types" : STRING_TYPE
                 }
             ] +
             nodeCountChildConfiguration
@@ -105,11 +105,11 @@
             "Children" : [
                 {
                     "Names" : "Processor",
-                    "Type" : STRING_TYPE
+                    "Types" : STRING_TYPE
                 },
                 {
                     "Names" : "CountPerZone",
-                    "Type" : NUMBER_TYPE,
+                    "Types" : NUMBER_TYPE,
                     "Default" : 1
                 }
             ]
@@ -119,11 +119,11 @@
             "Children" : [
                 {
                     "Names" : [ "Processor", "DataNodeProcessor" ],
-                    "Type" : STRING_TYPE
+                    "Types" : STRING_TYPE
                 },
                 {
                     "Names" : [ "CountPerZone", "DataNodeCountPerZone" ],
-                    "Type" : NUMBER_TYPE,
+                    "Types" : NUMBER_TYPE,
                     "Default" : 1
                 },
                 {
@@ -131,11 +131,11 @@
                     "Children" : [
                         {
                             "Names" : "Processor",
-                            "Type" : STRING_TYPE
+                            "Types" : STRING_TYPE
                         },
                         {
                             "Names" : "Count",
-                            "Type" : NUMBER_TYPE,
+                            "Types" : NUMBER_TYPE,
                             "Default" : 0
                         }
                     ]
@@ -155,16 +155,16 @@
             "Children" : [
                 {
                     "Names" : "Processor",
-                    "Type" : STRING_TYPE
+                    "Types" : STRING_TYPE
                 },
                 {
                     "Names" : "DesiredCorePerZone",
-                    "Type" : NUMBER_TYPE,
+                    "Types" : NUMBER_TYPE,
                     "Default" : 1
                 },
                 {
                     "Names" : "DesiredTaskPerZone",
-                    "Type" : NUMBER_TYPE,
+                    "Types" : NUMBER_TYPE,
                     "Default" : 1
                 }
             ]

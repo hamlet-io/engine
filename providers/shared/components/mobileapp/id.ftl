@@ -18,7 +18,7 @@
         [
             {
                 "Names" : "Engine",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Default" : "expo",
                 "Values" : ["expo"]
             },
@@ -29,20 +29,20 @@
             },
             {
                 "Names" : "BuildFormats",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : [ "ios", "android" ],
                 "Values" : [ "ios", "android" ]
             },
             {
                 "Names" : [ "Extensions", "Fragment", "Container" ],
                 "Description" : "Extensions to invoke as part of component processing",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : []
             },
             {
                 "Names" : "UseOTAPrefix",
                 "Description" : "Include the OTA Prefix in the OTA Url",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : true
             }
         ]

@@ -18,33 +18,33 @@
         [
             {
                 "Names" : "DelaySeconds",
-                "Type" : NUMBER_TYPE
+                "Types" : NUMBER_TYPE
             },
             {
                 "Names" : "MaximumMessageSize",
-                "Type" : NUMBER_TYPE
+                "Types" : NUMBER_TYPE
             },
             {
                 "Names" : "MessageRetentionPeriod",
-                "Type" : NUMBER_TYPE
+                "Types" : NUMBER_TYPE
             },
             {
                 "Names" : "ReceiveMessageWaitTimeSeconds",
-                "Type" : NUMBER_TYPE
+                "Types" : NUMBER_TYPE
             },
             {
                 "Names" : "DeadLetterQueue",
                 "Children" : [
                     {
                         "Names" : "MaxReceives",
-                        "Type" : NUMBER_TYPE,
+                        "Types" : NUMBER_TYPE,
                         "Default" : 0
                     }
                 ]
             },
             {
                 "Names" : "VisibilityTimeout",
-                "Type" : NUMBER_TYPE
+                "Types" : NUMBER_TYPE
             },
             {
                 "Names" : "Alerts",
@@ -62,7 +62,7 @@
                     [
                         {
                             "Names" : "Alert",
-                            "Type" : STRING_TYPE,
+                            "Types" : STRING_TYPE,
                             "Default" : "default"
                         }
                     ]

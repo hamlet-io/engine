@@ -12,11 +12,11 @@
     attributes=[
         {
             "Names" : "Locations",
-            "Type" : ARRAY_OF_STRING_TYPE
+            "Types" : ARRAY_OF_STRING_TYPE
         },
         {
             "Names" : "Blacklist",
-            "Type" : BOOLEAN_TYPE
+            "Types" : BOOLEAN_TYPE
         }
     ]
 /]

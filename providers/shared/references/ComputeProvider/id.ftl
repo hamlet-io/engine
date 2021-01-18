@@ -27,14 +27,14 @@
                         },
                         {
                             "Names" : "Weight",
-                            "Type" : NUMBER_TYPE,
+                            "Types" : NUMBER_TYPE,
                             "Description" : "The ratio of containers allocated to the provider based on the configured providers",
                             "Default" : 1
                         },
                         {
                             "Names" : "RequiredCount",
                             "Description" : "The minimum count of containers to run on the default provider",
-                            "Type" : NUMBER_TYPE,
+                            "Types" : NUMBER_TYPE,
                             "Default" : 1
                         }
                     ]
@@ -46,13 +46,13 @@
                     "Children" : [
                         {
                             "Names" : "Provider",
-                            "Type" : STRING_TYPE,
+                            "Types" : STRING_TYPE,
                             "Values" : [ "_autoscalegroup", "aws:fargate", "aws:fargatespot" ],
                             "Mandatory" : true
                         },
                         {
                             "Names" : "Weight",
-                            "Type" : NUMBER_TYPE,
+                            "Types" : NUMBER_TYPE,
                             "Description" : "The ratio of containers allocated to the provider based on the configured providers",
                             "Default" : 1
                         }

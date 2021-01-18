@@ -12,23 +12,23 @@
     attributes=[
         {
             "Names" : "Id",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "Name",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "Title",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "Description",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "Category",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "Modules",
@@ -45,36 +45,36 @@
             "Children" : [
                 {
                     "Names" : "Deployment",
-                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Types" : ARRAY_OF_STRING_TYPE,
                     "Default" : []
                 },
                 {
                     "Names" : "Policy",
-                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Types" : ARRAY_OF_STRING_TYPE,
                     "Default" : []
                 }
             ]
         },
         {
             "Names" : "IPAddressGroups",
-            "Type" : ARRAY_OF_STRING_TYPE
+            "Types" : ARRAY_OF_STRING_TYPE
         },
         {
             "Names" : [ "Bastion", "SSH" ],
             "Children" : [
                 {
                     "Names" : "Enabled",
-                    "Type" : BOOLEAN_TYPE,
+                    "Types" : BOOLEAN_TYPE,
                     "Default" : true
                 }
                 {
                     "Names" : "Active",
-                    "Type" : BOOLEAN_TYPE,
+                    "Types" : BOOLEAN_TYPE,
                     "Default" : false
                 },
                 {
                     "Names" : "IPAddressGroups",
-                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Types" : ARRAY_OF_STRING_TYPE,
                     "Default" : []
                 }
             ]
@@ -91,17 +91,17 @@
                         },
                         {
                             "Names" : "Expiration",
-                            "Type" : [ NUMBER_TYPE, STRING_TYPE ]
+                            "Types" : [ NUMBER_TYPE, STRING_TYPE ]
                         }
                     ]
                 },
                 {
                     "Names" : "Expiration",
-                    "Type" : [ NUMBER_TYPE, STRING_TYPE]
+                    "Types" : [ NUMBER_TYPE, STRING_TYPE]
                 },
                 {
                     "Names" : "Offline",
-                    "Type" : [ NUMBER_TYPE, STRING_TYPE]
+                    "Types" : [ NUMBER_TYPE, STRING_TYPE]
                 }
             ]
         },
@@ -113,7 +113,7 @@
                     "Children" : [
                         {
                             "Names" : "Order",
-                            "Type" : ARRAY_OF_STRING_TYPE
+                            "Types" : ARRAY_OF_STRING_TYPE
                         }
                     ]
                 },
@@ -122,34 +122,34 @@
                     "Children" : [
                         {
                             "Names" : "Order",
-                            "Type" : ARRAY_OF_STRING_TYPE
+                            "Types" : ARRAY_OF_STRING_TYPE
                         }
                     ]
                 },
                 {
                     "Names" : "InternetAccess",
-                    "Type" : BOOLEAN_TYPE,
+                    "Types" : BOOLEAN_TYPE,
                     "Default" : true
                 },
                 {
                     "Names" : "DNSSupport",
-                    "Type" : BOOLEAN_TYPE
+                    "Types" : BOOLEAN_TYPE
                 },
                 {
                     "Names" : "DNSHostnames",
-                    "Type" : BOOLEAN_TYPE
+                    "Types" : BOOLEAN_TYPE
                 },
                 {
                     "Names" : "CIDR",
                     "Children" : [
                         {
                             "Names" : "Address",
-                            "Type" : STRING_TYPE,
+                            "Types" : STRING_TYPE,
                             "Default" : ""
                         },
                         {
                             "Names" : "Mask",
-                            "Type" : NUMBER_TYPE,
+                            "Types" : NUMBER_TYPE,
                             "Default" : 0
                         }
                     ]
@@ -161,24 +161,24 @@
             "Children" : [
                 {
                     "Names" : "Enabled",
-                    "Type" : BOOLEAN_TYPE,
+                    "Types" : BOOLEAN_TYPE,
                     "Default" : true
                 },
                 {
                     "Names" : "Hosted",
-                    "Type" : BOOLEAN_TYPE,
+                    "Types" : BOOLEAN_TYPE,
                     "Default" : false
                 },
                 {
                     "Names" : "MultiAZ",
-                    "Type" : BOOLEAN_TYPE,
+                    "Types" : BOOLEAN_TYPE,
                     "Default" : false
                 }
             ]
         },
         {
             "Names" : "RotateKeys",
-            "Type" : BOOLEAN_TYPE,
+            "Types" : BOOLEAN_TYPE,
             "Default" : true
         },
         {
@@ -186,7 +186,7 @@
             "Children" : [
                 {
                     "Names" : "AutoMinorVersionUpgrade",
-                    "Type" : BOOLEAN_TYPE,
+                    "Types" : BOOLEAN_TYPE,
                     "Default" : true
                 }
             ]
@@ -196,7 +196,7 @@
             "Children" : [
                 {
                     "Names" : "IncludeTenant",
-                    "Type" : BOOLEAN_TYPE,
+                    "Types" : BOOLEAN_TYPE,
                     "Default" : false
                 }
             ]
@@ -206,7 +206,7 @@
             "Children" : [
                 {
                     "Names" : "Order",
-                    "Type" : ARRAY_OF_STRING_TYPE
+                    "Types" : ARRAY_OF_STRING_TYPE
                 }
             ]
         },
@@ -218,12 +218,12 @@
                     "Children" : [
                         {
                             "Names" : "Enabled",
-                            "Type" : BOOLEAN_TYPE,
+                            "Types" : BOOLEAN_TYPE,
                             "Default" : false
                         },
                         {
                             "Names" : [ "IPAddressGroups", "IPWhitelist" ],
-                            "Type" : ARRAY_OF_STRING_TYPE,
+                            "Types" : ARRAY_OF_STRING_TYPE,
                             "Default" : []
                         }
                     ]

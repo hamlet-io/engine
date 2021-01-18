@@ -33,25 +33,25 @@
             },
             {
                 "Names" : "EngineVersion",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Mandatory" : true
             },
             {
                 "Names" : "EngineMinorVersion",
-                "Type" : STRING_TYPE
+                "Types" : STRING_TYPE
             },
             {
                 "Names" : "Port",
-                "Type" : STRING_TYPE
+                "Types" : STRING_TYPE
             },
             {
                 "Names" : "IPAddressGroups",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : [ "_localnet" ]
             },
             {
                 "Names" : "Encrypted",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
@@ -59,22 +59,22 @@
                 "Children" : [
                     {
                         "Names" : "Enabled",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : false
                     },
                     {
                         "Names" : "MasterUserName",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "root"
                     },
                     {
                         "Names" : "CharacterLength",
-                        "Type" : NUMBER_TYPE,
+                        "Types" : NUMBER_TYPE,
                         "Default" : 20
                     },
                     {
                         "Names" : "EncryptionScheme",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Description" : "A prefix appended to link attributes to show encryption status",
                         "Default" : ""
                     }
@@ -82,7 +82,7 @@
             },
             {
                 "Names" : "Size",
-                "Type" : NUMBER_TYPE,
+                "Types" : NUMBER_TYPE,
                 "Default" : 20
             },
             {
@@ -90,29 +90,29 @@
                 "Children" : [
                     {
                         "Names" : "RetentionPeriod",
-                        "Type" : NUMBER_TYPE,
+                        "Types" : NUMBER_TYPE,
                         "Default" : 35
                     },
                     {
                         "Names" : "SnapshotOnDeploy",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Names" : "DeleteAutoBackups",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Description" : "Delete automated snapshots when the instance is deleted",
                         "Default" : true
                     },
                     {
                         "Names" : "DeletionPolicy",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Values" : [ "Snapshot", "Delete", "Retain" ],
                         "Default" : "Snapshot"
                     },
                     {
                         "Names" : "UpdateReplacePolicy",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Values" : [ "Snapshot", "Delete", "Retain" ],
                         "Default" : "Snapshot"
                     }
@@ -121,20 +121,20 @@
             {
                 "Names" : "AllowMajorVersionUpgrade",
                 "Description" : "If the EngineVersion paramter is updated allow for major version updates to run",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : true
             },
             {
                 "Names" : "AutoMinorVersionUpgrade",
-                "Type" : BOOLEAN_TYPE
+                "Types" : BOOLEAN_TYPE
             },
             {
                 "Names" : "DatabaseName",
-                "Type" : STRING_TYPE
+                "Types" : STRING_TYPE
             },
             {
                 "Names" : "DBParameters",
-                "Type" : OBJECT_TYPE,
+                "Types" : OBJECT_TYPE,
                 "Default" : {}
             },
             {
@@ -143,22 +143,22 @@
                     [
                         {
                             "Names" : "Processor",
-                            "Type" : STRING_TYPE,
+                            "Types" : STRING_TYPE,
                             "Default" : "default"
                         },
                         {
                             "Names" : "Alert",
-                            "Type" : STRING_TYPE,
+                            "Types" : STRING_TYPE,
                             "Default" : "default"
                         },
                         {
                             "Names" : "Security",
-                            "Type" : STRING_TYPE,
+                            "Types" : STRING_TYPE,
                             "Default" : "default"
                         },
                         {
                             "Names" : "Network",
-                            "Type" : STRING_TYPE,
+                            "Types" : STRING_TYPE,
                             "Default" : "default"
                         }
                     ]
@@ -168,12 +168,12 @@
                 "Children" : [
                     {
                         "Names" : "Enabled",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : false
                     },
                     {
                         "Names" : "StartUpMode",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Values" : ["restore", "replace"],
                         "Default" : "restore"
                     }
@@ -192,7 +192,7 @@
             {
                 "Names" : "AlwaysCreateFromSnapshot",
                 "Description" : "Always create the database from a snapshot",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
@@ -205,14 +205,14 @@
                         "Children" : [
                             {
                                 "Names" : "Enabled",
-                                "Type" : BOOLEAN_TYPE,
+                                "Types" : BOOLEAN_TYPE,
                                 "Default" : false
                             },
                             {
                                 "Names" : "RetentionPeriod",
                                 "Description" : "How long to keep data for ( days )",
                                 "Values" : [ 7, 731 ],
-                                "Type" : NUMBER_TYPE,
+                                "Types" : NUMBER_TYPE,
                                 "Default" : 7
                             }
                         ]
@@ -223,13 +223,13 @@
                         "Children" : [
                             {
                                 "Names" : "Enabled",
-                                "Type" : BOOLEAN_TYPE,
+                                "Types" : BOOLEAN_TYPE,
                                 "Default" : false
                             },
                             {
                                 "Names" : "CollectionInterval",
                                 "Description" : "Metric Collection interval ( seconds )",
-                                "Type" : NUMBER_TYPE,
+                                "Types" : NUMBER_TYPE,
                                 "Values" : [ 0, 1, 5, 10, 15, 30, 60 ],
                                 "Default" : 60
                             }
@@ -253,12 +253,12 @@
                         "Children" : [
                             {
                                 "Names" : "Name",
-                                "Type" : STRING_TYPE,
+                                "Types" : STRING_TYPE,
                                 "Mandatory" : true
                             },
                             {
                                 "Names" : "Value",
-                                "Type" : [ STRING_TYPE, NUMBER_TYPE, BOOLEAN_TYPE],
+                                "Types" : [ STRING_TYPE, NUMBER_TYPE, BOOLEAN_TYPE],
                                 "Mandatory" : true
                             }
                         ]

@@ -31,7 +31,7 @@
                     },
                     {
                         "Names" : "Versioning",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : false
                     }
                 ]
@@ -41,12 +41,12 @@
                 "Children" : [
                     {
                         "Names": "Index",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default": "index.html"
                     },
                     {
                         "Names": "Error",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default": ""
                     }
                 ]
@@ -57,23 +57,23 @@
                 "Children" : [
                     {
                         "Names" : "Enabled",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : false
                     },
                     {
                         "Names" : "Permissions",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Values" : ["ro", "wo", "rw"],
                         "Default" : "ro"
                     },
                     {
                         "Names" : "IPAddressGroups",
-                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Types" : ARRAY_OF_STRING_TYPE,
                         "Default" : [ "_localnet" ]
                     },
                     {
                         "Names" : "Paths",
-                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Types" : ARRAY_OF_STRING_TYPE,
                         "Default" : [ ]
                     }
                 ]
@@ -81,12 +81,12 @@
             {
                 "Names" : [ "Extensions" ],
                 "Description" : "Extensions to invoke as part of component processing",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : []
             },
             {
                 "Names" : "Style",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Description" : "TODO(mfl): Think this can be removed"
             },
             {
@@ -96,7 +96,7 @@
             },
             {
                 "Names" : "CORSBehaviours",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : []
             },
             {
@@ -104,12 +104,12 @@
                 "Children" : [
                     {
                         "Names" : "Prefixes",
-                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Types" : ARRAY_OF_STRING_TYPE,
                         "Default" : [ "" ]
                     },
                     {
                         "Names" : "Enabled",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     }
                 ]

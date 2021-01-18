@@ -18,20 +18,20 @@
         [
             {
                 "Names" : "Engine",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Mandatory" : true
             },
             {
                 "Names" : "EngineVersion",
-                "Type" : STRING_TYPE
+                "Types" : STRING_TYPE
             },
             {
                 "Names" : "Port",
-                "Type" : STRING_TYPE
+                "Types" : STRING_TYPE
             },
             {
                 "Names" : "IPAddressGroups",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : [ "_localnet" ]
             },
             {
@@ -44,7 +44,7 @@
                 "Children" : [
                     {
                         "Names" : "RetentionPeriod",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : ""
                     }
                 ]
@@ -55,17 +55,17 @@
                     [
                         {
                             "Names" : "Processor",
-                            "Type" : STRING_TYPE,
+                            "Types" : STRING_TYPE,
                             "Default" : "default"
                         },
                         {
                             "Names" : "Alert",
-                            "Type" : STRING_TYPE,
+                            "Types" : STRING_TYPE,
                             "Default" : "default"
                         },
                         {
                             "Names" : "Network",
-                            "Type" : STRING_TYPE,
+                            "Types" : STRING_TYPE,
                             "Default" : "default"
                         }
                     ]
@@ -75,12 +75,12 @@
                 "Children" : [
                     {
                         "Names" : "Enabled",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : false
                     },
                     {
                         "Names" : "StartUpMode",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Values" : ["replace"],
                         "Default" : "replace"
                     }

@@ -18,13 +18,13 @@
         [
             {
                 "Names" : "Protocols",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Values" : [ "sftp" ],
                 "Mandatory" : true
             },
             {
                 "Names" : "IPAddressGroups",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : []
             },
             {
@@ -36,17 +36,17 @@
                 "Children" : [
                     {
                         "Names" : "Network",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "default"
                     },
                     {
                         "Names" : "Logging",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "default"
                     },
                     {
                         "Names" : "Security",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "default"
                     }
                 ]

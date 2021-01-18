@@ -12,37 +12,37 @@
     attributes=[
         {
             "Names" : "Id",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "Provider",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Default" : "aws",
             "Description" : "Define which provider this account applies to"
         },
         {
             "Names" : "Name",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "Title",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "Description",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "Profiles",
             "Children" : [
                 {
                     "Names" : "Deployment",
-                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Types" : ARRAY_OF_STRING_TYPE,
                     "Default" : []
                 },
                 {
                     "Names" : "Policy",
-                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Types" : ARRAY_OF_STRING_TYPE,
                     "Default" : []
                 }
             ]
@@ -73,17 +73,17 @@
                 "AWSId",
                 "AzureId"
             ],
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Default" : ""
         },
         {
             "Names" : "Seed",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Mandatory" : true
         },
         {
             "Names" : "CostCentre",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Default" : ""
         },
         {
@@ -94,14 +94,14 @@
                     "Children" : [
                         {
                             "Names" : "DedicatedKey",
-                            "Type" : BOOLEAN_TYPE,
+                            "Types" : BOOLEAN_TYPE,
                             "Default" : false
                         }
                     ]
                 },
                 {
                     "Names" : "LoggingDestinations",
-                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Types" : ARRAY_OF_STRING_TYPE,
                     "Values" : [ "cloudwatch", "s3" ],
                     "Default" : [ "s3" ]
                 }
@@ -115,18 +115,18 @@
                     "Children" : [
                         {
                             "Names" : "Enabled",
-                            "Type" : BOOLEAN_TYPE,
+                            "Types" : BOOLEAN_TYPE,
                             "Default" : false
                         },
                         {
                             "Names" : "EncryptionSource",
-                            "Type" : STRING_TYPE,
+                            "Types" : STRING_TYPE,
                             "Values" : [ "EncryptionService", "aws:kms", "localservice", "aes256" ],
                             "Default" : "EncryptionService"
                         }
                         {
                             "Names" : "Encryption",
-                            "Type" : BOOLEAN_TYPE,
+                            "Types" : BOOLEAN_TYPE,
                             "Default" : false
                         }
                     ]
@@ -136,7 +136,7 @@
                     "Children" : [
                         {
                             "Names" : "Enabled",
-                            "Type" : BOOLEAN_TYPE,
+                            "Types" : BOOLEAN_TYPE,
                             "Default" : false
                         }
                     ]
@@ -151,7 +151,7 @@
                     "Children" : [
                         {
                             "Names" : "Enabled",
-                            "Type" : BOOLEAN_TYPE,
+                            "Types" : BOOLEAN_TYPE,
                             "Default" : false
                         }
                     ]
@@ -160,7 +160,7 @@
         },
         {
             "Names" : "aws:ecsAccountSettings",
-            "Type" : OBJECT_TYPE,
+            "Types" : OBJECT_TYPE,
             "Default" : {
                 "serviceLongArnFormat" : true,
                 "taskLongArnFormat" : true,
@@ -173,11 +173,11 @@
             "Children" : [
                 {
                     "Names" : "Expiration",
-                    "Type" : [ NUMBER_TYPE, STRING_TYPE ]
+                    "Types" : [ NUMBER_TYPE, STRING_TYPE ]
                 },
                 {
                     "Names" : "Offline",
-                    "Type" : [ NUMBER_TYPE, STRING_TYPE ]
+                    "Types" : [ NUMBER_TYPE, STRING_TYPE ]
                 }
             ]
         },
@@ -189,7 +189,7 @@
                     "Children" : [
                         {
                             "Names" : "IncludeSeed",
-                            "Type" : BOOLEAN_TYPE,
+                            "Types" : BOOLEAN_TYPE,
                             "Default" : false
                         }
                     ]
@@ -202,7 +202,7 @@
             "Children" : [
                 {
                     "Names" : "AWSId",
-                    "Type" : STRING_TYPE,
+                    "Types" : STRING_TYPE,
                     "Mandatory" : true
                 }
             ]
@@ -215,13 +215,13 @@
                     "Children" : [
                         {
                             "Names" : "AWSAccounts",
-                            "Type" : ARRAY_OF_STRING_TYPE,
+                            "Types" : ARRAY_OF_STRING_TYPE,
                             "Default" : []
                         }
                     ],
                     "Names" : "ReplicaRegions",
                     "Description" : "A list of regions to replicate registries to",
-                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Types" : ARRAY_OF_STRING_TYPE,
                     "Default" : []
                 }
             ]
@@ -231,7 +231,7 @@
             "Children" : [
                 {
                     "Names" : "Expiration",
-                    "Type" : NUMBER_TYPE
+                    "Types" : NUMBER_TYPE
                 }
             ]
         },
@@ -246,14 +246,14 @@
                         {
                             "Names" : "Name",
                             "Description" : "Name of the ruleset",
-                            "Type" : STRING_TYPE,
+                            "Types" : STRING_TYPE,
                             "Default" : "account-default"
                         }
                     ]
                 },
                 {
                     "Names" : "IPAddressGroups",
-                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Types" : ARRAY_OF_STRING_TYPE,
                     "Default" : []
                 }
             ]

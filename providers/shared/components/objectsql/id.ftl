@@ -28,13 +28,13 @@
             },
             {
                 "Names" : "Encrypted",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
                 "Names" : "ScanLimitSize",
                 "Description" : "The upper limit (cutoff) for the amount of bytes a single query is allowed to scan",
-                "Type" : NUMBER_TYPE,
+                "Types" : NUMBER_TYPE,
                 "Default" : -1
             }
         ]

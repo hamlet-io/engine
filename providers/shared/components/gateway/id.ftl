@@ -19,12 +19,12 @@
         [
             {
                 "Names" : "Active",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
                 "Names" : "Engine",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Values" : [ "natgw", "igw", "vpcendpoint", "privateservice", "endpoint", "router", "private" ],
                 "Required" : true
             },
@@ -36,14 +36,14 @@
             {
                 "Names" : "SourceIPAddressGroups",
                 "Description" : "IP Address Groups which can access this gateway",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : [ "_localnet" ]
             },
             {
                 "Names" : "EndpointScope",
                 "Description" : "The scope of the endpoint gateway component",
                 "Values" : [ "network", "zone" ],
-                "Type" : STRING_TYPE
+                "Types" : STRING_TYPE
             },
             {
                 "Names" : "EndpointType",
@@ -57,12 +57,12 @@
                 "Children" : [
                     {
                         "Names" : "Enabled",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Names" : "ASN",
-                        "Type" : NUMBER_TYPE,
+                        "Types" : NUMBER_TYPE,
                         "Default" : 65000
                     }
                 ]
@@ -75,12 +75,12 @@
                     {
                         "Names" : "Zone",
                         "Description" : "The zone the endpoint belongs to",
-                        "Type" : STRING_TYPE
+                        "Types" : STRING_TYPE
                     },
                     {
                         "Names" : "Attribute",
                         "Description" : "The attribute of the endpoint",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Mandatory" : true
                     },
                     {
@@ -93,13 +93,13 @@
             {
                 "Names" : "DestinationPorts",
                 "Description" : "The ports of services avaialble from the private service",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : [ "any" ]
             },
             {
                 "Names" : "DNSSupport",
                 "Description" : "Configure a private DNS zone for the serivces offerred by the endpoint",
-                "Type" : [ STRING_TYPE, BOOLEAN_TYPE ],
+                "Types" : [ STRING_TYPE, BOOLEAN_TYPE ],
                 "Values" : [ "UseNetworkConfig", "Disabled", "Enabled", true, false ],
                 "Default" : "UseNetworkConfig"
             },
@@ -138,25 +138,25 @@
         [
             {
                 "Names" : "Active",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
                 "Names" : "IPAddressGroups",
                 "Description" : "An IP Address Group reference",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : []
             },
             {
                 "Names" : "NetworkEndpointGroups",
                 "Description" : "A cloud provider service group reference",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : []
             },
             {
                 "Names" : "DynamicRouting",
                 "Description" : "Use dynamic routing to determine destinations",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : true
             },
             {
@@ -169,7 +169,7 @@
                 "Children" : [
                     {
                         "Names" : "Security",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "default"
                     }
                 ]

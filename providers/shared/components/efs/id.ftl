@@ -19,7 +19,7 @@
         [
             {
                 "Names" : "Encrypted",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : true
             },
             {
@@ -27,14 +27,14 @@
                 "Children" : [
                     {
                         "Names" : "Network",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "default"
                     }
                 ]
             },
             {
                 "Names" : "IPAddressGroups",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : [ "_localnet" ]
             },
             {
@@ -58,7 +58,7 @@
         [
             {
                 "Names" : "Directory",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Mandatory" : true
             },
             {
@@ -74,7 +74,7 @@
                     {
                         "Names" : "Enforced",
                         "Description" : "Enforce these ownership details on all files",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : false
                     },
                     {

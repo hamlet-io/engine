@@ -40,19 +40,19 @@
         [
             {
                 "Names" : "DeploymentType",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Values" : ["EDGE", "REGIONAL"],
                 "Default" : "REGIONAL"
             },
             {
                 "Names" : [ "Extensions", "Fragment", "Container" ],
                 "Description" : "Extensions to invoke as part of component processing",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : []
             },
             {
                 "Names" : "Handler",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Mandatory" : true
             },
             {
@@ -77,12 +77,12 @@
             },
             {
                 "Names" : ["Memory", "MemorySize"],
-                "Type" : NUMBER_TYPE,
+                "Types" : NUMBER_TYPE,
                 "Default" : 0
             },
             {
                 "Names" : "RunTime",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Values" : [
                     "dotnetcore1.0",
                     "dotnetcore2.1",
@@ -110,34 +110,34 @@
                 "Children" : [
                     {
                         "Names" : "Expression",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "rate(6 minutes)"
                     },
                     {
                         "Names" : "InputPath",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "/healthcheck"
                     },
                     {
                         "Names" : "Input",
-                        "Type" : OBJECT_TYPE,
+                        "Types" : OBJECT_TYPE,
                         "Default" : {}
                     }
                 ]
             },
             {
                 "Names" : "Timeout",
-                "Type" : NUMBER_TYPE,
+                "Types" : NUMBER_TYPE,
                 "Default" : 0
             },
             {
                 "Names" : "VPCAccess",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : true
             },
             {
                 "Names" : ["Encrypted", "UseSegmentKey"],
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
@@ -145,29 +145,29 @@
                 "Children" : [
                     {
                         "Names" : "Decrypt",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Names" : "AsFile",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Names" : "AppData",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Names" : "AppPublic",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     }
                 ]
             },
             {
                 "Names" : "PredefineLogGroup",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
@@ -197,17 +197,17 @@
                     [
                         {
                             "Names" : "Alert",
-                            "Type" : STRING_TYPE,
+                            "Types" : STRING_TYPE,
                             "Default" : "default"
                         },
                         {
                             "Names" : "Network",
-                            "Type" : STRING_TYPE,
+                            "Types" : STRING_TYPE,
                             "Default" : "default"
                         },
                         {
                             "Names" : "Logging",
-                            "Type" : STRING_TYPE,
+                            "Types" : STRING_TYPE,
                             "Default" : "default"
                         }
                     ]
@@ -218,7 +218,7 @@
             },
             {
                 "Names" : "ReservedExecutions",
-                "Type" : NUMBER_TYPE,
+                "Types" : NUMBER_TYPE,
                 "Default" : -1
             },
             {
@@ -228,7 +228,7 @@
                     {
                         "Names" : "Source",
                         "Description" : "The source of the image - registry is the hamlet registry",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Mandatory" : true,
                         "Values" : [ "registry", "url" ],
                         "Default" : "registry"
@@ -240,12 +240,12 @@
                             {
                                 "Names" : "Url",
                                 "Description" : "The Url to the lambda zip file",
-                                "Type" : STRING_TYPE
+                                "Types" : STRING_TYPE
                             },
                             {
                                 "Names" : "ImageHash",
                                 "Description" : "The expected sha1 hash of the Url if empty any will be accepted",
-                                "Type" : STRING_TYPE,
+                                "Types" : STRING_TYPE,
                                 "Default" : ""
                             }
                         ]

@@ -12,11 +12,11 @@
     attributes=[
         {
             "Names" : "Rules",
-            "Type" : ARRAY_OF_OBJECT_TYPE
+            "Types" : ARRAY_OF_OBJECT_TYPE
         },
         {
             "Names" : "DefaultAction",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Values" : [ "ALLOW", "BLOCK"]
         }
     ]

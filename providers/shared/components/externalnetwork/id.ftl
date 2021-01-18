@@ -18,12 +18,12 @@
         [
             {
                 "Names" : "IPAddressGroups",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : []
             },
             {
                 "Names" : "Ports",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : [ "any" ]
             },
             {
@@ -31,13 +31,13 @@
                 "Children" : [
                     {
                         "Names" : "Enabled",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Names" : "ASN",
                         "Description" : "The BGP ASN (Autonomous system) Id of the external network",
-                        "Type" : NUMBER_TYPE,
+                        "Types" : NUMBER_TYPE,
                         "Default" : 64512
                     }
                 ]
@@ -58,7 +58,7 @@
         [
             {
                 "Names" : "Engine",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Values" : [ "SiteToSite" ],
                 "Default" : "SiteToSite"
             },
@@ -68,7 +68,7 @@
                     {
                         "Names" : "PublicIP",
                         "Description" : "The public IP address of the VPN tunnel",
-                        "Type" : STRING_TYPE
+                        "Types" : STRING_TYPE
                     }
                 ]
             },
@@ -82,7 +82,7 @@
                 "Children" : [
                     {
                         "Names" : "Security",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "default"
                     },
                     {

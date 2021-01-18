@@ -17,7 +17,7 @@
     attributes=[
         {
             "Names" : "Engine",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         }
     ] +
     containerHostAttributes

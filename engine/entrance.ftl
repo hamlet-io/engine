@@ -13,7 +13,7 @@
         "Children" : [
             {
                 "Names" : "Names",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Mandatory" : true
             }
         ]
@@ -25,7 +25,7 @@
                 "Names" : "Output",
                 "Children" : [
                     {
-                        "Names" : "Type",
+                        "Names" : "Types",
                         "Mandatory" : true
                     },
                     {
@@ -46,7 +46,7 @@
             {
                 "Names" : "Level",
                 "Mandatory" : true,
-                "Type" : STRING_TYPE
+                "Types" : STRING_TYPE
             }
         ]
     },
@@ -56,7 +56,7 @@
             {
                 "Names" : "Id",
                 "Mandatory" : true,
-                "Type" : STRING_TYPE
+                "Types" : STRING_TYPE
             }
         ]
     }

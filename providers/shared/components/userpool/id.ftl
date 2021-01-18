@@ -28,44 +28,44 @@
         [
             {
                 "Names" : "MFA",
-                "Type" : [ BOOLEAN_TYPE, STRING_TYPE],
+                "Types" : [ BOOLEAN_TYPE, STRING_TYPE],
                 "Values" : [ "true", true, "false", false, "optional" ],
                 "Default" : false
             },
             {
                 "Names" : "MFAMethods",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Values" : [ "SMS", "SoftwareToken" ],
                 "Default" : [ "SMS" ]
             },
             {
                 "Names" : "AdminCreatesUser",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : true
             },
             {
                 "Names" : "UnusedAccountTimeout",
-                "Type" : NUMBER_TYPE,
+                "Types" : NUMBER_TYPE,
                 "Default" : 1
             },
             {
                 "Names" : "VerifyEmail",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : true
             },
             {
                 "Names" : "VerifyPhone",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
                 "Names" : "LoginAliases",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Description" : "Deprecated - use Username.Aliases"
             },
             {
                 "Names" : "AuthorizationHeader",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Default" : "Authorization"
             },
             {
@@ -73,18 +73,18 @@
                 "Children" : [
                     {
                         "Names" : "CaseSensitive",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Names" : "Attributes",
-                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Types" : ARRAY_OF_STRING_TYPE,
                         "Values" : [ "email", "phone_number" ],
                         "Default" : [ ]
                     },
                     {
                         "Names" : "Aliases",
-                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Types" : ARRAY_OF_STRING_TYPE,
                         "Values" : [ "phone_number", "email", "preferred_username" ],
                         "Default" : ["email"]
                     }
@@ -95,32 +95,32 @@
                 "Children" : [
                     {
                         "Names" : "AllowUserRecovery",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Names" : "MinimumLength",
-                        "Type" : NUMBER_TYPE,
+                        "Types" : NUMBER_TYPE,
                         "Default" : 10
                     },
                     {
                         "Names" : "Lowercase",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Names" : "Uppercase",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Names" : "Numbers",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Names" : "SpecialCharacters",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     }
                 ]
@@ -132,7 +132,7 @@
             },
             {
                 "Names" : "DefaultClient",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Description" : "Enable default client mode which creates app client for the user pool and aligns with legacy config",
                 "Default" : true
             },
@@ -143,17 +143,17 @@
                     {
                         "Names" : "DataType",
                         "Values" : [ "String", "Number", "DateTime","Boolean"],
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "String"
                     },
                     {
                         "Names" : "Mutable",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Names" : "Required",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     }
                 ]
@@ -173,14 +173,14 @@
                 "Children" : [
                     {
                         "Names" : "UserDeviceTracking",
-                        "Type" : [ BOOLEAN_TYPE, STRING_TYPE],
+                        "Types" : [ BOOLEAN_TYPE, STRING_TYPE],
                         "Values" : [ "true", true, "false", false, "optional" ],
                         "Default" : "optional"
                     },
                     {
                         "Names" : "ActivityTracking",
                         "Description" : "Apply authentication validation based on activity",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Values" : [ "disabled", "audit", "enforced" ],
                         "Default" : "disabled"
                     }
@@ -190,7 +190,7 @@
                 "Names" : "VerificationEmailType",
                 "Description" : "The default verification email option for message customization.",
                 "Values" : [ "code", "link"],
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Default" : "code"
             }
         ]
@@ -212,19 +212,19 @@
                 "Children" : [
                     {
                         "Names" : "Scopes",
-                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Types" : ARRAY_OF_STRING_TYPE,
                         "Values" : [ "phone", "email", "openid", "aws.cognito.signin.user.admin", "profile" ],
                         "Default" : [ "email", "openid" ]
                     },
                     {
                         "Names" : "Flows",
-                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Types" : ARRAY_OF_STRING_TYPE,
                         "Values" : [ "code", "implicit", "client_credentials" ],
                         "Default" : [ "code" ]
                     },
                     {
                         "Names" : "Enabled",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     }
                 ]
@@ -232,25 +232,25 @@
             {
                 "Names" : "ClientGenerateSecret",
                 "Description" : "Generate a client secret which musht be provided in auth calls",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
                 "Names" : "EncryptionScheme",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Description" : "A prefix appended to attributes to show encryption status",
                 "Default" : ""
             },
             {
                 "Names" : "ClientTokenValidity",
                 "Description" : "Time in days that the refresh token is valid for",
-                "Type" : NUMBER_TYPE,
+                "Types" : NUMBER_TYPE,
                 "Default" : 30
             },
             {
                 "Names" : "AuthProviders",
                 "Description" : "A list of user pool auth providers which can use this client",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : [ "COGNITO" ]
             },
             {
@@ -260,13 +260,13 @@
                 "Children" : [
                     {
                         "Names" : "Name",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Description" : "The name of a userpool resource configured for this pool",
                         "Mandatory" : true
                     },
                     {
                         "Names" : "Scopes",
-                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Types" : ARRAY_OF_STRING_TYPE,
                         "Description" : "A list of scopes that the resource offers",
                         "Mandatory" : true
                     }
@@ -297,7 +297,7 @@
             {
                 "Names" : "Engine",
                 "Description" : "The authentication provider type",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Values" : [ "SAML", "OIDC", "Facebook", "Google", "Apple", "Amazon" ],
                 "Mandatory" : true
             },
@@ -309,7 +309,7 @@
             },
             {
                 "Names" : "EncryptionScheme",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Default" : "base64:"
             },
             {
@@ -319,20 +319,20 @@
                     {
                         "Names" : "UserPoolAttribute",
                         "Description" : "The name of the attribute in the user pool schema - the id of the mapping will be used if not provided",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : ""
                     },
                     {
                         "Names" : "ProviderAttribute",
                         "Description" : "The provider attribute which will be mapped",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Mandatory" : true
                     }
                 ]
             },
             {
                 "Names" : "IDPIdentifiers",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Description" : "A list of identifiers that can be used to automatically pick the IDP - E.g. email domain",
                 "Default" : []
             },
@@ -342,12 +342,12 @@
                     {
                         "Names" : "MetadataUrl",
                         "Description" : "The SAML metadataUrl endpoint",
-                        "Type" : STRING_TYPE
+                        "Types" : STRING_TYPE
                     },
                     {
                         "Names" : "EnableIDPSignOut",
                         "Description" : "Enable the IDP Signout Flow",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     }
                 ]
@@ -357,42 +357,42 @@
                 "Children" : [
                     {
                         "Names" : "ClientId",
-                        "Type" : STRING_TYPE
+                        "Types" : STRING_TYPE
                     },
                     {
                         "Names" : "ClientSecret",
-                        "Type" : STRING_TYPE
+                        "Types" : STRING_TYPE
                     },
                     {
                         "Names" : "Scopes",
-                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Types" : ARRAY_OF_STRING_TYPE,
                         "Default" : [ "openid", "email" ]
                     },
                     {
                         "Names" : "AttributesHttpMethod",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Values" : [ "GET", "POST" ],
                         "Default" : "GET"
                     },
                     {
                         "Names" : "Issuer",
-                        "Type" : STRING_TYPE
+                        "Types" : STRING_TYPE
                     },
                     {
                         "Names" : "AuthorizeUrl",
-                        "Type" : STRING_TYPE
+                        "Types" : STRING_TYPE
                     },
                     {
                         "Names" : "TokenUrl",
-                        "Type" : STRING_TYPE
+                        "Types" : STRING_TYPE
                     },
                     {
                         "Names" : "AttributesUrl",
-                        "Type" : STRING_TYPE
+                        "Types" : STRING_TYPE
                     },
                     {
                         "Names" : "JwksUrl",
-                        "Type" : STRING_TYPE
+                        "Types" : STRING_TYPE
                     }
                 ]
             },
@@ -401,20 +401,20 @@
                 "Children" : [
                     {
                         "Names" : "ClientId",
-                        "Type" : STRING_TYPE
+                        "Types" : STRING_TYPE
                     },
                     {
                         "Names" : "ClientSecret",
-                        "Type" : STRING_TYPE
+                        "Types" : STRING_TYPE
                     },
                     {
                         "Names" : "Scopes",
-                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Types" : ARRAY_OF_STRING_TYPE,
                         "Default" : [ "email", "public_profile" ]
                     },
                     {
                         "Names" : "APIVersion",
-                        "Type" : STRING_TYPE
+                        "Types" : STRING_TYPE
                     }
                 ]
             },
@@ -423,15 +423,15 @@
                 "Children" : [
                     {
                         "Names" : "ClientId",
-                        "Type" : STRING_TYPE
+                        "Types" : STRING_TYPE
                     },
                     {
                         "Names" : "ClientSecret",
-                        "Type" : STRING_TYPE
+                        "Types" : STRING_TYPE
                     },
                     {
                         "Names" : "Scopes",
-                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Types" : ARRAY_OF_STRING_TYPE,
                         "Default" : [ "profile" ]
                     }
                 ]
@@ -441,15 +441,15 @@
                 "Children" : [
                     {
                         "Names" : "ClientId",
-                        "Type" : STRING_TYPE
+                        "Types" : STRING_TYPE
                     },
                     {
                         "Names" : "ClientSecret",
-                        "Type" : STRING_TYPE
+                        "Types" : STRING_TYPE
                     },
                     {
                         "Names" : "Scopes",
-                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Types" : ARRAY_OF_STRING_TYPE,
                         "Default" : [ "openid", "profile", "email"  ]
                     }
                 ]
@@ -459,23 +459,23 @@
                 "Children" : [
                     {
                         "Names" : "ClientId",
-                        "Type" : STRING_TYPE
+                        "Types" : STRING_TYPE
                     },
                     {
                         "Names" : "TeamId",
-                        "Type" : STRING_TYPE
+                        "Types" : STRING_TYPE
                     },
                     {
                         "Names" : "KeyId",
-                        "Type" : STRING_TYPE
+                        "Types" : STRING_TYPE
                     },
                     {
                         "Names" : "PrivateKey",
-                        "Type" : STRING_TYPE
+                        "Types" : STRING_TYPE
                     },
                     {
                         "Names" : "Scopes",
-                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Types" : ARRAY_OF_STRING_TYPE,
                         "Default" : [ "email", "name"  ]
                     }
                 ]
@@ -521,7 +521,7 @@
                     {
                         "Names" : "UseProvidedScopes",
                         "Description" : "Use Scopes provided by the server component if available",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     }
                 ]
@@ -534,12 +534,12 @@
                     {
                         "Names" : "Name",
                         "Description" : "The name of the scope which is passed to the server",
-                        "Type" : STRING_TYPE
+                        "Types" : STRING_TYPE
                     },
                     {
                         "Names" : "Description",
                         "Description" : "A short description of the scope and what it does",
-                        "Type" : STRING_TYPE
+                        "Types" : STRING_TYPE
                     }
                 ]
             }

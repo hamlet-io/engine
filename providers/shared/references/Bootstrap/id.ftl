@@ -12,11 +12,11 @@
     attributes=[
         {
             "Names" : "ScriptStore",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "Prefix",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "InitScript",
@@ -28,39 +28,39 @@
             "Children" : [
                 {
                     "Names" : "Name",
-                    "Type" : STRING_TYPE
+                    "Types" : STRING_TYPE
                 },
                 {
                     "Names" : "Version",
-                    "Type" : STRING_TYPE
+                    "Types" : STRING_TYPE
                 }
             ]
         },
         {
             "Names" : "Index",
             "Description" : "Determines script execution sequence.",
-            "Type" : NUMBER_TYPE
+            "Types" : NUMBER_TYPE
         },
         {
             "Names" : "Type",
             "Children" : [
                 {
                     "Names" : "Name",
-                    "Type" : STRING_TYPE
+                    "Types" : STRING_TYPE
                 },
                 {
                     "Names" : "HandlerVersion",
-                    "Type" : STRING_TYPE
+                    "Types" : STRING_TYPE
                 }
             ]
         }
         {
             "Names" : "Publisher",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "AutoUpgradeOnMinorVersion",
-            "Type" : BOOLEAN_TYPE
+            "Types" : BOOLEAN_TYPE
         },
         {
             "Names" : "Settings",
@@ -68,12 +68,12 @@
             "Children" : [
                 {
                     "Names" : "Key",
-                    "Type" : STRING_TYPE,
+                    "Types" : STRING_TYPE,
                     "Mandatory" : true
                 },
                 {
                     "Names" : "Value",
-                    "Type" : ANY_TYPE,
+                    "Types" : ANY_TYPE,
                     "Mandatory" : true
                 }
             ]
@@ -84,12 +84,12 @@
             "Children" : [
                 {
                     "Names" : "Key",
-                    "Type" : STRING_TYPE,
+                    "Types" : STRING_TYPE,
                     "Mandatory" : true
                 },
                 {
                     "Names" : "Value",
-                    "Type" : ANY_TYPE,
+                    "Types" : ANY_TYPE,
                     "Mandatory" : true
                 }
             ]

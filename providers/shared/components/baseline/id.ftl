@@ -138,7 +138,7 @@
         [
             {
                 "Names" : "Active",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
@@ -146,7 +146,7 @@
                 "Children" : [
                     {
                         "Names" : "Length",
-                        "Type" : NUMBER_TYPE,
+                        "Types" : NUMBER_TYPE,
                         "Default" : 10
                     }
                 ]
@@ -175,7 +175,7 @@
         [
             {
                 "Names" : "Role",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Values" : [ "appdata", "operations", "staticWebsite" ],
                 "Mandatory" : true
             },
@@ -204,7 +204,7 @@
             },
             {
                 "Names" : "Versioning",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
@@ -226,12 +226,12 @@
                 "Children" : [
                     {
                         "Names" : "Prefixes",
-                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Types" : ARRAY_OF_STRING_TYPE,
                         "Default" : [ "" ]
                     },
                     {
                         "Names" : "Enabled",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     }
                 ]
@@ -263,13 +263,13 @@
         [
             {
                 "Names" : "Engine",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Values" : [ "cmk", "ssh", "oai", "cmk-account" ],
                 "Mandatory" : true
             },
             {
                 "Names" : "IPAddressGroups",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : ["_global"]
             },
             {

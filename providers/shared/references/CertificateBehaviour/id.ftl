@@ -12,32 +12,32 @@
     attributes=[
         {
             "Names" : "External",
-            "Type" : BOOLEAN_TYPE
+            "Types" : BOOLEAN_TYPE
         },
         {
             "Names" : "Wildcard",
-            "Type" : BOOLEAN_TYPE
+            "Types" : BOOLEAN_TYPE
         },
         {
             "Names" : "IncludeInHost",
             "Children" : [
                 {
                     "Names" : "Product",
-                    "Type" : BOOLEAN_TYPE
+                    "Types" : BOOLEAN_TYPE
                 },
                 {
                     "Names" : "Segment",
-                    "Type" : BOOLEAN_TYPE
+                    "Types" : BOOLEAN_TYPE
                 },
                 {
                     "Names" : "Tier",
-                    "Type" : BOOLEAN_TYPE
+                    "Types" : BOOLEAN_TYPE
                 }
             ]
         },
         {
             "Names" : "HostParts",
-            "Type" : ARRAY_OF_STRING_TYPE
+            "Types" : ARRAY_OF_STRING_TYPE
         }
     ]
 /]

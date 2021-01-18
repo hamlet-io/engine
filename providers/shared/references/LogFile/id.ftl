@@ -12,16 +12,16 @@
     attributes=[
         {
             "Names" : "FilePath",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Mandatory" : true
         },
         {
             "Names" : "TimeFormat",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "MultiLinePattern",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         }
     ]
 /]
