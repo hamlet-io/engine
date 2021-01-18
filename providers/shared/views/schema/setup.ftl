@@ -41,8 +41,7 @@
                         schemaComponentAttributes,
                         [{
                             "Names" : subComponent.Component,
-                            "Ref" : true,
-                            "Path" : formatPath(false, "definitions", subComponent.Type)
+                            "Component" : subComponent.Type
                         }],
                         ADD_COMBINE_BEHAVIOUR)]
 
@@ -82,7 +81,7 @@
                             formatJsonSchemaFromComposite(
                                 {
                                     "Names" : configuration.Type.Plural,
-                                    "Type" : OBJECT_TYPE,
+                                    "Types" : OBJECT_TYPE,
                                     "SubObjects" : true,
                                     "Children" : configuration.Attributes
                                 },
