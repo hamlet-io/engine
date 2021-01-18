@@ -12,7 +12,7 @@
     attributes=[
         {
             "Names" : "Engine",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Values" : [ "local", "github" ]
         }
         {
@@ -20,7 +20,7 @@
             "Children" : [
                 {
                     "Names" : "Prefix",
-                    "Type" : STRING_TYPE
+                    "Types" : STRING_TYPE
                 }
             ]
         },
@@ -29,15 +29,15 @@
             "Children" : [
                 {
                     "Names" : "Directory",
-                    "Type" : STRING_TYPE
+                    "Types" : STRING_TYPE
                 },
                 {
                     "Names" : "Repository",
-                    "Type" : STRING_TYPE
+                    "Types" : STRING_TYPE
                 },
                 {
                     "Names" : "Branch",
-                    "Type" : STRING_TYPE
+                    "Types" : STRING_TYPE
                 }
             ]
         }

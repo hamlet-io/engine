@@ -18,19 +18,19 @@
         [
             {
                 "Names" : "Active",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
                 "Names" : "OS",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Values" : ["linux"],
                 "Default" : "linux"
             },
             {
                 "Names" : [ "Extensions", "Fragment", "Container" ],
                 "Description" : "Extensions to invoke as part of component processing",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : []
             },
             {
@@ -44,7 +44,7 @@
                     [
                         {
                             "Names" : "Processor",
-                            "Type" : STRING_TYPE,
+                            "Types" : STRING_TYPE,
                             "Default" : "default"
                         },
                         {
@@ -54,7 +54,7 @@
                         },
                         {
                             "Names" : "Logging",
-                            "Type" : STRING_TYPE,
+                            "Types" : STRING_TYPE,
                             "Default" : "default"
                         }
                     ]
@@ -68,22 +68,22 @@
                 "Children" : [
                     {
                         "Names" : "Decrypt",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : false
                     },
                     {
                         "Names" : "AsFile",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : false
                     },
                     {
                         "Names" : "AppData",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : false
                     },
                     {
                         "Names" : "AppPublic",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : false
                     }
                 ]

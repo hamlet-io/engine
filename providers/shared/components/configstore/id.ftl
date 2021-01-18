@@ -19,7 +19,7 @@
             {
                 "Names" : [ "Extensions", "Fragment", "Container" ],
                 "Description" : "Extensions to invoke as part of component processing",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : []
             },
             {
@@ -29,7 +29,7 @@
             {
                 "Names" : "SecondaryKey",
                 "Description" : "Uses the name of the branch to provide a secondary sort key on branches - id being the primary",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : false
             }
         ]
@@ -67,7 +67,7 @@
                     {
                         "Names" : "InitialValue",
                         "Description" : "The initial value that will be applied to the state",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "-"
                     }
                 ]

@@ -139,23 +139,23 @@
             "Children" : [
                 {
                     "Names" : ["Type", "type"],
-                    "Type" : STRING_TYPE,
+                    "Types" : STRING_TYPE,
                     "Values" : ["basic", "http", "apiKey", "oauth2", "openIdConnect"],
                     "Default" : "apiKey"
                 },
                 {
                     "Names" : ["Header", "name"],
-                    "Type" : STRING_TYPE
+                    "Types" : STRING_TYPE
                 },
                 {
                     "Names" : ["In", "in"],
-                    "Type" : STRING_TYPE,
+                    "Types" : STRING_TYPE,
                     "Values" : ["header", "query", "cookie"],
                     "Default" : "header"
                 },
                 {
                     "Names" : "AuthType",
-                    "Type" : STRING_TYPE
+                    "Types" : STRING_TYPE
                 },
                 {
                     "Names" : ["Authorizer", "Authoriser"],
@@ -163,31 +163,31 @@
                     "Children" : [
                         {
                             "Names" : "Type",
-                            "Type" : STRING_TYPE,
+                            "Types" : STRING_TYPE,
                             "Values" : ["token", "request", "cognito_user_pools"],
                             "Mandatory" : true
                         },
                         {
                             "Names" : "Variable",
-                            "Type" : STRING_TYPE
+                            "Types" : STRING_TYPE
                         },
                         {
                             "Names" : "TTL",
-                            "Type" : NUMBER_TYPE,
+                            "Types" : NUMBER_TYPE,
                             "Default" : 300
                         },
                         {
                             "Names" : "ValidityExpression",
-                            "Type" : STRING_TYPE,
+                            "Types" : STRING_TYPE,
                             "Default" : r"^[ \t]*[a-zA-Z0-9\-_]+[ \t]+[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+[ \t]*$"
                         },
                         {
                             "Names" : "Arns",
-                            "Type" : ARRAY_OF_STRING_TYPE
+                            "Types" : ARRAY_OF_STRING_TYPE
                         },
                         {
                             "Names" : "Default",
-                            "Type" : BOOLEAN_TYPE
+                            "Types" : BOOLEAN_TYPE
                         }
                     ]
                 }
@@ -195,7 +195,7 @@
         },
         {
             "Names" : ["BinaryTypes"],
-            "Type" : ARRAY_OF_STRING_TYPE,
+            "Types" : ARRAY_OF_STRING_TYPE,
             "Default" : []
         },
         {
@@ -203,12 +203,12 @@
             "Children" : [
                 {
                     "Names" : "Enabled",
-                    "Type" : BOOLEAN_TYPE,
+                    "Types" : BOOLEAN_TYPE,
                     "Default" : true
                 },
                 {
                     "Names" : "Template",
-                    "Type" : STRING_TYPE,
+                    "Types" : STRING_TYPE,
                     "Default" : "[{ \"Code\": code, \"Title\": title, \"Detail\": (arrayIfContent(\"Description: \" + description, description) + arrayIfContent(\"Action: \" + action, action) + [\"Diagnostics: $context.error.message\"])?join(\", \") }]"
                 },
                 {
@@ -217,30 +217,30 @@
                     "Children" : [
                         {
                             "Names" : "Template",
-                            "Type" : STRING_TYPE
+                            "Types" : STRING_TYPE
                         },
                         {
                             "Names" : "Status",
-                            "Type" : NUMBER_TYPE,
+                            "Types" : NUMBER_TYPE,
                             "Mandatory" : true
                         },
                         {
                             "Names" : "Code",
-                            "Type" : STRING_TYPE,
+                            "Types" : STRING_TYPE,
                             "Mandatory" : true
                         },
                         {
                             "Names" : "Title",
-                            "Type" : STRING_TYPE,
+                            "Types" : STRING_TYPE,
                             "Mandatory" : true
                         },
                         {
                             "Names" : "Description",
-                            "Type" : STRING_TYPE
+                            "Types" : STRING_TYPE
                         },
                         {
                             "Names" : "Action",
-                            "Type" : STRING_TYPE
+                            "Types" : STRING_TYPE
                         }
                     ]
                 }
@@ -248,17 +248,17 @@
         },
         {
             "Names" : ["Proxy"],
-            "Type" : [BOOLEAN_TYPE, STRING_TYPE],
+            "Types" : [BOOLEAN_TYPE, STRING_TYPE],
             "Default" : false
         },
         {
             "Names" : ["Options"],
-            "Type" : [BOOLEAN_TYPE],
+            "Types" : [BOOLEAN_TYPE],
             "Default" : true
         },
         {
             "Names" : ["OptionsSecurity"],
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Values" : [ "UseVerb", "disabled" ],
             "Default" : "UseVerb"
         }
@@ -269,17 +269,17 @@
     [
         {
             "Names" : ["CognitoPoolName", "cognitoPoolName"],
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Default" : "CognitoUserPool"
         },
         {
             "Names" : ["CognitoAuthHeader", "cognitoAuthHeader"],
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Default" : "Authorization"
         },
         {
             "Names" : ["UserPoolArns", "userPoolArns"],
-            "Type" : OBJECT_TYPE,
+            "Types" : OBJECT_TYPE,
             "Default" : {}
         }
     ]
@@ -289,7 +289,7 @@
     {
         "Path" : ".*",
         "Verb" : ".*",
-        "Type" : "",
+        "Types" : "",
         "Variable" : "",
         "Validation" : "all",
         "UseClientCreds" : false,
@@ -309,56 +309,56 @@
     [
         {
             "Names" : ["Path"],
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : ["Verb"],
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : ["Type"],
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : ["Variable"],
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : ["Validation"],
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Values" : ["all", "params", "body", "none"]
         },
         {
             "Names" : ["UseClientCreds", "useClientCreds"],
-            "Type" : BOOLEAN_TYPE
+            "Types" : BOOLEAN_TYPE
         },
         {
             "Names" : ["ContentHandling", "contentHandling"],
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Values" : ["", "CONVERT_TO_BINARY", "CONVERT_TO_TEXT"]
         },
         {
             "Names" : ["Requests"],
-            "Type" : OBJECT_TYPE
+            "Types" : OBJECT_TYPE
         },
         {
             "Names" : ["Responses"],
-            "Type" : OBJECT_TYPE
+            "Types" : OBJECT_TYPE
         },
         {
             "Names" : ["Cors"],
             "Children" : [
                 {
                     "Names" : "Headers",
-                    "Type" : ARRAY_OF_STRING_TYPE
+                    "Types" : ARRAY_OF_STRING_TYPE
                 },
                 {
                     "Names" : "Methods",
-                    "Type" : ARRAY_OF_STRING_TYPE
+                    "Types" : ARRAY_OF_STRING_TYPE
                 },
                 {
                     "Names" : "Origin",
-                    "Type" : ARRAY_OF_STRING_TYPE
+                    "Types" : ARRAY_OF_STRING_TYPE
                 }
             ]
         },
@@ -368,12 +368,12 @@
                 {
                     "Names" : "BurstLimit",
                     "Description" : "The maximum number of concurrent requests.",
-                    "Type" : NUMBER_TYPE
+                    "Types" : NUMBER_TYPE
                 },
                 {
                     "Names" : "RateLimit",
                     "Description" : "The request limit per second.",
-                    "Type" : NUMBER_TYPE
+                    "Types" : NUMBER_TYPE
                 }
             ]
         }
@@ -388,18 +388,18 @@
             "Children" : [
                 {
                     "Names" : ["Enabled"],
-                    "Type" : BOOLEAN_TYPE,
+                    "Types" : BOOLEAN_TYPE,
                     "Default" : true
                 },
                 {
                     "Names" : ["ScopeBehaviour"],
-                    "Type" : STRING_TYPE,
+                    "Types" : STRING_TYPE,
                     "Values" : [REPLACE_COMBINE_BEHAVIOUR, UNIQUE_COMBINE_BEHAVIOUR],
                     "Default" : UNIQUE_COMBINE_BEHAVIOUR
                 },
                 {
                     "Names" : ["Scopes"],
-                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Types" : ARRAY_OF_STRING_TYPE,
                     "Default" : []
                 }
             ]
@@ -411,15 +411,15 @@
     [
         {
             "Names" : ["Sig4", "Sigv4"],
-            "Type" : BOOLEAN_TYPE
+            "Types" : BOOLEAN_TYPE
         },
         {
             "Names" : ["ApiKey", "apikey", "Apikey"],
-            "Type" : BOOLEAN_TYPE
+            "Types" : BOOLEAN_TYPE
         },
         {
             "Names" : ["UserPool", "userPool"],
-            "Type" : BOOLEAN_TYPE
+            "Types" : BOOLEAN_TYPE
         }
     ]
 ]
@@ -428,7 +428,7 @@
     [
         {
             "Names" : ["security"],
-            "Type" : ARRAY_OF_OBJECT_TYPE,
+            "Types" : ARRAY_OF_OBJECT_TYPE,
             "Default" : []
         }
     ]

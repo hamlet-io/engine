@@ -24,19 +24,19 @@
             {
                 "Names" : "PrimaryKey",
                 "Description" : "The primary key for the table",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Mandatory" : true
             },
             {
                 "Names" : "SecondaryKey",
                 "Description" : "The secondary sort key for the table",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Default" : ""
             },
             {
                 "Names" : "TTLKey",
                 "Description" : "A key in the table used to manage the items expiry",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Default" : ""
             },
             {
@@ -47,7 +47,7 @@
                     {
                         "Names" : "Type",
                         "Description" : "Key value type",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Values" : [STRING_TYPE, NUMBER_TYPE, "binary"]
                     }
                 ]
@@ -60,18 +60,18 @@
                     {
                         "Names" : "Name",
                         "Description" : "Index name",
-                        "Type" : STRING_TYPE
+                        "Types" : STRING_TYPE
                     },
                     {
                         "Names" : "Keys",
                         "Description" : "List of keys",
-                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Types" : ARRAY_OF_STRING_TYPE,
                         "Mandatory" : true
                     },
                     {
                         "Names" : "KeyTypes",
                         "Description" : "Type of each key - default is hash(0) then range",
-                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Types" : ARRAY_OF_STRING_TYPE,
                         "Values" : ["hash", "range"]
                     },
                     {
@@ -80,13 +80,13 @@
                             {
                                 "Names" : "Read",
                                 "Description" : "When using provisioned billing the maximum RCU of the table",
-                                "Type" : NUMBER_TYPE,
+                                "Types" : NUMBER_TYPE,
                                 "Default" : 1
                             },
                             {
                                 "Names" : "Write",
                                 "Description" : "When using provisioned billing the maximum WCU of the table",
-                                "Type" : NUMBER_TYPE,
+                                "Types" : NUMBER_TYPE,
                                 "Default" : 1
                             }
                         ]

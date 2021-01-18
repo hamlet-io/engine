@@ -12,27 +12,27 @@
     attributes=[
         {
             "Names" : "AllowedOrigins",
-            "Type" : ARRAY_OF_STRING_TYPE,
+            "Types" : ARRAY_OF_STRING_TYPE,
             "Mandatory" : true
         },
         {
             "Names" : "AllowedMethods",
-            "Type" : ARRAY_OF_STRING_TYPE,
+            "Types" : ARRAY_OF_STRING_TYPE,
             "Mandatory" : true
         },
         {
             "Names" : "AllowedHeaders",
-            "Type" : ARRAY_OF_STRING_TYPE,
+            "Types" : ARRAY_OF_STRING_TYPE,
             "Mandatory" : true
         },
         {
             "Names" : "ExposedHeaders",
-            "Type" : ARRAY_OF_STRING_TYPE,
+            "Types" : ARRAY_OF_STRING_TYPE,
             "Mandatory" : true
         },
         {
             "Names" : "MaxAge",
-            "Type" : NUMBER_TYPE,
+            "Types" : NUMBER_TYPE,
             "Mandatory" : true
         }
     ]

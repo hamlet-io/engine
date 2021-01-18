@@ -23,7 +23,7 @@
         {
             "Names" : "Enabled",
             "Description" : "To enable loading the module in this profile",
-            "Type" : BOOLEAN_TYPE,
+            "Types" : BOOLEAN_TYPE,
             "Default" : true
         },
         {
@@ -64,12 +64,12 @@
         {
             "Names" : "Enabled",
             "Description" : "To enable loading the plugin",
-            "Type" : BOOLEAN_TYPE,
+            "Types" : BOOLEAN_TYPE,
             "Default" : true
         },
         {
             "Names" : "Required",
-            "Type" : BOOLEAN_TYPE,
+            "Types" : BOOLEAN_TYPE,
             "Description" : "Ensure the plugin loads at all times",
             "Default" : false
         },

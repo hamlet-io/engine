@@ -12,15 +12,15 @@
     attributes=[
         {
             "Names" : "CIDR",
-            "Type" : ARRAY_OF_STRING_TYPE
+            "Types" : ARRAY_OF_STRING_TYPE
         },
         {
             "Names" : "Description",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "IsOpen",
-            "Type" : BOOLEAN_TYPE
+            "Types" : BOOLEAN_TYPE
         }
     ]
 /]

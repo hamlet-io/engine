@@ -18,12 +18,12 @@
         [
             {
                 "Names" : "Logs",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
                 "Names" : "Engine",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Values" : ["application", "network", "classic"],
                 "Default" : "application"
             },
@@ -32,24 +32,24 @@
                 "Children" : [
                     {
                         "Names" : "Security",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "default"
                     },
                     {
                         "Names" : "Alert",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "default"
                     }
                 ]
             },
             {
                 "Names" : "IdleTimeout",
-                "Type" : NUMBER_TYPE,
+                "Types" : NUMBER_TYPE,
                 "Default" : 60
             }
             {
                 "Names" : "HealthCheckPort",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Default" : ""
             },
             {
@@ -82,7 +82,7 @@
         [
             {
                 "Names" : "IPAddressGroups",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : [ "_localnet" ]
             },
             {
@@ -91,21 +91,21 @@
             },
             {
                 "Names" : "HostFilter",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
                 "Names" : "Mapping",
-                "Type" : STRING_TYPE
+                "Types" : STRING_TYPE
             },
             {
                 "Names" : "Path",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Default" : "default"
             },
             {
                 "Names" : "Priority",
-                "Type" : NUMBER_TYPE,
+                "Types" : NUMBER_TYPE,
                 "Default" : 100
             },
             {
@@ -118,7 +118,7 @@
                 "Children" : [
                     {
                         "Names" : "Network",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "default"
                     }
                 ]
@@ -128,12 +128,12 @@
                 "Children" : [
                     {
                         "Names" : "SessionCookieName",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "AWSELBAuthSessionCookie"
                     },
                     {
                         "Names" : "SessionTimeout",
-                        "Type" : NUMBER_TYPE,
+                        "Types" : NUMBER_TYPE,
                         "Default" : 604800
                     }
                 ]
@@ -143,33 +143,33 @@
                 "Children" : [
                     {
                         "Names" : "Protocol",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Values" : ["HTTPS", "#\{protocol}" ],
                         "Default" : "HTTPS"
                     },
                     {
                         "Names" : "Port",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "443"
                     },
                     {
                         "Names" : "Host",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "#\{host}"
                     },
                     {
                         "Names" : "Path",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "/#\{path}"
                     },
                     {
                         "Names" : "Query",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "#\{query}"
                     },
                     {
                         "Names" : "Permanent",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     }
                 ]
@@ -179,17 +179,17 @@
                 "Children" : [
                     {
                         "Names" : "Message",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "This application is currently unavailable. Please try again later."
                     },
                     {
                         "Names" : "ContentType",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "text/plain"
                     },
                     {
                         "Names" : "StatusCode",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "404"
                     }
                 ]
@@ -199,23 +199,23 @@
                 "Children" : [
                     {
                         "Names" : "TargetType",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Values" : ["instance", "ip"],
                         "Default" : "instance"
                     },
                     {
                         "Names" : "SlowStartTime",
-                        "Type" : NUMBER_TYPE,
+                        "Types" : NUMBER_TYPE,
                         "Default" : -1
                     },
                     {
                         "Names" : "StickinessTime",
-                        "Type" : NUMBER_TYPE,
+                        "Types" : NUMBER_TYPE,
                         "Default" : -1
                     },
                     {
                         "Names" : "DeregistrationTimeout",
-                        "Type" : NUMBER_TYPE,
+                        "Types" : NUMBER_TYPE,
                         "Default" : 30
                     },
                     {

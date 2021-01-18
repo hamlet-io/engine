@@ -12,19 +12,19 @@
     attributes=[
         {
             "Names" : "Enabled",
-            "Type" : BOOLEAN_TYPE,
+            "Types" : BOOLEAN_TYPE,
             "Default" : true
         },
         {
             "Names" : "Priority",
             "Description" : "The priority this group has in deployment mode processing",
-            "Type" : NUMBER_TYPE,
+            "Types" : NUMBER_TYPE,
             "Default" : 100
         },
         {
             "Names" : "Level",
             "Description" : "The deployment level to use for template generation",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Values" : [ "", "account", "segment", "solution", "application" ],
             "Mandatory" : true
         },
@@ -35,25 +35,25 @@
             "Children" : [
                 {
                     "Names" : "Enabled",
-                    "Type" : BOOLEAN_TYPE,
+                    "Types" : BOOLEAN_TYPE,
                     "Default" : true
                 },
                 {
                     "Names" : "deployment:Unit",
                     "Description" : "The Deployment Unit",
-                    "Type" : STRING_TYPE,
+                    "Types" : STRING_TYPE,
                     "Mandatory" : true
                 },
                 {
                     "Names" : "deployment:Priority",
                     "Description" : "The Deployment Priority",
-                    "Type" : NUMBER_TYPE,
+                    "Types" : NUMBER_TYPE,
                     "Default" : 5
                 },
                 {
                     "Names" : "ResourceLabels",
                     "Description" : "The resource labels to include in the subset",
-                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Types" : ARRAY_OF_STRING_TYPE,
                     "Mandatory" : true
                 }
             ]
@@ -61,7 +61,7 @@
         {
             "Names" : "CompositeTemplate",
             "Description" : "A composite template file to include for this group",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Default" : ""
         }
     ]

@@ -12,7 +12,7 @@
     attributes=[
         {
             "Names" : "Pattern",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Mandatory" : true
         }
     ]

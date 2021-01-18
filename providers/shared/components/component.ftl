@@ -135,129 +135,129 @@
     filterChildrenConfiguration = [
         {
             "Names" : "Any",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "Tenant",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "Product",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "Environment",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "Segment",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "Tier",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Mandatory" : true
         },
         {
             "Names" : "Component",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Mandatory" : true
         },
         {
             "Names" : ["Function"],
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : ["Service"],
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : ["Task"],
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : ["PortMapping", "Port"],
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : ["Mount"],
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : ["Platform"],
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : [ "RouteTable" ],
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : [ "NetworkACL" ],
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : [ "DataBucket" ],
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : [ "Key" ],
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : [ "Branch" ],
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : [ "Client" ],
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : [ "Connection" ],
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : [ "AuthProvider" ],
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : [ "Resource" ],
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : [ "DataFeed" ],
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : [ "RegistryService" ],
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : [ "Assignment" ],
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : [ "Route" ],
-            "Type"  : STRING_TYPE
+            "Types"  : STRING_TYPE
         },
         {
             "Names" : [ "Endpoint" ],
-            "Type"  : STRING_TYPE
+            "Types"  : STRING_TYPE
         },
         {
             "Names" : "Instance",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "Version",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "Secret",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "Rule",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         }
     ]
 ]
@@ -268,24 +268,24 @@
         [
             {
                 "Names" : "Role",
-                "Type" : STRING_TYPE
+                "Types" : STRING_TYPE
             },
             {
                 "Names" : "Direction",
-                "Type" : STRING_TYPE
+                "Types" : STRING_TYPE
             },
             {
                 "Names" : "Type",
-                "Type" : STRING_TYPE
+                "Types" : STRING_TYPE
             },
             {
                 "Names" : "Enabled",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : true
             },
             {
                 "Names" : "IncludeInContext",
-                "Type" : ARRAY_OF_STRING_TYPE
+                "Types" : ARRAY_OF_STRING_TYPE
             }
         ]
 ]
@@ -294,7 +294,7 @@
     logWatcherChildrenConfiguration = [
         {
             "Names" : "LogFilter",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Mandatory" : true
         },
         {
@@ -308,7 +308,7 @@
 [#assign logMetricChildrenConfiguration = [
         {
             "Names" : "LogFilter",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Mandatory" : true
         }
     ]
@@ -318,13 +318,13 @@
     [
         {
             "Names" : "Namespace",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Default" : ""
         },
         {
             "Names" : "DimensionSource",
             "Description" : "The source of the alert dimensions - resource lookup or explicit configuration",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Values" : [ "Resource", "Configured" ],
             "Default" : "Resource"
         },
@@ -334,11 +334,11 @@
             "Children" : [
                 {
                     "Names" : "Id",
-                    "Type" : STRING_TYPE
+                    "Types" : STRING_TYPE
                 },
                 {
                     "Names" : "Type",
-                    "Type" : STRING_TYPE
+                    "Types" : STRING_TYPE
                 }
             ]
         },
@@ -350,83 +350,83 @@
                 {
                     "Names" : "Key",
                     "Description" : "The Key of the dimension",
-                    "Type" : STRING_TYPE
+                    "Types" : STRING_TYPE
                 },
                 {
                     "Names" : "Value",
                     "Description" : "The value of the dimension to match",
-                    "Type" : STRING_TYPE
+                    "Types" : STRING_TYPE
                 },
                 {
                     "Names" : "SettingEnvName",
                     "Description" : "A setting name as env that will provide the dimension value",
-                    "Type": STRING_TYPE
+                    "Types": STRING_TYPE
                 }
             ]
         },
         {
             "Names" : "Metric",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Mandatory" : true
         },
         {
             "Names" : "Statistic",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Default" : "Sum"
         },
         {
             "Names" : "Description",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "Name",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Mandatory" : true
         },
         {
             "Names" : "Threshold",
-            "Type" : NUMBER_TYPE,
+            "Types" : NUMBER_TYPE,
             "Default" : 1
         },
         {
             "Names" : "Severity",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Values" : [ "debug", "info", "warn", "error", "fatal"],
             "Default" : "info"
         },
         {
             "Names" : "Comparison",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Default" : "Threshold"
         },
         {
             "Names" : "Operator",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Default" : "GreaterThanOrEqualToThreshold"
         },
         {
             "Names" : "Time",
-            "Type" : NUMBER_TYPE,
+            "Types" : NUMBER_TYPE,
             "Default" : 300
         },
         {
             "Names" : "Periods",
-            "Type" : NUMBER_TYPE,
+            "Types" : NUMBER_TYPE,
             "Default" : 1
         },
         {
             "Names" : "ReportOk",
-            "Type" : BOOLEAN_TYPE,
+            "Types" : BOOLEAN_TYPE,
             "Default" : false
         },
         {
             "Names" : "MissingData",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Default" : "notBreaching"
         },
         {
             "Names" : "Unit",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Default" : "Count"
         }
     ]
@@ -436,7 +436,7 @@
     [
         {
             "Names" : "Type",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Values" : [ "Stepped", "Tracked", "Scheduled" ],
             "Default" : "Stepped"
         },
@@ -446,12 +446,12 @@
             "Children" : [
                 {
                     "Names" : "ScaleIn",
-                    "Type" : NUMBER_TYPE,
+                    "Types" : NUMBER_TYPE,
                     "Default" : 300
                 },
                 {
                     "Names" : "ScaleOut",
-                    "Type" : NUMBER_TYPE,
+                    "Types" : NUMBER_TYPE,
                     "Default" : 600
                 }
             ]
@@ -476,21 +476,21 @@
                 {
                     "Names" : "MetricAggregation",
                     "Description" : "The method used to agregate the cloudwatch metric",
-                    "Type" : STRING_TYPE,
+                    "Types" : STRING_TYPE,
                     "Values" : [ "Average", "Minimum", "Maximum" ],
                     "Default" : "Average"
                 },
                 {
                     "Names" : "CapacityAdjustment",
                     "Description" : "How to scale when the policy is triggered",
-                    "Type" : STRING_TYPE,
+                    "Types" : STRING_TYPE,
                     "Values" : [ "Change", "Exact", "Percentage" ],
                     "Default" : "Change"
                 },
                 {
                     "Names" : "MinAdjustment",
                     "Description" : "When minimum scale adjustment value to apply when triggered",
-                    "Type" : NUMBER_TYPE,
+                    "Types" : NUMBER_TYPE,
                     "Default" : -1
                 },
                 {
@@ -501,17 +501,17 @@
                         {
                             "Names" : "LowerBound",
                             "Description" : "The lower bound for the difference between the alarm threshold and the metric",
-                            "Type" : NUMBER_TYPE
+                            "Types" : NUMBER_TYPE
                         },
                         {
                             "Names" : "UpperBound",
                             "Description" : "The upper bound for the difference between the alarm threshold and the metric",
-                            "Type" : NUMBER_TYPE
+                            "Types" : NUMBER_TYPE
                         },
                         {
                             "Names" : "AdjustmentValue",
                             "Description" : "The value to apply when the adjustment step is triggered",
-                            "Type" : NUMBER_TYPE,
+                            "Types" : NUMBER_TYPE,
                             "Default" : 1
                         }
                     ]
@@ -523,17 +523,17 @@
             "Children" : [
                 {
                     "Names" : "TargetValue",
-                    "Type" : NUMBER_TYPE
+                    "Types" : NUMBER_TYPE
                 },
                 {
                     "Names" : "ScaleInEnabled",
-                    "Type" : BOOLEAN_TYPE,
+                    "Types" : BOOLEAN_TYPE,
                     "Default" : true
                 },
                 {
                     "Names" : "RecommendedMetric",
                     "Description" : "Use a recommended (predefined) metric for scaling",
-                    "Type" : STRING_TYPE
+                    "Types" : STRING_TYPE
                 }
             ]
         },
@@ -542,12 +542,12 @@
             "Children" : [
                 {
                     "Names" : "ProcessorProfile",
-                    "Type" : STRING_TYPE,
+                    "Types" : STRING_TYPE,
                     "Default" : "default"
                 },
                 {
                     "Names" : "Schedule",
-                    "Type" : STRING_TYPE
+                    "Types" : STRING_TYPE
                 }
             ]
         }
@@ -557,30 +557,30 @@
 [#assign lbChildConfiguration = [
         {
             "Names" : "Tier",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Mandatory" : true
         },
         {
             "Names" : "Component",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Mandatory" : true
         },
         {
             "Names" : "LinkName",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Default" : "lb"
         },
         {
             "Names" : "Instance",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "Version",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : ["PortMapping", "Port"],
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Default" : ""
         }
     ]
@@ -589,30 +589,30 @@
 [#assign srvRegChildConfiguration = [
         {
             "Names" : "Tier",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Mandatory" : true
         },
         {
             "Names" : "Component",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Mandatory" : true
         },
         {
             "Names" : "LinkName",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Default" : "srvreg"
         },
         {
             "Names" : "Instance",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "Version",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "RegistryService",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         }
     ]
 ]
@@ -620,17 +620,17 @@
 [#assign wafChildConfiguration = [
         {
             "Names" : "IPAddressGroups",
-            "Type" : ARRAY_OF_STRING_TYPE,
+            "Types" : ARRAY_OF_STRING_TYPE,
             "Default" : []
         },
         {
             "Names" : "CountryGroups",
-            "Type" : ARRAY_OF_STRING_TYPE,
+            "Types" : ARRAY_OF_STRING_TYPE,
             "Default" : []
         },
         {
             "Names" : "OWASP",
-            "Type" : BOOLEAN_TYPE,
+            "Types" : BOOLEAN_TYPE,
             "Default" : false
         },
         {
@@ -638,7 +638,7 @@
             "Children" : [
                 {
                     "Names" : "Enabled",
-                    "Type" : BOOLEAN_TYPE,
+                    "Types" : BOOLEAN_TYPE,
                     "Default" : true
                 }
             ]
@@ -649,7 +649,7 @@
                 {
                     "Names" : "Logging",
                     "Description" : "Logging profile to process WAF Logs that are stored in the OpsData DataBucket.",
-                    "Type"  : STRING_TYPE,
+                    "Types"  : STRING_TYPE,
                     "Default" : "waf"
                 }
             ]
@@ -660,12 +660,12 @@
             "Children" : [
                 {
                     "Names" : "IPAddressGroups",
-                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Types" : ARRAY_OF_STRING_TYPE,
                     "Default" : []
                 },
                 {
                     "Names" : "Limit",
-                    "Type" : NUMBER_TYPE,
+                    "Types" : NUMBER_TYPE,
                     "Mandatory" : true
                 }
             ]
@@ -676,7 +676,7 @@
 [#assign settingsChildConfiguration = [
         {
             "Names" : "AsFile",
-            "Type" : BOOLEAN_TYPE,
+            "Types" : BOOLEAN_TYPE,
             "Default" : false
         },
         {
@@ -684,12 +684,12 @@
             "Children" : [
                 {
                     "Names" : "Escaped",
-                    "Type" : BOOLEAN_TYPE,
+                    "Types" : BOOLEAN_TYPE,
                     "Default" : true
                 },
                 {
                     "Names" : "Prefix",
-                    "Type" : STRING_TYPE,
+                    "Types" : STRING_TYPE,
                     "Values" : ["json", ""],
                     "Default" : "json"
                 }
@@ -701,55 +701,55 @@
 [#assign autoScalingChildConfiguration = [
     {
         "Names" : "DetailedMetrics",
-        "Type" : BOOLEAN_TYPE,
+        "Types" : BOOLEAN_TYPE,
         "Default" : true,
         "Description" : "Enable the collection of autoscale group detailed metrics"
     },
     {
         "Names" : "WaitForSignal",
-        "Type" : BOOLEAN_TYPE,
+        "Types" : BOOLEAN_TYPE,
         "Default" : true,
         "Description" : "Wait for a cfn-signal before treating the instances as alive"
     },
     {
         "Names" : "MinUpdateInstances",
-        "Type" : NUMBER_TYPE,
+        "Types" : NUMBER_TYPE,
         "Default" : 1,
         "Description" : "The minimum number of instances which must be available during an update"
     },
     {
         "Names" : "MinSuccessInstances",
-        "Type" : NUMBER_TYPE,
+        "Types" : NUMBER_TYPE,
         "Description" : "The minimum percantage of instances that must sucessfully update",
         "Default" : 75
     },
     {
         "Names" : "ReplaceCluster",
-        "Type" : BOOLEAN_TYPE,
+        "Types" : BOOLEAN_TYPE,
         "Default" : false,
         "Description" : "When set to true a brand new cluster will be built, if false the instances in the current cluster will be replaced"
     },
     {
         "Names" : "UpdatePauseTime",
-        "Type" : STRING_TYPE,
+        "Types" : STRING_TYPE,
         "Default" : "10M",
         "Description" : "How long to pause betweeen updates of instances"
     },
     {
         "Names" : "StartupTimeout",
-        "Type" : STRING_TYPE,
+        "Types" : STRING_TYPE,
         "Default" : "15M",
         "Description" : "How long to wait for a cfn-signal to be received from a host"
     },
     {
         "Names" : "AlwaysReplaceOnUpdate",
-        "Type" : BOOLEAN_TYPE,
+        "Types" : BOOLEAN_TYPE,
         "Default" : false,
         "Description" : "Replace instances on every update action"
     },
     {
         "Names" : "ActivityCooldown",
-        "Type" : NUMBER_TYPE,
+        "Types" : NUMBER_TYPE,
         "Default" : 30
     }
 ]]
@@ -757,26 +757,26 @@
 [#assign domainNameChildConfiguration = [
     {
         "Names" : "Qualifiers",
-        "Type" : OBJECT_TYPE
+        "Types" : OBJECT_TYPE
     },
     {
         "Names" : "Domain",
-        "Type" : STRING_TYPE
+        "Types" : STRING_TYPE
     },
     {
         "Names" : "IncludeInDomain",
         "Children" : [
             {
                 "Names" : "Product",
-                "Type" : BOOLEAN_TYPE
+                "Types" : BOOLEAN_TYPE
             },
             {
                 "Names" : "Environment",
-                "Type" : BOOLEAN_TYPE
+                "Types" : BOOLEAN_TYPE
             },
             {
                 "Names" : "Segment",
-                "Type" : BOOLEAN_TYPE
+                "Types" : BOOLEAN_TYPE
             }
         ]
     }
@@ -785,46 +785,46 @@
 [#assign hostNameChildConfiguration = [
     {
         "Names" : "Host",
-        "Type" : STRING_TYPE
+        "Types" : STRING_TYPE
     },
     {
         "Names" : "HostParts",
-        "Type" : ARRAY_OF_STRING_TYPE
+        "Types" : ARRAY_OF_STRING_TYPE
     },
     {
         "Names" : "IncludeInHost",
         "Children" : [
             {
                 "Names" : "Product",
-                "Type" : BOOLEAN_TYPE
+                "Types" : BOOLEAN_TYPE
             },
             {
                 "Names" : "Environment",
-                "Type" : BOOLEAN_TYPE
+                "Types" : BOOLEAN_TYPE
             },
             {
                 "Names" : "Segment",
-                "Type" : BOOLEAN_TYPE
+                "Types" : BOOLEAN_TYPE
             },
             {
                 "Names" : "Tier",
-                "Type" : BOOLEAN_TYPE
+                "Types" : BOOLEAN_TYPE
             },
             {
                 "Names" : "Component",
-                "Type" : BOOLEAN_TYPE
+                "Types" : BOOLEAN_TYPE
             },
             {
                 "Names" : "Instance",
-                "Type" : BOOLEAN_TYPE
+                "Types" : BOOLEAN_TYPE
             },
             {
                 "Names" : "Version",
-                "Type" : BOOLEAN_TYPE
+                "Types" : BOOLEAN_TYPE
             },
             {
                 "Names" : "Host",
-                "Type" : BOOLEAN_TYPE
+                "Types" : BOOLEAN_TYPE
             }
         ]
     }
@@ -836,15 +836,15 @@
     [
         {
             "Names" : "Qualifiers",
-            "Type" : OBJECT_TYPE
+            "Types" : OBJECT_TYPE
         },
         {
             "Names" : "External",
-            "Type" : BOOLEAN_TYPE
+            "Types" : BOOLEAN_TYPE
         },
         {
             "Names" : "Wildcard",
-            "Type" : BOOLEAN_TYPE
+            "Types" : BOOLEAN_TYPE
         }
     ]
 ]
@@ -852,12 +852,12 @@
 [#assign pathChildConfiguration = [
     {
         "Names" : "Host",
-        "Type" : STRING_TYPE,
+        "Types" : STRING_TYPE,
         "Default" : ""
     },
     {
         "Names" : "Style",
-        "Type" : STRING_TYPE,
+        "Types" : STRING_TYPE,
         "Default" : "single"
     },
     {
@@ -866,47 +866,47 @@
 
             {
                 "Names" : "Product",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : true
             },
             {
                 "Names" : "Environment",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
                 "Names" : "Solution",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
                 "Names" : "Segment",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : true
             },
             {
                 "Names" : "Tier",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default": false
             },
             {
                 "Names" : "Component",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
                 "Names" : "Instance",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
                 "Names" : "Version",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
                 "Names" : "Host",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default": false
             }
         ]
@@ -922,22 +922,22 @@
     },
     {
         "Names" : "Prefix",
-        "Type" : STRING_TYPE
+        "Types" : STRING_TYPE
     },
     {
         "Names" : "Suffix",
-        "Type" : STRING_TYPE
+        "Types" : STRING_TYPE
     },
     {
         "Names" : "Events",
-        "Type" : ARRAY_OF_STRING_TYPE,
+        "Types" : ARRAY_OF_STRING_TYPE,
         "Default" : [ "create" ],
         "Values" : [ "create", "delete", "restore", "reducedredundancy" ]
     },
     {
         "Names" : "aws:QueuePermissionMigration",
         "Description" : "Deprecation alert: set to true once policy updated for queue",
-        "Type" : BOOLEAN_TYPE,
+        "Types" : BOOLEAN_TYPE,
         "Default" : false
     }
 ]]
@@ -946,12 +946,12 @@
     {
         "Names" : "Enabled",
         "Description" : "Enable at rest encryption",
-        "Type" : BOOLEAN_TYPE,
+        "Types" : BOOLEAN_TYPE,
         "Default" : false
     },
     {
         "Names" : "EncryptionSource",
-        "Type" : STRING_TYPE,
+        "Types" : STRING_TYPE,
         "Description" : "The encryption service to use - LocalService = S3, EncryptionService = native encryption service (kms)",
         "Values" : [ "EncryptionService", "LocalService" ],
         "Default" : "EncryptionService"
@@ -962,14 +962,14 @@
     {
         "Names" : "Billing",
         "Description" : "The billing mode for the table",
-        "Type"  : STRING_TYPE,
+        "Types"  : STRING_TYPE,
         "Values" : [ "provisioned", "per-request" ],
         "Default" : "provisioned"
     },
     {
         "Names" : "Encrypted",
         "Description" : "Enable at rest encryption",
-        "Type" : BOOLEAN_TYPE,
+        "Types" : BOOLEAN_TYPE,
         "Default" : true
     },
     {
@@ -978,13 +978,13 @@
             {
                 "Names" : "Read",
                 "Description" : "When using provisioned billing the maximum RCU of the table",
-                "Type" : NUMBER_TYPE,
+                "Types" : NUMBER_TYPE,
                 "Default" : 1
             },
             {
                 "Names" : "Write",
                 "Description" : "When using provisioned billing the maximum WCU of the table",
-                "Type" : NUMBER_TYPE,
+                "Types" : NUMBER_TYPE,
                 "Default" : 1
             }
         ]
@@ -995,7 +995,7 @@
             {
                 "Names" : "Enabled",
                 "Description" : "Enables point in time recovery on the table",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : false
             }
         ]
@@ -1006,12 +1006,12 @@
             {
                 "Names" : "Enabled",
                 "Description" : "Enables dynamodb event stream",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
                 "Names" : "ViewType",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Values" : [ "KEYS_ONLY", "NEW_IMAGE", "OLD_IMAGE", "NEW_AND_OLD_IMAGES" ],
                 "Default" : "NEW_IMAGE"
             }
@@ -1027,7 +1027,7 @@
             {
                 "Names" : "Content",
                 "Description" : "A JSON object which contains the nonsensitve parts of the secret",
-                "Type" : OBJECT_TYPE,
+                "Types" : OBJECT_TYPE,
                 "Default" : {
                     "username" : "admin"
                 }
@@ -1035,7 +1035,7 @@
             {
                 "Names" : "SecretKey",
                 "Description" : "The key in the JSON secret to set the generated secret to",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Default" : "password"
             }
         ]
@@ -1054,7 +1054,7 @@
                     {
                         "Names" : "Enabled",
                         "Description" : "Enable Secret rotation.",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : false
                     }
                 ]
@@ -1066,7 +1066,7 @@
 [#assign secretConfiguration = [
     {
         "Names" : "Source",
-        "Type" : STRING_TYPE,
+        "Types" : STRING_TYPE,
         "Values" : [ "user", "generated" ],
         "Default" : "user"
     },
@@ -1077,49 +1077,49 @@
             {
                 "Names" : "MinLength",
                 "Description" : "The minimum character length",
-                "Type" : NUMBER_TYPE,
+                "Types" : NUMBER_TYPE,
                 "Default" : 20
             },
             {
                 "Names" : "MaxLength",
                 "Description" : "The maximum character length",
-                "Type" : NUMBER_TYPE,
+                "Types" : NUMBER_TYPE,
                 "Default" : 30
             },
             {
                 "Names" : "IncludeUpper",
                 "Description" : "Include upper-case characters",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : true
             },
             {
                 "Names" : "IncludeLower",
                 "Description" : "Include lower-case characters",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : true
             },
             {
                 "Names" : "IncludeSpecial",
                 "Description" : "Include special characters",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
                 "Names" : "IncludeNumber",
                 "Description" : "Include numbers characters",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default": true
             },
             {
                 "Names" : "ExcludedCharacters",
                 "Description" : "Characters that must be excluded",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : [ r'"', r"'", r'$', r'@', r'/', r'\' ]
             },
             {
                 "Names" : "RequireAllIncludedTypes",
                 "Description" : "Require at least one of each included type",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : true
             }
         ]
@@ -1131,25 +1131,25 @@
     {
         "Names" : "Ports",
         "Description" : "A list of port ids from the Ports reference",
-        "Type" : ARRAY_OF_STRING_TYPE,
+        "Types" : ARRAY_OF_STRING_TYPE,
         "Default" : []
     },
     {
         "Names" : "IPAddressGroups",
         "Description" : "A list of IP Address groups ids from the IPAddressGroups reference",
-        "Type" : ARRAY_OF_STRING_TYPE,
+        "Types" : ARRAY_OF_STRING_TYPE,
         "Default" : []
     },
     {
         "Names" : "SecurityGroups",
         "Description" : "A list of security groups or ids - for internal use only",
-        "Type" : ARRAY_OF_STRING_TYPE,
+        "Types" : ARRAY_OF_STRING_TYPE,
         "Default" : []
     },
     {
         "Names" : "Description",
         "Description" : "A description that will be applied to the rule",
-        "Type" : STRING_TYPE,
+        "Types" : STRING_TYPE,
         "Default" : ""
     }
 ]]
@@ -1158,12 +1158,12 @@
     {
         "Names" : [ "Extensions", "Fragment", "Container" ],
         "Description" : "Extensions to invoke as part of component processing",
-        "Type" : ARRAY_OF_STRING_TYPE,
+        "Types" : ARRAY_OF_STRING_TYPE,
         "Default" : []
     },
     {
         "Names" : "Cpu",
-        "Type" : NUMBER_TYPE,
+        "Types" : NUMBER_TYPE,
         "Default" : ""
     },
     {
@@ -1173,12 +1173,12 @@
     },
     {
         "Names" : "LocalLogging",
-        "Type" : BOOLEAN_TYPE,
+        "Types" : BOOLEAN_TYPE,
         "Default" : false
     },
     {
         "Names" : "LogDriver",
-        "Type" : STRING_TYPE,
+        "Types" : STRING_TYPE,
         "Values" : ["awslogs", "json-file", "fluentd"],
         "Default" : "awslogs"
     },
@@ -1194,17 +1194,17 @@
     },
     {
         "Names" : "ContainerLogGroup",
-        "Type" : BOOLEAN_TYPE,
+        "Types" : BOOLEAN_TYPE,
         "Default" : false
     },
     {
         "Names" : "RunCapabilities",
-        "Type" : ARRAY_OF_STRING_TYPE,
+        "Types" : ARRAY_OF_STRING_TYPE,
         "Default" : []
     },
     {
         "Names" : "Privileged",
-        "Type" : BOOLEAN_TYPE,
+        "Types" : BOOLEAN_TYPE,
         "Default" : false
     },
     {
@@ -1214,7 +1214,7 @@
     },
     {
         "Names" : ["MemoryReservation", "Memory", "ReservedMemory"],
-        "Type" : NUMBER_TYPE,
+        "Types" : NUMBER_TYPE,
         "Mandatory" : true
     },
     {
@@ -1224,7 +1224,7 @@
             "Container",
             {
                 "Names" : "DynamicHostPort",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
@@ -1237,7 +1237,7 @@
             },
             {
                 "Names" : "IPAddressGroups",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : []
             }
         ]
@@ -1249,7 +1249,7 @@
             {
                 "Names" : "Source",
                 "Description" : "The source of the image",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Mandatory" : true,
                 "Values" : [ "registry", "containerregistry" ],
                 "Default" : "Registry"
@@ -1261,7 +1261,7 @@
                     {
                         "Names" : "Image",
                         "Description" : "The docker image that you want to use",
-                        "Type" : STRING_TYPE
+                        "Types" : STRING_TYPE
                     }
                 ]
             }
@@ -1269,13 +1269,13 @@
     },
     {
         "Names" : "Version",
-        "Type" : STRING_TYPE,
+        "Types" : STRING_TYPE,
         "Description" : "Override the version from the deployment unit",
         "Default" : ""
     },
     {
         "Names" : "ContainerNetworkLinks",
-        "Type" : ARRAY_OF_STRING_TYPE,
+        "Types" : ARRAY_OF_STRING_TYPE,
         "Default" : []
     }
     {
@@ -1284,7 +1284,7 @@
             [
                 {
                     "Names" : "Alert",
-                    "Type" : STRING_TYPE,
+                    "Types" : STRING_TYPE,
                     "Default" : "default"
                 }
             ]
@@ -1292,7 +1292,7 @@
     {
         "Names" : "RunMode",
         "Description" : "A per container setting which can be used by the app to determine run mode for a container in a task - defaults to the second half of a dash separated id",
-        "Type" : STRING_TYPE,
+        "Types" : STRING_TYPE,
         "Default" : ""
     },
     {
@@ -1303,19 +1303,19 @@
             {
                 "Names" : "Name",
                 "Description" : "The name of the ulimit to apply",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Mandatory" : true
             },
             {
                 "Names" : "HardLimit",
                 "Description" : "The OS level hard limit to apply",
-                "Type" : NUMBER_TYPE,
+                "Types" : NUMBER_TYPE,
                 "Default" : 1024
             },
             {
                 "Names" : "SoftLimit",
                 "Description" : "The User level limit to apply",
-                "Type" : NUMBER_TYPE,
+                "Types" : NUMBER_TYPE,
                 "Default" : 1024
             }
         ]
@@ -1326,29 +1326,29 @@
     {
         "Names" : [ "Extensions", "Fragment", "Container" ],
         "Description" : "Extensions to invoke as part of component processing",
-        "Type" : ARRAY_OF_STRING_TYPE,
+        "Types" : ARRAY_OF_STRING_TYPE,
         "Default" : []
     },
     {
         "Names" : "FixedIP",
-        "Type" : BOOLEAN_TYPE,
+        "Types" : BOOLEAN_TYPE,
         "Default" : false
     },
     {
         "Names" : "LogDriver",
-        "Type" : STRING_TYPE,
+        "Types" : STRING_TYPE,
         "Values" : ["awslogs", "json-file", "fluentd"],
         "Default" : "awslogs"
     },
     {
         "Names" : "VolumeDrivers",
-        "Type" : ARRAY_OF_STRING_TYPE,
+        "Types" : ARRAY_OF_STRING_TYPE,
         "Values" : [ "ebs" ],
         "Default" : []
     },
     {
         "Names" : "ClusterLogGroup",
-        "Type" : BOOLEAN_TYPE,
+        "Types" : BOOLEAN_TYPE,
         "Default" : true
     },
     {
@@ -1362,27 +1362,27 @@
             [
                 {
                     "Names" : "ComputeProvider",
-                    "Type" : STRING_TYPE,
+                    "Types" : STRING_TYPE,
                     "Default" : "default"
                 },
                 {
                     "Names" : "Processor",
-                    "Type" : STRING_TYPE,
+                    "Types" : STRING_TYPE,
                     "Default" : "default"
                 },
                 {
                     "Names" : "Alert",
-                    "Type" : STRING_TYPE,
+                    "Types" : STRING_TYPE,
                     "Default" : "default"
                 },
                 {
                     "Names" : "Network",
-                    "Type" : STRING_TYPE,
+                    "Types" : STRING_TYPE,
                     "Default" : "default"
                 },
                 {
                     "Names" : "Logging",
-                    "Type" : STRING_TYPE,
+                    "Types" : STRING_TYPE,
                     "Default" : "default"
                 }
             ]
@@ -1397,7 +1397,7 @@
         "Children" : [
             {
                 "Names" : "Type",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Values" : [ "Stepped", "Tracked", "Scheduled", "ComputeProvider" ],
                 "Default" : "ComputeProvider"
             },
@@ -1407,25 +1407,25 @@
                     {
                         "Names" : "MinAdjustment",
                         "Description" : "The minimum instances to update during scaling activities",
-                        "Type" : NUMBER_TYPE,
+                        "Types" : NUMBER_TYPE,
                         "Default" : 1
                     },
                     {
                         "Names" : "MaxAdjustment",
                         "Description" : "The maximum instances to  update during scaling activities",
-                        "Type" : NUMBER_TYPE,
+                        "Types" : NUMBER_TYPE,
                         "Default" : 10000
                     },
                     {
                         "Names" : "TargetCapacity",
                         "Description" : "The target usage of the autoscale group to maintain as a percentage",
-                        "Type" : NUMBER_TYPE,
+                        "Types" : NUMBER_TYPE,
                         "Default" : 90
                     },
                     {
                         "Names" : "ManageTermination",
                         "Description" : "Alow the computer provider to manage when instances will be terminated",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     }
                 ] + scalingPolicyChildrenConfiguration
@@ -1438,11 +1438,11 @@
         "Children" : [
             {
                 "Names" : "UserName",
-                "Type" : STRING_TYPE
+                "Types" : STRING_TYPE
             },
             {
                 "Names" : "UID",
-                "Type" : NUMBER_TYPE,
+                "Types" : NUMBER_TYPE,
                 "Mandatory" : true
             }
         ]
@@ -1462,12 +1462,12 @@
         "Children" : [
             {
                 "Names" : "Enabled",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
                 "Names" : "StartUpMode",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Values" : ["replace"],
                 "Default" : "replace"
             }
@@ -1493,7 +1493,7 @@
     },
     {
         "Names" : "DesiredCount",
-        "Type" : NUMBER_TYPE
+        "Types" : NUMBER_TYPE
     },
     {
         "Names" : "ScalingPolicies",
@@ -1502,7 +1502,7 @@
     },
     {
         "Names" : "UseTaskRole",
-        "Type" : BOOLEAN_TYPE,
+        "Types" : BOOLEAN_TYPE,
         "Default" : true
     },
     {
@@ -1510,29 +1510,29 @@
         "Children" : [
             {
                 "Names" : "Decrypt",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : true
             },
             {
                 "Names" : "AsFile",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : true
             },
             {
                 "Names" : "AppData",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : true
             },
             {
                 "Names" : "AppPublic",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : true
             }
         ]
     },
     {
         "Names" : "TaskLogGroup",
-        "Type" : BOOLEAN_TYPE,
+        "Types" : BOOLEAN_TYPE,
         "Default" : true
     },
     {
@@ -1547,13 +1547,13 @@
     },
     {
         "Names" : "NetworkMode",
-        "Type" : STRING_TYPE,
+        "Types" : STRING_TYPE,
         "Values" : ["none", "bridge", "awsvpc", "host"],
         "Default" : ""
     },
     {
         "Names" : "ContainerNetworkLinks",
-        "Type" : BOOLEAN_TYPE,
+        "Types" : BOOLEAN_TYPE,
         "Default" : false
     },
     {
@@ -1561,14 +1561,14 @@
         "Children" : [
             {
                 "Names" : "Strategy",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Values" : [ "", "daemon"],
                 "Description" : "How to place containers on the cluster",
                 "Default" : ""
             },
             {
                 "Names" : "DistinctInstance",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Description" : "Each task is running on a different container instance when true",
                 "Default" : true
             }
@@ -1580,22 +1580,22 @@
             [
                 {
                     "Names" : "Alert",
-                    "Type" : STRING_TYPE,
+                    "Types" : STRING_TYPE,
                     "Default" : "default"
                 },
                 {
                     "Names" : "Processor",
-                    "Type" : STRING_TYPE,
+                    "Types" : STRING_TYPE,
                     "Default" : "default"
                 },
                 {
                     "Names" : "Network",
-                    "Type" : STRING_TYPE,
+                    "Types" : STRING_TYPE,
                     "Default" : "default"
                 },
                 {
                     "Names" : "Logging",
-                    "Type" : STRING_TYPE,
+                    "Types" : STRING_TYPE,
                     "Default" : "default"
                 }
             ]
@@ -1610,7 +1610,7 @@
 [#assign containerTaskAttributes = [
     {
         "Names" : "Engine",
-        "Type" : STRING_TYPE,
+        "Types" : STRING_TYPE,
         "Values" : [ "ec2", "fargate" ],
         "Default" : "ec2"
     },
@@ -1621,7 +1621,7 @@
     },
     {
         "Names" : "UseTaskRole",
-        "Type" : BOOLEAN_TYPE,
+        "Types" : BOOLEAN_TYPE,
         "Default" : true
     },
     {
@@ -1629,29 +1629,29 @@
         "Children" : [
             {
                 "Names" : "Decrypt",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : true
             },
             {
                 "Names" : "AsFile",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : true
             },
             {
                 "Names" : "AppData",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : true
             },
             {
                 "Names" : "AppPublic",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : true
             }
         ]
     },
     {
         "Names" : "TaskLogGroup",
-        "Type" : BOOLEAN_TYPE,
+        "Types" : BOOLEAN_TYPE,
         "Default" : true
     },
     {
@@ -1666,13 +1666,13 @@
     },
     {
         "Names" : "NetworkMode",
-        "Type" : STRING_TYPE,
+        "Types" : STRING_TYPE,
         "Values" : ["none", "bridge", "awsvpc", "host"],
         "Default" : ""
     },
     {
         "Names" : "FixedName",
-        "Type" : BOOLEAN_TYPE,
+        "Types" : BOOLEAN_TYPE,
         "Default" : false
     },
     {
@@ -1681,13 +1681,13 @@
         "Children" : [
             {
                 "Names" : "Expression",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Default" : "rate(1 hours)"
             },
             {
                 "Names" : "TaskCount",
                 "Description" : "The number of tasks to run on the schedule",
-                "Type" : NUMBER_TYPE,
+                "Types" : NUMBER_TYPE,
                 "Default" : 1
             }
         ]
@@ -1698,17 +1698,17 @@
             [
                 {
                     "Names" : "Alert",
-                    "Type" : STRING_TYPE,
+                    "Types" : STRING_TYPE,
                     "Default" : "default"
                 },
                 {
                     "Names" : "Network",
-                    "Type" : STRING_TYPE,
+                    "Types" : STRING_TYPE,
                     "Default" : "default"
                 },
                 {
                     "Names" : "Logging",
-                    "Type" : STRING_TYPE,
+                    "Types" : STRING_TYPE,
                     "Default" : "default"
                 }
             ]
@@ -1727,29 +1727,29 @@
         "Children" : [
             {
                 "Names" : "Deployment",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : []
             },
             {
                 "Names" : "Policy",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : []
             },
             {
                 "Names" : "Placement",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Default" : "default"
             },
             {
                 "Names" : "Baseline",
                 "Description" : "The profile used to lookup standard services provided by the segment baseline",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Default" : "default"
             },
             {
                 "Names" : "Testing",
                 "Description" : "The testing profiles to apply to the component",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : []
             }
         ]
@@ -1765,13 +1765,13 @@
             {
                 "Names" : "Match",
                 "Description" : "How to match the namespace with available settings",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Values" : [ "exact", "partial" ],
                 "Default" : "exact"
             },
             {
                 "Names" : "Order",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : [
                     "Tier",
                     "Component",
@@ -1787,44 +1787,44 @@
                 "Children" : [
                     {
                         "Names" : "Tier",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Names" : "Component",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Names" : "Type",
-                        "Type"  : BOOLEAN_TYPE,
+                        "Types"  : BOOLEAN_TYPE,
                         "Default" : false
                     }
                     {
                         "Names" : "SubComponent",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : false
                     },
                     {
                         "Names" : "Instance",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Names" : "Version",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Names" : "Name",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : false
                     }
                 ]
             },
             {
                 "Names" : "Name",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Default" : ""
             }
         ]
@@ -1835,7 +1835,7 @@
     [
         {
             "Names" : "Mode",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Values" : ["active", "passthrough"]
         }
     ]

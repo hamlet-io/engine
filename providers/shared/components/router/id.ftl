@@ -19,7 +19,7 @@
         [
             {
                 "Names" : "Active",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
@@ -28,13 +28,13 @@
                 "Children" : [
                     {
                         "Names" : "Enabled",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Names" : "ASN",
                         "Description" : "The BGP ASN ( Autonomous system ) Id of the router",
-                        "Type" : NUMBER_TYPE,
+                        "Types" : NUMBER_TYPE,
                         "Mandatory" : true
                     },
                     {
@@ -62,13 +62,13 @@
             {
                 "Names" : "IPAddressGroups",
                 "Description" : "The Destinations of the static route",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Mandatory" : true
             },
             {
                 "Names" : "Action",
                 "Description" : "How to handle the route",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Values" : [ "forward", "blackhole" ],
                 "Default" : "forward"
             },

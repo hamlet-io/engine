@@ -73,7 +73,7 @@ object.
             {
                 "Names" : [ "Extensions", "Fragment", "Container" ],
                 "Description" : "Extensions to invoke as part of component processing",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : []
             },
             {
@@ -82,7 +82,7 @@ object.
                     {
                         "Names" : "Enabled",
                         "Description" : "Logging of the API Gateway Access Logs.",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     }
                 ]
@@ -98,18 +98,18 @@ object.
             },
             {
                 "Names" : "EndpointType",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Values" : ["EDGE", "REGIONAL"],
                 "Default" : "EDGE"
             },
             {
                 "Names" : "IPAddressGroups",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : []
             },
             {
                 "Names" : "Authentication",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Values" : ["IP", "SIG4ORIP", "SIG4ANDIP"],
                 "Default" : "IP"
             },
@@ -118,32 +118,32 @@ object.
                 "Children" : [
                     {
                         "Names" : "AssumeSNI",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Names" : "EnableLogging",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Names" : "CountryGroups",
-                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Types" : ARRAY_OF_STRING_TYPE,
                         "Default" : []
                     },
                     {
                         "Names" : "CustomHeaders",
-                        "Type" : ARRAY_OF_ANY_TYPE,
+                        "Types" : ARRAY_OF_ANY_TYPE,
                         "Default" : []
                     },
                     {
                         "Names" : "Mapping",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : false
                     },
                     {
                         "Names" : "Compress",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     }
                 ]
@@ -158,12 +158,12 @@ object.
                 "Children" : [
                     {
                         "Names" : "DnsNamePrefix",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "docs"
                     },
                     {
                         "Names" : "IPAddressGroups",
-                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Types" : ARRAY_OF_STRING_TYPE,
                         "Default" : []
                     }
                 ]
@@ -174,7 +174,7 @@ object.
                 "Children" : [
                     {
                         "Names" : "Enabled",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
@@ -189,7 +189,7 @@ object.
                     {
                         "Names" : "UsePathInName",
                         "Description" : "Name the Swagger Spec file using the path",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     }
                 ]
@@ -199,7 +199,7 @@ object.
                 "Children" : [
                     {
                         "Names" : "IncludeStage",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : true
                     }
                 ]
@@ -209,17 +209,17 @@ object.
                 "Children" : [
                     {
                         "Names" : "Security",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "default"
                     },
                     {
                         "Names" : "Alert",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "default"
                     },
                     {
                         "Names" : "Logging",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "default"
                     }
                 ]
@@ -237,7 +237,7 @@ object.
             {
                 "Names" : "BasePathBehaviour",
                 "Description" : "How to handle base paths provided in the spec",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Values" : [ "ignore", "prepend", "split" ],
                 "Default" : "ignore"
             },

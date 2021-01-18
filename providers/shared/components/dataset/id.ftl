@@ -18,7 +18,7 @@
         [
             {
                 "Names" : "Engine",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Values" : ["s3", "rds"],
                 "Mandatory" : true
             },
@@ -29,12 +29,12 @@
             },
             {
                 "Names" : "Prefix",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Default" : ""
             },
             {
                 "Names" : "BuildEnvironment",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Description" : "The environments used to build the dataset",
                 "Mandatory" : true
             }

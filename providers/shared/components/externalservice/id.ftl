@@ -36,12 +36,12 @@
             "Children" : [
                 {
                     "Names" : "Key",
-                    "Type" : STRING_TYPE,
+                    "Types" : STRING_TYPE,
                     "Mandatory" : true
                 },
                 {
                     "Names" : "Value",
-                    "Type" : STRING_TYPE,
+                    "Types" : STRING_TYPE,
                     "Mandatory" : true
                 }
             ]
@@ -49,7 +49,7 @@
         {
             "Names" : [ "Extensions", "Fragment", "Container" ],
             "Description" : "Extensions to invoke as part of component processing",
-            "Type" : ARRAY_OF_STRING_TYPE,
+            "Types" : ARRAY_OF_STRING_TYPE,
             "Default" : []
         },
         {
@@ -71,12 +71,12 @@
     attributes=[
             {
                 "Names" : "IPAddressGroups",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : []
             },
             {
                 "Names" : "Port",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Default" : ""
             }
         ]

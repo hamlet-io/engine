@@ -12,19 +12,19 @@
     attributes=[
         {
             "Names" : "Id",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "Name",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "Title",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "Description",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "Modules",
@@ -38,14 +38,14 @@
         },
         {
             "Names" : "MultiAZ",
-            "Type" : BOOLEAN_TYPE
+            "Types" : BOOLEAN_TYPE
         },
         {
             "Names" : "RDS",
             "Children" : [
                 {
                     "Names" : "AutoMinorVersionUpgrade",
-                    "Type" : BOOLEAN_TYPE
+                    "Types" : BOOLEAN_TYPE
                 }
             ]
         }

@@ -12,45 +12,45 @@
     attributes=[
         {
             "Names" : "IPProtocol",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Values" : [ "tcp", "udp", "icmp", "any", "all" ],
             "Mandatory" : true
         },
         {
             "Names" : "Protocol",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Values" : [ "TCP", "UDP", "HTTP", "HTTPS", "SSL" ]
         },
         {
             "Names" : "Port",
-            "Type" : NUMBER_TYPE
+            "Types" : NUMBER_TYPE
         },
         {
             "Names" : "HealthCheck",
             "Children" : [
                 {
                     "Names" : "Path",
-                    "Type" : STRING_TYPE
+                    "Types" : STRING_TYPE
                 },
                 {
                     "Names" : "HealthyThreshold",
-                    "Type" : [ NUMBER_TYPE, STRING_TYPE]
+                    "Types" : [ NUMBER_TYPE, STRING_TYPE]
                 },
                 {
                     "Names" : "UnhealthyThreshold",
-                    "Type" : [ NUMBER_TYPE, STRING_TYPE ]
+                    "Types" : [ NUMBER_TYPE, STRING_TYPE ]
                 },
                 {
                     "Names" : "Interval",
-                    "Type" : [ NUMBER_TYPE, STRING_TYPE ]
+                    "Types" : [ NUMBER_TYPE, STRING_TYPE ]
                 },
                 {
                     "Names" : "Timeout",
-                    "Type" : [ NUMBER_TYPE, STRING_TYPE ]
+                    "Types" : [ NUMBER_TYPE, STRING_TYPE ]
                 },
                 {
                     "Names" : "SuccessCodes",
-                    "Type" : STRING_TYPE
+                    "Types" : STRING_TYPE
                 }
             ]
         },
@@ -59,11 +59,11 @@
             "Children" : [
                 {
                     "Names" : "From",
-                    "Type" : NUMBER_TYPE
+                    "Types" : NUMBER_TYPE
                 },
                 {
                     "Names" : "To",
-                    "Type" : NUMBER_TYPE
+                    "Types" : NUMBER_TYPE
                 }
             ]
         },
@@ -72,17 +72,17 @@
             "Children" : [
                 {
                     "Names" : "Code",
-                    "Type" : NUMBER_TYPE
+                    "Types" : NUMBER_TYPE
                 },
                 {
                     "Names" : "Type",
-                    "Type" : NUMBER_TYPE
+                    "Types" : NUMBER_TYPE
                 }
             ]
         },
         {
             "Names" : "Certificate",
-            "Type" : BOOLEAN_TYPE,
+            "Types" : BOOLEAN_TYPE,
             "Default" : false
         }
     ]

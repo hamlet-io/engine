@@ -37,7 +37,7 @@
     attributes=[
         {
             "Names" : "Engine",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Values" : [ "ec2", "fargate" ],
             "Default" : "ec2"
         }

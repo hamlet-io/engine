@@ -26,7 +26,7 @@
                         {
                             "Names" : "GlobalAllow",
                             "Description" : "Allow all outbound traffic",
-                            "Type" : BOOLEAN_TYPE,
+                            "Types" : BOOLEAN_TYPE,
                             "Default" : true
                         },
                         {

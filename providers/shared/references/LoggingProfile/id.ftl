@@ -18,7 +18,7 @@
                 {
                     "Names" : "Filter",
                     "Description" : "The name of a Logfilter to apply to the forwarding rule",
-                    "Type" : STRING_TYPE,
+                    "Types" : STRING_TYPE,
                     "Mandatory" : true
                 }
                 {

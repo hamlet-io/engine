@@ -18,22 +18,22 @@
         [
             {
                 "Names" : "Prefix",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Mandatory" : true
             },
             {
                 "Names" : "Engine",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Default" : "github"
             },
             {
                 "Names" : "Branch",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Default" : "master"
             },
             {
                 "Names" : "Repository",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Default" : ""
             }
         ]

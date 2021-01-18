@@ -12,7 +12,7 @@
     attributes=[
         {
             "Names" : "OutputSuffix",
-            "Type" : STRING_TYPE,
+            "Types" : STRING_TYPE,
             "Values" : [ "template.json", "config.json", "cli.json", "parameters.json", "prologue.sh", "epilogue.sh" ]
         },
         {
@@ -29,11 +29,11 @@
                             "Children" : [
                                 {
                                     "Names" : "Path",
-                                    "Type" : STRING_TYPE
+                                    "Types" : STRING_TYPE
                                 },
                                 {
                                     "Names" : "Value",
-                                    "Type" : ANY_TYPE
+                                    "Types" : ANY_TYPE
                                 }
                             ]
                         },
@@ -44,23 +44,23 @@
                             "Children" : [
                                 {
                                     "Names" : "Path",
-                                    "Type" : STRING_TYPE
+                                    "Types" : STRING_TYPE
                                 },
                                 {
                                     "Names" : "Count",
-                                    "Type" : NUMBER_TYPE
+                                    "Types" : NUMBER_TYPE
                                 }
                             ]
                         },
                         {
                             "Names" : "Exists",
                             "Description" : "Does a JSON path exist",
-                            "Type" : ARRAY_OF_STRING_TYPE
+                            "Types" : ARRAY_OF_STRING_TYPE
                         },
                         {
                             "Names" : "NotEmpty",
                             "Description" : "Is the value of a JSON path not emtpy",
-                            "Type" : ARRAY_OF_STRING_TYPE
+                            "Types" : ARRAY_OF_STRING_TYPE
                         }
                     ]
                 },
@@ -76,19 +76,19 @@
                                 {
                                     "Names" : "Name",
                                     "Mandatory" : true,
-                                    "Type" : STRING_TYPE
+                                    "Types" : STRING_TYPE
                                 },
                                 {
                                     "Names" : "Type",
                                     "Mandatory" : true,
-                                    "Type" : STRING_TYPE
+                                    "Types" : STRING_TYPE
                                 }
                             ]
                         },
                         {
                             "Names" : "Output",
                             "Description" : "Does an output with exist",
-                            "Type" : ARRAY_OF_STRING_TYPE
+                            "Types" : ARRAY_OF_STRING_TYPE
                         }
                     ]
                 }
@@ -100,12 +100,12 @@
             "Children" : [
                 {
                     "Names" : "CFNLint",
-                    "Type" : BOOLEAN_TYPE,
+                    "Types" : BOOLEAN_TYPE,
                     "Default" : false
                 },
                 {
                     "Names" : "CFNNag",
-                    "Type" : BOOLEAN_TYPE,
+                    "Types" : BOOLEAN_TYPE,
                     "Default" : false
                 }
             ]

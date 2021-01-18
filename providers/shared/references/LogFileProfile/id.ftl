@@ -16,7 +16,7 @@
             "Children" : [
                 {
                     "Names" : "LogFileGroups",
-                    "Type" : ARRAY_OF_STRING_TYPE
+                    "Types" : ARRAY_OF_STRING_TYPE
                 }
             ]
         }

@@ -12,19 +12,19 @@
     attributes=[
         {
             "Names" : "NameSuffix",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "Conditions",
-            "Type" : ARRAY_OF_OBJECT_TYPE,
+            "Types" : ARRAY_OF_OBJECT_TYPE,
             "Children" : [
                 {
                     "Names" : "Condition",
-                    "Type" : STRING_TYPE
+                    "Types" : STRING_TYPE
                 },
                 {
                     "Names" : "Negated",
-                    "Type" : BOOLEAN_TYPE
+                    "Types" : BOOLEAN_TYPE
                 }
             ]
         }

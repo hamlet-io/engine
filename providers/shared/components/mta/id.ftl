@@ -18,7 +18,7 @@
         [
             {
                 "Names" : "Direction",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Values" : ["send", "receive"],
                 "Default" : "send",
                 "Mandatory" : true
@@ -31,7 +31,7 @@
             {
                 "Names" : "IPAddressGroups",
                 "Description" : "Allowed IP addresses. If any group is provided, all unmatching traffic will be blocked",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : []
             }
         ]
@@ -55,13 +55,13 @@
             {
                 "Names" : "Enabled",
                 "Description" : "Permit the rule to be considered",
-                "Type" : BOOLEAN_TYPE,
+                "Types" : BOOLEAN_TYPE,
                 "Default" : true
             },
             {
                 "Names" : "Order",
                 "Description" : "The order in which rules are checked. Lower is checked earlier",
-                "Type" : NUMBER_TYPE,
+                "Types" : NUMBER_TYPE,
                 "Default" : 100
             },
             {
@@ -71,14 +71,14 @@
                     {
                         "Names" : "Recipients",
                         "Description" : "Expected To addresses",
-                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Types" : ARRAY_OF_STRING_TYPE,
                         "Default" : []
                     }
                 ]
             },
             {
                 "Names" : "Action",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Values" : ["forward", "drop"],
                 "Mandatory" : true
             },

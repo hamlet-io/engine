@@ -467,7 +467,7 @@ behaviour.
     {
         "Names" : "Modes",
         "Description" : "A nested object with the deployment mode name as the root and childs based on component types",
-        "Type" : OBJECT_TYPE
+        "Types" : OBJECT_TYPE
     }
 ]]
 
@@ -523,19 +523,19 @@ behaviour.
             {
                 "Names" : "Provider",
                 "Description" : "The provider to use to host the component",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Mandatory" : true
             },
             {
                 "Names" : "Region",
                 "Description" : "The id of the region to host the component",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Mandatory" : true
             },
             {
                 "Names" : "DeploymentFramework",
                 "Description" : "The deployment framework to use to generate the outputs for deployment",
-                "Type" : STRING_TYPE,
+                "Types" : STRING_TYPE,
                 "Mandatory" : true
             }
         ]
@@ -598,34 +598,34 @@ behaviour.
 [#assign certificateBehaviourConfiguration = [
         {
             "Names" : "External",
-            "Type" : BOOLEAN_TYPE
+            "Types" : BOOLEAN_TYPE
         },
         {
             "Names" : "Wildcard",
-            "Type" : BOOLEAN_TYPE
+            "Types" : BOOLEAN_TYPE
         },
         {
             "Names" : "Qualifiers",
-            "Type" : OBJECT_TYPE
+            "Types" : OBJECT_TYPE
         },
         {
             "Names" : "Domain",
-            "Type" : STRING_TYPE
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "IncludeInDomain",
             "Children" : [
                 {
                     "Names" : "Product",
-                    "Type" : BOOLEAN_TYPE
+                    "Types" : BOOLEAN_TYPE
                 },
                 {
                     "Names" : "Environment",
-                    "Type" : BOOLEAN_TYPE
+                    "Types" : BOOLEAN_TYPE
                 },
                 {
                     "Names" : "Segment",
-                    "Type" : BOOLEAN_TYPE
+                    "Types" : BOOLEAN_TYPE
                 }
             ]
         }
@@ -634,37 +634,37 @@ behaviour.
             "Children" : [
                 {
                     "Names" : "Product",
-                    "Type" : BOOLEAN_TYPE
+                    "Types" : BOOLEAN_TYPE
                 },
                 {
                     "Names" : "Environment",
-                    "Type" : BOOLEAN_TYPE
+                    "Types" : BOOLEAN_TYPE
                 },
                 {
                     "Names" : "Segment",
-                    "Type" : BOOLEAN_TYPE
+                    "Types" : BOOLEAN_TYPE
                 },
                 {
                     "Names" : "Tier",
-                    "Type" : BOOLEAN_TYPE
+                    "Types" : BOOLEAN_TYPE
                 },
                 {
                     "Names" : "Component",
-                    "Type" : BOOLEAN_TYPE
+                    "Types" : BOOLEAN_TYPE
                 },
                 {
                     "Names" : "Instance",
-                    "Type" : BOOLEAN_TYPE
+                    "Types" : BOOLEAN_TYPE
                 },
                 {
                     "Names" : "Version",
-                    "Type" : BOOLEAN_TYPE
+                    "Types" : BOOLEAN_TYPE
                 }
             ]
         },
         {
             "Names" : "HostParts",
-            "Type" : ARRAY_OF_STRING_TYPE
+            "Types" : ARRAY_OF_STRING_TYPE
         }
     ]
 ]
@@ -715,12 +715,12 @@ behaviour.
                         "InhibitEnabled", "Stem", "Name", "Zone",
                         {
                             "Names" : "Bare",
-                            "Type" : BOOLEAN_TYPE,
+                            "Types" : BOOLEAN_TYPE,
                             "Default" : false
                         },
                         {
                             "Names" : "Role",
-                            "Type" : STRING_TYPE,
+                            "Types" : STRING_TYPE,
                             "Values" : [DOMAIN_ROLE_PRIMARY, DOMAIN_ROLE_SECONDARY]
                         }
                     ],
@@ -1416,19 +1416,19 @@ behaviour.
     {
         "Names" : "Enabled",
         "Description" : "Enable automatic OS Patching",
-        "Type" : BOOLEAN_TYPE,
+        "Types" : BOOLEAN_TYPE,
         "Default" : true
     },
     {
         "Names" : "Schedule",
         "Description" : "UTC based cron schedule to apply updates",
-        "Type" : STRING_TYPE,
+        "Types" : STRING_TYPE,
         "Default" : "59 13 * * *"
     },
     {
         "Names" : "SecurityOnly",
         "Description" : "Only apply security updates",
-        "Type" : BOOLEAN_TYPE,
+        "Types" : BOOLEAN_TYPE,
         "Default" : false
     }
 ]]

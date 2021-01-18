@@ -19,7 +19,7 @@
             {
                 "Names" : [ "Extensions", "Fragment", "Container" ],
                 "Description" : "Extensions to invoke as part of component processing",
-                "Type" : ARRAY_OF_STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : []
             },
             {
@@ -32,13 +32,13 @@
                 "Description" : "When using rule assignements how to behave on no match",
                 "Values" : [ "UseAuthenticatedRule", "Deny" ],
                 "Default" : "Deny",
-                "Type" : STRING_TYPE
+                "Types" : STRING_TYPE
             },
             {
                 "Names" : "AllowUnauthenticatedUsers",
                 "Description" : "Allow unautheniated users to use a federated role",
                 "Default" : false,
-                "Type" : BOOLEAN_TYPE
+                "Types" : BOOLEAN_TYPE
             }
         ]
 /]
@@ -71,7 +71,7 @@
                 "Description" : "How the assignment should be applied",
                 "Values" : [ "Authenticated", "Unauthenticated", "Rule" ],
                 "Mandatory" : true,
-                "Type" : STRING_TYPE
+                "Types" : STRING_TYPE
             },
             {
                 "Names" : "Rule",
@@ -79,29 +79,29 @@
                     {
                         "Names" : "Priority",
                         "Description" : "The order the rule should be evalutated in. lowest wins",
-                        "Type" : NUMBER_TYPE,
+                        "Types" : NUMBER_TYPE,
                         "Default" : 100
                     },
                     {
                         "Names" : "Claim",
                         "Description" : "The user claim to evalutate",
-                        "Type" : STRING_TYPE
+                        "Types" : STRING_TYPE
                     },
                     {
                         "Names" : "MatchType",
                         "Description" : "How to match the claim value",
                         "Values" : [ "Equals", "Contains", "StartsWith", "NotEqual" ],
-                        "Type" : STRING_TYPE
+                        "Types" : STRING_TYPE
                     },
                     {
                         "Names" : "Value",
                         "Description" : "The value of the claim to match on",
-                        "Type" : STRING_TYPE
+                        "Types" : STRING_TYPE
                     },
                     {
                         "Names" : "Providers",
                         "Description" : "The link ids of the providers the assignment applies to",
-                        "Type" : ARRAY_OF_STRING_TYPE
+                        "Types" : ARRAY_OF_STRING_TYPE
                     }
                 ]
             },
@@ -115,22 +115,22 @@
                 "Children" : [
                     {
                         "Names" : "Decrypt",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : false
                     },
                     {
                         "Names" : "AsFile",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : false
                     },
                     {
                         "Names" : "AppData",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : false
                     },
                     {
                         "Names" : "AppPublic",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : false
                     }
                 ]
