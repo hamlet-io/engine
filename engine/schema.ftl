@@ -36,11 +36,12 @@
 [#function formatJsonSchemaBaseType composite id=""]
     [#local optionSets = []]
     [#local result = {}]
-    [#if composite.Type?has_content]
-        [#if composite.Type?is_sequence]
-            [#if composite.Type?first == ARRAY_TYPE]
+    [#local type = composite.Type!composite.Types!""]
+    [#if type?has_content]
+        [#if type?is_sequence]
+            [#if type?first == ARRAY_TYPE]
                 [#-- Define an "array" of X type --]
-                [#switch composite.Type?last]
+                [#switch type?last]
                     [#case ANY_TYPE]
                         [#local result += { 
                             "type" : ARRAY_TYPE }]
@@ -49,14 +50,14 @@
                         [#local result += { 
                             "type" : ARRAY_TYPE,
                             "contains" : {
-                                "type" : composite.Type?last }}]
+                                "type" : type?last }}]
                         [#break]
                 [/#switch]
             [#else]
-                [#local optionSets += composite.Type?map(t -> { "type" : t })]
+                [#local optionSets += type?map(t -> { "type" : t })]
             [/#if]
         [#else]
-            [#local result += { "type" : composite.Type }]
+            [#local result += { "type" : type }]
         [/#if]
     [#elseif composite.Ref!false]
         [#if composite.Names == "Links"]
@@ -64,8 +65,13 @@
         [#else]
             [#local result += formatJsonSchemaReference(composite.Path)]
         [/#if]
-    [#else]
+    [#elseif composite.Children?? || composite.Subobjects?? ]
         [#local result += { "type" : OBJECT_TYPE }]
+    [#else]
+        [@fatal 
+            message="Missing Data Type on Composite Object"
+            context=composite
+        /]
     [/#if]
     [#return result +
         attributeIfContent("$id", id) +
