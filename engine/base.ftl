@@ -747,7 +747,8 @@ are added.
                         "Children" : asArray(attribute.Children![]),
                         "SubObjects" : attribute.SubObjects!attribute.Subobjects!false,
                         "PopulateMissingChildren" : attribute.PopulateMissingChildren!true,
-                        "AttributeSet" : attribute.AttributeSet!""
+                        "AttributeSet" : attribute.AttributeSet!"",
+                        "Component" : attribute.Component!""
                     } ]
             [/#if]
             [#local normalisedAttributes += [normalisedAttribute] ]
@@ -768,44 +769,28 @@ are added.
                         "Children" : [],
                         "SubObjects" : false,
                         "PopulateMissingChildren" : true,
-                        "AttributeSet" : ""
+                        "AttributeSet" : "",
+                        "Component" : ""
                     }
                 ] +
                 normalisedAttributes ]
         [/#if]
     [/#if]
 
-    [#-- If attribute value is defined as a reference, evaluate the --]
-    [#-- reference and use the result as the attribute's Children.  --]
-    [#-- Reference.Schema is the type of schema referenced          --]
-    [#-- (component, reference, attributeset [default]) whilst      --]
-    [#-- Reference.Type is the key to reference within the          --]
-    [#-- schema composite object structure.                         --]
+    [#-- If attribute value is defined as an AttributeSet, evaluate --]
+    [#-- it and use the result as the attribute's Children.         --]
     [#local evaluatedRefAttributes = []]
     [#if normalisedAttributes?has_content]
         [#list normalisedAttributes as attribute]
-            [#if attribute.Reference.Type?has_content ]
-            
-                [#-- Determine composite object --]
-                [#switch attribute.Reference.Schema]
-                    [#case "attributeset" ]
-                        [#local attributeRefValue = attributeSetConfiguration[attribute.Reference.Type]!{} ]
-                        [#break]
-                    [#case "component" ]
-                        [#local attributeRefValue = componentConfiguration[attribute.Reference.Type]!{} ]
-                        [#break]
-                    [#default]
-                        [#local attributeRefValue = "Hamlet:Missing"]
-                        [#break]
-                [/#switch]
+            [#local attributeRefValue = ""]
+            [#if attribute.AttributeSet?has_content ]
+                [#-- Attribute References an AttributeSet --]
+                [#local attributeRefValue = attributeSetConfiguration[attribute.AttributeSet]!{} ]
+            [/#if]
 
-                [#if (attributeRefValue?is_string && attributeRefValue == "Hamlet:Missing")]
-                    [@fatal
-                        message="Unable to evaluate Attribute Reference. Incorrect Schema or Type."
-                        context=attribute.Reference
-                    /]
-                [#else]
-                    [#-- reference becomes attribute children --]
+            [#if attributeRefValue?has_content ]
+                [#-- reference becomes attribute children --]
+                [#if attributeRefValue.Attributes??]
                     [#local evaluatedRefAttributes += [
                         mergeObjects(
                             attribute,
@@ -814,6 +799,11 @@ are added.
                             }
                         )]
                     ]
+                [#else]
+                    [@fatal
+                        message="Unable to evaluate Attribute Reference. Incorrect Schema or Type."
+                        context=attribute
+                    /]
                 [/#if]
             [#else]
                 [#-- Attribute has no reference to evaluate, so add to results --]

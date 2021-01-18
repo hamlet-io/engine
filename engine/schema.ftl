@@ -3,8 +3,9 @@
 [#assign HamletSchemas = {
     "Root" : "http://json-schema.org/draft-07/schema#"
 }]
+[#assign schemaHostSite = "https://hamlet.io"]
+[#assign rootSchemaPath = formatPath(false, schemaHostSite, "schema")]
 
-[#assign rootSchemaPath = "https://hamlet.io/schema"]
 [#assign patternPropertiesRegex = r'^[A-Za-z_][A-Za-z0-9_]*$']
 [#assign schemaConfiguration = {}]
 
@@ -58,19 +59,10 @@
         [#else]
             [#local result += { "type" : composite.Types }]
         [/#if]
-    [#elseif composite.Ref!false]
-        [#if composite.Names == "Links"]
-            [#local result += formatJsonSchemaReference(composite.Path, "attributeset")]
-        [#else]
-            [#local result += formatJsonSchemaReference(composite.Path)]
-        [/#if]
-    [#elseif composite.Children?? || composite.Subobjects?? ]
-        [#local result += { "type" : OBJECT_TYPE }]
+    [#elseif composite.Component?? || composite.AttributeSet??]
+        [#local result += formatJsonSchemaReference(composite)]
     [#else]
-        [@fatal 
-            message="Missing Data Type on Composite Object"
-            context=composite
-        /]
+        [#local result += { "type" : OBJECT_TYPE }]
     [/#if]
     [#return result +
         attributeIfContent("$id", id) +
@@ -168,8 +160,7 @@
                                                     childSchemaName : formatJsonSchemaFromComposite(
                                                         {
                                                             "Names" : childSchemaName,
-                                                            "Ref" : true,
-                                                            "Path" : formatPath(false, "definitions", childSchemaName)
+                                                            "AttributeSet" : childSchemaName
                                                         }
                                                     )
                                                 }
@@ -181,8 +172,7 @@
                                             childSchemaName : formatJsonSchemaFromComposite(
                                                 {
                                                     "Names" : childSchemaName,
-                                                    "Ref" : true,
-                                                    "Path" : formatPath(false, "#definitions", childSchemaName)
+                                                    "AttributeSet" : childSchemaName
                                                 }
                                             )
                                         }
@@ -216,8 +206,7 @@
                             formatJsonSchemaFromComposite(
                                 {
                                     "Names" : schemaName,
-                                    "Ref" : true,
-                                    "Path" : formatPath(false, "#definitions", schemaName)
+                                    "AttributeSet" : schemaName
                                 }
                             ) 
                     }
@@ -233,16 +222,56 @@
     [#return jsonSchema ]
 [/#function]
 
-[#function formatJsonSchemaReference path schema=""]
-    [#if schema?has_content]
-        [#-- return ref to specified schema --]
-        [#return { r"$ref": concatenate(["schema-", schema?lower_case, "-schema.json", path?ensure_starts_with("#/")], '') }]
-    [#else]
-        [#-- return ref to schema path in same file --]
-        [#return { r"$ref": path?ensure_starts_with("#/") }]
+[#function formatJsonSchemaReference composite]
+    [#if composite.AttributeSet??]
+        [#local schema = "attributeset"]
+        [#local type = composite.AttributeSet]
+        [#local path = composite.AttributeSet?ensure_starts_with('#/')]
+    [#elseif composite.Component??]
+        [#local schema = "component"]
+        [#local type = composite.Component]
+        [#local path = composite.Component?ensure_starts_with('#/')]
     [/#if]
+
+    [#local configuration = getSchemaReferenceConfiguration(schema)]
+    [#if configuration??]
+        [#return { "$ref" : 
+            formatPath(
+                false,
+                rootSchemaPath,
+                "latest",
+                "blueprint", 
+                "schema-" + schema + "-schema.json"
+            ) + path 
+        }]
+    [/#if]
+    [@fatal message="Invalid Reference" context={"comp" : composite, "conf" : configuration} /]
 [/#function]
 
+[#function getSchemaReferenceConfiguration type]
+    [#local schemas = {
+        "attributeset" : {
+            "Url" : formatPath(false, rootSchemaPath, "latest", "blueprint", "schema-attributeset-schema.json"),
+            "Values" : attributeSetConfiguration?keys
+        },
+        "component" : {
+            "Url" : formatPath(false, rootSchemaPath, "latest", "blueprint", "schema-component-schema.json"),
+            "Values" : componentConfiguration?keys +
+                    asFlattenedArray(
+                        componentConfiguration
+                        ?keys
+                        ?filter(c -> componentConfiguration[c].Components??)
+                        ?map(c -> componentConfiguration[c].Components)
+                    )?map(c -> c.Component)
+
+        },
+        "reference" : {
+            "Url" : formatPath(false, rootSchemaPath, "latest", "blueprint", "schema-reference-schema.json"),
+            "Values" : referenceConfiguration?keys
+        }
+    }]
+    [#return schemas[type]!{}]
+[/#function]
 [#-------------------------------------------------------
 -- Internal support functions for schema processing    --
 ---------------------------------------------------------]
