@@ -304,7 +304,7 @@
             {
                 "Names" : "SettingsPrefix",
                 "Description" : "A prefix to use for this providers settings lookup",
-                "Type": STRING_TYPE,
+                "Types": STRING_TYPE,
                 "Default" : ""
             },
             {

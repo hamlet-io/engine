@@ -76,7 +76,7 @@
                             {
                                 "Names" : "ComponentPath",
                                 "Description" : "The full component path defaults",
-                                "Type": BOOLEAN_TYPE,
+                                "Types": BOOLEAN_TYPE,
                                 "Default" : false
                             }
                         ]

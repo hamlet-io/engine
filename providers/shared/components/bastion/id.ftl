@@ -49,7 +49,7 @@
                         },
                         {
                             "Names" : "Network",
-                            "Type":  STRING_TYPE,
+                            "Types":  STRING_TYPE,
                             "Default" : "default"
                         },
                         {
