@@ -483,6 +483,14 @@
 
 [@addGenerationContractStepOutputMapping
     provider=SHARED_PROVIDER
+    subset="schemacontract"
+    outputType=CONTRACT_DEFAULT_OUTPUT_TYPE
+    outputFormat=""
+    outputSuffix="schemacontract.json"
+/]
+
+[@addGenerationContractStepOutputMapping
+    provider=SHARED_PROVIDER
     subset="managementcontract"
     outputType=CONTRACT_DEFAULT_OUTPUT_TYPE
     outputFormat=""
