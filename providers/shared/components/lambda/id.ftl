@@ -179,7 +179,7 @@
                 "Children" : [
                     {
                         "Names" : "NewVersionOnDeploy",
-                        "Types" : STRING_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Description" : "Create a new version on each deployment",
                         "Default" : false
                     },
