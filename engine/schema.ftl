@@ -8,10 +8,10 @@
 [#assign patternPropertiesRegex = r'^[A-Za-z_][A-Za-z0-9_]*$']
 [#assign schemaConfiguration = {}]
 
-[#macro addSchema section subset configuration]
+[#macro addSchema section schema configuration]
     [@internalMergeSchemaConfiguration
         section=section
-        subset=subset
+        schema=schema
         configuration=configuration
     /]
 [/#macro]
@@ -85,10 +85,10 @@
     [#return asArray(composite.Names)[0]]
 [/#function]
 
-[#function formatSchemaId section version="latest"]
+[#function formatSchemaId section unit version="latest"]
     [#switch section]
         [#default]
-            [#return formatPath(false, rootSchemaPath, version, "blueprint", "schema-" + section + "-schema.json")]
+            [#return formatPath(false, rootSchemaPath, version, "blueprint", section + "-" + unit + "-schema.json")]
             [#break]
     [/#switch]
 [/#function]
@@ -242,13 +242,13 @@
 -- Internal support functions for schema processing    --
 ---------------------------------------------------------]
 
-[#macro internalMergeSchemaConfiguration section subset configuration]
+[#macro internalMergeSchemaConfiguration section schema configuration]
     [#assign schemaConfiguration =
         mergeObjects(
             schemaConfiguration,
             {
                 section : {
-                    subset : configuration
+                    schema : configuration
                 }
             })]
 [/#macro]
