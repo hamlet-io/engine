@@ -10,7 +10,7 @@
                 }
             },
             "View" : {
-                "Name" : SCHEMA_VIEW_TYPE
+                "Name" : SCHEMASET_VIEW_TYPE
             },
             "Flow" : {
                 "Names" : [ "views" ]
