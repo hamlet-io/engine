@@ -21,7 +21,7 @@
                         {
                             "Names" : "Provider",
                             "Description" : "The default container compute provider",
-                            "Type"  : STRING_TYPE,
+                            "Types"  : STRING_TYPE,
                             "Values" : [ "_autoscalegroup", "aws:fargate", "aws:fargatespot" ],
                             "Default" : "_autoscalegroup"
                         },
