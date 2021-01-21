@@ -45,18 +45,15 @@
             [@contractStep
                 id=formatId(schema)
                 stageId=stageId
-                taskType=PROCESS_TEMPLATE_PASS_TASK_TYPE
+                taskType=CREATE_SCHEMASET_TASK_TYPE
                 priority=100
                 mandatory=true
                 parameters=
                     {
-                        "provider"      : ((commandLineOptions.Deployment.Provider.Names)?join(","))!SHARED_PROVIDER,
-                        "framework"     : commandLineOptions.Deployment.Framework.Name,
-                        "outputType"    : outputMappings["OutputType"],
-                        "outputFormat"  : outputMappings["OutputFormat"],
-                        "outputSuffix"  : outputMappings["OutputSuffix"],
-                        "subset"        : "schema",
-                        "alternative"   : ""
+                        "DeploymentGroup" : section,
+                        "DeploymentUnit" : schema,
+                        "DeploymentProvider" : ((commandLineOptions.Deployment.Provider.Names)?join(","))!SHARED_PROVIDER,
+                        "DeploymentFramework" : commandLineOptions.Deployment.Framework.Name
                     }
             /]
         [/#list]
