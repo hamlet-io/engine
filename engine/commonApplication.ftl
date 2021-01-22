@@ -135,7 +135,7 @@
     [#return result.Environment]
 [/#function]
 
-[#function getDefaultBaselineVariables links ]
+[#function getDefaultBaselineVariables links={} ]
     [#local result = {"Links" : links, "Environment": {} }]
     [#list links as name,value]
         [#if (value.Direction?lower_case != "inbound") || includeInbound]
@@ -146,13 +146,16 @@
 [/#function]
 
 
-[#function defaultEnvironment occurrence links baselineLinks]
+[#function defaultEnvironment occurrence links baselineLinks={}]
     [#return
         occurrence.Configuration.Environment.General +
         occurrence.Configuration.Environment.Build +
         occurrence.Configuration.Environment.Sensitive +
         getDefaultLinkVariables(links, true) +
-        getDefaultBaselineVariables(baselineLinks)
+        baselineLinks?has_content?then(
+            getDefaultBaselineVariables(baselineLinks),
+            {}
+        )
     ]
 [/#function]
 
