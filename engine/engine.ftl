@@ -21,7 +21,7 @@ Title and Description are entirely for human consumption and targetted at
 the automated generation of documentation.
 --]
 
-[#assign frameworkObjectAttributes = ["Types", "Id", "Name", "Title", "Description"]]
+[#assign frameworkObjectAttributes = ["Type", "Id", "Name", "Title", "Description"]]
 
 [#function getFrameworkObjectAttributes obj]
     [#return getObjectAttributes(obj, frameworkObjectAttributes)]
@@ -32,7 +32,7 @@ the automated generation of documentation.
 [/#function]
 
 [#function getObjectType obj]
-    [#return obj.Types!""]
+    [#return obj.Type!""]
 [/#function]
 
 [#function getObjectId obj]

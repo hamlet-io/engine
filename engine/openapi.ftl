@@ -289,7 +289,7 @@
     {
         "Path" : ".*",
         "Verb" : ".*",
-        "Types" : "",
+        "Type" : "",
         "Variable" : "",
         "Validation" : "all",
         "UseClientCreds" : false,
