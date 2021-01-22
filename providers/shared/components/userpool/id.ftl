@@ -295,6 +295,17 @@
     attributes=
         [
             {
+                "Names" : "Links",
+                "Subobjects" : true,
+                "Children" : linkChildrenConfiguration
+            },
+            {
+                "Names" : [ "Extensions" ],
+                "Description" : "Extensions to invoke as part of component processing",
+                "Types" : ARRAY_OF_STRING_TYPE,
+                "Default" : []
+            },
+            {
                 "Names" : "Engine",
                 "Description" : "The authentication provider type",
                 "Types" : STRING_TYPE,
