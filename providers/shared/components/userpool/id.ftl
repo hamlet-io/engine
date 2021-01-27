@@ -298,7 +298,7 @@
             {
                 "Names" : "Links",
                 "Subobjects" : true,
-                "Children" : linkChildrenConfiguration
+                "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : [ "Extensions" ],
