@@ -15,7 +15,7 @@
             id=formatId(section)
             executionMode=CONTRACT_EXECUTION_MODE_PARALLEL
             priority=10
-            mandatory=true
+            mandatory=false
         /]
 
         [#switch section]
@@ -44,7 +44,7 @@
                     stageId=stageId
                     taskType=CREATE_SCHEMASET_TASK_TYPE
                     priority=100
-                    mandatory=true
+                    mandatory=false
                     parameters=
                         {
                             "SchemaType" : section,
