@@ -10,17 +10,12 @@
         ]
     attributes=[
         {
-            "Names" : "DeploymentUnit",
+            "Names" : "SchemaType",
             "Types" : STRING_TYPE,
             "Mandatory" : true
         },
         {
-            "Names" : "DeploymentGroup",
-            "Types" : STRING_TYPE,
-            "Mandatory" : true
-        },
-        {
-            "Names" : "DeploymentProvider",
+            "Names" : "SchemaInstance",
             "Types" : STRING_TYPE,
             "Mandatory" : true
         }
