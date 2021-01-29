@@ -68,20 +68,27 @@
 
         [#case "reference"]
 
-            [#list referenceConfiguration as id,configuration]
-                [@addSchema
-                    section="reference"
-                    schema=configuration.Type.Plural
-                    configuration=
-                        formatJsonSchemaFromComposite(
-                            {
-                                "Names" : configuration.Type.Plural,
-                                "Type" : OBJECT_TYPE,
-                                "SubObjects" : true,
-                                "Children" : configuration.Attributes
-                            },
-                            attributeSetConfiguration?keys)
-                /]
+            [#-- The CommandLineOption for Schema expects the singular name. --]
+            [#-- But the compositeObject structure uses pluralised names as  --]
+            [#-- the object ID's. So we check the singular name matches first--]
+            [#-- then re-set schema name value to the pluralisation.         --]
+            [#list referenceConfiguration as id, configuration]
+                [#if configuration.Type.Singular?lower_case == schema]
+
+                    [@addSchema
+                        section="reference"
+                        schema=configuration.Type.Singular
+                        configuration=
+                            formatJsonSchemaFromComposite(
+                                {
+                                    "Names" : configuration.Type.Plural,
+                                    "Type" : OBJECT_TYPE,
+                                    "SubObjects" : true,
+                                    "Children" : configuration.Attributes
+                                },
+                                attributeSetConfiguration?keys)
+                    /]
+                [/#if]
             [/#list]
             [#break]
 
