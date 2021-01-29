@@ -119,10 +119,22 @@
 
     [/#switch]
 
-    [@addSchemaToDefaultJsonOutput
-        section=schema
-        schemaId=formatSchemaId(section, schema)
-        config=getSchema(section)!{}
-    /]
+    [#local schemaOutputConfiguration = getSchema(section)!{}]
+
+    [#if schemaOutputConfiguration?has_content]
+        [@addSchemaToDefaultJsonOutput
+            section=schema
+            schemaId=formatSchemaId(section, schema)
+            config=schemaOutputConfiguration
+        /]
+    [#else]
+        [@fatal
+            message="Schema instance type not found. Did you mean to try the Singular Name?"
+            context={
+                "SchemaType" : section,
+                "SchemaInstance" : schema
+            }
+        /]
+    [/#if]
 
 [/#macro]
