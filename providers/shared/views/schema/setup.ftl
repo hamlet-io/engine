@@ -96,19 +96,21 @@
 
             [#-- Key Value Pairs of AttributeSet Name : Configuration --]
             [#list attributeSetConfiguration as id,configuration]
-                [@addSchema
-                    section="attributeset"
-                    schema=id
-                    configuration=
-                    formatJsonSchemaFromComposite(
-                        {
-                            "Names" : id,
-                            "Type" : OBJECT_TYPE,
-                            "SubObjects" : true,
-                            "Children" : configuration.Attributes
-                        }
-                    )
-                /]
+                [#if configuration.Type.Singular?lower_case == schema]
+                    [@addSchema
+                        section="attributeset"
+                        schema=id
+                        configuration=
+                        formatJsonSchemaFromComposite(
+                            {
+                                "Names" : id,
+                                "Type" : OBJECT_TYPE,
+                                "SubObjects" : true,
+                                "Children" : configuration.Attributes
+                            }
+                        )
+                    /]
+                [/#if]
             [/#list]
             [#break]
 
