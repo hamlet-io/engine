@@ -122,6 +122,62 @@
                 "Names" : "Links",
                 "Subobjects" : true,
                 "Children" : linkChildrenConfiguration
+            },
+            {
+                "Names" : "InventoryReports",
+                "Description" : "Provides a listing of all objects in the store on a schedule basis",
+                "Subobjects" : true,
+                "Children" : [
+                    {
+                        "Names" : "Destination",
+                        "Description" : "The destination of the reports",
+                        "Children" : [
+                            {
+                                "Names" : "Type",
+                                "Values" : [ "self", "link" ],
+                                "Default" : "self",
+                                "Description" : "The type of destination for the report"
+                            },
+                            {
+                                "Names": "Links",
+                                "Description" : "If destination type is link these are the links that will be used",
+                                "Subobjects" : true,
+                                "Children" : linkChildrenConfiguration
+                            }
+                        ]
+                    },
+                    {
+                        "Names" : "IncludeVersions",
+                        "Description" : "Include versions of objects in report",
+                        "Type" : BOOLEAN_TYPE,
+                        "Default" : false
+                    },
+                    {
+                        "Names" : "InventoryPrefix",
+                        "Description" : "A filter prefix to generate the report for",
+                        "Type" : STRING_TYPE,
+                        "Default" : ""
+                    },
+                    {
+                        "Names" : "InventoryFormat",
+                        "Description" : "The filter for the inventory report",
+                        "Type" : STRING_TYPE,
+                        "Default" : "CSV"
+                    }
+                    {
+                        "Names" : "DestinationPrefix",
+                        "Description" : "A prefix to store the report under in the destination",
+                        "Type" : STRING_TYPE,
+                        "Mandatory" : true
+                    }
+                    {
+                        "Names" : "Schedule",
+                        "Description" : "How often to generate the report",
+                        "Values" : [ "Daily", "Weekly" ],
+                        "Type" : STRING_TYPE,
+                        "Default" : "Daily"
+                    }
+                ]
             }
         ]
 /]
