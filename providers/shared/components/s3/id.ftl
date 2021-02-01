@@ -150,32 +150,32 @@
                     {
                         "Names" : "IncludeVersions",
                         "Description" : "Include versions of objects in report",
-                        "Type" : BOOLEAN_TYPE,
+                        "Types" : BOOLEAN_TYPE,
                         "Default" : false
                     },
                     {
                         "Names" : "InventoryPrefix",
                         "Description" : "A filter prefix to generate the report for",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : ""
                     },
                     {
                         "Names" : "InventoryFormat",
                         "Description" : "The filter for the inventory report",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "CSV"
                     }
                     {
                         "Names" : "DestinationPrefix",
                         "Description" : "A prefix to store the report under in the destination",
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Mandatory" : true
                     }
                     {
                         "Names" : "Schedule",
                         "Description" : "How often to generate the report",
                         "Values" : [ "Daily", "Weekly" ],
-                        "Type" : STRING_TYPE,
+                        "Types" : STRING_TYPE,
                         "Default" : "Daily"
                     }
                 ]
