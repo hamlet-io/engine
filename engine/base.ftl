@@ -781,37 +781,26 @@ are added.
     [#-- If attribute value is defined as an AttributeSet, evaluate --]
     [#-- it and use the result as the attribute's Children.         --]
     [#local evaluatedRefAttributes = []]
-    [#if normalisedAttributes?has_content]
-        [#list normalisedAttributes as attribute]
-            [#local attributeRefValue = ""]
-            [#if attribute.AttributeSet?has_content ]
-                [#-- Attribute References an AttributeSet --]
-                [#local attributeRefValue = attributeSetConfiguration[attribute.AttributeSet]!{} ]
+    [#list normalisedAttributes![] as attribute]
+        [#if attribute.AttributeSet?has_content ]
+            [#-- AttributeSet provides the child attributes --]
+            [#local children = (attributeSetConfiguration[attribute.AttributeSet].Attributes)![] ]
+
+            [#if !children?has_content ]
+                [@fatal
+                    message="Unable to determine child attributes from AttributeSet"
+                    context=attribute
+                /]
+                [#-- Add a minimal child configuration to ensure processing completes --]
+                [#local children = [{"Names" : "AttributeSet", "Types" : STRING_TYPE}] ]
             [/#if]
 
-            [#if attributeRefValue?has_content ]
-                [#-- reference becomes attribute children --]
-                [#if attributeRefValue.Attributes??]
-                    [#local evaluatedRefAttributes += [
-                        mergeObjects(
-                            attribute,
-                            {
-                                "Children" : attributeRefValue.Attributes
-                            }
-                        )]
-                    ]
-                [#else]
-                    [@fatal
-                        message="Unable to evaluate Attribute Reference. Incorrect Schema or Type."
-                        context=attribute
-                    /]
-                [/#if]
-            [#else]
-                [#-- Attribute has no reference to evaluate, so add to results --]
-                [#local evaluatedRefAttributes += [attribute]]
-            [/#if]
-        [/#list]
-    [/#if]
+            [#local evaluatedRefAttributes += [ attribute + { "Children" : children } ] ]
+        [#else]
+            [#-- Attribute has no reference to evaluate, so add to results --]
+            [#local evaluatedRefAttributes += [attribute]]
+        [/#if]
+    [/#list]
 
     [#-- Determine the attribute values --]
     [#local result = {} ]
