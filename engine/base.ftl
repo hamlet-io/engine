@@ -792,7 +792,7 @@ are added.
                     context=attribute
                 /]
                 [#-- Add a minimal child configuration to ensure processing completes --]
-                [#local children = [{"Names" : "AttributeSet", "Type" : STRING_TYPE}] ]
+                [#local children = [{"Names" : "AttributeSet", "Types" : STRING_TYPE}] ]
             [/#if]
 
             [#local evaluatedRefAttributes += [ attribute + { "Children" : children } ] ]
