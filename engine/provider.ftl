@@ -236,7 +236,7 @@
             [/#list]
 
             [#-- Determine the AttributeSets for the provider --]
-            [#local directories = 
+            [#local directories =
                 internalGetPluginFiles(
                     [providerMarker.Path, "attributesets"],
                     [
@@ -878,6 +878,12 @@
         ["service", "id", "name", "policy", "resource"]
     /]
 
+    [#-- aws/attributesets/attributeset.ftl --]
+    [@internalIncludeTemplatesInDirectory
+        [providerMarker.Path, "attributesets"],
+        ["attributeset" ]
+    /]
+
     [#-- aws/components/component.ftl --]
     [@internalIncludeTemplatesInDirectory
         [providerMarker.Path, "components"],
@@ -894,12 +900,6 @@
     [@internalIncludeTemplatesInDirectory
         [providerMarker.Path, "layers"],
         ["layer" ]
-    /]
-
-    [#-- engine/providers/shared/attributesets/attributeset.ftl --]
-    [@internalIncludeTemplatesInDirectory
-        [providerMarker.Path, "attributesets"],
-        ["attributeset" ]
     /]
 
     [#-- aws/references/reference.ftl --]
