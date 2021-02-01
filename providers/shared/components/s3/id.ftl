@@ -140,10 +140,10 @@
                                 "Description" : "The type of destination for the report"
                             },
                             {
-                                "Names": "Links",
+                                "Names" : "Links",
                                 "Description" : "If destination type is link these are the links that will be used",
                                 "Subobjects" : true,
-                                "Children" : linkChildrenConfiguration
+                                "AttributeSet" : LINK_ATTRIBUTESET_TYPE
                             }
                         ]
                     },
