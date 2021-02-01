@@ -136,6 +136,7 @@
                                 "Names" : "Type",
                                 "Values" : [ "self", "link" ],
                                 "Default" : "self",
+                                "Types" : STRING_TYPE,
                                 "Description" : "The type of destination for the report"
                             },
                             {
