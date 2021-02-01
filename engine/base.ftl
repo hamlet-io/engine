@@ -722,7 +722,8 @@ are added.
                     "Children" : [],
                     "SubObjects" : false,
                     "PopulateMissingChildren" : true,
-                    "AttributeSet" : ""
+                    "AttributeSet" : "",
+                    "Component" : ""
                 } ]
             [#if normalisedAttribute.Names?seq_contains("InhibitEnabled") ]
                 [#local inhibitEnabled = true ]
