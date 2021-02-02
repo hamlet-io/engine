@@ -87,7 +87,9 @@
                     "Children" : [
                         {
                             "Names" : "Enabled",
-                            "Types"  : BOOLEAN_TYPE
+                            "Description" : "Deprecated - here to override automatically added enabled attribute",
+                            "Types"  : BOOLEAN_TYPE,
+                            "Default" : false
                         },
                         {
                             "Names" : "Expiration",
