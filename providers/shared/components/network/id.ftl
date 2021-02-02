@@ -27,12 +27,6 @@
                 "Names" : "Logging",
                 "Children" : [
                     {
-                        "Names" : "EnableFlowLogs",
-                        "Description" : "Deprecated: Please use FlowLogs",
-                        "Types" : BOOLEAN_TYPE,
-                        "Default" : true
-                    },
-                    {
                         "Names" : "FlowLogs",
                         "Description" : "Log flows across the network",
                         "Subobjects" : true,
