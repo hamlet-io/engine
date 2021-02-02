@@ -14,7 +14,7 @@ pipeline {
     stages {
         stage('Run Shared Provider Tests') {
             environment {
-                GENERATION_PLUGIN_DIRS="${WORKSPACE}"
+                GENERATION_ENGINE_DIR="${WORKSPACE}"
                 TEST_OUTPUT_DIR='./hamlet_tests'
             }
             steps {
