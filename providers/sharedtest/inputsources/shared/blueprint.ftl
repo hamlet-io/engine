@@ -11,6 +11,15 @@
                         "Name" : "externalservice"
                     }
                 }
+            },
+            "PlacementProfiles": {
+                "external": {
+                    "default": {
+                        "Provider": "sharedtest",
+                        "Region": "external",
+                        "DeploymentFramework": "default"
+                    }
+                }
             }
         }
     /]

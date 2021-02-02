@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=EXTERNALSERVICE_COMPONENT_TYPE
-    defaultGroup="external"
-/]
-
 [@addComponent
     type=EXTERNALSERVICE_COMPONENT_TYPE
     properties=

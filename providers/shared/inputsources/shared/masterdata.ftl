@@ -1732,11 +1732,6 @@
             "Priority" : 200,
             "Level" : "application",
             "ResourceSets" : {}
-          },
-          "external" : {
-            "Priority" : 500,
-            "Level" : "solution",
-            "ResourceSets" : {}
           }
         },
         "DeploymentModes" : {
