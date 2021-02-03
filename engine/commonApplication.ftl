@@ -503,16 +503,17 @@
         ]
 
         [#if container.Image.Source == "containerregistry" ]
-            [#assign _context += { "Image" : container.Image["Source:containerregistry"].Image }]
+            [#local _context += { "Image" : container.Image["Source:containerregistry"].Image }]
+            [@debug message="SourceImage" context=container.Image["Source:containerregistry"].Image enabled=true /]
         [/#if]
 
         [#local linkIngressRules = [] ]
         [#list _context.Links as linkId,linkTarget]
-            [#assign linkTargetCore = linkTarget.Core ]
-            [#assign linkTargetConfiguration = linkTarget.Configuration ]
-            [#assign linkTargetResources = linkTarget.State.Resources ]
-            [#assign linkTargetAttributes = linkTarget.State.Attributes ]
-            [#assign linkTargetRoles = linkTarget.State.Roles ]
+            [#local linkTargetCore = linkTarget.Core ]
+            [#local linkTargetConfiguration = linkTarget.Configuration ]
+            [#local linkTargetResources = linkTarget.State.Resources ]
+            [#local linkTargetAttributes = linkTarget.State.Attributes ]
+            [#local linkTargetRoles = linkTarget.State.Roles ]
 
             [#if (linkTargetRoles.Outbound["networkacl"]!{})?has_content ]
                 [#local egressRules += [ linkTargetRoles.Outbound["networkacl"] ]]
@@ -525,7 +526,7 @@
             [#switch linkTargetCore.Type]
                 [#case DATAVOLUME_COMPONENT_TYPE]
 
-                    [#assign dataVolumeEngine = linkTargetAttributes["ENGINE"] ]
+                    [#local dataVolumeEngine = linkTargetAttributes["ENGINE"] ]
 
                     [#if ! ( ecs.Configuration.Solution.VolumeDrivers?seq_contains(dataVolumeEngine)) ]
                             [@fatal
@@ -592,38 +593,38 @@
 
         [#-- validate fargate requirements from container context --]
         [#if solution.Engine == "fargate" ]
-            [#assign fargateInvalidConfig = false ]
-            [#assign fargateInvalidConfigMessage = [] ]
+            [#local fargateInvalidConfig = false ]
+            [#local fargateInvalidConfigMessage = [] ]
 
             [#if !( [ 256, 512, 1024, 2048, 4096 ]?seq_contains(_context.Cpu) )  ]
-                [#assign fargateInvalidConfig = true ]
-                [#assign fargateInvalidConfigMessage += [ "CPU quota is not valid ( must be divisible by 256 )" ] ]
+                [#local fargateInvalidConfig = true ]
+                [#local fargateInvalidConfigMessage += [ "CPU quota is not valid ( must be divisible by 256 )" ] ]
             [/#if]
 
             [#if !( _context.MaximumMemory?has_content )  ]
-                [#assign fargateInvalidConfig = true ]
-                [#assign fargateInvalidConfigMessage += [ "Maximum memory must be assigned" ]]
+                [#local fargateInvalidConfig = true ]
+                [#local fargateInvalidConfigMessage += [ "Maximum memory must be assigned" ]]
             [/#if]
 
             [#if (_context.Privileged )]
-                [#assign fargateInvalidConfig = true ]
-                [#assign fargateInvalidConfigMessage += [ "Cannot run in priviledged mode" ] ]
+                [#local fargateInvalidConfig = true ]
+                [#local fargateInvalidConfigMessage += [ "Cannot run in priviledged mode" ] ]
             [/#if]
 
             [#if _context.ContainerNetworkLinks!{}?has_content ]
-                [#assign fargateInvalidConfig = true ]
-                [#assign fargateInvalidConfigMessage += [ "Cannot use Network Links" ] ]
+                [#local fargateInvalidConfig = true ]
+                [#local fargateInvalidConfigMessage += [ "Cannot use Network Links" ] ]
             [/#if]
 
             [#if (_context.Hosts!{})?has_content ]
-                [#assign fargateInvalidConfig = true ]
-                [#assign fargateInvalidConfigMessage += [ "Cannot add host entries" ] ]
+                [#local fargateInvalidConfig = true ]
+                [#local fargateInvalidConfigMessage += [ "Cannot add host entries" ] ]
             [/#if]
 
             [#list _context.Volumes!{} as name,volume ]
                 [#if volume.hostPath?has_content || volume.PersistVolume || ( volume.Driver != "local" && volume.Driver != "efs" ) ]
-                    [#assign fargateInvalidConfig = true ]
-                    [#assign fargateInvalidConfigMessage += [ "Can only use the local or efs driver and cannot reference host - volume ${name}" ] ]
+                    [#local fargateInvalidConfig = true ]
+                    [#local fargateInvalidConfigMessage += [ "Can only use the local or efs driver and cannot reference host - volume ${name}" ] ]
                 [/#if]
             [/#list]
 
