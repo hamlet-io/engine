@@ -5,7 +5,7 @@
     data=
       {
         "DeploymentGroups" : {
-          "external" : {
+          "internal" : {
             "Priority" : 500,
             "Level" : "solution",
             "ResourceSets" : {}
