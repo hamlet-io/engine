@@ -13,7 +13,14 @@
         {
             "Names" : "OutputSuffix",
             "Types" : STRING_TYPE,
-            "Values" : [ "template.json", "config.json", "cli.json", "parameters.json", "prologue.sh", "epilogue.sh" ]
+            "Values" : [
+                "template.json",
+                "config.json",
+                "cli.json",
+                "parameters.json",
+                "prologue.sh",
+                "epilogue.sh"
+            ]
         },
         {
             "Names" : "Structural",
