@@ -1,19 +1,19 @@
 [#ftl]
 
 [@addExtension
-    id="layerpath_content"
+    id="contextpath_content"
     aliases=[
-        "_layerpath_content"
+        "_contextpath_content"
     ]
     description=[
-        "Testing for layer path attribute setup and output"
+        "Testing for contextpath attributeset and builder function"
     ]
     supportedTypes=[
         INTERNALTEST_COMPONENT_TYPE
     ]
 /]
 
-[#macro shared_extension_layerpath_content_deployment_setup occurrence ]
+[#macro shared_extension_contextpath_content_deployment_setup occurrence ]
 
     [@DefaultLinkVariables enabled=false /]
     [@DefaultCoreVariables enabled=false /]
@@ -25,7 +25,7 @@
         getCompositeObject(
             {
                 "Names" : "Path",
-                "AttributeSet" : LAYERPATH_ATTRIBUTESET_TYPE
+                "AttributeSet" : CONTEXTPATH_ATTRIBUTESET_TYPE
             },
             {
             }
@@ -33,7 +33,7 @@
 
     [@Settings
         {
-            "DEFAULT_LAYERPATH_OUTPUT" : getLayerPath(occurrence, defaultPath["Path"] )
+            "DEFAULT_CONTEXTPATH_OUTPUT" : getContextPath(occurrence, defaultPath["Path"] )
         }
     /]
 
@@ -43,7 +43,7 @@
         getCompositeObject(
             {
                 "Names" : "Path",
-                "AttributeSet" : LAYERPATH_ATTRIBUTESET_TYPE
+                "AttributeSet" : CONTEXTPATH_ATTRIBUTESET_TYPE
             },
             {
                 "Path" : {
@@ -67,7 +67,7 @@
 
     [@Settings
         {
-            "ALLINCLUDES_LAYERPATH_OUTPUT" : getLayerPath(occurrence, defaultPath["Path"] )
+            "ALLINCLUDES_CONTEXTPATH_OUTPUT" : getContextPath(occurrence, defaultPath["Path"] )
         }
     /]
 

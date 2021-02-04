@@ -893,7 +893,7 @@ behaviour.
 [/#function]
 
 [#-- Build out a Name or File Path based on different layers or parts of the component id--]
-[#function getLayerPath occurrence pathObject={} ]
+[#function getContextPath occurrence pathObject={} ]
 
     [#local core = occurrence.Core ]
     [#local pathObject = pathObject?has_content?then(

@@ -1,4 +1,4 @@
 [#ftl]
 
 [#assign LINK_ATTRIBUTESET_TYPE = "link"]
-[#assign LAYERPATH_ATTRIBUTESET_TYPE = "layerpath"]
+[#assign CONTEXTPATH_ATTRIBUTESET_TYPE = "contextpath"]

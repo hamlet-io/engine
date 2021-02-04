@@ -27,16 +27,16 @@
                                 }
                             }
                         },
-                        "layerpath" : {
+                        "contextpath" : {
                             "internaltest" : {
                                 "Instances" : {
                                     "default" : {
-                                        "deployment:Unit" : "shared-layerpath"
+                                        "deployment:Unit" : "shared-contextpath"
                                     }
                                 },
-                                "Extensions" : [ "_layerpath_content" ],
+                                "Extensions" : [ "_contextpath_content" ],
                                 "Profiles" : {
-                                    "Testing" : [ "layerpath" ],
+                                    "Testing" : [ "contextpath" ],
                                     "Placement" : "internal"
                                 }
                             }
@@ -50,9 +50,9 @@
                         "TestCases" : [ "internaltestbase_core" ]
                     }
                 },
-                "layerpath" : {
+                "contextpath" : {
                     "internaltest" : {
-                        "TestCases" : [ "layerpath" ]
+                        "TestCases" : [ "contextpath" ]
                     }
                 }
             },
@@ -86,18 +86,18 @@
                         }
                     }
                 },
-                "layerpath" : {
+                "contextpath" : {
                     "OutputSuffix" : "config.json",
                     "Structural" : {
                         "JSON" : {
                             "Match" : {
                                 "defaultPath" : {
-                                    "Path" : "Occurrence.State.Attributes.DEFAULT_LAYERPATH_OUTPUT",
+                                    "Path" : "Occurrence.State.Attributes.DEFAULT_CONTEXTPATH_OUTPUT",
                                     "Value" : "mockedup-default"
                                 },
                                 "defaultPath" : {
-                                    "Path" : "Occurrence.State.Attributes.ALLINCLUDES_LAYERPATH_OUTPUT",
-                                    "Value" : "mockacct-0123456789-mockedup-mockapp-integration-default-application-layerpath-allincludes"
+                                    "Path" : "Occurrence.State.Attributes.ALLINCLUDES_CONTEXTPATH_OUTPUT",
+                                    "Value" : "mockacct-0123456789-mockedup-mockapp-integration-default-application-contextpath-allincludes"
                                 }
                             }
                         }

@@ -183,7 +183,7 @@ object.
                     },
                     {
                         "Names" : "Path",
-                        "AttributeSet" : LAYERPATH_ATTRIBUTESET_TYPE
+                        "AttributeSet" : CONTEXTPATH_ATTRIBUTESET_TYPE
                     },
                     {
                         "Names" : "UsePathInName",

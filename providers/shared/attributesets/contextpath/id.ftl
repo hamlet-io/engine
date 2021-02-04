@@ -1,12 +1,12 @@
 [#ftl]
 
 [@addAttributeSet
-    type=LAYERPATH_ATTRIBUTESET_TYPE
-    pluralType="LayerPaths"
+    type=CONTEXTPATH_ATTRIBUTESET_TYPE
+    pluralType="ContextPaths"
     properties=[
         {
                 "Type"  : "Description",
-                "Value" : "Formats a filesytle style path based on layer and component config"
+                "Value" : "Combined with the getContextPath() function creates a name or path based on your current context"
         }]
     attributes=[
         {
