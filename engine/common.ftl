@@ -892,40 +892,68 @@ behaviour.
 ]
 [/#function]
 
-[#-- Directory Structure for ContentHubs --]
-[#function getContentPath occurrence pathObject={} ]
+[#-- Build out a Name or File Path based on different layers or parts of the component id--]
+[#function getLayerPath occurrence pathObject={} ]
 
     [#local core = occurrence.Core ]
     [#local pathObject = pathObject?has_content?then(
                             pathObject,
                             occurrence.Configuration.Solution.Path)]
-    [#local includes = pathObject.IncludeInPath]
+    [#local includes = pathObject.IncludeInPath ]
 
-    [#local path =  valueIfTrue(
-            [
-                pathObject.Host
-            ],
-            pathObject.Host?has_content && (!(includes.Host)),
-            [
-                valueIfTrue(productName!"", includes.Product),
-                valueIfTrue(solutionObject.Id!"", includes.Solution),
-                valueIfTrue(environmentName!"", includes.Environment),
-                valueIfTrue(segmentName!"", includes.Segment),
-                valueIfTrue(getTierName(core.Tier), includes.Tier),
-                valueIfTrue(getComponentName(core.Component), includes.Component),
-                valueIfTrue(core.Instance.Name!"", includes.Instance),
-                valueIfTrue(core.Version.Name!"", includes.Version),
-                valueIfTrue(pathObject.Host, includes.Host)
-            ]
-        )
-    ]
+    [#local path = []]
+    [#list (pathObject.Order)![] as part ]
+        [#if (includes[part])!false ]
+            [#switch part ]
+                [#case "Account"]
+                [#case "Product"]
+                [#case "Solution"]
+                [#case "Environment"]
+                [#case "Segment"]
+                    [#local layerDetails = getActiveLayer(part)]
+                    [#if layerDetails?has_content ]
+                        [#local path += [ (layerDetails.Name)!"" ]]
+                    [/#if]
+                    [#break]
 
-    [#if pathObject.Style = "single" ]
-        [#return formatName(path) ]
-    [#else]
-        [#return formatRelativePath(path)]
-    [/#if]
+                [#case "ProviderId" ]
+                    [#local layerDetails = getActiveLayer("Account") ]
+                    [#if layerDetails?has_content]
+                        [#local path += [ (layerDetails.ProviderId)!"" ]]
+                    [/#if]
+                    [#break]
 
+                [#case "Tier"]
+                    [#local path += [ getTierName(core.Tier) ]]
+                    [#break]
+
+                [#case "Component"]
+                    [#local path += [getComponentName(core.Component) ]]
+                    [#break]
+
+                [#case "Instance"]
+                    [#local path += [((core.Instance.Name)!core.Instance.Id)!"" ]]
+                    [#break]
+
+                [#case "Version"]
+                    [#local path += [((core.Version.Name)!core.Version.Id)!"" ]]
+                    [#break]
+
+                [#case "Custom"]
+                    [#local path += [(pathObject.Custom)!""]]
+                    [#break]
+            [/#switch]
+        [/#if]
+    [/#list]
+
+    [#switch pathObject.Style ]
+        [#case "single" ]
+            [#return formatName(path) ]
+            [#break]
+
+        [#default]
+            [#return formatRelativePath(path)]
+    [/#switch]
 [/#function]
 
 [#function getLBLink occurrence port ]
