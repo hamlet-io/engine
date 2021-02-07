@@ -183,7 +183,7 @@ object.
                     },
                     {
                         "Names" : "Path",
-                        "Children" : pathChildConfiguration
+                        "AttributeSet" : CONTEXTPATH_ATTRIBUTESET_TYPE
                     },
                     {
                         "Names" : "UsePathInName",

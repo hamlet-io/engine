@@ -6,14 +6,14 @@
         blueprint={
             "Solution" : {
                 "Modules" : {
-                    "externalservice" : {
+                    "internaltest" : {
                         "Provider" : "sharedtest",
-                        "Name" : "externalservice"
+                        "Name" : "internaltest"
                     }
                 }
             },
             "PlacementProfiles": {
-                "external": {
+                "internal": {
                     "default": {
                         "Provider": "sharedtest",
                         "Region": "external",
