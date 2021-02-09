@@ -242,14 +242,13 @@
 
                     [#case "github" ]
                         [#assign scriptSyncContent += [
-                            "stage_dir=\"$\{tmpdir}/" + storePrefix + "\"",
-                            "mkdir -p \"$\{stage_dir}\"",
-                            "# Clone the Repo",
-                            "clone_git_repo \"github\" \"github.com\" \"" + scriptStore.Source.Repository +"\" \"" + scriptStore.Source.Branch + "\" \"$\{stage_dir}\" ||",
-                            "{ exit_status=$?; fatal \"Can't clone the script store\"; return \"$\{exit_status}\"; }",
-                            "       aws --region \"$\{ACCOUNT_REGION}\" s3 sync --delete --exclude=\".git*\" \"$\{stage_dir}\" \"s3://" +
-                                    codeBucket + "/" + storePrefix + "/\" ||",
-                            "       { exit_status=$?; fatal \"Can't sync to the code bucket\"; return \"$\{exit_status}\"; }"
+                            r'stage_dir="${tmpdir}/' + storePrefix + r'"',
+                            r'mkdir -p "${stage_dir}"',
+                            r'# Clone the Repo',
+                            r'git_url="$( format_git_url "github" "github.com" "' + scriptStore.Source.Repository + r'" )"',
+                            r'clone_git_repo "${git_url}" "' + scriptStore.Source.Branch + r'" "${stage_dir}" || { exit_status=$?; fatal "Cant clone the script store"; return "${exit_status}"; }',
+                            r'       aws --region "${ACCOUNT_REGION}" s3 sync --delete --exclude=".git*" "${stage_dir}" "s3://' + codeBucket + r'/' + storePrefix + r'/" ||',
+                            r'       { exit_status=$?; fatal "Cant sync to the code bucket"; return "${exit_status}"; }'
                         ]]
                         [#break]
                 [/#switch]
