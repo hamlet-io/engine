@@ -326,11 +326,15 @@
                                 },
                                 "Instance" : {
                                     "Id" : firstContent(instanceId, (parentOccurrence.Core.Instance.Id)!""),
-                                    "Name" : firstContent(instanceName, (parentOccurrence.Core.Instance.Name)!"")
+                                    "RawId" : firstContent(instance.Id, (parentOccurrence.Core.Instance.RawId)!""),
+                                    "Name" : firstContent(instanceName, (parentOccurrence.Core.Instance.Name)!""),
+                                    "RawName" : firstContent(instance.Name, (parentOccurrence.Core.Instance.RawName)!"")
                                 },
                                 "Version" : {
                                     "Id" : firstContent(versionId, (parentOccurrence.Core.Version.Id)!""),
-                                    "Name" : firstContent(versionName, (parentOccurrence.Core.Version.Name)!"")
+                                    "RawId" : firstContent(version.Id, (parentOccurrence.Core.Version.RawId)!""),
+                                    "Name" : firstContent(versionName, (parentOccurrence.Core.Version.Name)!""),
+                                    "RawName" : firstContent(version.Name, (parentOccurrence.Core.Version.RawName)!"")
                                 },
                                 "Internal" : {
                                     "IdExtensions" : idExtensions,
