@@ -28,6 +28,14 @@
     [#local pingTimeout = (settings["AGENT_PING_TIMEOUT"])!"30"]
     [#local timeZone = (settings["TIMEZONE"])!"UTC" ]
 
+    [#-- Let the Jenkins startup process update plugins as they come in --]
+    [@Settings
+        {
+            "PLUGINS_FORCE_UPGRADE" : "true",
+            "TRY_UPGRADE_IF_NO_MARKER" : "true"
+        }
+    /]
+
     [#local javaStandardOpts = [
                 "-Dorg.apache.commons.jelly.tags.fmt.timeZone=${timeZone}",
                 "-Duser.timezone=${timeZone}",
