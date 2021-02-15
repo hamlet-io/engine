@@ -179,6 +179,7 @@ object.
                     },
                     {
                         "Names" : "Links",
+                        "Subobjects" : true,
                         "AttributeSet" : LINK_ATTRIBUTESET_TYPE
                     },
                     {
