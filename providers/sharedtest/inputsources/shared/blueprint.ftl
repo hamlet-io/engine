@@ -16,7 +16,7 @@
                 "internal": {
                     "default": {
                         "Provider": "sharedtest",
-                        "Region": "external",
+                        "Region": "internal",
                         "DeploymentFramework": "default"
                     }
                 }

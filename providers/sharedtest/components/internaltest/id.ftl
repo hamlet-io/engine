@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=INTERNALTEST_COMPONENT_TYPE
-    defaultGroup="internal"
-/]
-
 [@addResourceGroupInformation
     type=INTERNALTEST_COMPONENT_TYPE
     attributes=[]
