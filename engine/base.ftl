@@ -845,7 +845,7 @@ are added.
                                 evaluatedRefAttributes?map(a -> a.Names)
                             )
                         )
-                    ]            
+                    ]      
                     [#local parameters = providedCandidate?keys]
                     [#-- Common Parameters that are used throughout        --]
                     [#-- but are as-yet unaccounted for in the             --]
@@ -857,7 +857,10 @@ are added.
                         "Instances",
                         "Description",
                         "Configured",
-                        "Extensions"]
+                        "Extensions",
+                        "multiAZ",
+                        "deployment:Unit",
+                        "deployent:Group"]
                     ]
                     [#if !(validKeys?seq_contains("*"))]
                         [#list parameters as parameter]
