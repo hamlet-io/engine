@@ -722,6 +722,7 @@ are added.
                     "Children" : [],
                     "SubObjects" : false,
                     "PopulateMissingChildren" : true,
+                    "AllowAdditionalParameters" : false,
                     "AttributeSet" : "",
                     "Component" : ""
                 } ]
@@ -748,6 +749,7 @@ are added.
                         "Children" : asArray(attribute.Children![]),
                         "SubObjects" : attribute.SubObjects!attribute.Subobjects!false,
                         "PopulateMissingChildren" : attribute.PopulateMissingChildren!true,
+                        "AllowAdditionalParameters" : attribute.Children?has_content?then(attribute.AllowAdditionalParameters!false, false),
                         "AttributeSet" : attribute.AttributeSet!"",
                         "Component" : attribute.Component!""
                     } ]
@@ -770,6 +772,7 @@ are added.
                         "Children" : [],
                         "SubObjects" : false,
                         "PopulateMissingChildren" : true,
+                        "AllowAdditionalParameters" : false,
                         "AttributeSet" : "",
                         "Component" : ""
                     }
@@ -830,6 +833,50 @@ are added.
                     [/#list]
                 [/#if]
             [/#list]
+
+            [#-- Process "AllowAdditionalParameters" value   --]
+            [#-- false: the matched candidated object cannot --]
+            [#--        have undefined parameters provided.  --]
+            [#if providedCandidate?has_content]
+                [#if !(attribute.AllowAdditionalParameters)]
+                    [#local validKeys = 
+                        getUniqueArrayElements(
+                            asFlattenedArray(
+                                evaluatedRefAttributes?map(a -> a.Names)
+                            )
+                        )
+                    ]            
+                    [#local parameters = providedCandidate?keys]
+                    [#-- Common Parameters that are used throughout        --]
+                    [#-- but are as-yet unaccounted for in the             --]
+                    [#-- composite object definitions.                     --]
+                    [#-- TODO(rossmurr4y): add commonParams to definitions --]
+                    [#local commonParams = [
+                        "Id",
+                        "Name",
+                        "Instances",
+                        "Description",
+                        "Configured",
+                        "Extensions"]
+                    ]
+                    [#if !(validKeys?seq_contains("*"))]
+                        [#list parameters as parameter]
+                            [#if !(validKeys?seq_contains(parameter)) &&
+                                !(commonParams?seq_contains(parameter))]
+                                [@fatal 
+                                    message="Attribute Object does not allow additional parameters." 
+                                    context=
+                                        {
+                                            "ValidKeys" : validKeys,
+                                            "DiscoveredKey" : parameter,
+                                            "ProvidedObject" : providedCandidate
+                                        }
+                                /]
+                            [/#if]
+                        [/#list]
+                    [/#if]
+                [/#if]
+            [/#if]
 
             [#-- Name wildcard means include all candidate objects --]
             [#if providedName == "*"]
