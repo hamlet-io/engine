@@ -27,6 +27,10 @@
             "Types" : STRING_TYPE
         },
         {
+            "Names" : "Region",
+            "Types" : STRING_TYPE
+        },
+        {
             "Names" : "Modules",
             "Subobjects" : true,
             "Children"  : moduleReferenceConfiguration

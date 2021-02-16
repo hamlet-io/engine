@@ -33,6 +33,10 @@
             "Types" : STRING_TYPE
         },
         {
+            "Names" : "Region",
+            "Types" : STRING_TYPE
+        },
+        {
             "Names" : "Profiles",
             "Children" : [
                 {
