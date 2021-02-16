@@ -37,6 +37,10 @@
             "Types" : STRING_TYPE
         },
         {
+            "Names" : "Domain",
+            "Types" : STRING_TYPE
+        },
+        {
             "Names" : "Profiles",
             "Children" : [
                 {

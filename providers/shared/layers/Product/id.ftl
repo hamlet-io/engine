@@ -31,6 +31,10 @@
             "Types" : STRING_TYPE
         },
         {
+            "Names" : "Domain",
+            "Types" : STRING_TYPE
+        },
+        {
             "Names" : "Modules",
             "Subobjects" : true,
             "Children"  : moduleReferenceConfiguration
