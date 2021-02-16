@@ -74,6 +74,8 @@
 
 [#assign GLOBALDB_COMPONENT_TYPE = "globaldb" ]
 
+[#assign INTERNALTEST_COMPONENT_TYPE = "internaltest" ]
+
 [#assign LAMBDA_COMPONENT_TYPE = "lambda"]
 [#assign LAMBDA_FUNCTION_COMPONENT_TYPE = "function"]
 
