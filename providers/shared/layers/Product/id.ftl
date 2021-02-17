@@ -79,6 +79,15 @@
                             "Types" : STRING_TYPE
                         }
                     ]
+                },
+                {
+                    "Names" : "Code",
+                    "Children" : [
+                        {
+                            "Names" : "Environment",
+                            "Types" : STRING_TYPE
+                        }
+                    ]
                 }
             ]
         },
