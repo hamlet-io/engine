@@ -840,7 +840,7 @@ are added.
             [#if attribute.Children?has_content && providedCandidate?has_content && providedValue?is_hash]
                 [#if !(attribute.AllowAdditionalParameters)]
                     [#local validKeys = asFlattenedArray(attribute.Children?map(c -> c.Names))]
-                    [#if attribute.SubObjects]
+                    [#if attribute.SubObjects || attribute.Subobjects!false]
                         [#local validationObjects = providedValue?values]
                     [#else]
                         [#local validationObjects = [providedValue]]
