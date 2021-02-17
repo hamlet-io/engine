@@ -837,47 +837,50 @@ are added.
             [#-- Process "AllowAdditionalParameters" value   --]
             [#-- false: the matched candidated object cannot --]
             [#--        have undefined parameters provided.  --]
-            [#if providedCandidate?has_content]
+            [#if attribute.Children?has_content && providedCandidate?has_content && providedValue?is_hash]
                 [#if !(attribute.AllowAdditionalParameters)]
-                    [#local validKeys = 
-                        getUniqueArrayElements(
-                            asFlattenedArray(
-                                evaluatedRefAttributes?map(a -> a.Names)
-                            )
-                        )
-                    ]      
-                    [#local parameters = providedCandidate?keys]
-                    [#-- Common Parameters that are used throughout        --]
-                    [#-- but are as-yet unaccounted for in the             --]
-                    [#-- composite object definitions.                     --]
-                    [#-- TODO(rossmurr4y): add commonParams to definitions --]
-                    [#local commonParams = [
-                        "Id",
-                        "Name",
-                        "Instances",
-                        "Description",
-                        "Configured",
-                        "Extensions",
-                        "multiAZ",
-                        "deployment:Unit",
-                        "deployent:Group"]
-                    ]
-                    [#if !(validKeys?seq_contains("*"))]
-                        [#list parameters as parameter]
-                            [#if !(validKeys?seq_contains(parameter)) &&
-                                !(commonParams?seq_contains(parameter))]
-                                [@fatal 
-                                    message="Attribute Object does not allow additional parameters." 
-                                    context=
-                                        {
-                                            "ValidKeys" : validKeys,
-                                            "DiscoveredKey" : parameter,
-                                            "ProvidedObject" : providedCandidate
-                                        }
-                                /]
-                            [/#if]
-                        [/#list]
+                    [#local validKeys = asFlattenedArray(attribute.Children?map(c -> c.Names))]
+                    [#if attribute.SubObjects]
+                        [#local validationObjects = providedValue?values]
+                    [#else]
+                        [#local validationObjects = [providedValue]]
                     [/#if]
+                    [#list validationObjects as validationObject]
+                        [#local parameters = validationObject?keys]
+                        [#-- Common Parameters that are used throughout        --]
+                        [#-- but are as-yet unaccounted for in the             --]
+                        [#-- composite object definitions.                     --]
+                        [#-- TODO(rossmurr4y): add commonParams to definitions --]
+                        [#local commonParams = [
+                            "Id",
+                            "Name",
+                            "Title",
+                            "Enabled",
+                            "Description",
+                            "Instances",
+                            "Configured",
+                            "Extensions",
+                            "multiAZ",
+                            "deployment:Unit",
+                            "deployent:Group"]
+                        ]
+                        [#if !(validKeys?seq_contains("*"))]
+                            [#list parameters as parameter]
+                                [#if !(validKeys?seq_contains(parameter)) &&
+                                    !(commonParams?seq_contains(parameter))]
+                                    [@fatal 
+                                        message="Invalid Attribute Found. Review and update the Composite Object:"
+                                        context=
+                                            {
+                                                "InvalidAttribute" : parameter,
+                                                "ValidAttributes" : validKeys,
+                                                "CompositeObject" : validationObject
+                                            }
+                                    /]
+                                [/#if]
+                            [/#list]
+                        [/#if]
+                    [/#list]
                 [/#if]
             [/#if]
 
