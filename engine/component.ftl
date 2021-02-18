@@ -126,18 +126,52 @@
 [/#macro]
 
 [#-- Not for general use - framework only --]
-[#assign coreComponentChildConfiguration = [
-    {
-        "Names" : ["Export"],
-        "Types" : ARRAY_OF_STRING_TYPE,
-        "Default" : []
-    },
-    {
-        "Names" : ["DeploymentUnits"],
-        "Types" : ARRAY_OF_STRING_TYPE,
-        "Default" : []
-    }
-] ]
+[#assign coreComponentDeploymentUnitConfiguration = 
+    [
+        {
+            "Names" : ["DeploymentUnits", "deployment:Unit"],
+            "Description" : "An singleton instance of the component, Instance & Version configuration.",
+            "Types" : ARRAY_OF_STRING_TYPE,
+            "Default" : []
+        }
+    ]
+]
+
+[#assign coreComponentChildConfiguration = 
+    [
+        {
+            "Names" : ["Export"],
+            "Types" : ARRAY_OF_STRING_TYPE,
+            "Default" : []
+        },
+        {
+            "Names" : "deployment:Priority",
+            "Description" : "The Deployment Priority",
+            "Types" : NUMBER_TYPE,
+            "Default" : 5
+        },
+        {
+            "Names" : [ "deployment:Group", "DeploymentGroup" ],
+            "Description" : "The component Deployment Group",
+            "Types" : STRING_TYPE
+        },
+        {
+            "Names" : [ "Instances" ],
+            "Description" : "Instances of a component configuration",
+            "SubObjects" : true,
+            "Children" : [
+                {
+                    "Names" : "Versions",
+                    "Description" : "Versions of the components instance.",
+                    "SubObjects" : true,
+                    "Children" : coreComponentDeploymentUnitConfiguration
+                }
+            ] + 
+            coreComponentDeploymentUnitConfiguration
+        }
+    ] +
+    coreComponentDeploymentUnitConfiguration
+]
 
 [#macro addResourceGroupAttributeValues type extensions provider resourceGroup=DEFAULT_RESOURCE_GROUP]
 
