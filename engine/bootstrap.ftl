@@ -15,6 +15,7 @@
 [#include "attributeset.ftl"]
 
 [#-- Input data handling --]
+[#include "inputdata/inputsource.ftl" ]
 [#include "inputdata/layer.ftl" ]
 [#include "inputdata/commandLineOptions.ftl" ]
 [#include "inputdata/masterdata.ftl" ]

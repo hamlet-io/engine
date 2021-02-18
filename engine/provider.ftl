@@ -99,19 +99,6 @@
 
             [@internalIncludeProviderConfiguration providerMarker /]
 
-            [#-- Determine the input sources for the provider --]
-            [#local inputSources =
-                internalGetPluginFiles(
-                    [providerMarker.Path, "inputsources"],
-                    [
-                        ["[^/]+"]
-                    ]
-                )
-            ]
-
-            [#list inputSources as inputSource]
-                [@internalIncludeTemplatesInDirectory inputSource /]
-            [/#list]
         [/#list]
     [/#list]
 [/#macro]
@@ -950,6 +937,97 @@
         ["module"]
     /]
 
+    [#-- aws/inputstages/inputstage.ftl --]
+    [@internalIncludeTemplatesInDirectory
+        [providerMarker.Path, "inputstages"],
+        ["inputstage" ]
+    /]
+
+    [#-- Determine the input stages --]
+    [#local inputStages =
+        internalGetPluginFiles(
+            [providerMarker.Path, "inputstages"],
+            [
+                ["[^/]+"]
+            ]
+        )
+    ]
+
+    [#list inputStages as inputStage]
+        [#if inputStage.IsDirectory!false ]
+            [@internalIncludeTemplatesInDirectory
+                inputStage,
+                ["id"]
+            /]
+        [/#if]
+    [/#list]
+
+    [#-- aws/inputsources/inputsource.ftl --]
+    [@internalIncludeTemplatesInDirectory
+        [providerMarker.Path, "inputsources"],
+        ["inputsource" ]
+    /]
+
+    [#-- Determine the input sources --]
+    [#local inputSources =
+        internalGetPluginFiles(
+            [providerMarker.Path, "inputsources"],
+            [
+                ["[^/]+"]
+            ]
+        )
+    ]
+
+    [#list inputSources as inputSource]
+        [#if inputSource.IsDirectory!false ]
+            [@internalIncludeTemplatesInDirectory
+                inputSource
+            /]
+        [/#if]
+    [/#list]
+
+    [#-- aws/inputseeders/inputseeder.ftl --]
+    [@internalIncludeTemplatesInDirectory
+        [providerMarker.Path, "inputseeders"],
+        ["inputseeder" ]
+    /]
+
+    [#-- Determine the input seeders --]
+    [#local inputSeeders =
+        internalGetPluginFiles(
+            [providerMarker.Path, "inputseeders"],
+            [
+                ["[^/]+"]
+            ]
+        )
+    ]
+
+    [#list inputSeeders as inputSeeder]
+        [#if inputSeeder.IsDirectory!false ]
+            [@internalIncludeTemplatesInDirectory
+                inputSeeder,
+                ["id"]
+            /]
+
+            [#local seederLoaderOptions =
+                [
+                    [ inputSeeder.Filename, "input", "loader" ]
+                ]
+            ]
+
+            [#local seederLoader = getFirstDefinedDirective(seederLoaderOptions)]
+
+            [#if (.vars[seederLoader]!"")?is_directive]
+                [@(.vars[seederLoader]) path=inputSeeder.File /]
+            [#else]
+                [@debug
+                    message="Unable to invoke loader for seeder function"
+                    context=seederLoaderOptions
+                    enabled=false
+                /]
+            [/#if]
+        [/#if]
+    [/#list]
 [/#macro]
 
 [#macro internalIncludeProviderResourceGroupConfiguration resourceGroupDirectory deploymentFrameworks=[] ]
