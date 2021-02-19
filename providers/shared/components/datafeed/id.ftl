@@ -156,12 +156,12 @@
             }
             {
                 "Names" : "Links",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "LogWatchers",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "Children" : logWatcherChildrenConfiguration
             }
         ]

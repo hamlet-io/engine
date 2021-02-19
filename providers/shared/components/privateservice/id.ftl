@@ -23,7 +23,7 @@
             },
             {
                 "Names" : "Links",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             },
             {
@@ -45,7 +45,7 @@
             },
             {
                 "Names" : "ConnectionAlerts",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "Children" : [
                     {
                         "Names" : "Events",
@@ -56,7 +56,7 @@
                     {
                         "Names" : "Links",
                         "Description" : "Link to send alerts to",
-                        "Subobjects" : true,
+                        "SubObjects" : true,
                         "AttributeSet" : LINK_ATTRIBUTESET_TYPE
                     }
                 ]

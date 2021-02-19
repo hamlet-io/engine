@@ -181,7 +181,7 @@
             },
             {
                 "Names" : "Lifecycles",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "Children" : [
                     {
                         "Names" : "Prefix",
@@ -209,12 +209,12 @@
             },
             {
                 "Names" : "Links",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "Notifications",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "Children" : s3NotificationChildConfiguration
             },
             {
@@ -274,7 +274,7 @@
             },
             {
                 "Names" : "Links",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             },
             {

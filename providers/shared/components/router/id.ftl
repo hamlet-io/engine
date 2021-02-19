@@ -75,7 +75,7 @@
             {
                 "Names" : "Links",
                 "Description" : "Links to the routing destination",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             }
         ]

@@ -54,12 +54,12 @@
             },
             {
                 "Names" : "Alerts",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "Children" : alertChildrenConfiguration
             },
             {
                 "Names" : "Links",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             },
             {
@@ -110,7 +110,7 @@
             },
             {
                 "Names" : "Links",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             },
             {
@@ -224,7 +224,7 @@
                         "Children"  : [
                             {
                                 "Names" : "Links",
-                                "Subobjects" : true,
+                                "SubObjects" : true,
                                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
                             }
                         ]

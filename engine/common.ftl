@@ -518,7 +518,6 @@ behaviour.
 [#assign placementProfileConfiguration = [
     {
         "Names" : "*",
-        "Subobjects" : true,
         "Children"  : [
             {
                 "Names" : "Provider",

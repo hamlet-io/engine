@@ -24,7 +24,7 @@
             },
             {
                 "Names" : "Links",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             },
             {
@@ -58,7 +58,7 @@
             },
             {
                 "Names" : "ErrorResponseOverrides",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "Children" : [
                     {
                         "Names" : "ErrorCode",
@@ -193,7 +193,7 @@
         {
             "Names" : "EventHandlers",
             "Description" : "Attach a function to a stage in the Cloudfront Processing",
-            "Subobjects" : true,
+            "SubObjects" : true,
             "Children" : [
                 {
                     "Names" : "Tier",

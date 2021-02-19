@@ -481,7 +481,7 @@
                                             "Children" : [
                                                 {
                                                     "Names" : "Components",
-                                                    "Subobjects" : true,
+                                                    "SubObjects" : true,
                                                     "Children" : [
                                                         {
                                                             "Names" : "*"

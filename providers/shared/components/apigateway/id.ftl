@@ -89,7 +89,7 @@ object.
             },
             {
                 "Names" : "Links",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             },
             {
@@ -170,7 +170,7 @@ object.
             },
             {
                 "Names" : "Publishers",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "Children" : [
                     {
                         "Names" : "Enabled",
@@ -179,7 +179,7 @@ object.
                     },
                     {
                         "Names" : "Links",
-                        "Subobjects" : true,
+                        "SubObjects" : true,
                         "AttributeSet" : LINK_ATTRIBUTESET_TYPE
                     },
                     {
@@ -226,12 +226,12 @@ object.
             },
             {
                 "Names" : "Alerts",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "Children" : alertChildrenConfiguration
             },
             {
                 "Names" : "LogMetrics",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "Children" : logMetricChildrenConfiguration
             },
             {

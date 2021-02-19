@@ -36,12 +36,12 @@
         },
         {
             "Names" : "Modules",
-            "Subobjects" : true,
+            "SubObjects" : true,
             "Children"  : moduleReferenceConfiguration
         },
         {
             "Names" : "Plugins",
-            "Subobjects" : true,
+            "SubObjects" : true,
             "Children" : pluginReferenceConfiguration
         },
         {

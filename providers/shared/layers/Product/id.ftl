@@ -36,12 +36,12 @@
         },
         {
             "Names" : "Modules",
-            "Subobjects" : true,
+            "SubObjects" : true,
             "Children"  : moduleReferenceConfiguration
         },
         {
             "Names" : "Plugins",
-            "Subobjects" : true,
+            "SubObjects" : true,
             "Children" : pluginReferenceConfiguration
         },
         {
@@ -108,14 +108,17 @@
         },
         {
             "Names" : "DeploymentProfiles",
+            "SubObjects" : true,
             "Children" : deploymentProfileConfiguration
         },
         {
             "Names" : "PolicyProfiles",
+            "SubObjects" : true,
             "Children" : deploymentProfileConfiguration
         },
         {
             "Names" : "PlacementProfiles",
+            "SubObjects" : true,
             "Children" : placementProfileConfiguration
         }
     ]

@@ -41,7 +41,7 @@
         {
             "Names" : "Parameters",
             "Description" : "The parameter values to provide to the module",
-            "Subobjects" : true,
+            "SubObjects" : true,
             "Children" : [
                 {
                     "Names" : "Key",

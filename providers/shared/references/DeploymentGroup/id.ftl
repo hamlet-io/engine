@@ -31,7 +31,7 @@
         {
             "Names" : "ResourceSets",
             "Description" : "Generate deployments based on resource labels across all units in the group",
-            "Subobjects" : true,
+            "SubObjects" : true,
             "Children" : [
                 {
                     "Names" : "Enabled",

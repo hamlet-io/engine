@@ -127,7 +127,7 @@
             },
             {
                 "Names" : "Links",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             },
             {
@@ -138,7 +138,7 @@
             },
             {
                 "Names" : "Schema",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "Children" :    [
                     {
                         "Names" : "DataType",
@@ -296,7 +296,7 @@
             {
                 "Names" : "ResourceScopes",
                 "Description" : "Resources that the client is permitted to access",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "Children" : [
                     {
                         "Names" : "Name",
@@ -315,7 +315,7 @@
             {
                 "Names" : "Links",
                 "Description" : "Apply network security rules based on links",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             }
         ]
@@ -337,7 +337,7 @@
         [
             {
                 "Names" : "Links",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             },
             {
@@ -366,7 +366,7 @@
             },
             {
                 "Names" : "AttributeMappings",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "Children" : [
                     {
                         "Names" : "UserPoolAttribute",
@@ -581,7 +581,7 @@
             {
                 "Names" : "Scopes",
                 "Description" : "The access scopes offered by the server",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "Children" : [
                     {
                         "Names" : "Name",

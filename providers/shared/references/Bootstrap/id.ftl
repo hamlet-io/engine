@@ -80,7 +80,7 @@
         },
         {
             "Names" : "ProtectedSettings",
-            "Subobjects" : true,
+            "SubObjects" : true,
             "Children" : [
                 {
                     "Names" : "Key",

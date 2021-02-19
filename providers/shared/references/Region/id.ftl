@@ -40,6 +40,10 @@
             "SubObjects" : true,
             "Children" : [
                 {
+                    "Names" : "Description",
+                    "Types" : STRING_TYPE
+                },
+                {
                     "Names" : "AWSZone",
                     "Types" : STRING_TYPE
                 },
