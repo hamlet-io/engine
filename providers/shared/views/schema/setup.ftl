@@ -91,6 +91,28 @@
             [/#list]
             [#break]
 
+        [#case "module"]
+            [#list moduleConfiguration as moduleId, providersConfig]
+                [#if moduleId == schema]
+                    [#list providersConfig as id, configuration]
+                        [@addSchema
+                            section="module"
+                            schema=moduleId
+                            configuration=
+                                formatJsonSchemaFromComposite(
+                                    {
+                                        "Names" : moduleId,
+                                        "Types" : OBJECT_TYPE,
+                                        "SubObjects" : true,
+                                        "Children" : configuration.Properties
+                                    },
+                                    attributeSetConfiguration?keys)
+                        /]
+                    [/#list]
+                [/#if]
+            [/#list]
+            [#break]
+
         [#case "attributeset"]
 
             [#-- Key Value Pairs of AttributeSet Name : Configuration --]

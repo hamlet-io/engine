@@ -6,7 +6,7 @@
 
 [#macro shared_view_default_schemaset_schemacontract ]
 
-    [#local sections = ["component", "reference", "attributeset"] ]
+    [#local sections = ["component", "reference", "attributeset", "module" ] ]
 
     [#list sections as section ]
 
@@ -31,6 +31,9 @@
                 [#break]
             [#case "attributeset" ]
                 [#local schemas = attributeSetConfiguration?keys ]
+                [#break]
+            [#case "module" ]
+                [#local schemas = moduleConfiguration?keys ]
                 [#break]
         [/#switch]
 
