@@ -192,9 +192,9 @@ Get the state for the current input source and filter
                 [#-- Support various level of seeder specificity --]
                 [#local seederFunctionOptions =
                     [
-                        [ inputSeeder.Id, "input", inputStage.Id, activeInputSource, "seeder" ],
-                        [ inputSeeder.Id, "input", inputStage.Id, "seeder" ],
-                        [ inputSeeder.Id, "input", "seeder" ]
+                        [ inputSeeder.Id, "inputseeder", inputStage.Id, activeInputSource ],
+                        [ inputSeeder.Id, "inputseeder", inputStage.Id ],
+                        [ inputSeeder.Id, "inputseeder" ]
                     ]
                 ]
 

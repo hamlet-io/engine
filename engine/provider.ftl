@@ -1011,7 +1011,7 @@
 
             [#local seederLoaderOptions =
                 [
-                    [ inputSeeder.Filename, "input", "loader" ]
+                    [ inputSeeder.Filename, "inputloader" ]
                 ]
             ]
 

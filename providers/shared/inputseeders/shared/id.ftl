@@ -20,7 +20,7 @@
     inputSeeder=SHARED_INPUT_SEEDER
 /]
 
-[#macro shared_input_loader path]
+[#macro shared_inputloader path]
     [#assign shared_cmdb_masterdata =
         (
             getPluginTree(
@@ -37,7 +37,7 @@
     ]
 [/#macro]
 
-[#function shared_input_masterdata_seeder filter state]
+[#function shared_inputseeder_masterdata filter state]
 
     [#return
         mergeObjects(
@@ -50,7 +50,7 @@
 
 [/#function]
 
-[#function shared_input_commandlineoptions_seeder filter state]
+[#function shared_inputseeder_commandlineoptions filter state]
 
     [#return
         mergeObjects(
@@ -128,6 +128,6 @@
 
 [/#function]
 
-[#function shared_input_qualify_seeder filter state]
+[#function shared_inputseeder_qualify filter state]
     [#return qualifyEntity(state, filter) ]
 [/#function]
