@@ -129,5 +129,13 @@
 [/#function]
 
 [#function shared_inputseeder_qualify filter state]
-    [#return qualifyEntity(state, filter) ]
+
+    [#-- Now process the qualifications, validating on the basis of known user filter attributes --]
+    [#return
+        qualifyEntity(
+            state,
+            filter,
+            getQualifierChildren(getKnownUserInputFilterAttributes())
+        )
+    ]
 [/#function]

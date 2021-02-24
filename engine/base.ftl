@@ -1543,10 +1543,6 @@ are not included in the Match Filter
 [#assign ONETOONE_FILTER_MATCH_BEHAVIOUR = "onetoone"]
 [#assign EXACTLY_ONETOONE_FILTER_MATCH_BEHAVIOUR = "exactlyonetoone"]
 
-[#function isValidFilter filter ]
-    [#return filter?is_hash]
-[/#function]
-
 [#function isFilterAttribute filter attribute]
     [#return filter[attribute]??]
 [/#function]
@@ -1711,13 +1707,64 @@ and if both prod and industry matched, the effective value would be 23.
 Qualifiers can be nested, so processing is recursive.
 --]
 
-[#function qualifyEntity entity filter]
+[#function getQualifierChildren filterAttributes=[] ]
+    [#local filterChildren = ["InhibitEnabled"] ]
+    [#list filterAttributes as filterAttribute]
+        [#local filterChildren +=
+            [
+                {
+                    "Names" : filterAttribute,
+                    "Type" : ARRAY_OF_STRING_TYPE
+                }
+            ]
+        ]
+    [/#list]
+    [#return
+        [
+            {
+                "Names" : "Filter",
+                "Mandatory" : true,
+                "PopulateMissingChildren" : false,
+                "Children" : filterChildren
+            },
+            {
+                "Names" : "MatchBehaviour",
+                "Type" : STRING_TYPE,
+                "Values" : [
+                    ANY_FILTER_MATCH_BEHAVIOUR,
+                    ONETOONE_FILTER_MATCH_BEHAVIOUR,
+                    EXACTLY_ONETOONE_FILTER_MATCH_BEHAVIOUR
+                ],
+                "Default" : ONETOONE_FILTER_MATCH_BEHAVIOUR
+            },
+            {
+                "Names" : "Value",
+                "Type" : ANY_TYPE,
+                "Mandatory" : true
+            },
+            {
+                "Names" : "CombineBehaviour",
+                "Type" : STRING_TYPE,
+                "Values" : [
+                    REPLACE_COMBINE_BEHAVIOUR,
+                    ADD_COMBINE_BEHAVIOUR,
+                    MERGE_COMBINE_BEHAVIOUR,
+                    APPEND_COMBINE_BEHAVIOUR,
+                    UNIQUE_COMBINE_BEHAVIOUR
+                ],
+                "Default" : MERGE_COMBINE_BEHAVIOUR
+            }
+        ]
+    ]
+[/#function]
+
+[#function qualifyEntity entity filter qualifierChildren=[] ]
 
     [#-- Qualify each element of the array --]
     [#if entity?is_sequence ]
         [#local result = [] ]
         [#list entity as element]
-            [#local result += [qualifyEntity(element, filter)] ]
+            [#local result += [qualifyEntity(element, filter, qualifierChildren)] ]
         [/#list]
         [#return result]
     [/#if]
@@ -1739,32 +1786,55 @@ Qualifiers can be nested, so processing is recursive.
         [/#if]
 
         [#-- Qualify the nominal value --]
-        [#local result = qualifyEntity(result, filter) ]
+        [#local result = qualifyEntity(result, filter, qualifierChildren) ]
 
         [#if qualifiers?is_hash ]
             [#local anyFilters = qualifiers?keys?sort]
             [#list anyFilters as anyFilter]
                 [#if filterMatch(filter, {"Any" : anyFilter}, ANY_FILTER_MATCH_BEHAVIOUR)]
-                    [#local result = combineEntities(result, qualifyEntity(qualifiers[anyFilter], filter), MERGE_COMBINE_BEHAVIOUR) ]
+                    [#local result =
+                        combineEntities(
+                            result,
+                            qualifyEntity(qualifiers[anyFilter], filter, qualifierChildren),
+                            MERGE_COMBINE_BEHAVIOUR
+                        )
+                    ]
                 [/#if]
             [/#list]
         [/#if]
 
         [#if qualifiers?is_sequence]
-            [#list qualifiers as qualifier]
-                [#if qualifier.Filter?? && isValidFilter(qualifier.Filter) && qualifier.Value?? ]
-                    [#if filterMatch(filter, qualifier.Filter, qualifier.MatchBehaviour!ONETOONE_FILTER_MATCH_BEHAVIOUR) ]
-                        [#local result = combineEntities(result, qualifyEntity(qualifier.Value, filter), qualifier.CombineBehaviour!MERGE_COMBINE_BEHAVIOUR) ]
+            [#if !qualifierChildren?has_content]
+                [@fatal
+                    message="Can't validate long form qualifier without children definition"
+                    context=entity
+                    detail=filter
+                /]
+            [#else]
+                [#list qualifiers as qualifierEntry]
+                    [#-- Validate the qualifier structure --]
+                    [#local qualifier = getCompositeObject(qualifierChildren, qualifierEntry) ]
+
+                    [#if qualifier.Filter?? && qualifier.Value?? ]
+                        [#if filterMatch(filter, qualifier.Filter, qualifier.MatchBehaviour) ]
+                            [#local result =
+                                combineEntities(
+                                    result,
+                                    qualifyEntity(qualifier.Value, filter, qualifierChildren),
+                                    qualifier.CombineBehaviour
+                                )
+                            ]
+                        [/#if]
                     [/#if]
-                [/#if]
-            [/#list]
+                [/#list]
+            [/#if]
         [/#if]
 
     [#else]
         [#-- Qualify attributes --]
         [#local result = {} ]
         [#list entity as key, value]
-            [#local result += { key, qualifyEntity(value, filter) } ]
+            [#local result += { key, qualifyEntity(value, filter, qualifierChildren ) } ]
         [/#list]
     [/#if]
 

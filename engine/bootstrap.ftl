@@ -73,8 +73,14 @@
 [@seedProviderInputSourceData
     providers=[ SHARED_PROVIDER ]
     inputTypes=[ "commandlineoption" ]
-
 /]
+
+[#-- input source initialisation --]
+[@initialiseInputProcessing
+    inputSource=BOOTSTRAP_SHARED_INPUT_SOURCE
+    inputFilter={}
+/]
+
 [@includeCoreProviderConfiguration SHARED_PROVIDER /]
 [@seedProviderInputSourceData
     providers=[ SHARED_PROVIDER ]

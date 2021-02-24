@@ -10,7 +10,3 @@ explicit stages.
     id=BOOTSTRAP_SHARED_INPUT_SOURCE
     description="Input source on startup"
 /]
-
-[#-- Ensure we have a minimal input source at startup --]
-[@setInputSource BOOTSTRAP_SHARED_INPUT_SOURCE /]
-[@setInputFilter {} /]
