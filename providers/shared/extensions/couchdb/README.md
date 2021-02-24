@@ -1,4 +1,4 @@
-# <module-name> Hamlet Extension
+# couchdb Hamlet Extension
 
 This is a Hamlet Deploy extension.
 
