@@ -627,7 +627,7 @@ behaviour.
                     "Types" : BOOLEAN_TYPE
                 }
             ]
-        }
+        },
         {
             "Names" : "IncludeInHost",
             "Children" : [
