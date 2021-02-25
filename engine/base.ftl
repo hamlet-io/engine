@@ -722,7 +722,6 @@ are added.
                     "Children" : [],
                     "SubObjects" : false,
                     "PopulateMissingChildren" : true,
-                    "AllowAdditionalParameters" : false,
                     "AttributeSet" : "",
                     "Component" : ""
                 } ]
@@ -749,7 +748,6 @@ are added.
                         "Children" : asArray(attribute.Children![]),
                         "SubObjects" : attribute.SubObjects!attribute.Subobjects!false,
                         "PopulateMissingChildren" : attribute.PopulateMissingChildren!true,
-                        "AllowAdditionalParameters" : attribute.Children?has_content?then(attribute.AllowAdditionalParameters!false, false),
                         "AttributeSet" : attribute.AttributeSet!"",
                         "Component" : attribute.Component!""
                     } ]
@@ -772,7 +770,6 @@ are added.
                         "Children" : [],
                         "SubObjects" : false,
                         "PopulateMissingChildren" : true,
-                        "AllowAdditionalParameters" : false,
                         "AttributeSet" : "",
                         "Component" : ""
                     }
@@ -971,7 +968,11 @@ are added.
                                         [#else]
                                             [@fatal
                                                 message="Subobject content is not a hash"
-                                                context=childObject /]
+                                                context={
+                                                    "InvalidValue" : value,
+                                                    "Object" : childObject,
+                                                    "Attribute" : attribute
+                                                } /]
                                         [/#if]
                                     [/#list]
                                 [#else]
@@ -1106,6 +1107,36 @@ are added.
         [#local result += object ]
     [/#list]
     [#return result ]
+[/#function]
+
+[#-- Wraps the getCompositeObject function, adding     --]
+[#-- the FrameworkObjectAttributes to valid Attributes --]
+[#-- where applicable.                                 --]
+[#function getBluePrintObject attributes=[] objects...]
+    [#local result = addFrameworkAttributes(attributes) ]
+    [#return getCompositeObject(result, objects)]
+[/#function]
+
+[#-- Walks an Attribute / Children structure and    --]
+[#-- adds the Framework Attributes as necessary.    --]
+[#function addFrameworkAttributes attributes=[]]
+    [#local result = []]
+    [#list asFlattenedArray(attributes) as attribute]
+        [#if attribute?is_hash && attribute.Children??]
+            [#local attrChildren = addFrameworkAttributes(attribute.Children)]
+            [#local result += [
+                mergeObjects(
+                    attribute,
+                    {
+                        "Children" : attrChildren
+                    }
+                )
+            ]]
+        [#else]
+            [#local result += [attribute]]
+        [/#if]
+    [/#list]
+    [#return combineEntities(frameworkObjectAttributes, result, ADD_COMBINE_BEHAVIOUR)]
 [/#function]
 
 [#-- Check if a configuration item with children is present --]
