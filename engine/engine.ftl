@@ -41,6 +41,11 @@ the automated generation of documentation.
         "Names" : "Description",
         "Description" : "An object descriptor for human consumption",
         "Types" : STRING_TYPE
+    },
+    {
+        "Names" : "Enabled",
+        "Description" : "Should this object configuration be considered as Enabled?",
+        "Types" : BOOLEAN_TYPE
     }
 ]]
 
@@ -387,6 +392,7 @@ The CMDB is represented in memory as a hierarchy of "contexts". To create this
 hierarchy, the persisted CMDB is read in as an item stream. An item stream
 is a list of configuration objects and/or item streams. Order within a stream
 determines processing order.
+--]
 
 [#-- Item Categories --]
 [#assign CONFIGURATION_ITEM_STREAM_TYPE = "stream"]
