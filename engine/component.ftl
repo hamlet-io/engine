@@ -164,7 +164,14 @@
                     "Names" : "Versions",
                     "Description" : "Versions of the components instance.",
                     "SubObjects" : true,
-                    "Children" : coreComponentDeploymentUnitConfiguration
+                    "Children" : [
+                        {
+                            "Names" : [ "Extensions", "Fragment", "Container" ],
+                            "Description" : "Extensions to invoke as part of component processing",
+                            "Types" : ARRAY_OF_STRING_TYPE,
+                            "Default" : []
+                        }
+                    ] + coreComponentDeploymentUnitConfiguration
                 }
             ] + 
             coreComponentDeploymentUnitConfiguration
