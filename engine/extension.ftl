@@ -65,11 +65,11 @@
         {
             "Names" : "Id",
             "Type" : STRING_TYPE
-        }
+        },
         {
             "Names" : "Aliases",
             "Type" : ARRAY_OF_STRING_TYPE
-        }
+        },
         {
             "Names" : "SupportedTypes",
             "Type" : ARRAY_OF_STRING_TYPE,
@@ -78,7 +78,7 @@
         {
             "Names" : "Entrances",
             "Type" : ARRAY_OF_STRING_TYPE
-        }
+        },
         {
             "Names" : "Scopes",
             "Type" : ARRAY_OF_STRING_TYPE
