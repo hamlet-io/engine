@@ -9,3 +9,4 @@
 [#assign SCHEMA_ENTRANCE_TYPE            = "schema" ]
 [#assign SCHEMASET_ENTRANCE_TYPE         = "schemaset" ]
 [#assign INFO_ENTRANCE_TYPE              = "info" ]
+[#assign VALIDATE_ENTRANCE_TYPE          = "validate" ]
