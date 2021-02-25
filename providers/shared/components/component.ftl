@@ -608,7 +608,6 @@
     },
     {
         "Names" : "IncludeInDomain",
-        "IncludeFrameworkAttributeChildren" : false,
         "Children" : [
             {
                 "Names" : "Product",
@@ -637,7 +636,6 @@
     },
     {
         "Names" : "IncludeInHost",
-        "IncludeFrameworkAttributeChildren" : false,
         "Children" : [
             {
                 "Names" : "Product",
@@ -1013,7 +1011,6 @@
             },
             {
                 "Names" : "Registry",
-                "IncludeFrameworkAttributeChildren" : false,
                 "Children" : srvRegChildConfiguration
             },
             {
