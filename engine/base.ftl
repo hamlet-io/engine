@@ -1589,8 +1589,9 @@ are not included in the Match Filter
             [#return true]
             [#break]
 
-            [#-- Unknown behaviour --]
-            [#default]
+        [#-- Unknown behaviour --]
+        [#default]
+            [@fatal message="Unknown filter match behaviour \"" + matchBehaviour + "\" encountered" /]
             [#return false]
     [/#switch]
 
