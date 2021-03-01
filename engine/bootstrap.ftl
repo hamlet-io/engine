@@ -5,11 +5,11 @@
 [#include "engine.ftl"]
 [#include "common.ftl"]
 
-[#-- flow --]
-[#include "flow.ftl" ]
-
 [#-- logging --]
 [#include "logging.ftl" ]
+
+[#-- flow --]
+[#include "flow.ftl" ]
 
 [#-- AttributeSets --]
 [#include "attributeset.ftl"]

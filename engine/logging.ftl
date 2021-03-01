@@ -31,6 +31,12 @@
 [#-- Can either be set as a number or as a string       --]
 [#assign currentLogLevel = FATAL_LOG_LEVEL]
 
+[#-- Set the stop threshold                             --]
+[#-- Number of fatal errors at which processing will    --]
+[#-- be stopped                                         --]
+[#-- <=0 ==> skip threshold checking                    --]
+[#assign logFatalStopThreshold = 0]
+
 [#function getLogLevel ]
     [#return currentLogLevel]
 [/#function]
@@ -133,7 +139,10 @@
     /]
 [/#macro]
 
-[#macro fatal message context={} detail={} enabled=true]
+[#assign logFatalMessageCount = 0]
+
+[#macro fatal message context={} detail={} enabled=true stop=false]
+
     [@logMessage
         severity=FATAL_LOG_LEVEL
         message=message
@@ -141,6 +150,19 @@
         detail=detail
         enabled=enabled
     /]
+
+    [#-- one more fatal message seen --]
+    [#assign logFatalMessageCount += 1]
+
+    [#if stop ||
+        ((logFatalStopThreshold > 0) && (logFatalMessageCount >= logFatalStopThreshold)) ]
+        [#-- report whatever has been logged as the stop cause --]
+        [#stop getJSON({"HamletMessages" : logMessages}) ]
+    [/#if]
+[/#macro]
+
+[#macro setLogFatalStopThreshold threshold ]
+    [#local logFatalStopThreshold = threshold ]
 [/#macro]
 
 [#macro precondition function context={} detail={} enabled=true]
