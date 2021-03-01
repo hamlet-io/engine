@@ -1,0 +1,3 @@
+[#ftl]
+
+[#assign SHARED_INPUT_SEEDER = SHARED_PROVIDER]

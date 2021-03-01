@@ -15,6 +15,7 @@
 [#include "attributeset.ftl"]
 
 [#-- Input data handling --]
+[#include "inputdata/inputsource.ftl" ]
 [#include "inputdata/layer.ftl" ]
 [#include "inputdata/commandLineOptions.ftl" ]
 [#include "inputdata/masterdata.ftl" ]
@@ -72,8 +73,14 @@
 [@seedProviderInputSourceData
     providers=[ SHARED_PROVIDER ]
     inputTypes=[ "commandlineoption" ]
-
 /]
+
+[#-- input source initialisation --]
+[@initialiseInputProcessing
+    inputSource=BOOTSTRAP_SHARED_INPUT_SOURCE
+    inputFilter={}
+/]
+
 [@includeCoreProviderConfiguration SHARED_PROVIDER /]
 [@seedProviderInputSourceData
     providers=[ SHARED_PROVIDER ]
