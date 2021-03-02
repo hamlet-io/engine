@@ -79,10 +79,14 @@
                     [#-- Deployment Details --]
                     "Deployment" : {
                         "Provider" : {
-                            "Names" : (providers!"")?has_content?then(
-                                            providers?split(","),
-                                            []
-                            )
+                            "Names" : combineEntities(
+                                            (providers!"")?has_content?then(
+                                                providers?split(","),
+                                                []
+                                            ),
+                                            (commandLineOptions.Deployment.Provider.Names)![],
+                                            UNIQUE_COMBINE_BEHAVIOUR
+                                        )
                         },
                         "Framework" : {
                             "Name" : deploymentFramework!"default"
