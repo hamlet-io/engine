@@ -1626,6 +1626,7 @@
         },
         "ReplayWindowSize": 1024,
         "DeadPeerDetectionTimeout": 30,
+        "DeadPeerDetectionAction" : "clear",
         "Phase1": {
           "EncryptionAlgorithms": [
             "AES256"

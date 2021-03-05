@@ -145,6 +145,11 @@
                     "Types" : NUMBER_TYPE
                 },
                 {
+                    "Names" : "DeadPeerDetectionAction",
+                    "Types" : STRING_TYPE,
+                    "Values" : [ "clear", "none", "restart" ]
+                },
+                {
                     "Names" : "Phase1",
                     "Children" : [
                         {
