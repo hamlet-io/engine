@@ -1,6 +1,32 @@
-# gen3
-Framework for managing cloud infrastructure via templates. 
+## Hamlet Deploy Engine
 
-It is part of the broader [CodeOnTap](http://codeontap.io) devops framework.
+This is the Engine component of the Hamlet Deploy application. It contains core logic and internal data models, as well as the Shared provider.
 
-See [wiki](https://github.com/codeontap/gen3/wiki) for further documentation.
+See https://docs.hamlet.io for more info on Hamlet Deploy
+
+### Installation
+
+```bash
+git clone https://github.com/hamlet-io/engine.git
+```
+
+### Configuration
+
+The Engine does not require configuration.
+
+### Update
+
+To manually perform an update on the Engine, simply pull down the latest changes using git.
+
+```bash
+cd ./path/to/engine
+git pull
+```
+
+### Usage
+
+The Hamlet Deploy Engine cannot be invoked on its own and is reliant on other Hamlet Deploy components.
+
+It is recommended that you use the Hamlet Deploy container for this.
+
+See https://docs.hamlet.io for more information.
