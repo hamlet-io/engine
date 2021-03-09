@@ -180,7 +180,7 @@
                             },
                             {
                                 "Names" : "Number",
-                                "Description" : "String based Constraints",
+                                "Description" : "Number based Constraints",
                                 "Children" : [
                                     {
                                         "Names" : "MinValue",
