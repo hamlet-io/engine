@@ -8,6 +8,13 @@
 
     [#local section = commandLineOptions.Deployment.Group.Name]
     [#local schema = commandLineOptions.Deployment.Unit.Name]
+    
+    [#if ["module"]?seq_contains(section)]
+        [#-- Do not assign a schema $Id attribute on non-official schemas --]
+        [#local schemaId = ""]
+    [#else]
+        [#local schemaId = formatSchemaId(section, schema)]
+    [/#if]
 
     [#switch section]
 
@@ -145,8 +152,8 @@
     [#if schemaOutputConfiguration?has_content]
         [@addSchemaToDefaultJsonOutput
             section=schema
-            schemaId=formatSchemaId(section, schema)
             config=schemaOutputConfiguration
+            schemaId=schemaId
         /]
     [#else]
         [@fatal

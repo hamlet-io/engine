@@ -228,7 +228,7 @@
     [@serialiseOutput name=JSON_DEFAULT_OUTPUT_TYPE /]
 [/#macro]
 
-[#macro addSchemaToDefaultJsonOutput section config schemaId]
+[#macro addSchemaToDefaultJsonOutput section config schemaId=""]
     [@mergeWithJsonOutput
         name="schema"
         section=section
