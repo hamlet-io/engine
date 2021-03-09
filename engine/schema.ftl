@@ -3,7 +3,7 @@
 [#assign HamletSchemas = {
     "Root" : "http://json-schema.org/draft-07/schema#"
 }]
-[#assign schemaHostSite = "https://hamlet.io"]
+[#assign schemaHostSite = "https://docs.hamlet.io"]
 [#assign rootSchemaPath = formatPath(false, schemaHostSite, "schema")]
 
 [#assign patternPropertiesRegex = r'^[A-Za-z_][A-Za-z0-9_]*$']
@@ -85,7 +85,7 @@
 [#function formatSchemaId section unit version="latest"]
     [#switch section]
         [#default]
-            [#return formatPath(false, rootSchemaPath, version, "blueprint", section + "-" + unit + "-schema.json")]
+            [#return formatPath(false, rootSchemaPath, version, "blueprint", "schema-" + section + "-" + unit + "-schema.json")]
             [#break]
     [/#switch]
 [/#function]
@@ -224,54 +224,18 @@
 
 [#function formatJsonSchemaReference composite]
     [#if composite.AttributeSet??]
-        [#local schema = "attributeset"]
-        [#local type = composite.AttributeSet]
-        [#local path = composite.AttributeSet?ensure_starts_with('#/')]
+        [#local section = "attributeset"]
+        [#local unit = composite.AttributeSet]
     [#elseif composite.Component??]
-        [#local schema = "component"]
-        [#local type = composite.Component]
-        [#local path = composite.Component?ensure_starts_with('#/')]
+        [#local section = "component"]
+        [#local unit = composite.Component]
     [/#if]
-
-    [#local configuration = getSchemaReferenceConfiguration(schema)]
-    [#if configuration??]
-        [#return { "$ref" : 
-            formatPath(
-                false,
-                rootSchemaPath,
-                "latest",
-                "blueprint", 
-                "schema-" + schema + "-schema.json"
-            ) + path 
-        }]
+    [#if section?has_content && unit?has_content]
+        [#return { "$ref" : formatSchemaId(section, unit) }]
     [/#if]
     [@fatal message="Invalid Reference" context={"comp" : composite, "conf" : configuration} /]
 [/#function]
 
-[#function getSchemaReferenceConfiguration type]
-    [#local schemas = {
-        "attributeset" : {
-            "Url" : formatPath(false, rootSchemaPath, "latest", "blueprint", "schema-attributeset-schema.json"),
-            "Values" : attributeSetConfiguration?keys
-        },
-        "component" : {
-            "Url" : formatPath(false, rootSchemaPath, "latest", "blueprint", "schema-component-schema.json"),
-            "Values" : componentConfiguration?keys +
-                    asFlattenedArray(
-                        componentConfiguration
-                        ?keys
-                        ?filter(c -> componentConfiguration[c].Components??)
-                        ?map(c -> componentConfiguration[c].Components)
-                    )?map(c -> c.Component)
-
-        },
-        "reference" : {
-            "Url" : formatPath(false, rootSchemaPath, "latest", "blueprint", "schema-reference-schema.json"),
-            "Values" : referenceConfiguration?keys
-        }
-    }]
-    [#return schemas[type]!{}]
-[/#function]
 [#-------------------------------------------------------
 -- Internal support functions for schema processing    --
 ---------------------------------------------------------]
