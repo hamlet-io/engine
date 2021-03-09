@@ -39,6 +39,12 @@
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             },
             {
+                "Names" : "IPAddressGroups",
+                "Description" : "The IPAddressGroup Id's that should be granted access to the Bastion",
+                "Types" : ARRAY_OF_STRING_TYPE,
+                "Default" : []
+            },
+            {
                 "Names" : "Profiles",
                 "Children" :
                     [
