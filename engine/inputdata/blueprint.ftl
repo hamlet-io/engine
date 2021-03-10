@@ -59,7 +59,10 @@
 
         [#-- Skip any subComponents --]
         [#if !(subComponentNames?seq_contains(component))]
-            [#local attrs = asFlattenedArray(config["ResourceGroups"]["default"].Attributes?values) + coreComponentChildConfiguration ]
+            [#local attrs = coreComponentChildConfiguration]
+            [#list config["ResourceGroups"]?values as resourceGroupConfig]
+                [#local attrs += asFlattenedArray(resourceGroupConfig.Attributes?values)]
+            [/#list]
 
             [#-- Include subComponents as valid Attribute children --]
             [#local components = []]
