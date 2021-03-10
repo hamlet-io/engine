@@ -109,78 +109,6 @@
         [/#if]
     [/#list]
 
-    [#local settingsChildren = [
-        {
-            "Names" : "Settings",
-            "Children" : [
-                {
-                    "Names" : "Accounts",
-                    "Children" : [
-                        {
-                            "Names" : "*",
-                            "Types" : ANY_TYPE
-                        }
-                    ]
-                },
-                {
-                    "Names" : "Products",
-                    "Children" : [
-                        {
-                            "Names" : "*",
-                            "Types" : ANY_TYPE
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "Names" : "Builds",
-            "Children" : [
-                {
-                    "Names" : "Accounts",
-                    "Children" : [
-                        {
-                            "Names" : "*",
-                            "Types" : ANY_TYPE
-                        }
-                    ]
-                },
-                {
-                    "Names" : "Products",
-                    "Children" : [
-                        {
-                            "Names" : "*",
-                            "Types" : ANY_TYPE
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "Names" : "Sensitive",
-            "Children" : [
-                {
-                    "Names" : "Accounts",
-                    "Children" : [
-                        {
-                            "Names" : "*",
-                            "Types" : ANY_TYPE
-                        }
-                    ]
-                },
-                {
-                    "Names" : "Products",
-                    "Children" : [
-                        {
-                            "Names" : "*",
-                            "Types" : ANY_TYPE
-                        }
-                    ]
-                }
-            ]
-        }
-    ]]
-
     [#local certChildren = [
         {
             "Names" : "Certificates",
@@ -250,7 +178,6 @@
             ] + 
             referenceChildren +
             layerChildren + 
-            settingsChildren +
             certChildren +
             domainChildren
         )]
