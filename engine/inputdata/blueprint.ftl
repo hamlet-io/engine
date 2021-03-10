@@ -21,7 +21,7 @@
     [/#if]
 [/#macro]
 
-[#function getBlueprintAttributes ]
+[#function getBlueprintConfiguration ]
     [#local attributes = []]
 
     [#-- Layers --]

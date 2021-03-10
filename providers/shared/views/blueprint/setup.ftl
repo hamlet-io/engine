@@ -132,7 +132,7 @@
     /]
 
     [#-- perform validation --]
-    [#local blueprintAttributes = getBlueprintAttributes()]
+    [#local blueprintAttributes = getBlueprintConfiguration()]
     [#local validComposite = getBluePrintObject(blueprintAttributes, blueprintObject)]
 
     [#if getLogLevel() > INFORMATION_LOG_LEVEL]
