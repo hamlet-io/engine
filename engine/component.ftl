@@ -145,17 +145,6 @@
             "Default" : []
         },
         {
-            "Names" : "deployment:Priority",
-            "Description" : "The Deployment Priority",
-            "Types" : NUMBER_TYPE,
-            "Default" : 5
-        },
-        {
-            "Names" : [ "deployment:Group", "DeploymentGroup" ],
-            "Description" : "The component Deployment Group",
-            "Types" : STRING_TYPE
-        },
-        {
             "Names" : [ "Instances" ],
             "Description" : "Instances of a component configuration",
             "SubObjects" : true,
