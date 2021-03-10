@@ -597,6 +597,29 @@
     }
 ]]
 
+[#assign domainChildConfiguration = [
+    {
+        "Names" : "Stem",
+        "Types" : STRING_TYPE,
+        "Mandatory" : true
+    },
+    {
+        "Names" : "Zone",
+        "Description" : "The zone the endpoint belongs to",
+        "Types" : STRING_TYPE
+    },
+    {
+        "Names" : "Bare",
+        "Types" : BOOLEAN_TYPE,
+        "Default" : false
+    },
+    {
+        "Names" : "Role",
+        "Types" : STRING_TYPE,
+        "Values" : [DOMAIN_ROLE_PRIMARY, DOMAIN_ROLE_SECONDARY]
+    }
+]]
+
 [#assign domainNameChildConfiguration = [
     {
         "Names" : "Qualifiers",

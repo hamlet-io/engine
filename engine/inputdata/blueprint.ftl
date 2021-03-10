@@ -129,13 +129,7 @@
                 {
                     "Names" : "*",
                     "Types" : OBJECT_TYPE,
-                    "Children" : [
-                        {
-                            "Names" : "Stem",
-                            "Types" : STRING_TYPE,
-                            "Mandatory" : true
-                        }
-                    ]
+                    "Children" : domainChildConfiguration
                 },
                 {
                     "Names" : "Validation",
