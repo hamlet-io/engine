@@ -22,7 +22,7 @@
                 "Names" : [ "views" ]
             },
             "View" : {
-                "Name" : BLUEPRINT_VIEW_TYPE
+                "Name" : VALIDATE_VIEW_TYPE
             }
         }
     /]

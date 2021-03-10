@@ -5,3 +5,4 @@
 [#assign SCHEMASET_VIEW_TYPE = "schemaset" ]
 [#assign INFO_VIEW_TYPE      = "info" ]
 [#assign LOADER_VIEW_TYPE    = "loader" ]
+[#assign VALIDATE_VIEW_TYPE  = "validate" ]
