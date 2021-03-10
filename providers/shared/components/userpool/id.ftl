@@ -155,6 +155,46 @@
                         "Names" : "Required",
                         "Types" : BOOLEAN_TYPE,
                         "Default" : true
+                    },
+                    {
+                        "Names" : "Constraints",
+                        "Description" : "Constraints applied to the attribute based on their type",
+                        "Children" : [
+                            {
+                                "Names" : "String",
+                                "Description" : "String based Constraints",
+                                "Children" : [
+                                    {
+                                        "Names" : "MinLength",
+                                        "Description" : "The minimumn length of the attribute 0 = any",
+                                        "Types" : NUMBER_TYPE,
+                                        "Default" : 0
+                                    },
+                                    {
+                                        "Names" : "MaxLength",
+                                        "Description" : "The maximum length of the attribute 0 = any",
+                                        "Types" : NUMBER_TYPE,
+                                        "Default" : 0
+                                    }
+                                ]
+                            },
+                            {
+                                "Names" : "Number",
+                                "Description" : "Number based Constraints",
+                                "Children" : [
+                                    {
+                                        "Names" : "MinValue",
+                                        "Description" : "The minimumn value of the attribute",
+                                        "Types" : NUMBER_TYPE
+                                    },
+                                    {
+                                        "Names" : "MaxValue",
+                                        "Description" : "The maximum value of the attribute",
+                                        "Types" : NUMBER_TYPE
+                                    }
+                                ]
+                            }
+                        ]
                     }
                 ]
             },
