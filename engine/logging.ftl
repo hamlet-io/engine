@@ -6,8 +6,8 @@
 
 [#assign DEBUG_LOG_LEVEL = 0]
 [#assign TRACE_LOG_LEVEL = 1]
+[#assign TIMING_LOG_LEVEL = 2]
 [#assign INFORMATION_LOG_LEVEL = 3]
-[#assign TIMING_LOG_LEVEL = 4]
 [#assign WARNING_LOG_LEVEL = 5]
 [#assign ERROR_LOG_LEVEL = 7]
 [#assign FATAL_LOG_LEVEL = 9]
@@ -15,9 +15,9 @@
 [#assign logLevelDescriptions = [
     "debug",
     "trace",
-    "",
-    "info",
     "timing",
+    "info",
+    "",
     "warn",
     "",
     "error",
