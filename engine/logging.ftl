@@ -29,7 +29,7 @@
 
 [#-- Set LogLevel variable to use a different log level --]
 [#-- Can either be set as a number or as a string       --]
-[#assign currentLogLevel = FATAL_LOG_LEVEL]
+[#assign currentLogLevel = FATAL_LOG_LEVEL ]
 
 [#-- Set the stop threshold                             --]
 [#-- Number of fatal errors at which processing will    --]
