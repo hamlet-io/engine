@@ -600,8 +600,8 @@
 [#assign domainChildConfiguration = [
     {
         "Names" : "Stem",
-        "Types" : STRING_TYPE,
-        "Mandatory" : true
+        "Description" : "The root stem domain name that children will be based on",
+        "Types" : STRING_TYPE
     },
     {
         "Names" : "Zone",
@@ -617,16 +617,33 @@
         "Names" : "Role",
         "Types" : STRING_TYPE,
         "Values" : [DOMAIN_ROLE_PRIMARY, DOMAIN_ROLE_SECONDARY]
+    },
+    {
+        "Names" : "Parent",
+        "Types" : STRING_TYPE,
+        "Description" : "The Id of another domain to use as the parent of this domain zone"
+    },
+    {
+        "Names" : "Parents",
+        "Type" : ARRAY_OF_STRING_TYPE,
+        "Description" : "A list of parents to which will be used to generate multiple domain zones"
+    },
+    {
+        "Names" : "Qualifiers",
+        "Description" : "District based overrides to domain properties",
+        "Types" : OBJECT_TYPE
     }
 ]]
 
 [#assign domainNameChildConfiguration = [
     {
         "Names" : "Qualifiers",
+        "Description" : "District based overrides to domain properties",
         "Types" : OBJECT_TYPE
     },
     {
         "Names" : "Domain",
+        "Description" : "Explicit domain id which will override the product domain",
         "Types" : STRING_TYPE
     },
     {
