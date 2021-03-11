@@ -605,8 +605,8 @@
     },
     {
         "Names" : "Stem",
-        "Types" : STRING_TYPE,
-        "Mandatory" : true
+        "Description" : "The root stem domain name that children will be based on",
+        "Types" : STRING_TYPE
     },
     {
         "Names" : "Zone",
@@ -629,10 +629,12 @@
 [#assign domainNameChildConfiguration = [
     {
         "Names" : "Qualifiers",
+        "Description" : "District based overrides to domain properties",
         "Types" : OBJECT_TYPE
     },
     {
         "Names" : "Domain",
+        "Description" : "Explicit domain id which will override the product domain",
         "Types" : STRING_TYPE
     },
     {
