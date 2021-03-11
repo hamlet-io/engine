@@ -21,14 +21,46 @@ Title and Description are entirely for human consumption and targetted at
 the automated generation of documentation.
 --]
 
-[#assign frameworkObjectAttributes = ["Type", "Id", "Name", "Title", "Description"]]
+[#assign frameworkObjectAttributes = [
+    {
+        "Names" : "Id",
+        "Description" : "An instance idenfying value. Provides a default value for the Name",
+        "Types" : STRING_TYPE
+    },
+    {
+        "Names" : "Name",
+        "Description" : "Provides a default value for the Id",
+        "Types" : STRING_TYPE
+    },
+    {
+        "Names" : "Title",
+        "Description" : "A descriptive title for human consumption",
+        "Types" : STRING_TYPE
+    },
+    {
+        "Names" : "Description",
+        "Description" : "An object descriptor for human consumption",
+        "Types" : STRING_TYPE
+    },
+    {
+        "Names" : "Enabled",
+        "Description" : "Should this object configuration be considered as Enabled?",
+        "Types" : BOOLEAN_TYPE
+    }
+]]
 
 [#function getFrameworkObjectAttributes obj]
-    [#return getObjectAttributes(obj, frameworkObjectAttributes)]
+    [#return getObjectAttributes(
+        obj, 
+        asFlattenedArray(frameworkObjectAttributes?map(a -> a.Names))
+    )]
 [/#function]
 
 [#function getNonFrameworkObjectAttributes obj]
-    [#return removeObjectAttributes(obj, frameworkObjectAttributes)]
+    [#return removeObjectAttributes(
+        obj,
+        asFlattenedArray(frameworkObjectAttributes?map(a -> a.Names))
+    )]
 [/#function]
 
 [#function getObjectType obj]
@@ -156,7 +188,11 @@ attribute keys of the object instances within the object set. Any attribute keys
 not in the Order list are processed AFTER those in the Order list.
 --]
 
-[#assign frameworkObjectAttributes += ["Order"]]
+[#assign frameworkObjectAttributes += [{
+    "Names" : "Order",
+    "Description" : "A list of attribute keys to be processed sequentially, prior to any absent the list",
+    "Types" : ARRAY_OF_STRING_TYPE
+}]]
 
 [#function addToObjectSet set obj]
     [#local id = getObjectId(obj)]
@@ -312,7 +348,13 @@ way as types, but the referenced object(s) are assumed to be of the same
 type as the referencing object.
 --]
 
-[#assign frameworkObjectAttributes += ["Parent", "Parents"]]
+[#assign frameworkObjectAttributes += [
+    {
+        "Names" : [ "Parent", "Parents" ],
+        "Description" : "Enables organising objects into a family tree whilst preserving data type",
+        "Types" : STRING_TYPE
+    }
+]]
 
 
 [#-- Configuration Management Database (CMDB)
@@ -350,6 +392,7 @@ The CMDB is represented in memory as a hierarchy of "contexts". To create this
 hierarchy, the persisted CMDB is read in as an item stream. An item stream
 is a list of configuration objects and/or item streams. Order within a stream
 determines processing order.
+--]
 
 [#-- Item Categories --]
 [#assign CONFIGURATION_ITEM_STREAM_TYPE = "stream"]

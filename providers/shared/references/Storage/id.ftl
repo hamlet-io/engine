@@ -15,7 +15,7 @@
             "Children" : [
                 {
                     "Names" : "Volumes",
-                    "Subobjects" : true,
+                    "SubObjects" : true,
                     "Children" : [
                         {
                             "Names" : "Device",

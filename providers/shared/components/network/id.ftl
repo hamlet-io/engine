@@ -29,7 +29,7 @@
                     {
                         "Names" : "FlowLogs",
                         "Description" : "Log flows across the network",
-                        "Subobjects" : true,
+                        "SubObjects" : true,
                         "Children" : [
                             {
                                 "Names" : "Action",
@@ -93,7 +93,7 @@
             },
             {
                 "Names" : "Links",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             },
             {
@@ -155,7 +155,7 @@
             },
             {
                 "Names" : "Rules",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "Children" : [
                     {
                         "Names" : "Priority",

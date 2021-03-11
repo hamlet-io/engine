@@ -11,29 +11,33 @@
         ]
     attributes=[
         {
-            "Names" : "Id",
+            "Names" : "*",
+            "Description" : "Individual deployment-unit configuration overrides. Attribute must match the DeploymentUnit value.",
+            "Types" : OBJECT_TYPE,
+            "Children" : [
+                {
+                    "Names" : "Region",
+                    "Description" : "An override of the Region for a single DeploymentUnit.",
+                    "Types" : STRING_TYPE
+                }
+            ]
+        },
+        {
+            "Names" : "Region",
             "Types" : STRING_TYPE
         },
         {
-            "Names" : "Name",
-            "Types" : STRING_TYPE
-        },
-        {
-            "Names" : "Title",
-            "Types" : STRING_TYPE
-        },
-        {
-            "Names" : "Description",
+            "Names" : "Domain",
             "Types" : STRING_TYPE
         },
         {
             "Names" : "Modules",
-            "Subobjects" : true,
+            "SubObjects" : true,
             "Children"  : moduleReferenceConfiguration
         },
         {
             "Names" : "Plugins",
-            "Subobjects" : true,
+            "SubObjects" : true,
             "Children" : pluginReferenceConfiguration
         },
         {
@@ -71,6 +75,15 @@
                             "Types" : STRING_TYPE
                         }
                     ]
+                },
+                {
+                    "Names" : "Code",
+                    "Children" : [
+                        {
+                            "Names" : "Environment",
+                            "Types" : STRING_TYPE
+                        }
+                    ]
                 }
             ]
         },
@@ -91,14 +104,17 @@
         },
         {
             "Names" : "DeploymentProfiles",
+            "SubObjects" : true,
             "Children" : deploymentProfileConfiguration
         },
         {
             "Names" : "PolicyProfiles",
+            "SubObjects" : true,
             "Children" : deploymentProfileConfiguration
         },
         {
             "Names" : "PlacementProfiles",
+            "SubObjects" : true,
             "Children" : placementProfileConfiguration
         }
     ]

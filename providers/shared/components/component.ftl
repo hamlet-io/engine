@@ -142,7 +142,7 @@
         },
         {
             "Names" : "Links",
-            "Subobjects": true,
+            "SubObjects": true,
             "AttributeSet" : LINK_ATTRIBUTESET_TYPE
         }
     ]
@@ -188,7 +188,7 @@
         {
             "Names" : "Dimensions",
             "Description" : "Explicit configured dimensions",
-            "Subobjects" : true,
+            "SubObjects" : true,
             "Children" : [
                 {
                     "Names" : "Key",
@@ -339,7 +339,7 @@
                 {
                     "Names" : "Adjustments",
                     "Description" : "The adjustments to apply at each step",
-                    "Subobjects" : true,
+                    "SubObjects" : true,
                     "Children" : [
                         {
                             "Names" : "LowerBound",
@@ -499,7 +499,7 @@
         },
         {
             "Names" : "RateLimits",
-            "Subobjects" : true,
+            "SubObjects" : true,
             "Children" : [
                 {
                     "Names" : "IPAddressGroups",
@@ -594,6 +594,29 @@
         "Names" : "ActivityCooldown",
         "Types" : NUMBER_TYPE,
         "Default" : 30
+    }
+]]
+
+[#assign domainChildConfiguration = [
+    {
+        "Names" : "Stem",
+        "Types" : STRING_TYPE,
+        "Mandatory" : true
+    },
+    {
+        "Names" : "Zone",
+        "Description" : "The zone the endpoint belongs to",
+        "Types" : STRING_TYPE
+    },
+    {
+        "Names" : "Bare",
+        "Types" : BOOLEAN_TYPE,
+        "Default" : false
+    },
+    {
+        "Names" : "Role",
+        "Types" : STRING_TYPE,
+        "Values" : [DOMAIN_ROLE_PRIMARY, DOMAIN_ROLE_SECONDARY]
     }
 ]]
 
@@ -695,7 +718,7 @@
 [#assign s3NotificationChildConfiguration = [
     {
         "Names" : "Links",
-        "Subobjects": true,
+        "SubObjects": true,
         "AttributeSet" : LINK_ATTRIBUTESET_TYPE
     },
     {
@@ -946,7 +969,7 @@
     },
     {
         "Names" : "Links",
-        "Subobjects": true,
+        "SubObjects": true,
         "AttributeSet" : LINK_ATTRIBUTESET_TYPE
     },
     {
@@ -962,12 +985,12 @@
     },
     {
         "Names" : "LogMetrics",
-        "Subobjects" : true,
+        "SubObjects" : true,
         "Children" : logMetricChildrenConfiguration
     },
     {
         "Names" : "Alerts",
-        "Subobjects" : true,
+        "SubObjects" : true,
         "Children" : alertChildrenConfiguration
     },
     {
@@ -997,7 +1020,7 @@
     },
     {
         "Names" : "Ports",
-        "Subobjects" : true,
+        "SubObjects" : true,
         "Children" : [
             "Container",
             {
@@ -1076,7 +1099,7 @@
     {
         "Names" : "Ulimits",
         "Description" : "Linux OS based limits for the container",
-        "Subobjects" : true,
+        "SubObjects" : true,
         "Children" : [
             {
                 "Names" : "Name",
@@ -1131,7 +1154,7 @@
     },
     {
         "Names" : "Links",
-        "Subobjects": true,
+        "SubObjects": true,
         "AttributeSet" : LINK_ATTRIBUTESET_TYPE
     },
     {
@@ -1171,7 +1194,7 @@
     },
     {
         "Names" : "HostScalingPolicies",
-        "Subobjects" : true,
+        "SubObjects" : true,
         "Children" : [
             {
                 "Names" : "Type",
@@ -1212,7 +1235,7 @@
     },
     {
         "Names" : "DockerUsers",
-        "Subobjects" : true,
+        "SubObjects" : true,
         "Children" : [
             {
                 "Names" : "UserName",
@@ -1227,12 +1250,12 @@
     },
     {
         "Names" : "LogMetrics",
-        "Subobjects" : true,
+        "SubObjects" : true,
         "Children" : logMetricChildrenConfiguration
     },
     {
         "Names" : "Alerts",
-        "Subobjects" : true,
+        "SubObjects" : true,
         "Children" : alertChildrenConfiguration
     },
     {
@@ -1266,7 +1289,7 @@
 [#assign containerServiceAttributes = [
     {
         "Names" : "Containers",
-        "Subobjects" : true,
+        "SubObjects" : true,
         "Children" : containerChildrenConfiguration
     },
     {
@@ -1275,7 +1298,7 @@
     },
     {
         "Names" : "ScalingPolicies",
-        "Subobjects" : true,
+        "SubObjects" : true,
         "Children" : scalingPolicyChildrenConfiguration
     },
     {
@@ -1315,12 +1338,12 @@
     },
     {
         "Names" : "LogMetrics",
-        "Subobjects" : true,
+        "SubObjects" : true,
         "Children" : logMetricChildrenConfiguration
     },
     {
         "Names" : "Alerts",
-        "Subobjects" : true,
+        "SubObjects" : true,
         "Children" : alertChildrenConfiguration
     },
     {
@@ -1380,7 +1403,7 @@
     },
     {
         "Names" : "Links",
-        "Subobjects": true,
+        "SubObjects": true,
         "AttributeSet" : LINK_ATTRIBUTESET_TYPE
     }
 ]]
@@ -1394,7 +1417,7 @@
     },
     {
         "Names" : "Containers",
-        "Subobjects" : true,
+        "SubObjects" : true,
         "Children" : containerChildrenConfiguration
     },
     {
@@ -1434,12 +1457,12 @@
     },
     {
         "Names" : "LogMetrics",
-        "Subobjects" : true,
+        "SubObjects" : true,
         "Children" : logMetricChildrenConfiguration
     },
     {
         "Names" : "Alerts",
-        "Subobjects" : true,
+        "SubObjects" : true,
         "Children" : alertChildrenConfiguration
     },
     {
@@ -1455,7 +1478,7 @@
     },
     {
         "Names" : "Schedules",
-        "Subobjects" : true,
+        "SubObjects" : true,
         "Children" : [
             {
                 "Names" : "Expression",
@@ -1493,7 +1516,7 @@
     },
     {
         "Names" : "Links",
-        "Subobjects": true,
+        "SubObjects": true,
         "AttributeSet" : LINK_ATTRIBUTESET_TYPE
     }
 ]]
@@ -1538,7 +1561,7 @@
     {
         "Names" : [ "SettingNamespaces" ],
         "Description" : "Additional namespaces to use during settings lookups",
-        "Subobjects" : true,
+        "SubObjects" : true,
         "Children" : [
             {
                 "Names" : "Match",

@@ -33,6 +33,14 @@
             "Types" : STRING_TYPE
         },
         {
+            "Names" : "Region",
+            "Types" : STRING_TYPE
+        },
+        {
+            "Names" : "Domain",
+            "Types" : STRING_TYPE
+        },
+        {
             "Names" : "Profiles",
             "Children" : [
                 {
@@ -49,22 +57,22 @@
         }
         {
             "Names" : "DeploymentProfiles",
-            "Subobjects" : true,
+            "SubObjects" : true,
             "Children" : []
         },
         {
             "Names" : "PolicyProfiles",
-            "Subobjects" : true,
+            "SubObjects" : true,
             "Children" : []
         }
         {
             "Names" : "Modules",
-            "Subobjects" : true,
+            "SubObjects" : true,
             "Children"  : moduleReferenceConfiguration
         },
         {
             "Names" : "Plugins",
-            "Subobjects" : true,
+            "SubObjects" : true,
             "Children" : pluginReferenceConfiguration
         },
         {
@@ -198,7 +206,7 @@
         },
         {
             "Names" : "Access",
-            "Subobjects" : true,
+            "SubObjects" : true,
             "Children" : [
                 {
                     "Names" : "AWSId",

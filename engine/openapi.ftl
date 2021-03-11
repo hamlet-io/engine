@@ -384,7 +384,7 @@
     [
         {
             "Names" : ["Security"],
-            "Subobjects" : true,
+            "SubObjects" : true,
             "Children" : [
                 {
                     "Names" : ["Enabled"],

@@ -16,7 +16,7 @@
                 {
                     "Names" : "Links",
                     "Description" : "Apply network security rules based on links",
-                    "Subobjects" : true,
+                    "SubObjects" : true,
                     "AttributeSet" : LINK_ATTRIBUTESET_TYPE
                 },
                 {

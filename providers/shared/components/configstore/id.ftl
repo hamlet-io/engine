@@ -56,13 +56,13 @@
         [
             {
                 "Names" : "Links",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "States",
                 "Description" : "A writable attribute in the config branch",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "Children" : [
                     {
                         "Names" : "InitialValue",

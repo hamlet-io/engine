@@ -802,6 +802,38 @@ are added.
         [/#if]
     [/#list]
 
+    [#-- Validate --]
+    [#if commandLineOptions.Validate!false && evaluatedRefAttributes?? ] 
+
+        [#-- Common Parameters that are used throughout        --]
+        [#-- but are as-yet unaccounted for in the             --]
+        [#-- composite object definitions.                     --]
+        [#-- TODO(rossmurr4y): add commonParams to definitions --]
+        [#local commonParams = [
+            "multiAZ", "MultiAZ"]
+        ]
+
+        [#local validKeys = asFlattenedArray(evaluatedRefAttributes?map(c -> (c?is_hash && c.Names??)?then(c.Names, c)))]
+        [#list asFlattenedArray(objects) as object]
+            [#list object?keys as key]
+                [#if !(validKeys?seq_contains("*")) &&
+                     !(validKeys?seq_contains(key)) &&
+                     !(commonParams?seq_contains(key))]
+
+                    [@fatal 
+                        message="Invalid Attribute Found."
+                        context=
+                            {
+                                "InvalidAttribute" : key,
+                                "ValidAttributes" : validKeys,
+                                "InvalidObject" : object
+                            }
+                    /]
+                [/#if]
+            [/#list]
+        [/#list]
+    [/#if]
+
     [#-- Determine the attribute values --]
     [#local result = {} ]
     [#if evaluatedRefAttributes?has_content]
@@ -830,6 +862,7 @@ are added.
                     [/#list]
                 [/#if]
             [/#list]
+
 
             [#-- Name wildcard means include all candidate objects --]
             [#if providedName == "*"]
@@ -918,7 +951,11 @@ are added.
                                         [#else]
                                             [@fatal
                                                 message="Subobject content is not a hash"
-                                                context=childObject /]
+                                                context={
+                                                    "InvalidValue" : value,
+                                                    "Object" : childObject,
+                                                    "Attribute" : attribute
+                                                } /]
                                         [/#if]
                                     [/#list]
                                 [#else]
@@ -1053,6 +1090,36 @@ are added.
         [#local result += object ]
     [/#list]
     [#return result ]
+[/#function]
+
+[#-- Wraps the getCompositeObject function, adding     --]
+[#-- the FrameworkObjectAttributes to valid Attributes --]
+[#-- where applicable.                                 --]
+[#function getBluePrintObject attributes=[] objects...]
+    [#local result = addFrameworkAttributes(attributes) ]
+    [#return getCompositeObject(result, objects)]
+[/#function]
+
+[#-- Walks an Attribute / Children structure and    --]
+[#-- adds the Framework Attributes as necessary.    --]
+[#function addFrameworkAttributes attributes=[]]
+    [#local result = []]
+    [#list asFlattenedArray(attributes) as attribute]
+        [#if attribute?is_hash && attribute.Children??]
+            [#local attrChildren = addFrameworkAttributes(attribute.Children)]
+            [#local result += [
+                mergeObjects(
+                    attribute,
+                    {
+                        "Children" : attrChildren
+                    }
+                )
+            ]]
+        [#else]
+            [#local result += [attribute]]
+        [/#if]
+    [/#list]
+    [#return combineEntities(frameworkObjectAttributes, result, ADD_COMBINE_BEHAVIOUR)]
 [/#function]
 
 [#-- Check if a configuration item with children is present --]

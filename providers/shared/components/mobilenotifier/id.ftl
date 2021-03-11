@@ -21,7 +21,7 @@
         [
             {
                 "Names" : "Links",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             },
             {
@@ -102,17 +102,17 @@
             },
             {
                 "Names" : "Links",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             }
             {
                 "Names" : "LogMetrics",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "Children" : logMetricChildrenConfiguration
             },
             {
                 "Names" : "Alerts",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "Children" : alertChildrenConfiguration
             },
             {

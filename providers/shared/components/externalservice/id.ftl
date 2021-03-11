@@ -32,7 +32,7 @@
     attributes=[
         {
             "Names" : "Properties",
-            "Subobjects" : true,
+            "SubObjects" : true,
             "Children" : [
                 {
                     "Names" : "Key",
@@ -54,7 +54,7 @@
         },
         {
             "Names" : "Links",
-            "Subobjects" : true,
+            "SubObjects" : true,
             "AttributeSet" : LINK_ATTRIBUTESET_TYPE
         }
     ]

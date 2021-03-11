@@ -53,7 +53,7 @@
             },
             {
                 "Names" : "PublicAccess",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "Children" : [
                     {
                         "Names" : "Enabled",
@@ -91,7 +91,7 @@
             },
             {
                 "Names" : "Notifications",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "Children" : s3NotificationChildConfiguration
             },
             {
@@ -120,13 +120,13 @@
             },
             {
                 "Names" : "Links",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "InventoryReports",
                 "Description" : "Provides a listing of all objects in the store on a schedule basis",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "Children" : [
                     {
                         "Names" : "Destination",
@@ -142,7 +142,7 @@
                             {
                                 "Names" : "Links",
                                 "Description" : "If destination type is link these are the links that will be used",
-                                "Subobjects" : true,
+                                "SubObjects" : true,
                                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
                             }
                         ]

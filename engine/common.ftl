@@ -518,7 +518,6 @@ behaviour.
 [#assign placementProfileConfiguration = [
     {
         "Names" : "*",
-        "Subobjects" : true,
         "Children"  : [
             {
                 "Names" : "Provider",
@@ -628,7 +627,7 @@ behaviour.
                     "Types" : BOOLEAN_TYPE
                 }
             ]
-        }
+        },
         {
             "Names" : "IncludeInHost",
             "Children" : [
@@ -711,20 +710,9 @@ behaviour.
         [#list line as domainObject]
             [#local qualifiedDomainObject =
                 getCompositeObject(
-                    [
-                        "InhibitEnabled", "Stem", "Name", "Zone",
-                        {
-                            "Names" : "Bare",
-                            "Types" : BOOLEAN_TYPE,
-                            "Default" : false
-                        },
-                        {
-                            "Names" : "Role",
-                            "Types" : STRING_TYPE,
-                            "Values" : [DOMAIN_ROLE_PRIMARY, DOMAIN_ROLE_SECONDARY]
-                        }
-                    ],
-                    domainObject) ]
+                    domainChildConfiguration + [ "InhibitEnabled" ],
+                    domainObject
+                )]
             [#if !(qualifiedDomainObject.Bare) ]
                 [#local name = formatDomainName(
                                    contentIfContent(
@@ -747,7 +735,7 @@ behaviour.
                     "Name" : name,
                     "Role" : valueIfTrue(role, primaryNotSeen, DOMAIN_ROLE_SECONDARY)
                 } +
-                getCompositeObject( ["InhibitEnabled", "Zone"], line )
+                getCompositeObject( domainChildConfiguration + [ "InhibitEnabled" ], line )
             ] ]
         [#local primaryNotSeen = primaryNotSeen && (role != DOMAIN_ROLE_PRIMARY) ]
     [/#list]

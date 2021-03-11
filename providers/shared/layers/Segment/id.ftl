@@ -27,17 +27,21 @@
             "Types" : STRING_TYPE
         },
         {
+            "Names" : "Region",
+            "Types" : STRING_TYPE
+        },
+        {
             "Names" : "Category",
             "Types" : STRING_TYPE
         },
         {
             "Names" : "Modules",
-            "Subobjects" : true,
+            "SubObjects" : true,
             "Children"  : moduleReferenceConfiguration
         },
         {
             "Names" : "Plugins",
-            "Subobjects" : true,
+            "SubObjects" : true,
             "Children" : pluginReferenceConfiguration
         },
         {

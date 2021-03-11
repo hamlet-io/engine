@@ -42,7 +42,7 @@
                 {
                     "Names" : "Additional",
                     "Description" : "Providers who will meet the additonal compute capacity outside of the default",
-                    "Subobjects" : true,
+                    "SubObjects" : true,
                     "Children" : [
                         {
                             "Names" : "Provider",

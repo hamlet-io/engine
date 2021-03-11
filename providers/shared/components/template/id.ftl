@@ -30,7 +30,7 @@
             },
             {
                 "Names" : "Parameters",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "Children" : [
                     {
                         "Names" : "Key",
@@ -45,7 +45,7 @@
             },
             {
                 "Names" : "Attributes",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "Children" : [
                     {
                         "Names" : "TemplateOutputKey",
@@ -80,7 +80,7 @@
             },
             {
                 "Names" : "Links",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             },
             {

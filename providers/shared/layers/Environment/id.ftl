@@ -27,6 +27,10 @@
             "Types" : STRING_TYPE
         },
         {
+            "Names" : "Region",
+            "Types" : STRING_TYPE
+        },
+        {
             "Names" : "Category",
             "Types" : STRING_TYPE
         },

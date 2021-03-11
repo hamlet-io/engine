@@ -181,12 +181,12 @@
             },
             {
                 "Names" : "Alerts",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "Children" : alertChildrenConfiguration
             },
             {
                 "Names" : "Links",
-                "Subobjects" : true,
+                "SubObjects" : true,
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             },
             {
@@ -243,13 +243,13 @@
                 "Children" : [
                     {
                         "Names" : "ScalingPolicies",
-                        "Subobjects" : true,
+                        "SubObjects" : true,
                         "Children" : scalingPolicyChildrenConfiguration
                     },
                     {
                         "Names" : "Parameters",
                         "Description" : "Cluster level database parameters",
-                        "Subobjects" : true,
+                        "SubObjects" : true,
                         "Children" : [
                             {
                                 "Names" : "Name",

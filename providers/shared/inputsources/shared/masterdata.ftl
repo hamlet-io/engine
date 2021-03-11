@@ -195,7 +195,7 @@
               ]
             }
           },
-          "RotateKey": true,
+          "RotateKeys": true,
           "Tiers": {
             "Order": [
               "elb",
@@ -610,7 +610,6 @@
             "Protocol": "TCP",
             "IPProtocol": "tcp",
             "HealthCheck": {
-              "Protocol": "HTTP",
               "Path": "/",
               "HealthyThreshold": "3",
               "UnhealthyThreshold": "5",
@@ -1602,11 +1601,6 @@
               "CDNHTTPSProfile": "TLSv1",
               "GatewayHTTPSProfile" : "TLS_1_0",
               "ProtocolPolicy": "redirect-to-https",
-              "WAFProfile": "OWASP2017",
-              "WAFValueSet": "default"
-            },
-            "spa": {
-              "HTTPSProfile": "TLSv1",
               "WAFProfile": "OWASP2017",
               "WAFValueSet": "default"
             },

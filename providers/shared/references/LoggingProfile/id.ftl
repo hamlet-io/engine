@@ -13,7 +13,7 @@
         {
             "Names" : "ForwardingRules",
             "Description" : "Controls the forwarding of logs after they have landed in their initial logging location",
-            "Subobjects" : true,
+            "SubObjects" : true,
             "Children" : [
                 {
                     "Names" : "Filter",
@@ -24,7 +24,7 @@
                 {
                     "Names" : "Links",
                     "Description" : "The links of components which will accept fowarded logs",
-                    "Subobjects" : true,
+                    "SubObjects" : true,
                     "AttributeSet" : LINK_ATTRIBUTESET_TYPE
                 }
             ]
