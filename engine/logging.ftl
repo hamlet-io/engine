@@ -47,7 +47,7 @@
     [/#if]
     [#if level?is_string && level?has_content]
         [#list logLevelDescriptions as value]
-            [#if level?lower_case?starts_with(value)]
+            [#if value?has_content && level?lower_case == value ]
                 [#assign currentLogLevel = value?index]
                 [#break]
             [/#if]
