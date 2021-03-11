@@ -599,6 +599,11 @@
 
 [#assign domainChildConfiguration = [
     {
+        "Names" : "Name",
+        "Description" : "The name of the domain",
+        "Types" : STRING_TYPE
+    },
+    {
         "Names" : "Stem",
         "Types" : STRING_TYPE,
         "Mandatory" : true
@@ -617,7 +622,8 @@
         "Names" : "Role",
         "Types" : STRING_TYPE,
         "Values" : [DOMAIN_ROLE_PRIMARY, DOMAIN_ROLE_SECONDARY]
-    }
+    },
+    "InhibitEnabled"
 ]]
 
 [#assign domainNameChildConfiguration = [
