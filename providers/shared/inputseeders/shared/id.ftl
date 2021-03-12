@@ -119,7 +119,7 @@
                     },
                     [#-- Logging Details --]
                     "Logging" : {
-                        "Level" : logLevel!""
+                        "Level" : logLevel!"info"
                     },
                     [#-- RunId details --]
                     "Run" : {
