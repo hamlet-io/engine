@@ -28,6 +28,13 @@
             "Names" : "DeploymentProvider",
             "Types" : STRING_TYPE,
             "Mandatory" : true
+        },
+        {
+            "Names" : "CurrentState",
+            "Description" : "The current state of the deployment",
+            "NotValues" : [ "notdeployed", "deployed", "orphaned" ],
+            "Types" : STRING_TYPE,
+            "Mandatory" : false
         }
     ]
 /]

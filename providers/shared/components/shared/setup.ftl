@@ -24,23 +24,13 @@
 
 [#macro shared_unitlist_managementcontract occurrence ]
 
-    [@createOccurrenceManagementContractStep
-        occurrence=occurrence
-    /]
+    [#local allOccurrences = asFlattenedArray( [ occurrence, occurrence.Occurrences![] ], true )]
+    [#list allOccurrences as occurrence ]
 
-    [#list (occurrence.Occurrences)![] as subOccurrence ]
         [@createOccurrenceManagementContractStep
-            occurrence=subOccurrence
+            occurrence=occurrence
         /]
     [/#list]
-
-    [#if getOutputContent("stages")?has_content ]
-        [#list getOutputContent("stages")?keys as deploymentGroup ]
-            [@createResourceSetManagementContractStep
-                deploymentGroupDetails=getDeploymentGroupDetails(deploymentGroup)
-            /]
-        [/#list]
-    [/#if]
 [/#macro]
 
 [#-- Default testcase --]

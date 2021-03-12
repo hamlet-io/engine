@@ -29,6 +29,11 @@
             "Mandatory" : true
         },
         {
+            "Names" : "OutputLevel",
+            "Description" : "Overrides the Group Id when performing output checks - Defaults to the Id of the Group",
+            "Types" : STRING_TYPE
+        },
+        {
             "Names" : "ResourceSets",
             "Description" : "Generate deployments based on resource labels across all units in the group",
             "SubObjects" : true,
@@ -93,6 +98,29 @@
             deploymentGroups[deploymentGroup]
         )
     ]
+[/#function]
+
+[#function getDeploymentGroupFromOutputLevel outputLevel ]
+    [#local levelMatches = [] ]
+    [#local groupMatches = []]
+
+    [#list getDeploymentGroups()?keys as deploymentGroup ]
+        [#local details = getDeploymentGroupDetails(deploymentGroup)]
+
+        [#if (details.OutputLevel)?? && details.OutputLevel == outputLevel ]
+            [#local levelMatches = combineEntities( levelMatches, [ deploymentGroup ], UNIQUE_COMBINE_BEHAVIOUR ) ]
+        [/#if]
+
+        [#if deploymentGroup == outputLevel ]
+            [#local groupMatches = combineEntities( groupMatches, [ deploymentGroup ], UNIQUE_COMBINE_BEHAVIOUR ) ]
+        [/#if]
+    [/#list]
+
+    [#if levelMatches?has_content ]
+        [#return levelMatches ]
+    [#else]
+        [#return groupMatches![]]
+    [/#if]
 [/#function]
 
 [#function getDeploymentGroups ]
