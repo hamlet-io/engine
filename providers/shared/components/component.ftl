@@ -599,6 +599,11 @@
 
 [#assign domainChildConfiguration = [
     {
+        "Names" : "Name",
+        "Description" : "The name of the domain",
+        "Types" : STRING_TYPE
+    },
+    {
         "Names" : "Stem",
         "Description" : "The root stem domain name that children will be based on",
         "Types" : STRING_TYPE
@@ -618,21 +623,7 @@
         "Types" : STRING_TYPE,
         "Values" : [DOMAIN_ROLE_PRIMARY, DOMAIN_ROLE_SECONDARY]
     },
-    {
-        "Names" : "Parent",
-        "Types" : STRING_TYPE,
-        "Description" : "The Id of another domain to use as the parent of this domain zone"
-    },
-    {
-        "Names" : "Parents",
-        "Type" : ARRAY_OF_STRING_TYPE,
-        "Description" : "A list of parents to which will be used to generate multiple domain zones"
-    },
-    {
-        "Names" : "Qualifiers",
-        "Description" : "District based overrides to domain properties",
-        "Types" : OBJECT_TYPE
-    }
+    "InhibitEnabled"
 ]]
 
 [#assign domainNameChildConfiguration = [

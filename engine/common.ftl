@@ -710,7 +710,7 @@ behaviour.
         [#list line as domainObject]
             [#local qualifiedDomainObject =
                 getCompositeObject(
-                    domainChildConfiguration + [ "InhibitEnabled" ],
+                    domainChildConfiguration,
                     domainObject
                 )]
             [#if !(qualifiedDomainObject.Bare) ]
@@ -731,11 +731,10 @@ behaviour.
         [/#list]
         [#local result +=
             [
-                {
+                getCompositeObject( domainChildConfiguration, line + [{
                     "Name" : name,
                     "Role" : valueIfTrue(role, primaryNotSeen, DOMAIN_ROLE_SECONDARY)
-                } +
-                getCompositeObject( domainChildConfiguration + [ "InhibitEnabled" ], line )
+                }] )
             ] ]
         [#local primaryNotSeen = primaryNotSeen && (role != DOMAIN_ROLE_PRIMARY) ]
     [/#list]
