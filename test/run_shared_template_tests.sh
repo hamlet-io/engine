@@ -32,7 +32,7 @@ generation_args=(
     '-f default'
 )
 
-hamlet entrance ${generation_args[@]} invoke-entrance -e unitlist ${default_args[@]}
+hamlet ${generation_args[@]} entrance invoke-entrance -e unitlist ${default_args[@]}
 UNIT_LIST=`jq -r '.Stages[].Steps[].Parameters | "-l \(.DeploymentGroup) -u \(.DeploymentUnit)"' < ${TEST_OUTPUT_DIR}/unitlist-managementcontract.json`
 readarray -t UNIT_LIST <<< "${UNIT_LIST}"
 
@@ -43,8 +43,8 @@ for unit in "${UNIT_LIST[@]}";  do
 
     unit_args=("${default_args[@]}" "${unit}")
 
-    hamlet entrance ${generation_args[@]} invoke-entrance -e deploymenttest ${unit_args[@]}
-    hamlet entrance ${generation_args[@]} invoke-entrance -e deployment ${unit_args[@]}
+    hamlet ${generation_args[@]} entrance invoke-entrance -e deploymenttest ${unit_args[@]}
+    hamlet ${generation_args[@]} entrance invoke-entrance -e deployment ${unit_args[@]}
 done
 
 echo ""
