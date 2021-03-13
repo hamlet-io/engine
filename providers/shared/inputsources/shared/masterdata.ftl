@@ -1729,7 +1729,7 @@
           }
         },
         "DeploymentModes" : {
-          "_default" : {
+          "update" : {
             "Operations" : [ "update" ],
             "Membership" : "priority",
             "Priority" : {
@@ -1737,12 +1737,20 @@
               "Order" : "LowestFirst"
             }
           },
-          "update" : {
+          "maintenance" : {
             "Operations" : [ "update" ],
             "Membership" : "priority",
             "Priority" : {
               "GroupFilter" : ".*",
               "Order" : "LowestFirst"
+            }
+          },
+          "hibernate" : {
+            "Operations" : [ "update" ],
+            "Membership" : "priority",
+            "Priority" : {
+              "GroupFilter" : ".*",
+              "Order" : "HighestFirst"
             }
           },
           "stop" : {

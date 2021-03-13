@@ -83,11 +83,6 @@
         [#local deploymentModeDetails = deploymentModes[deploymentMode]]
     [/#if]
 
-    [#if !(deploymentModeDetails?has_content) &&
-            (deploymentModes["_default"]!{})?has_content && deploymentModes["_default"].Enabled  ]
-        [#local deploymentModeDetails = deploymentModes["_default"]]
-    [/#if]
-
     [#if deploymentModeDetails?has_content ]
         [#return
             mergeObjects(
