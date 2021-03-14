@@ -17,6 +17,30 @@
     /]
 [/#macro]
 
+[#-- Default Occurrence State --]
+[#macro shared_occurrences_generationcontract occurrence ]
+    [@addDefaultGenerationContract subsets=[ "state" ] /]
+[/#macro]
+
+[#macro shared_occurrences_state occurrence ]
+    [#local allOccurrences = asFlattenedArray( [ occurrence, occurrence.Occurrences![] ], true )]
+    [#list allOccurrences as occurrence ]
+
+        [#local occurrencestate = {}]
+        [#list occurrence as k, v ]
+            [#if k != "Occurrences" ]
+                [#local occurrencestate = mergeObjects(occurrencestate, { k : v }) ]
+            [/#if]
+        [/#list]
+
+        [@stateEntry
+            type="Occurrences"
+            id=occurrence.Core.TypedFullName
+            state=occurrencestate
+        /]
+    [/#list]
+[/#macro]
+
 [#-- Default management contract --]
 [#macro shared_unitlist_generationcontract occurrence ]
     [@addDefaultGenerationContract subsets=[ "managementcontract" ] /]

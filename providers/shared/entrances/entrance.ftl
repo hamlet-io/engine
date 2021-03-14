@@ -10,3 +10,4 @@
 [#assign SCHEMASET_ENTRANCE_TYPE         = "schemaset" ]
 [#assign INFO_ENTRANCE_TYPE              = "info" ]
 [#assign VALIDATE_ENTRANCE_TYPE          = "validate" ]
+[#assign OCCURRENCES_ENTRANCE_TYPE       = "occurrences" ]

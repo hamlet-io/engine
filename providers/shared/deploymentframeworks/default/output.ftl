@@ -15,6 +15,7 @@
 [#assign SCHEMA_DEFAULT_OUTPUT_TYPE = "schema"]
 [#assign CONTRACT_DEFAULT_OUTPUT_TYPE = "contract"]
 [#assign INFO_DEFAULT_OUTPUT_TYPE = "info" ]
+[#assign STATE_OUTPUT_TYPE = "state" ]
 
 [#-- SCRIPT_DEFAULT_OUTPUT_TYPE --]
 
@@ -416,6 +417,69 @@
     [/#list]
 [/#macro]
 
+[#-- Occuurrence State --]
+[#macro default_output_state level="" include=""]
+    [@initialiseJsonOutput name="states" /]
+
+    [@processFlows
+        level=level
+        framework=DEFAULT_DEPLOYMENT_FRAMEWORK
+        flows=commandLineOptions.Flow.Names
+    /]
+
+    [#local allStates = {}]
+
+    [#if getOutputContent("states")?has_content || logMessages?has_content ]
+
+        [#list getOutputContent("states") as type, states ]
+
+            [#local typedStates = []]
+
+            [#list states?values as state ]
+
+                [#local typedStates = combineEntities(
+                                            typedStates,
+                                            [
+                                                state
+                                            ],
+                                            APPEND_COMBINE_BEHAVIOUR
+                )]
+            [/#list]
+
+            [#local allStates = mergeObjects( allStates, { type : typedStates } )]
+        [/#list]
+
+        [@toJSON
+            mergeObjects(
+                {
+                    "Metadata" : {
+                        "Id" : "state",
+                        "Prepared" : .now?iso_utc,
+                        "RunId" : commandLineOptions.Run.Id,
+                        "RequestReference" : commandLineOptions.References.Request,
+                        "ConfigurationReference" : commandLineOptions.References.Configuration
+                    }
+                },
+                allStates
+            ) +
+            attributeIfContent("HamletMessages", logMessages)
+        /]
+    [/#if]
+    [@serialiseOutput name=JSON_DEFAULT_OUTPUT_TYPE /]
+[/#macro]
+
+[#macro stateEntry type id state ]
+    [@mergeWithJsonOutput
+        name="states"
+        content={
+            type : {
+                id : state
+            }
+        }
+    /]
+[/#macro]
+
+
 [#-- Add Output Step mappings for each output --]
 [@addGenerationContractStepOutputMapping
     provider=SHARED_PROVIDER
@@ -511,6 +575,14 @@
     outputType=INFO_DEFAULT_OUTPUT_TYPE
     outputFormat=""
     outputSuffix="info.json"
+/]
+
+[@addGenerationContractStepOutputMapping
+    provider=SHARED_PROVIDER
+    subset="state"
+    outputType=STATE_OUTPUT_TYPE
+    outputFormat=""
+    outputSuffix="state.json"
 /]
 
 
