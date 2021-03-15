@@ -147,7 +147,7 @@
 [#if ((productObject.Id)!"")?has_content]
     [#assign productId = productObject.Id ]
     [#assign productName = productObject.Name ]
-    [#assign productDomain = productObject.Domain ]
+    [#assign productDomain = productObject.Domain!"" ]
 
     [#assign shortNamePrefixes += [productId] ]
     [#assign fullNamePrefixes += [productName] ]
