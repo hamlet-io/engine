@@ -32,7 +32,7 @@
         {
             "Names" : "CurrentState",
             "Description" : "The current state of the deployment",
-            "NotValues" : [ "notdeployed", "deployed", "orphaned" ],
+            "Values" : [ "notdeployed", "deployed", "orphaned" ],
             "Types" : STRING_TYPE,
             "Mandatory" : false
         }
