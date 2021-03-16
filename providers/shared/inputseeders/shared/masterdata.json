@@ -1626,7 +1626,7 @@
         },
         "ReplayWindowSize": 1024,
         "DeadPeerDetectionTimeout": 30,
-        "DeadPeerDetectionAction" : "clear",
+        "DeadPeerDetectionAction": "clear",
         "Phase1": {
           "EncryptionAlgorithms": [
             "AES256"
@@ -1756,30 +1756,32 @@
     }
   },
   "DeploymentModes": {
-    "_default": {
-      "Operations": [
-        "update"
-      ],
+    "update": {
+      "Operations": [ "update" ],
       "Membership": "priority",
       "Priority": {
         "GroupFilter": ".*",
         "Order": "LowestFirst"
       }
     },
-    "update": {
-      "Operations": [
-        "update"
-      ],
+    "maintenance": {
+      "Operations": [ "update" ],
       "Membership": "priority",
       "Priority": {
         "GroupFilter": ".*",
         "Order": "LowestFirst"
+      }
+    },
+    "hibernate": {
+      "Operations": [ "update" ],
+      "Membership": "priority",
+      "Priority": {
+        "GroupFilter": ".*",
+        "Order": "HighestFirst"
       }
     },
     "stop": {
-      "Operations": [
-        "delete"
-      ],
+      "Operations": [ "delete" ],
       "Membership": "priority",
       "Priority": {
         "GroupFilter": ".*",
@@ -1787,10 +1789,7 @@
       }
     },
     "stopstart": {
-      "Operations": [
-        "delete",
-        "update"
-      ],
+      "Operations": [ "delete", "update" ],
       "Membership": "priority",
       "Priority": {
         "GroupFilter": ".*",
