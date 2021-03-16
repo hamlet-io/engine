@@ -6,6 +6,7 @@
 
 [#-- Component configuration is extended dynamically by each component type --]
 [#assign componentConfiguration = {} ]
+[#assign deploymentState = {} ]
 
 [#function findComponentMarkers]
     [#local markers =
@@ -125,8 +126,32 @@
     /]
 [/#macro]
 
+[#macro addOccurrenceDeploymentState occurrence ]
+    [@internalMergeDeploymentState
+        deploymentGroup=getOccurrenceDeploymentGroup(occurrence)
+        deploymentUnit=getOccurrenceDeploymentUnit(occurrence)
+        state=isOccurrenceDeployed(occurrence)
+    /]
+[/#macro]
+
+[#macro addDeploymentState deploymentGroup deploymentUnit deployed ]
+    [@internalMergeDeploymentState
+        deploymentGroup=deploymentGroup
+        deploymentUnit=deploymentUnit
+        state=deployed
+    /]
+[/#macro]
+
+[#function getDeploymentUnitStates deploymentGroup deploymentUnit ]
+    [#return (deploymentState[deploymentGroup][deploymentUnit].DeployStates)![] ]
+[/#function]
+
+[#function getDeploymentGroupsFromState ]
+    [#return deploymentState?keys ]
+[/#function]
+
 [#-- Not for general use - framework only --]
-[#assign coreComponentDeploymentUnitConfiguration = 
+[#assign coreComponentDeploymentUnitConfiguration =
     [
         {
             "Names" : ["DeploymentUnits", "deployment:Unit"],
@@ -137,7 +162,7 @@
     ]
 ]
 
-[#assign coreComponentChildConfiguration = 
+[#assign coreComponentChildConfiguration =
     [
         {
             "Names" : ["Export"],
@@ -155,7 +180,7 @@
                     "SubObjects" : true,
                     "Children" : coreComponentDeploymentUnitConfiguration
                 }
-            ] + 
+            ] +
             coreComponentDeploymentUnitConfiguration
         }
     ] +
@@ -566,4 +591,25 @@
                 type: configuration
             }
         ) ]
+[/#macro]
+
+
+[#macro internalMergeDeploymentState deploymentGroup deploymentUnit state ]
+
+    [#if deploymentUnit?has_content && state?has_content ]
+        [#local unitState = (deploymentState[deploymentGroup][deploymentUnit].DeployStates)![] ]
+
+        [#assign deploymentState = (
+            mergeObjects(
+                deploymentState,
+                {
+                    deploymentGroup : {
+                        deploymentUnit : {
+                            "DeployStates" : combineEntities( unitState, [ state ], APPEND_COMBINE_BEHAVIOUR)
+                        }
+                    }
+                }
+            )
+        )]
+    [/#if]
 [/#macro]

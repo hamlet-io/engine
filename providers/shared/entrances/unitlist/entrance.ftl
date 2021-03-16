@@ -11,6 +11,12 @@
           "Group" : {
             "Name" : "*"
           }
+        },
+        "Flow" : {
+          "Names" : [ "components", "views" ]
+        },
+        "View" : {
+          "Name" : UNITLIST_VIEW_TYPE
         }
       }
   /]
