@@ -49,7 +49,8 @@
             [#if ! ((groupDetails.CompositeTemplate)!"")?has_content
                     && ! (groupDetails.ResourceSets!{})?keys?seq_contains(deploymentUnit)
                     && ! deploymentUnit?ends_with("-epilogue")
-                    && ! deploymentUnit?ends_with("-prologue") ]
+                    && ! deploymentUnit?ends_with("-prologue")
+                    && deploymentUnit?has_content ]
 
                 [#local deployState = getDeploymentUnitStates(deploymentGroup, deploymentUnit ) ]
 
