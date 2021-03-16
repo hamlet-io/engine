@@ -4,7 +4,14 @@
 [#assign DEFAULT_DEPLOYMENT_FRAMEWORK = "default"]
 
 [#-- Management Contracts --]
-[#macro createManagementContractStage deploymentUnit deploymentPriority deploymentGroup deploymentProvider deploymentMode=getDeploymentMode() ]
+[#macro createManagementContractStage
+        deploymentUnit
+        deploymentPriority
+        deploymentGroup
+        deploymentProvider
+        currentState
+        deploymentMode=getDeploymentMode()
+    ]
 
     [#local deploymentModeDetails = getDeploymentModeDetails(deploymentMode)]
     [#local deploymentGroupDetails = getDeploymentGroupDetails(deploymentGroup) ]
@@ -76,7 +83,8 @@
                         "DeploymentUnit" : deploymentUnit,
                         "DeploymentGroup" : deploymentGroupDetails.Name,
                         "DeploymentProvider" : deploymentProvider,
-                        "Operations" : deploymentModeDetails.Operations
+                        "Operations" : deploymentModeDetails.Operations,
+                        "CurrentState" : currentState
                     }
             /]
         [/#if]
@@ -88,22 +96,36 @@
     [#local resourceGroups = occurrence.State.ResourceGroups ]
 
     [#if ((solution["deployment:Group"])!"")?has_content ]
+
+        [@addOccurrenceDeploymentState
+            occurrence=occurrence
+        /]
+
+        [#local deploymentUnit = getOccurrenceDeploymentUnit(occurrence) ]
+        [#local deploymentGroup = solution["deployment:Group"]]
+
         [@createManagementContractStage
-            deploymentUnit=getOccurrenceDeploymentUnit(occurrence)
-            deploymentGroup=solution["deployment:Group"]
+            deploymentUnit=deploymentUnit
+            deploymentGroup=deploymentGroup
             deploymentPriority=solution["deployment:Priority"]
             deploymentProvider=resourceGroups["default"].Placement.Provider
+            currentState=getDeploymentUnitStates(deploymentGroup, deploymentUnit)
+                            ?seq_contains(true)?then("deployed", "notdeployed")
         /]
     [/#if]
 [/#macro]
 
-[#macro createResourceSetManagementContractStep deploymentGroupDetails ]
-    [#list ((deploymentGroupDetails.ResourceSets)!{})?values?filter(s -> s.Enabled ) as resourceSet ]
+[#macro createResourceSetManagementContractStep deploymentGroup deploymentUnit currentState priority="" deploymentMode=getDeploymentMode() ]
+    [#local deploymentGroupDetails = getDeploymentGroupDetails(deploymentGroup)]
+
+    [#list ((deploymentGroupDetails.ResourceSets)!{})?values?filter(s -> s.Enabled && s["deployment:Unit"] == deploymentUnit ) as resourceSet ]
         [@createManagementContractStage
             deploymentUnit=resourceSet["deployment:Unit"]
             deploymentGroup=deploymentGroupDetails.Name
-            deploymentPriority=resourceSet["deployment:Priority"]
+            deploymentPriority=priority?has_content?then(priority, resourceSet["deployment:Priority"])
             deploymentProvider=(commandLineOptions.Deployment.Provider.Names)[0]
+            currentState=currentState
+            deploymentMode=deploymentMode
         /]
     [/#list]
 [/#macro]

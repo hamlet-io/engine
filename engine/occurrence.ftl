@@ -137,6 +137,11 @@
     [#return getDeploymentUnitId(solution) ]
 [/#function]
 
+[#function getOccurrenceDeploymentGroup occurrence]
+    [#local solution = occurrence.Configuration.Solution ]
+    [#return solution["deployment:Group"]!"" ]
+[/#function]
+
 [#function isOccurrenceEnabled occurrence]
     [#return (occurrence.Configuration.Solution.Enabled)!true ]
 [/#function]

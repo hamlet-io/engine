@@ -1715,16 +1715,19 @@
           "segment" : {
             "Priority" : 10,
             "Level" : "segment",
+            "OutputLevel" : "seg",
             "ResourceSets" : {}
           },
           "solution" : {
             "Priority" : 100,
             "Level" : "solution",
+            "OutputLevel" : "soln",
             "ResourceSets" : {}
           },
           "application" : {
             "Priority" : 200,
             "Level" : "application",
+            "OutputLevel" : "app",
             "ResourceSets" : {}
           }
         },
@@ -1759,6 +1762,14 @@
             "Priority" : {
               "GroupFilter" : ".*",
               "Order" : "LowestFirst"
+            }
+          },
+          "_orphan" : {
+            "Operations" : [ "delete" ],
+            "Membership" : "priority",
+            "Priority" : {
+              "GroupFilter" : ".*",
+              "Order" : "HighestFirst"
             }
           }
         }
