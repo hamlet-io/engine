@@ -317,6 +317,38 @@
                 /]
             [/#list]
 
+            [#-- Determine the output writers for the provider --]
+            [#local directories =
+                internalGetPluginFiles(
+                    [providerMarker.Path, "outputwriters"],
+                    [
+                        ["[^/]+"]
+                    ]
+                )
+            ]
+            [#list directories as directory]
+                [@internalIncludeTemplatesInDirectory
+                    directory,
+                    ["id", "outputwriter"]
+                /]
+            [/#list]
+
+            [#-- Determine the output hanlders for the provider --]
+            [#local directories =
+                internalGetPluginFiles(
+                    [providerMarker.Path, "outputhandlers"],
+                    [
+                        ["[^/]+"]
+                    ]
+                )
+            ]
+            [#list directories as directory]
+                [@internalIncludeTemplatesInDirectory
+                    directory,
+                    ["id", "outputhandler"]
+                /]
+            [/#list]
+
             [#-- Determine the resource labels for the provider --]
             [#local directories =
                 internalGetPluginFiles(
@@ -928,6 +960,18 @@
     [@internalIncludeTemplatesInDirectory
         [providerMarker.Path, "deploymentframeworks"],
         ["output"]
+    /]
+
+    [#-- aws/outputhandlers/outputhandler.ftl --]
+    [@internalIncludeTemplatesInDirectory
+        [providerMarker.Path, "outputhandlers"],
+        ["outputhandler"]
+    /]
+
+    [#-- aws/outputwriters/outputwriter.ftl --]
+    [@internalIncludeTemplatesInDirectory
+        [providerMarker.Path, "outputwriters"],
+        ["outputwriter"]
     /]
 
     [#-- aws/modules/module.ftl --]
