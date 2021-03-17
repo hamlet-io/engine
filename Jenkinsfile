@@ -12,6 +12,20 @@ pipeline {
     }
 
     stages {
+
+        stage('Run Schemas Generation as Test') {
+            environment {
+                GENERATION_ENGINE_DIR="${WORKSPACE}"
+                SCHEMA_OUTPUT_DIR="${WORKSPACE}"
+            }
+
+            steps {
+                sh '''#!/usr/bin/env bash
+                    hamlet -i mock -p shared -p aws -p azure schema create-schemas -o "${SCHEMA_OUTPUT_DIR}"
+                '''
+            }
+        }
+
         stage('Run Shared Provider Tests') {
             environment {
                 GENERATION_ENGINE_DIR="${WORKSPACE}"
