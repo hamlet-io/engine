@@ -273,7 +273,10 @@
         [#local tierId = getTierId(tier) ]
         [#local tierName = getTierName(tier) ]
         [#local componentId = getComponentId(component) ]
+        [#local componentRawId = component.Id ]
         [#local componentName = getComponentName(component) ]
+        [#local componentRawName = component.Name ]
+        [#local componentType = type ]
         [#local subComponentId = [] ]
         [#local subComponentName = [] ]
         [#local componentContexts += [component, typeObject] ]
@@ -281,7 +284,10 @@
         [#local tierId = parentOccurrence.Core.Tier.Id ]
         [#local tierName = parentOccurrence.Core.Tier.Name ]
         [#local componentId = parentOccurrence.Core.Component.Id ]
+        [#local componentRawId = parentOccurrence.Core.Component.RawId ]
         [#local componentName = parentOccurrence.Core.Component.Name ]
+        [#local componentRawName = parentOccurrence.Core.Component.RawName ]
+        [#local componentType = parentOccurrence.Core.Component.Type ]
         [#local subComponentId = typeObject.Id?split("-") ]
         [#local subComponentName = typeObject.Name?split("-") ]
         [#local componentContexts += [typeObject] ]
@@ -319,10 +325,10 @@
                                 },
                                 "Component" : {
                                     "Id" : componentId,
-                                    "RawId" : component.Id,
+                                    "RawId" : componentRawId,
                                     "Name" : componentName,
-                                    "RawName" : component.Name,
-                                    "Type" : type
+                                    "RawName" : componentRawName,
+                                    "Type" : componentType
                                 },
                                 "Instance" : {
                                     "Id" : firstContent(instanceId, (parentOccurrence.Core.Instance.Id)!""),
@@ -353,7 +359,10 @@
                                 subComponentId,
                                 {
                                     "Id" : formatId(subComponentId),
-                                    "Name" : formatName(subComponentName)
+                                    "RawId" : component.Id,
+                                    "Name" : formatName(subComponentName),
+                                    "RawName" : component.Name,
+                                    "Type" : type
                                 }
                             ),
                             "State" : {
