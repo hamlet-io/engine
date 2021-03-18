@@ -1236,172 +1236,18 @@ behaviour.
     ]
 [/#function]
 
-[#function getMetricDimensions alert monitoredResource resources environment={}]
-    [#switch alert.DimensionSource]
-        [#case "Resource" ]
-            [#return getResourceMetricDimensions(monitoredResource, resources)]
-            [#break]
+[#function getResourceFromId resources id ]
+    [#list resources as key, value ]
 
-        [#case "Configured" ]
-            [#local dimensions = [] ]
-            [#list alert.Dimensions as id, dimension ]
-                [#local value = ""]
-                [#if ((dimension.SettingEnvName)!"")?has_content ]
-                    [#local value = (environment["Environment"][dimension.SettingEnvName])!"" ]
-                [#else]
-                    [#local value = (dimension.Value)!"" ]
-                [/#if]
+        [#if key == id ]
+            [#return value ]
+        [/#if]
 
-                [#local dimensions += [ {
-                    "Name" : dimension.Key,
-                    "Value" : value
-                }]]
-            [/#list]
-            [#return dimensions]
-            [#break]
-    [/#switch]
-
-    [#return []]
-[/#function]
-
-[#function getResourceMetricDimensions resource resources]
-    [#local resourceMetricAttributes = metricAttributes[resource.Type]!{} ]
-
-    [#if resourceMetricAttributes?has_content ]
-        [#local occurrenceDimensions = [] ]
-        [#list resourceMetricAttributes.Dimensions as name,property ]
-            [#list property as key,value ]
-                [#switch key]
-                    [#case "ResourceProperty" ]
-                        [#local occurrenceDimensions += [{
-                            "Name" : name,
-                            "Value" : resource[value]
-                        }]]
-                        [#break]
-                    [#case "OtherResourceProperty" ]
-                        [#local otherResource = resources[value.Id]]
-                        [#local occurrenceDimensions += [{
-                            "Name" : name,
-                            "Value" : otherResource[value.Property]
-                        }]]
-                        [#break]
-                    [#case "Output" ]
-                        [#local occurrenceDimensions += [{
-                            "Name" : name,
-                            "Value" : getReference(resource.Id, value)
-                        }]]
-                        [#break]
-                    [#case "OtherOutput" ]
-                        [#local otherResource = resources[value.Id]]
-                        [#local occurrenceDimensions += [{
-                            "Name" : name,
-                            "Value" : getReference(otherResource.Id, value.Property)
-                        }]]
-                        [#break]
-                    [#case "PseudoOutput" ]
-                        [#local occurrenceDimensions += [{
-                            "Name" : name,
-                            "Value" : { "Ref" : value }
-                        }]]
-                        [#break]
-                [/#switch]
-            [/#list]
-        [/#list]
-
-        [#return occurrenceDimensions]
-    [#else]
-        [@fatal
-            message="Dimensions not mapped for this resource"
-            context=resource.Type
-        /]
-    [/#if]
-
-[/#function]
-
-[#function getResourceMetricNamespace resourceType override="" ]
-
-    [#if override?has_content ]
-        [#return override]
-    [/#if]
-
-    [#local resourceTypeNameSpace = (metricAttributes[resourceType]).Namespace!"" ]
-
-    [#if resourceTypeNameSpace?has_content ]
-        [#switch resourceTypeNameSpace ]
-            [#case "_productPath" ]
-                [#return formatProductRelativePath()]
-                [#break]
-
-            [#default]
-                [#return resourceTypeNameSpace]
-        [/#switch]
-    [#else]
-        [@fatal
-            message="Namespace not mapped for this resource"
-            context=resource.Type
-        /]
-    [/#if]
-[/#function]
-
-[#function getMetricName metricName resourceType shortFullName ]
-
-    [#-- For some metrics we need to append the resourceName to add a qualifier if they don't support dimensions --]
-    [#switch resourceType]
-        [#case AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE ]
-            [#return formatName(metricName, shortFullName) ]
-    [#break]
-
-    [#default]
-        [#return metricName]
-    [/#switch]
-[/#function]
-
-[#function getMonitoredResources coreId resources resourceQualifier ]
-    [#local monitoredResources = {} ]
-
-    [#-- allow for a none type which disables dimension lookup --]
-    [#if resourceQualifier.Type?has_content && resourceQualifier.Type == "_none" ]
-        [#return { "_none" : { "Id" : coreId, "Type" : "_none" } }]
-    [/#if]
-
-    [#list resources as id,resource ]
-
-        [#if !resource["Type"]?has_content && resource?is_hash]
-            [#list resource as id,subResource ]
-                [#local monitoredResources += getMonitoredResources(coreId, {id : subResource}, resourceQualifier)]
-            [/#list]
-
-        [#else]
-
-            [#if resourceQualifier.Id?has_content || resourceQualifier.Type?has_content ]
-
-                [#if resourceQualifier.Id?has_content && resourceQualifier.Id == id  ]
-                    [#local monitoredResources += {
-                        id: resource
-                    }]
-                [/#if]
-
-                [#if resourceQualifier.Type?has_content && resourceQualifier.Type == resource["Type"]  ]
-                    [#local monitoredResources += {
-                        id: resource
-                    }]
-                [/#if]
-
-            [#else]
-
-                [#if resource["Type"]?has_content]
-
-                    [#if resource["Monitored"]!false ]
-                        [#local monitoredResources += {
-                            id : resource
-                        }]
-                    [/#if]
-                [/#if]
-
-            [/#if]
+        [#if ! value?keys?seq_contains("Id") ]
+            [#return getResourceFromId(value, id)]
         [/#if]
     [/#list]
-    [#return monitoredResources ]
+    [#return {}]
 [/#function]
 
 [#function addIdNameToObject entity default=""]
