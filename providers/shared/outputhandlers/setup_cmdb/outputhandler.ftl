@@ -12,4 +12,5 @@
 
 [#function shared_outputhandler_setup_cmdb properties ]
     [#local result = initialiseCMDBFileSystem({}) ]
+    [#return properties ]
 [/#function]

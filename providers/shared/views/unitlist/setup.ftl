@@ -11,7 +11,7 @@
 
         [#local deploymentGroups = []]
         [#if ((stackOutput.Level)!"")?has_content ]
-            [#local deploymentGroups = getDeploymentGroupFromOutputLevel(stackOutput.Level) ]
+            [#local deploymentGroups = getDeploymentGroupFromOutputPrefix(stackOutput.Level) ]
         [#else]
             [#local deploymentGroups = getDeploymentGroupsFromState() ]
         [/#if]

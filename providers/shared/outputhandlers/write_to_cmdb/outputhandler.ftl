@@ -24,4 +24,6 @@
             "Format" : fileProperties["format"]
         }
     )]
+
+    [#return properties]
 [/#function]

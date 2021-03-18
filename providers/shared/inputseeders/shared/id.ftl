@@ -135,6 +135,9 @@
                     [#-- RunId details --]
                     "Run" : {
                         "Id" : runId!""
+                    },
+                    "Output" : {
+                        "FileName" : outputFileName!""
                     }
                 }
             }

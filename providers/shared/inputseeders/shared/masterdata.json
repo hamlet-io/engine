@@ -1739,19 +1739,19 @@
     "segment": {
       "Priority": 10,
       "Level": "segment",
-      "OutputLevel" : "seg",
+      "OutputPrefix" : "seg",
       "ResourceSets": {}
     },
     "solution": {
       "Priority": 100,
       "Level": "solution",
-      "OutputLevel" : "soln",
+      "OutputPrefix" : "soln",
       "ResourceSets": {}
     },
     "application": {
       "Priority": 200,
       "Level": "application",
-      "OutputLevel" : "app",
+      "OutputPrefix" : "app",
       "ResourceSets": {}
     }
   },

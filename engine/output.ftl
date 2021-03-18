@@ -402,24 +402,137 @@
                                 (getCLODeploymentProviders()[0])!SHARED_PROVIDER,
                                 subset
                             )]
-    [#if ! outputMappings?has_content]
-        [@fatal
-            message="Missing output mapping"
-            context=generationcontractStepOutputMappings
-            detail=subset
-            stop=true
-        /]
-    [/#if]
+
+    [#local outputPrefix = getOutputFilePrefix(
+                                getCLOEntranceType(),
+                                getDeploymentGroup(),
+                                getDeploymentUnit(),
+                                subset,
+                                getCommandLineOptions().Layers[ACCOUNT_LAYER_TYPE],
+                                getCLOSegmentRegion(),
+                                getCLOAccountRegion(),
+                                alternative )]
+
+    [#local outputSuffix = outputMappings["OutputSuffix"]]
     [#return {
-        "provider"      : (getCLODeploymentProviders()?join(","))!SHARED_PROVIDER,
-        "framework"     : getCLODeploymentFramework(),
-        "outputType"    : outputMappings["OutputType"],
-        "outputFormat"  : outputMappings["OutputFormat"],
-        "outputSuffix"  : outputMappings["OutputSuffix"],
-        "subset"        : subset,
-        "alternative"   : alternative
+        "entrance"               : getCLOEntranceType(),
+        "provider"               : (getCLODeploymentProviders()?join(","))!SHARED_PROVIDER,
+        "framework"              : getCLODeploymentFramework(),
+        "outputType"             : outputMappings["OutputType"],
+        "outputFormat"           : outputMappings["OutputFormat"],
+        "outputSuffix"           : outputSuffix,
+        "subset"                 : subset,
+        "alternative"            : alternative,
+        "deploymentUnit"         : getDeploymentUnit(),
+        "deploymentGroup"        : getDeploymentGroup(),
+        "resourceGroup"          : getCLODeploymentResourceGroup(),
+        "account"                : getCommandLineOptions().Layers[ACCOUNT_LAYER_TYPE],
+        "accountRegion"          : getCLOAccountRegion(),
+        "region"                 : getCLOSegmentRegion(),
+        "requestReference"       : getCLORequestReference(),
+        "configurationReference" : getCLOConfigurationReference(),
+        "deploymentMode"         : getDeploymentMode(),
+        "outputFileName"         : formatName(outputPrefix, outputSuffix)
     }]
 [/#function]
+
+[#function getOutputFilePrefix
+        entrance
+        deployment_group
+        deployment_unit
+        deployment_subset
+        account
+        region
+        account_region
+        alternative
+    ]
+
+    [#local deploymentGroupDetails = getDeploymentGroupDetails(deployment_group)]
+    [#local level_prefix = ((deploymentGroupDetails.OutputPrefix)!deploymentGroupDetails.Name)!"" ]
+
+    [#-- set the default values for the file name parts --]
+    [#local filename_parts = {
+        "entrance_prefix" : entrance,
+        "level_prefix" : level_prefix,
+        "deployment_unit_prefix" : deployment_unit,
+        "account_prefix" : account,
+        "region_prefix" : region,
+        "alternative_prefix" : alternative
+    }]
+
+    [#local filename_part_order = [
+        "entrance_prefix",
+        "level_prefix",
+        "deployment_unit_prefix",
+        "pass_region_prefix",
+        "alternative_prefix"
+    ]]
+
+    [#if filename_parts["alternative_prefix"] == "primary" ]
+        [#local filename_parts =
+            mergeObjects(
+                filename_parts,
+                {
+                    "alternative_prefix" : ""
+                })]
+    [/#if]
+
+    [#switch entrance ]
+        [#case "deployment" ]
+        [#case "deploymenttest" ]
+
+        [#switch level_prefix ]
+            [#case "account" ]
+                [#local filename_parts =
+                            mergeObjects(
+                                filename_parts,
+                                {
+                                    "entrance_prefix" : "",
+                                    "region_prefix" : account_region
+                                })]
+
+                [#break]
+
+            [#case "solution" ]
+            [#case "segment" ]
+            [#case "application" ]
+                [#local filename_parts =
+                            mergeObjects(
+                                filename_parts,
+                                {
+                                    "entrance_prefix" : ""
+                                })]
+                [#break]
+
+        [/#switch]
+        [#break]
+
+        [#default]
+            [#local filename_parts =
+                mergeObjects(
+                    filename_parts,
+                    {
+                        "account_prefix" : "",
+                        "region_prefix" :  ""
+                    })]
+    [/#switch]
+
+    [#local filename = "" ]
+
+    [@debug
+        message="FileName parts"
+        context=filename_parts
+    /]
+
+    [#list filename_part_order as part ]
+        [#if ((filename_parts[part])!"")?has_content ]
+            [#local filename = formatName( filename, filename_parts[part] ) ]
+        [/#if]
+    [/#list]
+
+    [#return filename ]
+[/#function]
+
 
 [#----------------------------------------------------
 -- Internal support functions for output generation --

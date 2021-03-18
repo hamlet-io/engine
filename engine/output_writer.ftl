@@ -8,7 +8,7 @@
 [#assign outputFileProperties = {} ]
 
 [#-- output hanlder functions to set the output file properties --]
-[#macro setOutputFileProperties filename="" directory="" format="" ]
+[#macro setOutputFileProperties fileprefix="" filename="" directory="" format="" ]
     [#assign outputFileProperties =
         mergeObjects(
             outputFileProperties,
@@ -24,6 +24,10 @@
             attributeIfContent(
                 "format",
                 format
+            ) +
+            attributeIfContent(
+                "fileprefix",
+                fileprefix
             )
         )]
 [/#macro]
@@ -40,20 +44,21 @@
 [/#function]
 
 [#-- Add available output writer --]
-[#macro addOutputWriter id properties handlers=[]]
+[#macro addOutputWriter id properties prologueHandlers=[] epilogueHandlers=[]]
     [@internalMergeOutputWriterConfiguration
-        type=type
+        id=id
         configuration=
             {
                 "Properties" : asArray(properties),
-                "Handlers" : asArray(handlers)
+                "PrologueHandlers" : asArray(prologueHandlers),
+                "EpilogueHandlers" : asArray(epilogueHandlers)
             }
     /]
 [/#macro]
 
 [#macro addOutputHandler id properties ]
-    [@internalMergeOutputWriterConfiguration
-        type=type
+    [@internalMergeOutputHandlerConfiguration
+        id=id
         configuration=
             {
                 "Properties" : asArray(properties)
@@ -61,13 +66,24 @@
     /]
 [/#macro]
 
-[#function getOutputWriterHandlers id ]
+[#function getOutputWriterHandlers id handlerStage ]
     [#local result = []]
+
     [#if ((outputWriterConfiguration[id])!{})?has_content ]
-        [#result =  outputWriterConfiguration[id].Handlers]
+
+        [#switch handlerStage?lower_case ]
+            [#case "prologue" ]
+                [#local result =  (outputWriterConfiguration[id].PrologueHandlers)![] ]
+                [#break]
+
+            [#case "epilogue" ]
+                [#local result =  (outputWriterConfiguration[id].EpilogueHandlers)![] ]
+                [#break]
+
+        [/#switch]
     [#else]
         [@fatal
-            message="Could not find specified output writer",
+            message="Could not find specified output writer"
             context={
                 "Requested" : id,
                 "Avaialble" : outputWriterConfiguration?keys
@@ -83,10 +99,11 @@
     [#return ((outputHandlerConfiguration[id])!{})?has_content ]
 [/#function]
 
-[#-- write output invokes the requested output writer to determine the output location and write the output to disk --]
-[#-- it is invoked after serialiseOutput and uses the result of the serialiser to write the file --]
-[#macro writeOutput content ]
-    [#local handlers = getOutputWriterHandlers(commandLineOptions.OutputWriter.Id) ]
+[#-- We have two stages of the output process which use handlers in essentially the same way --]
+[#-- - setup - is run before we work through creating any outputs - this is where we recommend naming outputs so they can be used in output content --]
+[#-- - write - is run after all outputs are run - this is where the file should be written by the engine --]
+[#macro setupOutput ]
+    [#local handlers = getOutputWriterHandlers(commandLineOptions.OutputWriter.Id, "prologue" ) ]
 
     [#list handlers as handler ]
         [#if ! isOutputHandlerDefined(handler) ]
@@ -106,7 +123,41 @@
             ]]
             [#local macro = getFirstDefinedDirective(macroOptions)]
             [#if macro?has_content]
-                [@setOutputFileProperties with?args((.vars[macro]) properties=getOutputFileProperties()) content=content /]
+                [@setOutputFileProperties?with_args((.vars[macro]) properties=getOutputFileProperties()) content=content /]
+            [#else]
+                [@debug
+                    message="Unable to invoke output handler"
+                    context=macroOptions
+                    enabled=true
+                /]
+            [/#if]
+        [/#list]
+    [/#list]
+[/#macro]
+
+
+[#macro writeOutput content ]
+    [#local handlers = getOutputWriterHandlers(commandLineOptions.OutputWriter.Id, "epilogue" ) ]
+
+    [#list handlers as handler ]
+        [#if ! isOutputHandlerDefined(handler) ]
+            [@fatal
+                message="Output handler not defined"
+                context={
+                    "RequestedHandler" : handler,
+                    "AvailableHandlers" : outputHandlerConfiguration?keys
+                }
+            /]
+            [#break]
+        [/#if]
+
+        [#list combineEntities( commandLineOptions.Deployment.Provider.Names, [ SHARED_PROVIDER ]) as provider ]
+            [#local macroOptions = [
+                [ provider, "outputhandler", handler ]
+            ]]
+            [#local macro = getFirstDefinedDirective(macroOptions)]
+            [#if macro?has_content]
+                [@setOutputFileProperties?with_args((.vars[macro]) properties=getOutputFileProperties()) content=content /]
             [#else]
                 [@debug
                     message="Unable to invoke output handler"

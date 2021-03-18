@@ -29,8 +29,8 @@
             "Mandatory" : true
         },
         {
-            "Names" : "OutputLevel",
-            "Description" : "Overrides the Group Id when performing output checks - Defaults to the Id of the Group",
+            "Names" : "OutputPrefix",
+            "Description" : "Overrides the prefix used when generating outputs - Defaults to the Id of the Group",
             "Types" : STRING_TYPE
         },
         {
@@ -100,18 +100,18 @@
     ]
 [/#function]
 
-[#function getDeploymentGroupFromOutputLevel outputLevel ]
+[#function getDeploymentGroupFromOutputPrefix outputPrefix ]
     [#local levelMatches = [] ]
     [#local groupMatches = []]
 
     [#list getDeploymentGroups()?keys as deploymentGroup ]
         [#local details = getDeploymentGroupDetails(deploymentGroup)]
 
-        [#if (details.OutputLevel)?? && details.OutputLevel == outputLevel ]
+        [#if (details.OutputPrefix)?? && details.OutputPrefix == outputPrefix ]
             [#local levelMatches = combineEntities( levelMatches, [ deploymentGroup ], UNIQUE_COMBINE_BEHAVIOUR ) ]
         [/#if]
 
-        [#if deploymentGroup == outputLevel ]
+        [#if deploymentGroup == outputPrefix ]
             [#local groupMatches = combineEntities( groupMatches, [ deploymentGroup ], UNIQUE_COMBINE_BEHAVIOUR ) ]
         [/#if]
     [/#list]

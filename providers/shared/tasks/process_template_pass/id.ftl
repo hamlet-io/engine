@@ -43,6 +43,61 @@
             "Names" : "alternative",
             "Types" : STRING_TYPE,
             "Mandatory" : true
+        },
+        {
+            "Names" : "deploymentUnit",
+            "Types" : STRING_TYPE,
+            "Mandatory" : false
+        },
+        {
+            "Names" : "deploymentGroup",
+            "Types" : STRING_TYPE,
+            "Mandatory" : false
+        },
+        {
+            "Names" : "resourceGroup",
+            "Types" : STRING_TYPE,
+            "Mandatory" : false
+        },
+        {
+            "Names" : "deploymentSubset",
+            "Types" : STRING_TYPE,
+            "Mandatory" : false
+        },
+        {
+            "Names" : "account",
+            "Types" : STRING_TYPE,
+            "Mandatory" : false
+        },
+        {
+            "Names" : "accountRegion",
+            "Types" : STRING_TYPE,
+            "Mandatory" : false
+        },
+        {
+            "Names" : "region",
+            "Types" : STRING_TYPE,
+            "Mandatory" : false
+        },
+        {
+            "Names" : "requestReference",
+            "Types" : STRING_TYPE,
+            "Mandatory" : false
+        },
+        {
+            "Names" : "configurationReference",
+            "Types" : STRING_TYPE,
+            "Mandatory" : false
+        },
+        {
+            "Names" : "deploymentMode",
+            "Types" : STRING_TYPE,
+            "Mandatory" : false
+        },
+        {
+            "Names" : "outputFileName",
+            "Types" : STRING_TYPE,
+            "Mandatory" : false
         }
     ]
 /]
