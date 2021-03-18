@@ -1,7 +1,7 @@
 [#ftl]
 
 [@addEntrance
-    type=LOADER_VIEW_TYPE
+    type=LOADER_ENTRANCE_TYPE
     properties=
         [
             {

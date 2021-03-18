@@ -124,7 +124,7 @@
         [@processFlows
             level=level
             framework=DEFAULT_DEPLOYMENT_FRAMEWORK
-            flows=commandLineOptions.Flow.Names
+            flows=getFlows()
         /]
     [/#if]
 
@@ -163,7 +163,7 @@
     [@processFlows
         level=level
         framework=DEFAULT_DEPLOYMENT_FRAMEWORK
-        flows=commandLineOptions.Flow.Names
+        flows=getFlows()
     /]
 
     [@toJSON
@@ -171,9 +171,9 @@
             "Metadata" : {
                 "Id" : "hamlet-info",
                 "Prepared" : .now?iso_utc,
-                "RunId" : commandLineOptions.Run.Id,
-                "RequestReference" : commandLineOptions.References.Request,
-                "ConfigurationReference" : commandLineOptions.References.Configuration
+                "RunId" : getRunId(),
+                "RequestReference" : getRequestReference(),
+                "ConfigurationReference" : getConfigurationReference()
             },
             "Providers" : getOutputContent("providers")?values,
             "Entrances" : getOutputContent("entrances")?values
@@ -205,10 +205,10 @@
     [@processFlows
         level=level
         framework=DEFAULT_DEPLOYMENT_FRAMEWORK
-        flows=commandLineOptions.Flow.Names
+        flows=getFlows()
     /]
 
-    [#local schemaType = commandLineOptions.Deployment.Unit.Name]
+    [#local schemaType = getDeploymentUnit() ]
     [#switch schemaType]
 
         [#default]
@@ -265,7 +265,7 @@
         [@processFlows
             level=level
             framework=DEFAULT_DEPLOYMENT_FRAMEWORK
-            flows=commandLineOptions.Flow.Names
+            flows=getFlows()
         /]
     [/#if]
 
@@ -317,9 +317,9 @@
                 "Metadata" : {
                     "Id" : getOutputContent("contract"),
                     "Prepared" : .now?iso_utc,
-                    "RunId" : commandLineOptions.Run.Id,
-                    "RequestReference" : commandLineOptions.References.Request,
-                    "ConfigurationReference" : commandLineOptions.References.Configuration,
+                    "RunId" : getRunId(),
+                    "RequestReference" : getRequestReference(),
+                    "ConfigurationReference" : getConfigurationReference(),
                     "Providers" : getPluginMetadata()
                 },
                 "Stages" : contractStages
@@ -424,7 +424,7 @@
     [@processFlows
         level=level
         framework=DEFAULT_DEPLOYMENT_FRAMEWORK
-        flows=commandLineOptions.Flow.Names
+        flows=getFlows()
     /]
 
     [#local allStates = {}]
@@ -455,9 +455,9 @@
                     "Metadata" : {
                         "Id" : "state",
                         "Prepared" : .now?iso_utc,
-                        "RunId" : commandLineOptions.Run.Id,
-                        "RequestReference" : commandLineOptions.References.Request,
-                        "ConfigurationReference" : commandLineOptions.References.Configuration
+                        "RunId" : getRunId(),
+                        "RequestReference" : getRequestReference(),
+                        "ConfigurationReference" : getConfigurationReference()
                     }
                 },
                 allStates
@@ -604,7 +604,7 @@
           [@processFlows
             level=level
             framework=DEFAULT_DEPLOYMENT_FRAMEWORK
-            flows=commandLineOptions.Flow.Names
+            flows=getFlows()
         /]
     [/#if]
 

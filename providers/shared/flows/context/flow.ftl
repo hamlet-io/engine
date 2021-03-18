@@ -520,8 +520,8 @@
                         attributes,
                         [
                             content,
-                            (getDeploymentProfile(profiles.Deployment, commandLineOptions.Deployment.Mode)["*"])!{},
-                            (getDeploymentProfile(profiles.Deployment, commandLineOptions.Deployment.Mode)[type])!{}
+                            (getDeploymentProfile(profiles.Deployment, getCLODeploymentMode())["*"])!{},
+                            (getDeploymentProfile(profiles.Deployment, getCLODeploymentMode())[type])!{}
                         ])
             }
         }

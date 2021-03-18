@@ -2,12 +2,14 @@
 
 [#-- Initial seeding of settings data based on input data --]
 [#macro shared_input_whatif_setting_seed ]
+
+    [#local compositeSettings = getCompositeSettings() ]
     [@addSettings
         type="Settings"
         scope="Accounts"
         settings=
             internalReformatSettings(
-                (commandLineOptions.Composites.Settings.Accounts.Settings)!{}
+                (compositeSettings.Accounts.Settings)!{}
             )
     /]
 
@@ -18,11 +20,11 @@
         settings=
             mergeObjects(
                 internalReformatSettings(
-                    (commandLineOptions.Composites.Settings.Products.Settings)!{},
+                    (compositeSettings.Products.Settings)!{},
                     r"^(?!.*build\.json|.*credentials\.json|.*sensitive\.json$).*$"
                 ),
                 internalReformatSettings(
-                    (commandLineOptions.Composites.Settings.Products.Operations)!{},
+                    (compositeSettings.Products.Operations)!{},
                     r"^(?!.*build\.json|.*credentials\.json|.*sensitive\.json$).*$"
                 )
             )
@@ -34,11 +36,11 @@
         settings=
             mergeObjects(
                 internalReformatSettings(
-                    (commandLineOptions.Composites.Settings.Products.Settings)!{},
+                    (compositeSettings.Products.Settings)!{},
                     r"^.*build\.json$"
                 ),
                 internalReformatSettings(
-                    (commandLineOptions.Composites.Settings.Products.Builds)!{},
+                    (compositeSettings.Products.Builds)!{},
                     r"^.*build\.json$"
                 )
             )
@@ -50,11 +52,11 @@
         settings=
             mergeObjects(
                 internalReformatSettings(
-                    (commandLineOptions.Composites.Settings.Products.Settings)!{},
+                    (compositeSettings.Products.Settings)!{},
                     r"^.*credentials\.json|.*sensitive\.json$"
                 ),
                 internalReformatSettings(
-                    (commandLineOptions.Composites.Settings.Products.Operations)!{},
+                    (compositeSettings.Products.Operations)!{},
                     r"^.*credentials\.json|.*sensitive\.json$"
                 )
             )

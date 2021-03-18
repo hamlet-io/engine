@@ -1,9 +1,10 @@
 [#ftl]
 
+[#-- Entrance logic --]
 [#macro shared_entrance_deployment ]
 
     [#-- Validate Deployment Info --]
-    [#if ((commandLineOptions.Deployment.Mode)!"")?has_content ]
+    [#if getCLODeploymentMode()?has_content ]
         [#if ! getDeploymentMode()?has_content ]
             [@fatal
                 message="Undefined deployment mode used"
@@ -13,7 +14,7 @@
         [/#if]
     [/#if]
 
-    [#if ((commandLineOptions.Deployment.Group.Name)!"")?has_content ]
+    [#if getCLODeploymentGroup()?has_content ]
         [#if ! getDeploymentGroup()?has_content ]
             [@fatal
                 message="Undefined deployment group used"
@@ -40,36 +41,69 @@
                 [#assign contractSubsets = combineEntities( contractSubsets, (resourceLabel.Subsets)![], UNIQUE_COMBINE_BEHAVIOUR ) ]
             [/#list]
 
-            [#if (commandLineOptions.Deployment.Unit.Subset!"") == "generationcontract"]
+            [#if getDeploymentUnitSubset() == "generationcontract"]
                 [#assign groupDeploymentUnits = false]
                 [#assign ignoreDeploymentUnitSubsetInOutputs = false]
 
                 [#-- We need to initialise the outputs here since we are adding to it out side of the component flow --]
                 [@addDefaultGenerationContract subsets=contractSubsets /]
-
-            [#else]
-                [#if !(commandLineOptions.Deployment.Unit.Subset?has_content)]
-                    [#assign commandLineOptions =
-                        mergeObjects(
-                            commandLineOptions,
-                            {
-                                "Deployment" : {
-                                    "Unit" : {
-                                        "Subset" : getDeploymentUnit()
-                                    }
-                                }
-                            }
-                        ) ]
-                [/#if]
             [/#if]
         [/#if]
     [/#list]
 
     [@generateOutput
-        deploymentFramework=commandLineOptions.Deployment.Framework.Name
-        type=commandLineOptions.Deployment.Output.Type
-        format=commandLineOptions.Deployment.Output.Format
+        deploymentFramework=getDeploymentFramework()
+        type=getDeploymentOutputType()
+        format=getDeploymentOutputFormat()
         level=getDeploymentLevel()
         include=compositeTemplateContent
     /]
 [/#macro]
+
+[#-- Add seeder for command line options --]
+[#macro shared_entrance_deployment_inputsteps ]
+
+    [@registerInputSeeder
+        id=DEPLOYMENT_ENTRANCE_TYPE
+        description="Entrance"
+    /]
+
+    [@addSeederToInputPipeline
+        stage=COMMANDLINEOPTIONS_SHARED_INPUT_STAGE
+        seeder=DEPLOYMENT_ENTRANCE_TYPE
+    /]
+
+[/#macro]
+
+[#-- Adjust the subset if required --]
+[#function deployment_inputseeder_commandlineoptions filter state]
+    [#local deploymentGroupDetails = getDeploymentGroupDetails(state.CommandLineOptions.Deployment.Group.Name)]
+
+    [#-- ResourceSets  --]
+    [#-- Separates resources from their component templates in to their own deployment --]
+    [#list ((deploymentGroupDetails.ResourceSets)!{})?values?filter(s -> s.Enabled ) as resourceSet ]
+        [#if state.CommandLineOptions.Deployment.Unit.Name == resourceSet["deployment:Unit"] ]
+
+            [#if !((state.CommandLineOptions.Deployment.Unit.Subset)?has_content)]
+                [#return
+                    mergeObjects(
+                        state,
+                        {
+                            "CommandLineOptions" : {
+                                "Deployment" : {
+                                    "Unit" : {
+                                        "Subset" : state.Deployment.Unit.Name
+                                    }
+                                }
+                            }
+                        }
+                    )
+                ]
+            [/#if]
+        [/#if]
+    [/#list]
+
+    [#return state]
+
+[/#function]
+

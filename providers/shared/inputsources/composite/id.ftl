@@ -1,6 +1,6 @@
 [#ftl]
 
-[@addInputSource
+[@registerInputSource
     id=COMPOSITE_SHARED_INPUT_SOURCE
     description="CMDB based input source"
 /]
@@ -10,6 +10,7 @@
     inputStages=[
         MASTERDATA_SHARED_INPUT_STAGE,
         CMDB_SHARED_INPUT_STAGE,
+        NORMALISE_SHARED_INPUT_STAGE,
         QUALIFY_SHARED_INPUT_STAGE
     ]
 /]

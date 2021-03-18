@@ -1,23 +1,38 @@
 [#ftl]
 
-[@addInputSeeder
+[@registerInputSeeder
     id=SHARED_INPUT_SEEDER
     description="Shared inputs"
 /]
 
-[@addSeederToInputStage
-    inputStage=COMMANDLINEOPTIONS_SHARED_INPUT_STAGE
-    inputSeeder=SHARED_INPUT_SEEDER
+[@registerInputTransformer
+    id=SHARED_INPUT_SEEDER
+    description="Shared inputs"
 /]
 
-[@addSeederToInputStage
-    inputStage=MASTERDATA_SHARED_INPUT_STAGE
-    inputSeeder=SHARED_INPUT_SEEDER
+[@addSeederToInputPipeline
+    stage=COMMANDLINEOPTIONS_SHARED_INPUT_STAGE
+    seeder=SHARED_INPUT_SEEDER
 /]
 
-[@addSeederToInputStage
-    inputStage=QUALIFY_SHARED_INPUT_STAGE
-    inputSeeder=SHARED_INPUT_SEEDER
+[@addSeederToInputPipeline
+    stage=MASTERDATA_SHARED_INPUT_STAGE
+    seeder=SHARED_INPUT_SEEDER
+/]
+
+[@addSeederToOutputPipeline
+    stage=FIXTURE_SHARED_INPUT_STAGE
+    seeder=SHARED_INPUT_SEEDER
+/]
+
+[@addSeederToOutputPipeline
+    stage=SIMULATE_SHARED_INPUT_STAGE
+    seeder=SHARED_INPUT_SEEDER
+/]
+
+[@addTransformerToInputPipeline
+    stage=QUALIFY_SHARED_INPUT_STAGE
+    transformer=SHARED_INPUT_SEEDER
 /]
 
 [#macro shared_inputloader path]
@@ -37,19 +52,7 @@
     ]
 [/#macro]
 
-[#function shared_inputseeder_masterdata filter state]
-
-    [#return
-        mergeObjects(
-            state,
-            {
-                "Masterdata" : shared_cmdb_masterdata
-            }
-        )
-    ]
-
-[/#function]
-
+[#-- Command line options seeders --]
 [#function shared_inputseeder_commandlineoptions filter state]
 
     [#return
@@ -67,7 +70,14 @@
                     },
                     [#-- Input data control --]
                     "Input" : {
-                        "Source" : inputSource!"composite"
+                        "Source" : inputSource!"composite",
+                        "Filter" :
+                            attributeIfContent("Tenant", tenant!"") +
+                            attributeIfContent("Product", product!"") +
+                            attributeIfContent("Environment", environment!"") +
+                            attributeIfContent("Segment", segment!"") +
+                            attributeIfContent("Account", account!"") +
+                            attributeIfContent("Region", region!"")
                     },
                     [#-- load the plugin state from setup --]
                     "Plugins" : {
@@ -119,7 +129,8 @@
                     },
                     [#-- Logging Details --]
                     "Logging" : {
-                        "Level" : logLevel!"info"
+                        "Level" : logLevel!"info",
+                        "FatalStopThreshold" : logFatalStopThreshold!0
                     },
                     [#-- RunId details --]
                     "Run" : {
@@ -129,17 +140,154 @@
             }
         )
     ]
+[/#function]
+
+[#function shared_inputseeder_commandlineoptions_composite filter state]
+    [#return
+        mergeObjects(
+            shared_inputseeder_commandlineoptions(filter, state),
+            {
+                "CommandLineOptions" : {
+                    "References" : {
+                        "Request" : requestReference!"",
+                        "Configuration" : configurationReference!""
+                    },
+                    "Composites" : {
+                        "Blueprint" : (blueprint!"")?has_content?then(
+                                            blueprint?eval,
+                                            {}
+                        ),
+                        "Settings" : (settings!"")?has_content?then(
+                                            settings?eval,
+                                            {}
+                        ),
+                        "Definitions" : ((definitions!"")?has_content && (!definitions?contains("null")))?then(
+                                            definitions?eval,
+                                            {}
+                        ),
+                        "StackOutputs" : (stackOutputs!"")?has_content?then(
+                                            stackOutputs?eval,
+                                            []
+                        )
+                    },
+                    "Regions" : {
+                        "Segment" : region!"",
+                        "Account" : accountRegion!""
+                    }
+                }
+            }
+        )
+    ]
+[/#function]
+
+[#function shared_inputseeder_commandlineoptions_mock filter state]
+    [#return
+        mergeObjects(
+            shared_inputseeder_commandlineoptions(filter, state),
+            {
+                "CommandLineOptions" : {
+                    "Regions" : {
+                        "Segment" : "mock-region-1",
+                        "Account" : "mock-region-1"
+                    },
+                    "References" : {
+                        "Request" : "SRVREQ01",
+                        "Configuration" : "configRef_v123"
+                    },
+                    "Run" : {
+                        "Id" : "runId098"
+                    }
+                }
+            }
+        )
+    ]
+[/#function]
+
+[#function shared_inputseeder_commandlineoptions_whatif filter state]
+    [#return shared_inputseeder_commandlineoptions_composite(filter, state)]
+[/#function]
+
+[#-- Masterdata seeders --]
+[#function shared_inputseeder_masterdata filter state]
+
+    [#return
+        mergeObjects(
+            state,
+            {
+                "Masterdata" : shared_cmdb_masterdata
+            }
+        )
+    ]
 
 [/#function]
 
-[#function shared_inputseeder_qualify filter state]
 
-    [#-- Now process the qualifications, validating on the basis of known user filter attributes --]
+[#function shared_inputseeder_masterdata_mock filter state]
+    [#return
+        mergeObjects(
+            shared_inputseeder_masterdata(filter, state),
+            {
+                "Masterdata" : {
+                    "Regions": {
+                        "mock-region-1": {
+                            "Locality": "MockLand",
+                            "Zones": {
+                                "a": {
+                                    "Title": "Zone A"
+                                },
+                                "b": {
+                                    "Title": "Zone C"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        )
+    ]
+[/#function]
+
+
+[#function shared_outputseeder_mock filter state]
+
+    [#local id = state.Id]
+    [#switch id?split("X")?last ]
+        [#case URL_ATTRIBUTE_TYPE ]
+            [#local value = "https://mock.local/" + id ]
+            [#break]
+        [#case IP_ADDRESS_ATTRIBUTE_TYPE ]
+            [#local value = "123.123.123.123" ]
+            [#break]
+        [#default]
+            [#local value = formatId( "##MockOutput", id, "##") ]
+    [/#switch]
+
+    [#return
+        mergeObjects(
+            state,
+            {
+                "Value" : value
+            }
+        )
+    ]
+
+[/#function]
+
+[#function shared_outputseeder_simulate filter state]
+    [#if ! state.Value?has_content]
+        [#return shared_outputseeder_mock(filter, state) ]
+    [/#if]
+    [#return state]
+[/#function]
+
+[#function shared_inputtransformer_qualify filter state]
+
+    [#-- Now process the qualifications, validating on the basis of known layer filter attributes --]
     [#return
         qualifyEntity(
             state,
             filter,
-            getQualifierChildren(getKnownUserInputFilterAttributes())
+            getQualifierChildren(getRegisteredLayerInputFilterAttributeIds())
         )
     ]
 [/#function]

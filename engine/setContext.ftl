@@ -5,7 +5,7 @@
 [@includeSharedComponentConfiguration component="baseline" /]
 
 [#-- Temporary AWS stuff --]
-[#if (commandLineOptions.Deployment.Provider.Names)?seq_contains("aws") ]
+[#if getDeploymentProviders()?seq_contains("aws") ]
     [@includeProviderComponentDefinitionConfiguration provider="aws" component="baseline" /]
     [@includeProviderComponentConfiguration provider="aws" component="baseline" services="baseline" /]
     [@includeProviderComponentDefinitionConfiguration provider="aws" component="s3" /]
@@ -89,12 +89,12 @@
 [#assign wafValueSets = getReferenceData(WAFVALUESET_REFERENCE_TYPE) ]
 
 [#-- Regions --]
-[#if commandLineOptions.Regions.Segment?has_content]
-    [#assign regionId = commandLineOptions.Regions.Segment]
+[#if getSegmentRegion()?has_content]
+    [#assign regionId = getSegmentRegion()]
     [#assign regionObject = (regions[regionId])!{} ]
 [/#if]
-[#if commandLineOptions.Regions.Account?has_content]
-    [#assign accountRegionId = commandLineOptions.Regions.Account]
+[#if getAccountRegion()?has_content]
+    [#assign accountRegionId = getAccountRegion()]
     [#assign accountRegionObject = (regions[accountRegionId])!{} ]
 [/#if]
 
@@ -123,7 +123,7 @@
     [#assign accountId = accountObject.Id ]
     [#assign accountName = accountObject.Name ]
 
-    [#if (commandLineOptions.Deployment.Provider.Names)?seq_contains("aws")]
+    [#if getDeploymentProviders()?seq_contains("aws")]
         [#assign credentialsBucket = getExistingReference(formatAccountS3Id("credentials"))]
         [#assign credentialsBucketRegion = getExistingReference(formatAccountS3Id("credentials"), REGION_ATTRIBUTE_TYPE)]
 
@@ -197,7 +197,7 @@
 
     [/#if]
 
-    [#if (commandLineOptions.Deployment.Provider.Names)?seq_contains("aws")]
+    [#if getDeploymentProviders()?seq_contains("aws")]
         [#assign segmentSeed = getExistingReference(formatSegmentSeedId()) ]
 
         [#assign legacyVpc = getExistingReference(formatVPCId())?has_content ]
@@ -219,7 +219,7 @@
     [#assign sshEnabled = segmentObject.Bastion.Enabled ]
     [#assign sshActive = sshEnabled && segmentObject.Bastion.Active ]
 
-    [#if (commandLineOptions.Deployment.Provider.Names)?seq_contains("aws")]
+    [#if getDeploymentProviders()?seq_contains("aws")]
         [#assign sshFromProxySecurityGroup = getExistingReference(formatSSHFromProxySecurityGroupId())]
     [/#if]
 
@@ -358,8 +358,8 @@
 [#-- Required zones --]
 [#assign zones = [] ]
 [#list segmentObject.Network.Zones.Order as zoneId]
-    [#if ((regions[commandLineOptions.Regions.Segment].Zones[zoneId])!"")?has_content]
-        [#assign zone = regions[commandLineOptions.Regions.Segment].Zones[zoneId] ]
+    [#if ((regions[getSegmentRegion()].Zones[zoneId])!"")?has_content]
+        [#assign zone = regions[getSegmentRegion()].Zones[zoneId] ]
         [#assign zones +=
             [
                 addIdNameToObject(zone, zoneId) +

@@ -5,7 +5,7 @@
     [#list buckets as bucket]
 
         [#if replica ]
-            [#local bucketName = formatAccountS3ReplicaBucketName(bucket, commandLineOptions.Regions.Segment)]
+            [#local bucketName = formatAccountS3ReplicaBucketName(bucket, getSegmentRegion())]
         [#else]
             [#local bucketName = formatAccountS3PrimaryBucketName(bucket)]
         [/#if]
@@ -163,7 +163,7 @@
     /]
 
     [#assign accountCMKId = formatAccountCMKTemplateId()]
-    [#assign accountCMKArn = getExistingReference(accountCMKId, ARN_ATTRIBUTE_TYPE, commandLineOptions.Regions.Segment)]
+    [#assign accountCMKArn = getExistingReference(accountCMKId, ARN_ATTRIBUTE_TYPE, getSegmentRegion())]
     [#assign s3EncryptionEnabled = (accountObject.S3.Encryption.Enabled)!false ]
     [#assign s3EncryptionSource = (accountObject.S3.Encryption.EncryptionSource)!"EncryptionService" ]
     [#assign s3VersioningEnabled = (accountObject.S3.Versioning.Enabled)!false]

@@ -196,9 +196,9 @@
             formatCommentsForTextOutput(
                 name,
                 [
-                    "--Hamlet-RequestReference=${commandLineOptions.References.Request}",
-                    "--Hamlet-ConfigurationReference=${commandLineOptions.References.Configuration}",
-                    "--Hamlet-RunId=${commandLineOptions.Run.Id}"
+                    "--Hamlet-RequestReference=${getRequestReference()}",
+                    "--Hamlet-ConfigurationReference=${getConfigurationReference()}",
+                    "--Hamlet-RunId=${getRunId()}"
                 ]
             )
         treatAsContent=false
@@ -399,12 +399,20 @@
 
 [#function getGenerationContractStepParameters subset alternative ]
     [#local outputMappings = getGenerationContractStepOutputMapping(
-                                ((commandLineOptions.Deployment.Provider.Names)[0])!SHARED_PROVIDER,
+                                (getDeploymentProviders()[0])!SHARED_PROVIDER,
                                 subset
                             )]
+    [#if ! outputMappings?has_content]
+        [@fatal
+            message="Missing output mapping"
+            context=generationcontractStepOutputMappings
+            detail=subset
+            stop=true
+        /]
+    [/#if]
     [#return {
-        "provider"      : ((commandLineOptions.Deployment.Provider.Names)?join(","))!SHARED_PROVIDER,
-        "framework"     : commandLineOptions.Deployment.Framework.Name,
+        "provider"      : (getDeploymentProviders()?join(","))!SHARED_PROVIDER,
+        "framework"     : getDeploymentFramework(),
         "outputType"    : outputMappings["OutputType"],
         "outputFormat"  : outputMappings["OutputFormat"],
         "outputSuffix"  : outputMappings["OutputSuffix"],

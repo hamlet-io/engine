@@ -18,7 +18,6 @@
 [#include "inputdata/inputsource.ftl" ]
 [#include "inputdata/layer.ftl" ]
 [#include "inputdata/commandLineOptions.ftl" ]
-[#include "inputdata/masterdata.ftl" ]
 [#include "inputdata/blueprint.ftl" ]
 [#include "inputdata/reference.ftl" ]
 [#include "inputdata/setting.ftl" ]
@@ -68,73 +67,65 @@
 [#include "provider.ftl" ]
 [@initialiseProviders /]
 
-[#-- Load and setup the basics of the shared provider --]
+[#-- Load and setup the basics of the shared provider   --]
+[#-- This will configure the bootstrap input source     --]
+[#-- which means command line options will be available --]
 [@includeProviders SHARED_PROVIDER /]
-[@seedProviderInputSourceData
-    providers=[ SHARED_PROVIDER ]
-    inputTypes=[ "commandlineoption" ]
-/]
 
-[#-- input source initialisation --]
+[#-- Set desired logging configuration  --]
+[@setLogLevel getCommandLineOptions().Logging.Level /]
+[@setLogFatalStopThreshold getCommandLineOptions().Logging.FatalStopThreshold /]
+
+[#-- Reinitialise the input system based on the CLO input source and filter --]
 [@initialiseInputProcessing
-    inputSource=BOOTSTRAP_SHARED_INPUT_SOURCE
-    inputFilter={}
+    inputSource=getCLOInputSource()
+    inputFilter=getCLOInputFilter()
 /]
 
 [@includeCoreProviderConfiguration SHARED_PROVIDER /]
 [@seedProviderInputSourceData
     providers=[ SHARED_PROVIDER ]
-    inputTypes=[ "masterdata", "blueprint" ]
+    inputTypes=[ "blueprint" ]
 /]
-
-[#-- Set desired logging level --]
-[@setLogLevel commandLineOptions.Logging.Level /]
 
 [#-- Setup the contract outputs before invoking the entrance to allow for errors to be caught --]
 [@setupContractOutputs /]
 
 [#-- Update the providers list based on the plugins defined in the layer --]
-[@addEnginePluginMetadata commandLineOptions.Plugins.State /]
+[@addEnginePluginMetadata getCommandLineOptions().Plugins.State /]
 
-[#if commandLineOptions.Entrance.Type != "loader" ]
+[#if getEntranceType() != "loader" ]
     [@includeLayers /]
-    [@addPluginsFromLayers commandLineOptions.Plugins.State /]
+    [@addPluginsFromLayers getCommandLineOptions().Plugins.State /]
     [@clearLayerData /]
 [/#if]
 
-[#-- Load providers base on the providers list  --]
-[@includeProviders commandLineOptions.Deployment.Provider.Names /]
-[@seedProviderInputSourceData
-    providers=commandLineOptions.Deployment.Provider.Names
-    inputTypes=[ "commandlineoption" ]
-/]
-
-[@includeCoreProviderConfiguration commandLineOptions.Deployment.Provider.Names /]
-
-[#-- TODO(MFL) Following can be deleted I think as it just does what the next piece --]
-[#-- processing will repeat                                                         --]
-[#--]
-[@seedProviderInputSourceData
-    providers=commandLineOptions.Deployment.Provider.Names
-    inputTypes=[ "masterdata" ]
-/]
---]
+[#-- Load providers based on the providers list  --]
+[@includeProviders getDeploymentProviders() /]
+[@includeCoreProviderConfiguration getDeploymentProviders() /]
 
 [#-- Input data Seeding --]
 [#-- This controls the collection of all input data provided to the engine --]
 [#assign refreshInputData = false ]
-[#assign seedProviders = [ SHARED_PROVIDER, commandLineOptions.Deployment.Provider.Names ]]
-[#assign seedInputTypes = [ "masterdata", "blueprint", "stackoutput", "setting", "definition" ]]
+[#assign seedProviders = [ SHARED_PROVIDER, getDeploymentProviders() ]]
+[#assign seedInputTypes = [ "blueprint", "stackoutput", "setting", "definition" ]]
 
 [@seedProviderInputSourceData
     providers=seedProviders
     inputTypes=seedInputTypes
 /]
 
+[#-- Reinitialise the input system including the provider if available    --]
+[#-- This will include the provider specific seeders in the input process --]
+[@initialiseInputProcessing
+    inputSource=getInputSource()
+    inputFilter=getInputFilter() + getProviderFilter()
+/]
+
 [#-- Set the base of blueprint from the provider masterdata --]
 [#-- Rebase is needed to ensure any overrides of master     --]
 [#-- data within the blueprint don't get overwritten        --]
-[@rebaseBlueprint base=getMasterData() /]
+[@rebaseBlueprint base=getMasterdata() /]
 
 [#-- Discover the layers which have been defined --]
 [#-- This needs to be done before module loading as layers define the modules to load and their parameters --]
@@ -153,13 +144,6 @@
         /]
     [/#list]
 [/#if]
-
-[#-- TODO(MFL) Code below needs reviewing                                  --]
-[#-- As modules will have potentially added to the various types of input, --]
-[#-- it seems odd to then replay the inputs over the top of this again     --]
-[#-- Is this to ensure whatever was explicitly provided takes precedence   --]
-[#-- over modules? Think we don't want that for master data but do for     --]
-[#-- everything else                                                       --]
 
 [#-- Refresh seed to allow for data from modules to be included --]
 [#if refreshInputData ]

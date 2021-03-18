@@ -71,7 +71,7 @@
 /]
 
 [#function getDeploymentMode ]
-    [#local deploymentModeDetails = getDeploymentModeDetails(commandLineOptions.Deployment.Mode)]
+    [#local deploymentModeDetails = getDeploymentModeDetails(getCLODeploymentMode())]
     [#return (deploymentModeDetails.Name)!""]
 [/#function]
 

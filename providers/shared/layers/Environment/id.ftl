@@ -4,9 +4,15 @@
     type=ENVIRONMENT_LAYER_TYPE
     referenceLookupType=ENVIRONMENT_LAYER_REFERENCE_TYPE
     properties=[
+        {
+            "Type"  : "Description",
+            "Value" : "The environment layer"
+        }
+    ]
+    inputFilterAttributes=[
             {
-                "Type"  : "Description",
-                "Value" : "The environment layer"
+                "Id" : ENVIRONMENT_LAYER_TYPE,
+                "Description" : "The environment"
             }
         ]
     attributes=[

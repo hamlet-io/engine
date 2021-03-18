@@ -69,9 +69,11 @@
 [/#function]
 
 [#function deploymentSubsetRequired subset default=false]
+
+    [#local selectedSubset = getDeploymentUnitSubset() ]
     [#return
-        commandLineOptions.Deployment.Unit.Subset?has_content?then(
-            commandLineOptions.Deployment.Unit.Subset?lower_case?contains(subset),
+        selectedSubset?has_content?then(
+            selectedSubset?lower_case?contains(subset),
             default
         )]
 [/#function]

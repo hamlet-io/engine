@@ -15,18 +15,27 @@
 [/#macro]
 
 [#-- Macros to assemble the component configuration --]
-[#macro addLayer type referenceLookupType properties attributes ]
+[#macro addLayer type referenceLookupType properties attributes inputFilterAttributes ]
     [#local configuration = {
         "Type" : type,
         "ReferenceLookupType" : referenceLookupType,
         "Properties" : asArray(properties),
-        "Attributes" : asArray( [ "InhibitEnabled" ] + attributes)}
+        "Attributes" : asArray( [ "InhibitEnabled" ] + attributes),
+        "InputFilterAttributes" : asArray(inputFilterAttributes)}
     ]
 
     [@internalMergeLayerConfiguration
         type=type
         configuration=configuration
     /]
+
+    [#-- Register input filter attributes for layer --]
+    [#list asArray(inputFilterAttributes) as inputFilterAttribute]
+        [@registerLayerInputFilterAttribute
+            id=inputFilterAttribute.Id
+            description=inputFilterAttribute.Description
+        /]
+    [/#list]
 [/#macro]
 
 [#macro addLayerData type data={} ]
@@ -139,7 +148,7 @@
         /]
         [@setActiveLayer
             type=layer.Type
-            commandLineOptionId=(commandLineOptions.Layers[layer.Type])!""
+            commandLineOptionId=(getCommandLineOptions().Layers[layer.Type])!""
             data=blueprintObject[layer.Type]
         /]
     [/#list]

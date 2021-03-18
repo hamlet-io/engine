@@ -3,6 +3,6 @@
 [#-- Intial seeding of settings data based on input data --]
 [#macro shared_input_whatif_definition_seed ]
     [@addDefinition
-        definition=commandLineOptions.Composites.Definitions
+        definition=getCompositeDefinitions()
     /]
 [/#macro]

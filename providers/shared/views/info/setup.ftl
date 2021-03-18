@@ -7,7 +7,7 @@
 [#macro shared_view_default_info ]
 
     [#-- Load sections which are dynamically loaded through discovery --]
-    [#local providersList = asFlattenedArray( [ SHARED_PROVIDER, commandLineOptions.Deployment.Provider.Names ] ) ]
+    [#local providersList = asFlattenedArray( [ SHARED_PROVIDER, getDeploymentProviders() ] ) ]
     [@includeAllComponentDefinitionConfiguration providersList /]
     [@includeAllViewConfiguration providersList /]
 
