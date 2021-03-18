@@ -73,12 +73,12 @@
 /]
 
 [#function getDeploymentGroup ]
-    [#local deploymentGroupDetails = getDeploymentGroupDetails(commandLineOptions.Deployment.Group.Name)]
+    [#local deploymentGroupDetails = getDeploymentGroupDetails(getCLODeploymentGroup())]
     [#return (deploymentGroupDetails.Name)!""]
 [/#function]
 
 [#function getDeploymentLevel ]
-    [#local deploymentGroupDetails = getDeploymentGroupDetails(commandLineOptions.Deployment.Group.Name)]
+    [#local deploymentGroupDetails = getDeploymentGroupDetails(getCLODeploymentGroup())]
     [#return (deploymentGroupDetails.Level)!""]
 [/#function]
 

@@ -6,7 +6,13 @@
     properties=[
             {
                 "Type"  : "Description",
-                "Value" : "A instance of a product"
+                "Value" : "A tenant layer"
+            }
+        ]
+    inputFilterAttributes=[
+            {
+                "Id" : TENANT_LAYER_TYPE,
+                "Description" : "The tenant"
             }
         ]
     attributes=[

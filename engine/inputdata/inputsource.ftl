@@ -4,8 +4,8 @@
 -- Public functions for input processing --
 -------------------------------------------]
 
-[#-- No input state changes on startup --]
-[#assign inputStateStack = initialiseStack() ]
+[#-- History not affected by reinitialisation of input system --]
+[#assign inputStateStackHistory = [] ]
 
 [#-- initialise input processing - must be called first --]
 [#macro initialiseInputProcessing inputSource inputFilter ]
@@ -15,7 +15,6 @@
 
     [#-- Stack of input state changes --]
     [#assign inputStateStack = initialiseStack() ]
-    [#assign inputStateStackHistory = [] ]
 
     [#-- Cache of input states --]
     [#assign inputStateCache = [] ]
@@ -42,7 +41,7 @@ input source.
 --]
 [#assign inputSources = {} ]
 
-[#macro addInputSource id description]
+[#macro registerInputSource id description]
     [#assign inputSources =
         mergeObjects(
             inputSources,
@@ -63,7 +62,7 @@ input source.
 
 [#assign inputStages = {} ]
 
-[#macro addInputStage id description]
+[#macro registerInputStage id description]
     [#assign inputStages =
         mergeObjects(
             inputStages,
@@ -119,14 +118,42 @@ input source.
 Input seeders provide content to stages. Like stages in an input source,
 seeders within an input stage are dynamically ordered so additional
 seeders can be dynamically added to an existing input stage.
+
+Input seeders contribute to one or more pipelines within the stage.
+These represent distinct chains of processing. Each pipeline can use
+a different representation of the state that is passed between seeders
+appropriate to the purpose of the pipeline.
+
 --]
 [#assign inputSeeders = {} ]
 
-[#macro addInputSeeder id description]
+[#macro registerInputSeeder id description ]
 
     [#assign inputSeeders =
         mergeObjects(
             inputSeeders,
+            {
+                id : {
+                    "Description" : description
+                }
+            }
+        )
+    ]
+[/#macro]
+
+[#--
+Input transformers perform the same technical function as input seeders
+but are distinguished by being driven by user based configuration. If
+the function of the transform is fixed, then it should be implemented
+as a seeder.
+--]
+[#assign inputTransformers = {} ]
+
+[#macro registerInputTransformer id description]
+
+    [#assign inputTransformers =
+        mergeObjects(
+            inputTransformers,
             {
                 id : {
                     "Description" : description
@@ -142,40 +169,99 @@ their order relative to other seeders.
 
 In general a seeder should not control the priority so that provider loading order
 controls the ordering of the seeders but the flexibility is there should a use case emerge.
+
+A separate call is needed to add a seeder to each pipeline
 --]
 
-[#macro addSeederToInputStage inputStage inputSeeder priority="" inputSources="*" ]
-    [#if inputSeeders[inputSeeder]??]
-        [#local lastSeeder = (inputStages[inputStage].Seeders?sort_by("Priority")?last)!{"Priority" : 0} ]
-        [#assign inputStages =
-            combineEntities(
-                inputStages,
-                {
-                    inputStage : {
-                        "Seeders" : [
-                            {
-                                "Id" : inputSeeder,
-                                "Priority" :
-                                    valueIfTrue(
-                                        priority,
-                                        priority?is_number,
-                                        lastSeeder.Priority + DEFAULT_INPUT_PRIORITY_INCREMENT
-                                    ),
-                                "Sources" : asArray(inputSources)
-                            }
-                        ]
-                    }
-                },
-                APPEND_COMBINE_BEHAVIOUR
-            )
-        ]
+[#assign SEEDER_INPUT_PIPELINE_TYPE = "Inputs"]
+[#assign SEEDER_OUTPUT_PIPELINE_TYPE = "Outputs"]
 
-        [#-- Refresh input state if affected by new seeder --]
-        [#local stages = internalGetInputStages(getCurrentInputSource()) ]
-        [#list stages?filter(s -> s.Id == inputStage) as stage ]
-            [#-- Force cache state to (potentially) new value --]
-            [#local cacheHit = refreshInputState(false) ]
-        [/#list]
+[#macro addStepToInputStage stage step function pipeline priority="" sources="*" ]
+    [#local lastStep = (inputStages[stage][pipeline]?sort_by("Priority")?last)!{"Priority" : 0} ]
+    [#assign inputStages =
+        combineEntities(
+            inputStages,
+            {
+                stage : {
+                    pipeline : [
+                        {
+                            "Id" : step,
+                            "Priority" :
+                                valueIfTrue(
+                                    priority,
+                                    priority?is_number,
+                                    lastStep.Priority + DEFAULT_INPUT_PRIORITY_INCREMENT
+                                ),
+                            "Sources" : asArray(sources),
+                            "Function" : function
+                        }
+                    ]
+                }
+            },
+            APPEND_COMBINE_BEHAVIOUR
+        )
+    ]
+
+    [#-- Schedule refresh of input state if affected by new step --]
+    [#local stages = internalGetInputStages(getInputSource()) ]
+    [#list stages?filter(s -> s.Id == stage) as s ]
+        [@internalScheduleInputStateRefresh /]
+    [/#list]
+[/#macro]
+
+[#assign SEEDER_INPUT_PIPELINE_STEP_FUNCTION = "inputseeder"]
+[#macro addSeederToInputPipeline stage seeder priority="" sources="*" ]
+    [#if inputSeeders[seeder]??]
+        [@addStepToInputStage
+            stage=stage
+            step=seeder
+            function=SEEDER_INPUT_PIPELINE_STEP_FUNCTION
+            pipeline=SEEDER_INPUT_PIPELINE_TYPE
+            priority=priority
+            sources=sources
+        /]
+    [/#if]
+[/#macro]
+
+[#assign SEEDER_OUTPUT_PIPELINE_STEP_FUNCTION = "outputseeder"]
+[#macro addSeederToOutputPipeline stage seeder priority="" sources="*" ]
+    [#if inputSeeders[seeder]??]
+        [@addStepToInputStage
+            stage=stage
+            step=seeder
+            function=SEEDER_OUTPUT_PIPELINE_STEP_FUNCTION
+            pipeline=SEEDER_OUTPUT_PIPELINE_TYPE
+            priority=priority
+            sources=sources
+        /]
+    [/#if]
+[/#macro]
+
+[#assign TRANSFORMER_INPUT_PIPELINE_STEP_FUNCTION = "inputtransformer"]
+[#macro addTransformerToInputPipeline stage transformer priority="" sources="*" ]
+    [#if inputTransformers[transformer]??]
+        [@addStepToInputStage
+            stage=stage
+            step=transformer
+            function=TRANSFORMER_INPUT_PIPELINE_STEP_FUNCTION
+            pipeline=SEEDER_INPUT_PIPELINE_TYPE
+            priority=priority
+            sources=sources
+        /]
+    [/#if]
+[/#macro]
+
+[#assign TRANSFORMER_OUTPUT_PIPELINE_STEP_FUNCTION = "outputtransformer"]
+[#macro addTransformerToOutputPipeline stage transformer priority="" sources="*" ]
+    [#if inputTransformers[transformer]??]
+        [@addStepToInputStage
+            stage=stage
+            step=transformer
+            function=TRANSFORMER_OUTPUT_PIPELINE_STEP_FUNCTION
+            pipeline=SEEDER_OUTPUT_PIPELINE_TYPE
+            priority=priority
+            sources=sources
+        /]
     [/#if]
 [/#macro]
 
@@ -201,7 +287,7 @@ Engine input filter attributes are used internally but shouldn't be used by user
         }
     }
 ]
-[#macro addEngineFilterAttribute id description]
+[#macro registerEngineFilterAttribute id description]
     [#assign engineInputFilterAttributes =
         mergeObjects(
             engineInputFilterAttributes,
@@ -215,36 +301,15 @@ Engine input filter attributes are used internally but shouldn't be used by user
 [/#macro]
 
 [#--
-User input filter attributes are intended to be usable in CMDBs/mock data etc
-The main source of these should be layers
+Layer input filter attributes are intended to be usable in seeder providers
+to filter the data returned
 --]
-[#-- TODO(mfl) remove this set and wire into layer processing --]
-[#assign userInputFilterAttributes =
-    {
-        "Tenant" : {
-            "Description" : "tenant layer"
-        },
-        "Product" : {
-            "Description" : "product layer"
-        },
-        "Environment" : {
-            "Description" : "environment layer"
-        },
-        "Segment" : {
-            "Description" : "segment layer"
-        },
-        "Account" : {
-            "Description" : "account layer"
-        },
-        "Region" : {
-            "Description" : "Deployment Region"
-        }
-    }
-]
-[#macro addUserFilterAttribute id description]
-    [#assign userInputFilterAttributes =
+[#assign layerInputFilterAttributes = {} ]
+
+[#macro registerLayerInputFilterAttribute id description]
+    [#assign layerInputFilterAttributes =
         mergeObjects(
-            userInputFilterAttributes,
+            layerInputFilterAttributes,
             {
                 id : {
                     "Description" : description
@@ -254,8 +319,8 @@ The main source of these should be layers
     ]
 [/#macro]
 
-[#function getKnownUserInputFilterAttributes]
-    [#return userInputFilterAttributes?keys?sort]
+[#function getRegisteredLayerInputFilterAttributeIds]
+    [#return layerInputFilterAttributes?keys?sort]
 [/#function]
 
 [#-- Manage input state --]
@@ -265,6 +330,10 @@ Get the current state of various categories of input
 --]
 [#function getCommandLineOptions ]
     [#return getInputState().CommandLineOptions!{} ]
+[/#function]
+
+[#function getMasterdata ]
+    [#return getInputState().Masterdata!{} ]
 [/#function]
 
 [#function getBlueprint ]
@@ -279,19 +348,24 @@ Get the current state of various categories of input
     [#return getInputState().Definitions!{} ]
 [/#function]
 
+[#function getFragments ]
+    [#return getInputState().Fragments!{} ]
+[/#function]
+
 [#--
 TODO(mfl) handle getting outputs specially to support simulation stage
 We will need to run input processing before attempting to use the
 stack outputs to resolve the request
 --]
-[#function getStackOutputs ]
-    [#return getInputState().StackOutputs![] ]
+[#function getOutputs ]
+    [#return getInputState().Outputs![] ]
 [/#function]
 
 [#--
 A stack is used to capture the history of input state changes
 --]
 [#function getInputState]
+    [@internalRefreshInputState /]
     [#return
         isStackEmpty(inputStateStack)?then(
             {},
@@ -300,7 +374,7 @@ A stack is used to capture the history of input state changes
     ]
 [/#function]
 
-[#function getCurrentInputSource]
+[#function getInputSource]
     [#return
         isStackEmpty(inputStateStack)?then(
             "",
@@ -309,7 +383,7 @@ A stack is used to capture the history of input state changes
     ]
 [/#function]
 
-[#function getCurrentInputFilter]
+[#function getInputFilter]
     [#return
         removeObjectAttributes(
             isStackEmpty(inputStateStack)?then({}, getTopOfStack(inputStateStack).Filter),
@@ -318,9 +392,21 @@ A stack is used to capture the history of input state changes
     ]
 [/#function]
 
+[#assign refreshInProgress = false]
+
 [#-- Refresh current state on basis of input state stack --]
 [#-- Return whether the cache satisfied the refresh      --]
 [#function refreshInputState checkCache=true]
+
+    [#-- Recursion detection - may occur if input state is accessed in seeder routines --]
+    [#if refreshInProgress]
+        [@fatal
+            message="Attempt to refresh state while a refresh was in progress. Check for input state access in an input seeder function"
+            stop=true
+        /]
+    [/#if]
+    [#assign refreshInProgress = true]
+
     [#-- Assume cache miss --]
     [#local cacheHit = false]
 
@@ -354,8 +440,11 @@ A stack is used to capture the history of input state changes
     [/#if]
 
     [#-- TODO(mfl) remove once migration to new input source structure complete --]
-    [#-- refresh commandLineOptions on input state change --]
-    [@addCommandLineOption getCommandLineOptions() /]
+    [#-- refresh commandLineOptions on input state change                       --]
+    [@addCommandLineOption inputState.CommandLineOptions!{} /]
+
+    [#-- End of critical section --]
+    [#assign refreshInProgress = false]
 
     [#return cacheHit]
 [/#function]
@@ -454,45 +543,46 @@ Get the stages in order for an input source
 [/#function]
 
 [#--
-Get the seeders in order for an input stage
+Get the steps in order for an input stage
 --]
-[#function internalGetInputSeeders inputStage]
+[#function internalGetInputSteps inputStage pipeline]
     [#return
-        ((inputStages[inputStage].Seeders)![])?sort_by("Priority")
+        ((inputStages[inputStage][pipeline])![])?sort_by("Priority")
     ]
 [/#function]
 
 [#--
-Get the state for the current input filter
+Get the state of a pipeline for the current input filter
 --]
-[#function internalGetInputState inputSource inputFilter ]
-    [#local state = {} ]
-
+[#function internalGetInputPipelineState inputSource inputFilter pipeline startingState ]
+    [#local state = startingState ]
     [#-- Get the ordered list of stages to invoke --]
     [#list internalGetInputStages(inputSource) as inputStage]
-        [#-- Get the ordered list of seeders to invoke --]
-        [#list internalGetInputSeeders(inputStage.Id) as inputSeeder]
-            [#-- Ensure seeder is registered for the input source --]
-            [#if inputSeeder.Sources?seq_contains(inputSource) || inputSeeder.Sources?seq_contains("*")]
+        [#-- Get the ordered list of steps to invoke --]
+        [#list internalGetInputSteps(inputStage.Id, pipeline) as inputStep]
+            [#-- Ensure step is registered for the input source --]
+            [#if inputStep.Sources?seq_contains(inputSource) || inputStep.Sources?seq_contains("*")]
 
-                [#-- Support various level of seeder specificity --]
-                [#local seederFunctionOptions =
+                [#-- Support various level of step specificity --]
+                [#local stepFunctionOptions =
                     [
-                        [ inputSeeder.Id, "inputseeder", inputStage.Id, inputSource ],
-                        [ inputSeeder.Id, "inputseeder", inputStage.Id ],
-                        [ inputSeeder.Id, "inputseeder" ]
+                        [ inputStep.Id, inputStep.Function, inputStage.Id, inputSource ],
+                        [ inputStep.Id, inputStep.Function, inputStage.Id ],
+                        [ inputStep.Id, inputStep.Function ]
                     ]
                 ]
 
-                [#local seederFunction = getFirstDefinedDirective(seederFunctionOptions)]
+                [#local stepFunction = getFirstDefinedDirective(stepFunctionOptions)]
 
-                [#if (.vars[seederFunction]!"")?is_directive]
-                    [#local state = (.vars[seederFunction])(inputFilter, state) ]
+                [#if (.vars[stepFunction]!"")?is_directive]
+                    [#local state = (.vars[stepFunction])(inputFilter, state) ]
                 [#else]
-                    [@debug
-                        message="Unable to invoke any of the input seeder function options"
-                        context=seederFunctionOptions
-                        enabled=false
+                    [#-- This means a step has been registered but its corresponding    --]
+                    [#-- implementation can't be located - likely an implementation bug --]
+                    [@fatal
+                        message="Unable to invoke any of the input step function options for " + pipeline + " pipeline - check function naming"
+                        context=inputStep
+                        detail=stepFunctionOptions
                     /]
                 [/#if]
             [/#if]
@@ -500,6 +590,33 @@ Get the state for the current input filter
     [/#list]
 
     [#return state]
+[/#function]
+
+[#--
+Get the state of inputs for the current input filter
+--]
+[#function internalGetInputState inputSource inputFilter ]
+    [#return internalGetInputPipelineState(inputSource, inputFilter, SEEDER_INPUT_PIPELINE_TYPE, {} ) ]
+[/#function]
+
+[#--
+Get the state of an output
+--]
+[#function internalGetOutput inputSource inputFilter id deploymentUnit="" level="" region="" account="" ]
+    [#return
+        internalGetInputPipelineState(
+            inputSource,
+            inputFilter,
+            SEEDER_OUTPUT_PIPELINE_TYPE,
+            {
+                "Account" : account,
+                "Region" : region,
+                "Level" : level,
+                "DeploymentUnit" : deploymentUnit,
+                "Id" : id
+            }
+        )
+    ]
 [/#function]
 
 [#-- Manage an input state cache --]
@@ -570,3 +687,23 @@ as processing is typically centred around the initially provided filter values
     [/#if]
     [#return inputState]
 [/#function]
+
+[#assign inputStateRefreshRequired = false]
+
+[#macro internalScheduleInputStateRefresh]
+    [#assign inputStateRefreshRequired = true]
+[/#macro]
+
+[#macro internalRefreshInputState]
+    [#if inputStateRefreshRequired]
+        [#-- Force cache state to (potentially) new value --]
+        [#local cacheHit = refreshInputState(false) ]
+
+        [#-- We want to detect any attempt to access the input state    --]
+        [#-- from a seeder/transformer during refresh, so reset the     --]
+        [#-- refresh flag AFTER performing the refresh                  --]
+        [#-- Seeders should rely on the state provided as an --]
+        [#assign inputStateRefreshRequired = false]
+    [/#if]
+[/#macro]
+

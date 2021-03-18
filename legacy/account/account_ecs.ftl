@@ -7,7 +7,7 @@
     [@includeServicesConfiguration
         provider=AWS_PROVIDER
         services=[ ]
-        deploymentFramework=commandLineOptions.Deployment.Framework.Name
+        deploymentFramework=getDeploymentFramework()
     /]
 
 

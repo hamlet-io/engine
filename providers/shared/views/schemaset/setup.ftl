@@ -22,7 +22,7 @@
             [#case "component" ]
                 [@includeAllComponentDefinitionConfiguration
                     SHARED_PROVIDER
-                    commandLineOptions.Deployment.Provider.Names
+                    getDeploymentProviders()
                 /]
                 [#local schemas = componentConfiguration?keys ]
                 [#break]

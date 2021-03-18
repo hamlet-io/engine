@@ -38,18 +38,18 @@
                     [#if invokeComponentMacro(
                             occurrence,
                             key,
-                            commandLineOptions.Entrance.Type,
+                            getEntranceType(),
                             [
-                                [ commandLineOptions.Deployment.Unit.Subset, level  ]
-                                commandLineOptions.Deployment.Unit.Subset,
+                                [ getDeploymentUnitSubset(), level  ]
+                                getDeploymentUnitSubset(),
                                 level
                             ])]
 
                             [@debug
                                 message="Component Processing resourceGroup: " + key + "..."
                                 context={
-                                    "entrance" : commandLineOptions.Entrance.Type,
-                                    "subset" : commandLineOptions.Deployment.Unit.Subset,
+                                    "entrance" : getEntranceType(),
+                                    "subset" : getDeploymentUnitSubset(),
                                     "level" : level
                                 }
                                 enabled=true
@@ -415,8 +415,8 @@
                     [#local attributes = constructOccurrenceAttributes(occurrence) ]
 
                     [#-- Apply deployment and policy profile overrides                  --]
-                    [#local deploymentProfile = getDeploymentProfile(profiles.Deployment, commandLineOptions.Deployment.Mode) ]
-                    [#local policyProfile = getPolicyProfile(profiles.Policy, commandLineOptions.Deployment.Mode) ]
+                    [#local deploymentProfile = getDeploymentProfile(profiles.Deployment, getCLODeploymentMode()) ]
+                    [#local policyProfile = getPolicyProfile(profiles.Policy, getCLODeploymentMode()) ]
 
                     [#-- Assemble the profile objects allowing for legacy types --]
                     [#local deploymentProfileObjects = [(deploymentProfile["*"])!{}] ]

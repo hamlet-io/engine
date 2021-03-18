@@ -103,7 +103,7 @@
 [#macro invokeEntranceMacro type ]
 
     [#local macroOptions = []]
-    [#list commandLineOptions.Deployment.Provider.Names as provider ]
+    [#list getDeploymentProviders() as provider ]
         [#local macroOptions +=
             [
                 [ provider, "entrance", type ]
@@ -130,20 +130,20 @@
     [/#if]
 [/#macro]
 
-[#macro addEntranceSeeder type ]
+[#macro addEntranceInputSteps type ]
 
     [#local macroOptions = []]
-    [#list commandLineOptions.Deployment.Provider.Names as provider ]
+    [#list getDeploymentProviders() as provider ]
         [#local macroOptions +=
             [
-                [ provider, "entrance", type, "seeder" ]
+                [ provider, "entrance", type, "inputsteps" ]
             ]
         ]
     [/#list]
 
     [#local macroOptions +=
         [
-            [ SHARED_PROVIDER, "entrance", type, "seeder"  ]
+            [ SHARED_PROVIDER, "entrance", type, "inputsteps"  ]
         ]
     ]
 

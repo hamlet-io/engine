@@ -9,6 +9,12 @@
                 "Value" : "The deployment provider account layer"
             }
         ]
+    inputFilterAttributes=[
+            {
+                "Id" : ACCOUNT_LAYER_TYPE,
+                "Description" : "The deployment provider account"
+            }
+        ]
     attributes=[
         {
             "Names" : "Id",
@@ -268,3 +274,18 @@
         }
     ]
 /]
+
+[#-- Temporary function to populate provider --]
+[#-- TODO(mfl) remove once integrated into the input pipeline --]
+[#function getProviderFilter ]
+    [@setActiveLayer
+        type=ACCOUNT_LAYER_TYPE
+        commandLineOptionId=(getCommandLineOptions().Layers[ACCOUNT_LAYER_TYPE])!""
+        data=blueprintObject[ACCOUNT_LAYER_TYPE]
+    /]
+    [#return
+        {
+            "Provider" : getActiveLayer(ACCOUNT_LAYER_TYPE).Provider
+        }
+    ]
+[/#function]

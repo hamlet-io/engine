@@ -43,11 +43,11 @@
     [#-- Components --]
     [@includeAllComponentDefinitionConfiguration
         SHARED_PROVIDER
-        commandLineOptions.Deployment.Provider.Names
+        getDeploymentProviders()
     /]
 
     [#local componentChildren = []]
-    [#local subComponentNames = 
+    [#local subComponentNames =
         asFlattenedArray(
             componentConfiguration
             ?keys
@@ -169,9 +169,9 @@
                         }
                     ]
                 }
-            ] + 
+            ] +
             referenceChildren +
-            layerChildren + 
+            layerChildren +
             certChildren +
             domainChildren
         )]

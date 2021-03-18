@@ -803,7 +803,7 @@ are added.
     [/#list]
 
     [#-- Validate --]
-    [#if commandLineOptions.Validate!false && evaluatedRefAttributes?? ] 
+    [#if getCommandLineOptions().Validate!false && evaluatedRefAttributes?? ]
 
         [#-- Common Parameters that are used throughout        --]
         [#-- but are as-yet unaccounted for in the             --]
@@ -820,7 +820,7 @@ are added.
                      !(validKeys?seq_contains(key)) &&
                      !(commonParams?seq_contains(key))]
 
-                    [@fatal 
+                    [@fatal
                         message="Invalid Attribute Found."
                         context=
                             {
@@ -1622,6 +1622,15 @@ are not included in the Match Filter
     [#return (getFilterAttribute(filter,attribute)[0])!"" ]
 [/#function]
 
+[#function filterAttributeContainsValue filter attribute values...]
+    [#return
+        getArrayIntersection(
+            getFilterAttribute(filter, attribute),
+            asFlattenedArray(values)
+        )?has_content
+    ]
+[/#function]
+
 [#-- Check for a match between a Current Filter and a Match Filter --]
 [#function filterMatch currentFilter matchFilter matchBehaviour]
 
@@ -1658,7 +1667,10 @@ are not included in the Match Filter
 
         [#-- Unknown behaviour --]
         [#default]
-            [@fatal message="Unknown filter match behaviour \"" + matchBehaviour + "\" encountered" /]
+            [@fatal
+                message="Unknown filter match behaviour \"" + matchBehaviour + "\" encountered"
+                stop=true
+            /]
             [#return false]
     [/#switch]
 

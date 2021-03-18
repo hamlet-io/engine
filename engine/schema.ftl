@@ -25,7 +25,7 @@
 [/#function]
 
 [#function formatJsonSchemaAdditionalProperties composite]
-    [#if hasSubObjects(composite) 
+    [#if hasSubObjects(composite)
         || ! composite.Children??]
         [#return {}]
     [#else]
@@ -43,11 +43,11 @@
                 [#-- Define an "array" of X type --]
                 [#switch composite.Types?last]
                     [#case ANY_TYPE]
-                        [#local result += { 
+                        [#local result += {
                             "type" : ARRAY_TYPE }]
                         [#break]
                     [#default]
-                        [#local result += { 
+                        [#local result += {
                             "type" : ARRAY_TYPE,
                             "contains" : {
                                 "type" : composite.Types?last }}]
@@ -99,7 +99,7 @@
         [#local schemaName = formatJsonSchemaBaseName(composite)]
         [#if !references?seq_contains(schemaName)]
             [#if schemaId?has_content]
-                [#local section = commandLineOptions.Deployment.Unit.Name]
+                [#local section = getDeploymentUnit()]
                 [#local schemaId = formatPath(false, schemaId?remove_ending(".json"), section + ".json")]
             [/#if]
 
@@ -132,16 +132,16 @@
                                         "patternProperties" : {
                                             patternPropertiesRegex : {
                                                 "properties" : {
-                                                    childSchemaName : formatJsonSchemaFromComposite(child, references) 
+                                                    childSchemaName : formatJsonSchemaFromComposite(child, references)
                                                 },
                                                 "additionalProperties" : false
                                             } +
                                             attributeIfContent("required", required)
                                         }
                                     },
-                                    {   
+                                    {
                                         "properties" : {
-                                            childSchemaName : formatJsonSchemaFromComposite(child, references) 
+                                            childSchemaName : formatJsonSchemaFromComposite(child, references)
                                         },
                                         "additionalProperties" : false
                                     } +
@@ -202,13 +202,13 @@
                 mergeObjects(
                     jsonSchema,
                     {
-                        schemaName : 
+                        schemaName :
                             formatJsonSchemaFromComposite(
                                 {
                                     "Names" : schemaName,
                                     "AttributeSet" : schemaName
                                 }
-                            ) 
+                            )
                     }
                 )]
         [/#if]

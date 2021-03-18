@@ -6,9 +6,9 @@
 
 [#macro shared_view_default_schema ]
 
-    [#local section = commandLineOptions.Deployment.Group.Name]
-    [#local schema = commandLineOptions.Deployment.Unit.Name]
-    
+    [#local section = getDeploymentGroup() ]
+    [#local schema = getDeploymentUnit() ]
+
     [#if ["module"]?seq_contains(section)]
         [#-- Do not assign a schema $Id attribute on non-official schemas --]
         [#local schemaId = ""]
@@ -22,7 +22,7 @@
 
             [@includeAllComponentDefinitionConfiguration
                 SHARED_PROVIDER
-                commandLineOptions.Deployment.Provider.Names
+                getDeploymentProviders()
             /]
             [#local configuration = componentConfiguration[schema] ]
 

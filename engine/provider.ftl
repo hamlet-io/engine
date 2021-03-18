@@ -108,7 +108,6 @@
 
     [#list definedPlugins?sort_by("Priority") as plugin]
         [#local pluginRequired = plugin.Required]
-        [#local pluginPath = formatRelativePath(plugin.Id, plugin.Name )]
 
         [#local definedPluginState = (pluginState["Plugins"][plugin.Id])!{} ]
 

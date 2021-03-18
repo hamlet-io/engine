@@ -59,7 +59,7 @@
                         deploymentUnit=deploymentUnit
                         deploymentPriority=999
                         deploymentGroup=deploymentGroup
-                        deploymentProvider=((commandLineOptions.Deployment.Provider.Names)[0])!SHARED_PROVIDER
+                        deploymentProvider=(getDeploymentProviders()[0])!SHARED_PROVIDER
                         currentState="orphaned"
                         deploymentMode="_orphan"
                     /]

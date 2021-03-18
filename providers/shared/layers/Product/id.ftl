@@ -9,6 +9,12 @@
                 "Value" : "A product layer"
             }
         ]
+    inputFilterAttributes=[
+            {
+                "Id" : PRODUCT_LAYER_TYPE,
+                "Description" : "The product"
+            }
+        ]
     attributes=[
         {
             "Names" : "*",

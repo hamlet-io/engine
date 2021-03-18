@@ -99,12 +99,12 @@
             [#local testCase = testCases[testCaseName] ]
 
 
-            [#local outputPrefix = commandLineOptions.Deployment.Output.Prefix]
+            [#local outputPrefix = getDeploymentOutputPrefix() ]
 
             [#-- minor fix to allow for outputs which are created for non-standard deployment groups --]
             [#-- We currently rely on the fact that outputs all have the same prefix when we now include the entrance as part of the prefix --]
-            [#if ((commandLineOptions.Deployment.Output.Prefix)!"")?starts_with(DEPLOYMENTTEST_ENTRANCE_TYPE) ]
-                [#local outputPrefix = commandLineOptions.Deployment.Output.Prefix?remove_beginning(DEPLOYMENTTEST_ENTRANCE_TYPE)?ensure_starts_with(DEPLOYMENT_ENTRANCE_TYPE) ]
+            [#if outputPrefix?starts_with(DEPLOYMENTTEST_ENTRANCE_TYPE) ]
+                [#local outputPrefix = outputPrefix?remove_beginning(DEPLOYMENTTEST_ENTRANCE_TYPE)?ensure_starts_with(DEPLOYMENT_ENTRANCE_TYPE) ]
             [/#if]
 
             [#local tests = mergeObjects(

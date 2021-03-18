@@ -12,11 +12,11 @@
         /]
 
         [#-- Determine the input source specific input data --]
-        [#if commandLineOptions.Input.Source?has_content]
+        [#if getInputSource()?has_content]
             [@internalSeedInputSourceData
                 provider=provider
                 inputTypes=inputTypes
-                inputSource=commandLineOptions.Input.Source
+                inputSource=getInputSource()
             /]
         [/#if]
     [/#list]

@@ -5,9 +5,9 @@
         {
             "Metadata" : {
                 "Prepared" : .now?iso_utc,
-                "RequestReference" : commandLineOptions.References.Request,
-                "ConfigurationReference" : commandLineOptions.References.Configuration,
-                "RunId" : commandLineOptions.Run.Id
+                "RequestReference" : getRequestReference(),
+                "ConfigurationReference" : getConfigurationReference(),
+                "RunId" : getRunId()
             },
             "Tenants" : [
                 {

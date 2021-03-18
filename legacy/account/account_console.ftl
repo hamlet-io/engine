@@ -117,7 +117,7 @@
     [/#if]
 
     [#if deploymentSubsetRequired("console", true) &&
-            ! ( commandLineOptions.Deployment.Unit.Alternative == "replace1" ) ]
+            ! ( getDeploymentUnitAlternative() == "replace1" ) ]
 
         [@createSSMDocument
             id=consoleSSMDocumentId

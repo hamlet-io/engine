@@ -7,7 +7,7 @@
     [@includeServicesConfiguration
         provider=AWS_PROVIDER
         services=[AWS_IDENTITY_SERVICE ]
-        deploymentFramework=commandLineOptions.Deployment.Framework.Name
+        deploymentFramework=getDeploymentFramework()
     /]
 
     [#assign cloudWatchRoleId = formatAccountRoleId("cloudwatch")]

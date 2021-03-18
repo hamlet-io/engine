@@ -170,7 +170,7 @@
                                 ""
     )]
 
-    [#local runId = commandLineOptions.Run.Id]
+    [#local runId = getRunId()]
     [#-- Link attributes can be overridden by build and product settings, and --]
     [#-- anything can be overridden if explicitly defined via fragments --]
     [#return
@@ -234,7 +234,7 @@
     [#if container?is_hash && (container.RunMode!"")?has_content ]
         [#return container.RunMode ]
     [#else]
-        [#assign idParts = container?is_hash?then(
+        [#local idParts = container?is_hash?then(
                             container.Id?split("-"),
                             container?split("-"))]
         [#return idParts[1]?has_content?then(

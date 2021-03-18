@@ -2,7 +2,7 @@
 
 [#-- Is a resource part of a deployment unit --]
 [#function isPartOfDeploymentUnit resourceId deploymentUnit deploymentUnitSubset]
-  [#local resourceObject = getStackOutputObject( (commandLineOptions.Deployment.Provider.Names)[0], resourceId)]
+  [#local resourceObject = getStackOutputObject( getDeploymentProviders()[0], resourceId)]
   [#local
     currentDeploymentUnit =
       deploymentUnit +
@@ -20,10 +20,10 @@
   [#return
     isPartOfDeploymentUnit(
       resourceId,
-      commandLineOptions.Deployment.Unit.Name,
+      getDeploymentUnit(),
       (ignoreDeploymentUnitSubsetInOutputs!false)?then(
         "",
-        commandLineOptions.Deployment.Unit.Subset!""
+        getDeploymentUnitSubset()
       )
     )
   ]

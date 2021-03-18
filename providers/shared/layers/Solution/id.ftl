@@ -6,7 +6,13 @@
     properties=[
             {
                 "Type"  : "Description",
-                "Value" : "A instance of a product"
+                "Value" : "The solution layer"
+            }
+        ]
+    inputFilterAttributes=[
+            {
+                "Id" : SOLUTION_LAYER_TYPE,
+                "Description" : "The solution"
             }
         ]
     attributes=[

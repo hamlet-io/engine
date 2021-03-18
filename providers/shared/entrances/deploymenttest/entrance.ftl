@@ -1,14 +1,13 @@
 [#ftl]
 
+[#-- Entrance logic --]
 [#macro shared_entrance_deploymenttest ]
-    [#assign deploymentGroupDetails = getDeploymentGroupDetails(getDeploymentGroup())]
-    [#assign compositeTemplateContent = (.vars[deploymentGroupDetails.CompositeTemplate])!"" ]
 
     [@generateOutput
-        deploymentFramework=commandLineOptions.Deployment.Framework.Name
-        type=commandLineOptions.Deployment.Output.Type
-        format=commandLineOptions.Deployment.Output.Format
+        deploymentFramework=getDeploymentFramework()
+        type=getDeploymentOutputType()
+        format=getDeploymentOutputFormat()
         level=getDeploymentLevel()
-        include=compositeTemplateContent
+        include=(.vars[deploymentGroupDetails.CompositeTemplate])!""
     /]
 [/#macro]

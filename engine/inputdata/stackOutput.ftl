@@ -51,8 +51,8 @@
     [#-- Build the stack outputs list --]
     [#local outputMacroOptions =
         [
-            [ provider, "input", commandLineOptions.Input.Source, "stackoutput" ],
-            [ SHARED_PROVIDER, "input", commandLineOptions.Input.Source, "stackoutput" ]
+            [ provider, "input", getInputSource(), "stackoutput" ],
+            [ SHARED_PROVIDER, "input", getInputSource(), "stackoutput" ]
         ]]
 
     [#local outputMacro = getFirstDefinedDirective(outputMacroOptions)]
@@ -75,8 +75,8 @@
     [#-- Apply default filters based on provider --]
     [#local filterFunctionOptions =
         [
-            [ provider, "input", commandLineOptions.Input.Source, "stackoutput", "filter" ],
-            [ SHARED_PROVIDER, "input", commandLineOptions.Input.Source, "stackoutput", "filter" ]
+            [ provider, "input", getInputSource(), "stackoutput", "filter" ],
+            [ SHARED_PROVIDER, "input", getInputSource(), "stackoutput", "filter" ]
         ]
     ]
 

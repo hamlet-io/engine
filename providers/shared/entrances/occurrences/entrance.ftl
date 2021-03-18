@@ -1,31 +1,56 @@
 [#ftl]
 
+[#-- Entrance logic --]
 [#macro shared_entrance_occurrences ]
 
   [#assign allDeploymentUnits = true]
 
-  [#-- override the deployment group to get all deployment groups --]
-  [@addCommandLineOption
-      option={
-        "Deployment" : {
-          "Group" : {
-            "Name" : "*"
-          }
-        },
-        "Flow" : {
-          "Names" : [ "components" ]
-        }
-      }
-  /]
-
-  [#if (commandLineOptions.Deployment.Unit.Subset!"") == "generationcontract" ]
+  [#if getDeploymentUnitSubset() == "generationcontract" ]
     [#assign allDeploymentUnits = false]
   [/#if]
 
   [@generateOutput
-      deploymentFramework=commandLineOptions.Deployment.Framework.Name
-      type=commandLineOptions.Deployment.Output.Type
-      format=commandLineOptions.Deployment.Output.Format
+    deploymentFramework=getDeploymentFramework()
+    type=getDeploymentOutputType()
+    format=getDeploymentOutputFormat()
   /]
 
 [/#macro]
+
+[#-- Add seeder for command line options --]
+[#macro shared_entrance_occurrences_inputsteps ]
+
+    [@registerInputSeeder
+        id=OCCURRENCES_ENTRANCE_TYPE
+        description="Entrance"
+    /]
+
+    [@addSeederToInputPipeline
+        stage=COMMANDLINEOPTIONS_SHARED_INPUT_STAGE
+        seeder=OCCURRENCES_ENTRANCE_TYPE
+    /]
+
+[/#macro]
+
+[#-- Set the required flow --]
+[#function occurrences_inputseeder_commandlineoptions filter state]
+
+    [#return
+        mergeObjects(
+            state,
+            {
+                "CommandLineOptions" : {
+                    "Deployment" : {
+                        "Group" : {
+                            "Name" : "*"
+                        }
+                    },
+                    "Flow" : {
+                        "Names" : [ "components" ]
+                    }
+                }
+            }
+        )
+    ]
+
+[/#function]

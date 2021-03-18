@@ -8,7 +8,7 @@
         [@includeServicesConfiguration
             provider=AWS_PROVIDER
             services=[AWS_SIMPLE_EMAIL_SERVICE ]
-            deploymentFramework=commandLineOptions.Deployment.Framework.Name
+            deploymentFramework=getDeploymentFramework()
         /]
 
         [#if (accountObject["aws:SES"].RuleSet.Name)?has_content]
