@@ -1,6 +1,28 @@
 [#ftl]
 
 [#macro shared_entrance_deployment ]
+
+    [#-- Validate Deployment Info --]
+    [#if ((commandLineOptions.Deployment.Mode)!"")?has_content ]
+        [#if ! getDeploymentMode()?has_content ]
+            [@fatal
+                message="Undefined deployment mode used"
+                detail="Could not find definition of provided DeploymentMode"
+                context={ "DeploymentMode" : commandLineOptions.Deployment.Mode }
+            /]
+        [/#if]
+    [/#if]
+
+    [#if ((commandLineOptions.Deployment.Group.Name)!"")?has_content ]
+        [#if ! getDeploymentGroup()?has_content ]
+            [@fatal
+                message="Undefined deployment group used"
+                detail="Could not find definition of provided DeploymentGroup"
+                context={ "DeploymentGroup" : commandLineOptions.Deployment.Group.Name }
+            /]
+        [/#if]
+    [/#if]
+
     [#assign deploymentGroupDetails = getDeploymentGroupDetails(getDeploymentGroup())]
     [#assign compositeTemplateContent = (.vars[deploymentGroupDetails.CompositeTemplate])!"" ]
 
