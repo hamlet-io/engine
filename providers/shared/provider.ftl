@@ -84,7 +84,8 @@
                             "DeploymentUnit" : deploymentUnit,
                             "DeploymentGroup" : deploymentGroupDetails.Name,
                             "DeploymentProvider" : deploymentProvider,
-                            "Operations" : deploymentModeDetails.Operations
+                            "Operations" : deploymentModeDetails.Operations,
+                            "CurrentState" : currentState
                         }
                 /]
             [/#if]

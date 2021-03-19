@@ -34,7 +34,7 @@
             "Description" : "The current state of the deployment",
             "Values" : [ "notdeployed", "deployed", "orphaned" ],
             "Types" : STRING_TYPE,
-            "Mandatory" : false
+            "Mandatory" : true
         }
     ]
 /]
