@@ -51,7 +51,7 @@
             {
                 "Names" : "Ordering",
                 "Description" : "The method for handling the ordering of messages on the queue",
-                "Values" : [ "BestEffort", "FirstInFirstOut" ]
+                "Values" : [ "BestEffort", "FirstInFirstOut" ],
                 "Types" : STRING_TYPE,
                 "Default" : "BestEffort"
             },
