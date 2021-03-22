@@ -6,7 +6,7 @@
 
 [#macro shared_view_default_schema ]
 
-    [#local section = getDeploymentGroup() ]
+    [#local section = getCLODeploymentGroup() ]
     [#local schema = getDeploymentUnit() ]
 
     [#if ["module"]?seq_contains(section)]
