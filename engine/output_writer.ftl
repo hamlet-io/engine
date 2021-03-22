@@ -8,7 +8,7 @@
 [#assign outputFileProperties = {} ]
 
 [#-- output hanlder functions to set the output file properties --]
-[#macro setOutputFileProperties fileprefix="" filename="" directory="" format="" ]
+[#macro setOutputFileProperties filename="" directory="" format="" ]
     [#assign outputFileProperties =
         mergeObjects(
             outputFileProperties,
@@ -24,23 +24,19 @@
             attributeIfContent(
                 "format",
                 format
-            ) +
-            attributeIfContent(
-                "fileprefix",
-                fileprefix
             )
         )]
 [/#macro]
 
 [#function getOutputFileProperties ]
-    [#return outputFilePropertiies]
+    [#return outputFileProperties]
 [/#function]
 
 [#function isOutputFileDefined ]
     [#return
-        ((outputFileDetails["filename"])!"")?has_content
-        && ((outputFileDetails["directory"])!"")?has_content
-        && ((outputFileDetails["format"])!"")?has_content ]
+        ((outputFileProperties["filename"])!"")?has_content
+        && ((outputFileProperties["directory"])!"")?has_content
+        && ((outputFileProperties["format"])!"")?has_content ]
 [/#function]
 
 [#-- Add available output writer --]
@@ -103,7 +99,7 @@
 [#-- - setup - is run before we work through creating any outputs - this is where we recommend naming outputs so they can be used in output content --]
 [#-- - write - is run after all outputs are run - this is where the file should be written by the engine --]
 [#macro setupOutput ]
-    [#local handlers = getOutputWriterHandlers(commandLineOptions.OutputWriter.Id, "prologue" ) ]
+    [#local handlers = getOutputWriterHandlers(commandLineOptions.Output.Writer, "prologue" ) ]
 
     [#list handlers as handler ]
         [#if ! isOutputHandlerDefined(handler) ]
@@ -118,16 +114,17 @@
         [/#if]
 
         [#list combineEntities( commandLineOptions.Deployment.Provider.Names, [ SHARED_PROVIDER ]) as provider ]
-            [#local macroOptions = [
+            [#local handlerFunctionOptions = [
                 [ provider, "outputhandler", handler ]
             ]]
-            [#local macro = getFirstDefinedDirective(macroOptions)]
-            [#if macro?has_content]
-                [@setOutputFileProperties?with_args((.vars[macro]) properties=getOutputFileProperties()) content=content /]
+            [#local handlerFunction = getFirstDefinedDirective(handlerFunctionOptions)]
+            [#if handlerFunction?has_content]
+                [#local result = (.vars[handlerFunction])( getOutputFileProperties(), {} ) ]
+                [@setOutputFileProperties?with_args(result) /]
             [#else]
                 [@debug
                     message="Unable to invoke output handler"
-                    context=macroOptions
+                    context=handlerFunctionOptions
                     enabled=true
                 /]
             [/#if]
@@ -137,7 +134,7 @@
 
 
 [#macro writeOutput content ]
-    [#local handlers = getOutputWriterHandlers(commandLineOptions.OutputWriter.Id, "epilogue" ) ]
+    [#local handlers = getOutputWriterHandlers(commandLineOptions.Output.Writer, "epilogue" ) ]
 
     [#list handlers as handler ]
         [#if ! isOutputHandlerDefined(handler) ]
@@ -151,17 +148,18 @@
             [#break]
         [/#if]
 
-        [#list combineEntities( commandLineOptions.Deployment.Provider.Names, [ SHARED_PROVIDER ]) as provider ]
-            [#local macroOptions = [
+        [#list combineEntities( (commandLineOptions.Deployment.Provider.Names)![], [ SHARED_PROVIDER ]) as provider ]
+            [#local handlerFunctionOptions = [
                 [ provider, "outputhandler", handler ]
             ]]
-            [#local macro = getFirstDefinedDirective(macroOptions)]
-            [#if macro?has_content]
-                [@setOutputFileProperties?with_args((.vars[macro]) properties=getOutputFileProperties()) content=content /]
+            [#local handlerFunction = getFirstDefinedDirective(handlerFunctionOptions)]
+            [#if handlerFunction?has_content]
+                [#local result = (.vars[handlerFunction])( getOutputFileProperties(), content ) ]
+                [@setOutputFileProperties?with_args(result) /]
             [#else]
                 [@debug
                     message="Unable to invoke output handler"
-                    context=macroOptions
+                    context=handlerFunctionOptions
                     enabled=true
                 /]
             [/#if]
@@ -171,7 +169,7 @@
     [#if ! isOutputFileDefined() ]
         [@fatal
             message="Could not determine all file properties during output handler processing"
-            context=outputFileDetails
+            context=getOutputFileProperties()
             enabled=true
         /]
     [/#if]

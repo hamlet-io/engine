@@ -18,8 +18,7 @@
                     "Products" : getProductBlueprint()
                 }
             ]
-        } +
-        attributeIfContent("HamletMessages", logMessages)]
+        }
     [#return result]
 [/#function]
 

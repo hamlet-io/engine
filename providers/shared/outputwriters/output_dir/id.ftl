@@ -11,7 +11,8 @@
         ]
     prologueHandlers=[
         "setup_cmdb",
-        "filename_from_cmd_option"
+        "filepath_from_cmd_option",
+        "filename_from_base_options"
     ]
 
     epilogueHandlers=[

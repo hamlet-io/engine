@@ -38,7 +38,13 @@
         [/#switch]
 
         [#local outputMappings =
-            getGenerationContractStepOutputMapping(SHARED_PROVIDER, "schema")]
+            getGenerationContractStepOutputMapping(
+                                combineEntities(
+                                    commandLineOptions.Deployment.Provider.Names,
+                                    [ SHARED_PROVIDER],
+                                    UNIQUE_COMBINE_BEHAVIOUR
+                                ),
+                                "schema" )]
 
         [#if schemas?? ]
             [#list schemas as schema]

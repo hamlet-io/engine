@@ -136,8 +136,12 @@
                     "Run" : {
                         "Id" : runId!""
                     },
+
+                    [#-- Ouput handling and writing --]
                     "Output" : {
-                        "FileName" : outputFileName!""
+                        "FileName" : outputFileName!"",
+                        "Writer" : "output_dir",
+                        "Directory" : outputDir!""
                     }
                 }
             }

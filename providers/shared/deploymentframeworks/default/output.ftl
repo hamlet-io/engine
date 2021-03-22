@@ -69,13 +69,13 @@
     [/#switch]
 [/#macro]
 
-[#macro default_output_script_bash level include]
-    [@default_output_script_internal format=BASH_DEFAULT_OUTPUT_FORMAT level=level include=include /]
-[/#macro]
+[#function default_output_script_bash level include]
+    [#return default_output_script_internal(BASH_DEFAULT_OUTPUT_FORMAT, level, include) /]
+[/#function]
 
-[#macro default_output_script_ps level include]
-    [@default_output_script_internal format=PS_DEFAULT_OUTPUT_FORMAT level=level include=include/]
-[/#macro]
+[#function default_output_script_ps level include]
+    [#return default_output_script_internal(PS_DEFAULT_OUTPUT_FORMAT, level, include) /]
+[/#function]
 
 [#-- If multiple formats supported, ignore the ones not needed for current format --]
 [#macro addToDefaultBashScriptOutput content=[] section="default"]
@@ -112,7 +112,8 @@
 
 [#-- JSON_DEFAULT_OUTPUT_TYPE --]
 
-[#macro default_output_json level include]
+[#function default_output_json level include]
+    [@setOutputFileProperties format="json" /]
     [@initialiseJsonOutput
         name=JSON_DEFAULT_OUTPUT_TYPE
         messagesAttribute="HamletMessages"
@@ -128,13 +129,8 @@
         /]
     [/#if]
 
-    [@addMessagesToJsonOutput
-        name=JSON_DEFAULT_OUTPUT_TYPE
-        messages=logMessages
-    /]
-
-    [@serialiseOutput name=JSON_DEFAULT_OUTPUT_TYPE /]
-[/#macro]
+    [#return seraliseOutput(JSON_DEFAULT_OUTPUT_TYPE) ]
+[/#function]
 
 [#macro addToDefaultJsonOutput content={} ]
     [@addToJsonOutput name=JSON_DEFAULT_OUTPUT_TYPE content=content /]
@@ -156,7 +152,9 @@
 [/#macro]
 
 [#-- Info --]
-[#macro default_output_info level="" include="" ]
+[#function default_output_info level="" include="" ]
+    [@setOutputFileProperties format="json" /]
+
     [@initialiseJsonOutput name="providers" /]
     [@initialiseJsonOutput name="entrances" /]
 
@@ -166,7 +164,7 @@
         flows=getCLOFlows()
     /]
 
-    [@toJSON
+    [#return
         {
             "Metadata" : {
                 "Id" : "hamlet-info",
@@ -177,10 +175,9 @@
             },
             "Providers" : getOutputContent("providers")?values,
             "Entrances" : getOutputContent("entrances")?values
-        } +
-        attributeIfContent("COTMessages", logMessages)
-    /]
-[/#macro]
+        }
+    ]
+[/#function]
 
 [#macro infoProvider id details ]
     [@mergeWithJsonOutput
@@ -201,33 +198,20 @@
 [/#macro]
 
 [#-- Schema --]
-[#macro default_output_schema level="" include=""]
+[#function default_output_schema level="" include=""]
+
+    [@setOutputFileProperties format="json" /]
+    [@initialiseJsonOutput name="scheam" /]
+
     [@processFlows
         level=level
         framework=DEFAULT_DEPLOYMENT_FRAMEWORK
         flows=getCLOFlows()
     /]
 
-    [#local schemaType = getCLODeploymentUnit() ]
-    [#switch schemaType]
-
-        [#default]
-            [#local schema = getOutputContent(
-                "schema",
-                schemaType)!{}]
-            [#break]
-
-    [/#switch]
-
-    [#if schema?has_content || logMessages?has_content ]
-        [@toJSON
-            schema +
-            attributeIfContent("HamletMessages", logMessages)
-        /]
-    [/#if]
-
-    [@serialiseOutput name=JSON_DEFAULT_OUTPUT_TYPE /]
-[/#macro]
+    [#local schemaType = commandLineOptions.Deployment.Unit.Name]
+    [#return schema = getOutputContent("schema",  schemaType)!{}]
+[/#function]
 
 [#macro addSchemaToDefaultJsonOutput section config schemaId=""]
     [@mergeWithJsonOutput
@@ -254,8 +238,9 @@
     [/#if]
 [/#macro]
 
-[#macro default_output_contract level="" include=""]
+[#function default_output_contract level="" include=""]
 
+    [@setOutputFileProperties format="json" /]
     [@setupContractOutputs /]
 
     [#-- Resources --]
@@ -274,7 +259,7 @@
 
     [#local contractStages = []]
 
-    [#if getOutputContent("stages")?has_content || logMessages?has_content ]
+    [#if getOutputContent("stages")?has_content ]
 
         [#list (getOutputContent("stages")?values)?sort_by("Priority") as stage ]
 
@@ -312,7 +297,7 @@
             [/#if]
         [/#list]
 
-        [@toJSON
+        [#return
             {
                 "Metadata" : {
                     "Id" : getOutputContent("contract"),
@@ -323,12 +308,11 @@
                     "Providers" : getPluginMetadata()
                 },
                 "Stages" : contractStages
-            } +
-            attributeIfContent("HamletMessages", logMessages)
-        /]
+            }
+        ]
     [/#if]
-    [@serialiseOutput name=JSON_DEFAULT_OUTPUT_TYPE /]
-[/#macro]
+    [#return {}]
+[/#function]
 
 [#macro contractStage id executionMode priority=100 mandatory=true ]
     [@mergeWithJsonOutput
@@ -483,6 +467,14 @@
 [#-- Add Output Step mappings for each output --]
 [@addGenerationContractStepOutputMapping
     provider=SHARED_PROVIDER
+    subset="generationcontract"
+    outputType=JSON_DEFAULT_OUTPUT_TYPE
+    outputFormat=""
+    outputSuffix="generation-contract.json"
+/]
+
+[@addGenerationContractStepOutputMapping
+    provider=SHARED_PROVIDER
     subset="pregeneration"
     outputType=SCRIPT_DEFAULT_OUTPUT_TYPE
     outputFormat=getOutputFormat(SCRIPT_DEFAULT_OUTPUT_TYPE)
@@ -593,7 +585,8 @@
 [#-- SCRIPT_DEFAULT_OUTPUT_TYPE --]
 
 [#-- Internal use only --]
-[#macro default_output_script_internal format level include]
+[#function default_output_script_internal format level include]
+    [@setOutputFileProperties format="" /]
     [#if !isOutput(SCRIPT_DEFAULT_OUTPUT_TYPE) ]
         [@initialiseDefaultScriptOutput format=format /]
     [/#if]
@@ -608,9 +601,5 @@
         /]
     [/#if]
 
-    [@addMessagesToOutput
-        name=SCRIPT_DEFAULT_OUTPUT_TYPE
-        messages=logMessages
-    /]
-    [@serialiseOutput name=SCRIPT_DEFAULT_OUTPUT_TYPE /]
-[/#macro]
+    [#return serialiseOutput(SCRIPT_DEFAULT_OUTPUT_TYPE) /]
+[/#function]

@@ -10,7 +10,7 @@
     ]
 /]
 
-[#function shared_outputhandler_setup_cmdb properties ]
+[#function shared_outputhandler_setup_cmdb properties content ]
     [#local result = initialiseCMDBFileSystem({}) ]
     [#return properties ]
 [/#function]

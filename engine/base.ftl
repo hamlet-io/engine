@@ -176,7 +176,7 @@
     [#return content?join(separator)]
 [/#function]
 
-[#function asArray arg flatten=false ignoreEmpty=false]
+[#function asArray arg=[] flatten=false ignoreEmpty=false]
     [#local result = [] ]
     [#if arg?is_sequence]
         [#if flatten]
@@ -289,7 +289,8 @@
 [/#function]
 
 [#macro toJSON obj escaped=false]
-    ${getJSON(obj, escaped)}[/#macro]
+    [#assign serialisedOutput = getJSON(obj, escaped) ]
+[/#macro]
 
 [#function filterObjectAttributes obj attributes removeAttributes=false]
     [#local result = {}]
@@ -803,7 +804,7 @@ are added.
     [/#list]
 
     [#-- Validate --]
-    [#if getCommandLineOptions().Validate!false && evaluatedRefAttributes?? ]
+    [#if commandLineOptions.Validate!false && evaluatedRefAttributes?? ]
 
         [#-- Common Parameters that are used throughout        --]
         [#-- but are as-yet unaccounted for in the             --]

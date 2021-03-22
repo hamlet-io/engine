@@ -10,7 +10,7 @@
     ]
 /]
 
-[#function shared_outputhandler_write_to_cmdb properties ]
+[#function shared_outputhandler_write_to_cmdb properties content ]
 
     [#local fileProperties = getOutputFileProperties() ]
 
