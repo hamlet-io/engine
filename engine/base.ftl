@@ -289,8 +289,7 @@
 [/#function]
 
 [#macro toJSON obj escaped=false]
-    ${getJSON(obj, escaped)}
-[/#macro]
+    ${getJSON(obj, escaped)}[/#macro]
 
 [#function filterObjectAttributes obj attributes removeAttributes=false]
     [#local result = {}]
