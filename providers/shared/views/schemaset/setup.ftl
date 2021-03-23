@@ -22,7 +22,7 @@
             [#case "component" ]
                 [@includeAllComponentDefinitionConfiguration
                     SHARED_PROVIDER
-                    getDeploymentProviders()
+                    getCLODeploymentProviders()
                 /]
                 [#local schemas = componentConfiguration?keys ]
                 [#break]

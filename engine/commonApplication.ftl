@@ -170,7 +170,7 @@
                                 ""
     )]
 
-    [#local runId = getRunId()]
+    [#local runId = getCLORunId()]
     [#-- Link attributes can be overridden by build and product settings, and --]
     [#-- anything can be overridden if explicitly defined via fragments --]
     [#return

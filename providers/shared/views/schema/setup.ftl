@@ -7,7 +7,7 @@
 [#macro shared_view_default_schema ]
 
     [#local section = getCLODeploymentGroup() ]
-    [#local schema = getDeploymentUnit() ]
+    [#local schema = getCLODeploymentUnit() ]
 
     [#if ["module"]?seq_contains(section)]
         [#-- Do not assign a schema $Id attribute on non-official schemas --]
@@ -22,7 +22,7 @@
 
             [@includeAllComponentDefinitionConfiguration
                 SHARED_PROVIDER
-                getDeploymentProviders()
+                getCLODeploymentProviders()
             /]
             [#local configuration = componentConfiguration[schema] ]
 

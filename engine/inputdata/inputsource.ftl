@@ -171,10 +171,14 @@ In general a seeder should not control the priority so that provider loading ord
 controls the ordering of the seeders but the flexibility is there should a use case emerge.
 
 A separate call is needed to add a seeder to each pipeline
+
+The pipelines offered are
+config - the various types of config provided by the CMDB
+state - a single output in the CMDB state
 --]
 
-[#assign SEEDER_INPUT_PIPELINE_TYPE = "Inputs"]
-[#assign SEEDER_OUTPUT_PIPELINE_TYPE = "Outputs"]
+[#assign CONFIG_SEEDER_PIPELINE_TYPE = "Config"]
+[#assign STATE_SEEDER_PIPELINE_TYPE = "State"]
 
 [#macro addStepToInputStage stage step function pipeline priority="" sources="*" ]
     [#local lastStep = (inputStages[stage][pipeline]?sort_by("Priority")?last)!{"Priority" : 0} ]
@@ -209,56 +213,56 @@ A separate call is needed to add a seeder to each pipeline
     [/#list]
 [/#macro]
 
-[#assign SEEDER_INPUT_PIPELINE_STEP_FUNCTION = "inputseeder"]
-[#macro addSeederToInputPipeline stage seeder priority="" sources="*" ]
+[#assign CONFIG_SEEDER_PIPELINE_STEP_FUNCTION = "configseeder"]
+[#macro addSeederToConfigPipeline stage seeder priority="" sources="*" ]
     [#if inputSeeders[seeder]??]
         [@addStepToInputStage
             stage=stage
             step=seeder
-            function=SEEDER_INPUT_PIPELINE_STEP_FUNCTION
-            pipeline=SEEDER_INPUT_PIPELINE_TYPE
+            function=CONFIG_SEEDER_PIPELINE_STEP_FUNCTION
+            pipeline=CONFIG_SEEDER_PIPELINE_TYPE
             priority=priority
             sources=sources
         /]
     [/#if]
 [/#macro]
 
-[#assign SEEDER_OUTPUT_PIPELINE_STEP_FUNCTION = "outputseeder"]
-[#macro addSeederToOutputPipeline stage seeder priority="" sources="*" ]
+[#assign STATE_SEEDER_PIPELINE_STEP_FUNCTION = "stateseeder"]
+[#macro addSeederToStatePipeline stage seeder priority="" sources="*" ]
     [#if inputSeeders[seeder]??]
         [@addStepToInputStage
             stage=stage
             step=seeder
-            function=SEEDER_OUTPUT_PIPELINE_STEP_FUNCTION
-            pipeline=SEEDER_OUTPUT_PIPELINE_TYPE
+            function=STATE_SEEDER_PIPELINE_STEP_FUNCTION
+            pipeline=STATE_SEEDER_PIPELINE_TYPE
             priority=priority
             sources=sources
         /]
     [/#if]
 [/#macro]
 
-[#assign TRANSFORMER_INPUT_PIPELINE_STEP_FUNCTION = "inputtransformer"]
-[#macro addTransformerToInputPipeline stage transformer priority="" sources="*" ]
+[#assign CONFIG_TRANSFORMER_PIPELINE_STEP_FUNCTION = "configtransformer"]
+[#macro addTransformerToConfigPipeline stage transformer priority="" sources="*" ]
     [#if inputTransformers[transformer]??]
         [@addStepToInputStage
             stage=stage
             step=transformer
-            function=TRANSFORMER_INPUT_PIPELINE_STEP_FUNCTION
-            pipeline=SEEDER_INPUT_PIPELINE_TYPE
+            function=CONFIG_TRANSFORMER_PIPELINE_STEP_FUNCTION
+            pipeline=CONFIG_SEEDER_PIPELINE_TYPE
             priority=priority
             sources=sources
         /]
     [/#if]
 [/#macro]
 
-[#assign TRANSFORMER_OUTPUT_PIPELINE_STEP_FUNCTION = "outputtransformer"]
-[#macro addTransformerToOutputPipeline stage transformer priority="" sources="*" ]
+[#assign STATE_TRANSFORMER_PIPELINE_STEP_FUNCTION = "statetransformer"]
+[#macro addTransformerToStatePipeline stage transformer priority="" sources="*" ]
     [#if inputTransformers[transformer]??]
         [@addStepToInputStage
             stage=stage
             step=transformer
-            function=TRANSFORMER_OUTPUT_PIPELINE_STEP_FUNCTION
-            pipeline=SEEDER_OUTPUT_PIPELINE_TYPE
+            function=STATE_TRANSFORMER_PIPELINE_STEP_FUNCTION
+            pipeline=STATE_SEEDER_PIPELINE_TYPE
             priority=priority
             sources=sources
         /]
@@ -432,7 +436,7 @@ A stack is used to capture the history of input state changes
             [#assign inputState =
                 internalAddToInputStateCache(
                     topOfStack.Filter,
-                    internalGetInputState(topOfStack.Source, topOfStack.Filter),
+                    internalGetConfigPipelineValue(topOfStack.Source, topOfStack.Filter),
                     knownMiss
                 )
             ]
@@ -552,9 +556,9 @@ Get the steps in order for an input stage
 [/#function]
 
 [#--
-Get the state of a pipeline for the current input filter
+Get the effective value of a pipeline for the current input filter
 --]
-[#function internalGetInputPipelineState inputSource inputFilter pipeline startingState ]
+[#function internalGetInputPipelineValue inputSource inputFilter pipeline startingState ]
     [#local state = startingState ]
     [#-- Get the ordered list of stages to invoke --]
     [#list internalGetInputStages(inputSource) as inputStage]
@@ -593,21 +597,21 @@ Get the state of a pipeline for the current input filter
 [/#function]
 
 [#--
-Get the state of inputs for the current input filter
+Get the config pipeline effective value for the current input filter
 --]
-[#function internalGetInputState inputSource inputFilter ]
-    [#return internalGetInputPipelineState(inputSource, inputFilter, SEEDER_INPUT_PIPELINE_TYPE, {} ) ]
+[#function internalGetConfigPipelineValue inputSource inputFilter ]
+    [#return internalGetInputPipelineValue(inputSource, inputFilter, CONFIG_SEEDER_PIPELINE_TYPE, {} ) ]
 [/#function]
 
 [#--
-Get the state of an output
+Get the state pipeline effective value for the current input filter
 --]
-[#function internalGetOutput inputSource inputFilter id deploymentUnit="" level="" region="" account="" ]
+[#function internalGetStatePipelineValue inputSource inputFilter id deploymentUnit="" level="" region="" account="" ]
     [#return
-        internalGetInputPipelineState(
+        internalGetInputPipelineValue(
             inputSource,
             inputFilter,
-            SEEDER_OUTPUT_PIPELINE_TYPE,
+            STATE_SEEDER_PIPELINE_TYPE,
             {
                 "Account" : account,
                 "Region" : region,

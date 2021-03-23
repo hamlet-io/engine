@@ -1,5 +1,5 @@
 [#-- Auditing configuration --]
-[#if getDeploymentUnit()?contains("audit") || (groupDeploymentUnits!false) ]
+[#if getCLODeploymentUnit()?contains("audit") || (groupDeploymentUnits!false) ]
 
     [#if accountObject.Seed?has_content]
 

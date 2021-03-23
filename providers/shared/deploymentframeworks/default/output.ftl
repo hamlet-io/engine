@@ -124,7 +124,7 @@
         [@processFlows
             level=level
             framework=DEFAULT_DEPLOYMENT_FRAMEWORK
-            flows=getFlows()
+            flows=getCLOFlows()
         /]
     [/#if]
 
@@ -163,7 +163,7 @@
     [@processFlows
         level=level
         framework=DEFAULT_DEPLOYMENT_FRAMEWORK
-        flows=getFlows()
+        flows=getCLOFlows()
     /]
 
     [@toJSON
@@ -171,9 +171,9 @@
             "Metadata" : {
                 "Id" : "hamlet-info",
                 "Prepared" : .now?iso_utc,
-                "RunId" : getRunId(),
-                "RequestReference" : getRequestReference(),
-                "ConfigurationReference" : getConfigurationReference()
+                "RunId" : getCLORunId(),
+                "RequestReference" : getCLORequestReference(),
+                "ConfigurationReference" : getCLOConfigurationReference()
             },
             "Providers" : getOutputContent("providers")?values,
             "Entrances" : getOutputContent("entrances")?values
@@ -205,10 +205,10 @@
     [@processFlows
         level=level
         framework=DEFAULT_DEPLOYMENT_FRAMEWORK
-        flows=getFlows()
+        flows=getCLOFlows()
     /]
 
-    [#local schemaType = getDeploymentUnit() ]
+    [#local schemaType = getCLODeploymentUnit() ]
     [#switch schemaType]
 
         [#default]
@@ -265,7 +265,7 @@
         [@processFlows
             level=level
             framework=DEFAULT_DEPLOYMENT_FRAMEWORK
-            flows=getFlows()
+            flows=getCLOFlows()
         /]
     [/#if]
 
@@ -317,9 +317,9 @@
                 "Metadata" : {
                     "Id" : getOutputContent("contract"),
                     "Prepared" : .now?iso_utc,
-                    "RunId" : getRunId(),
-                    "RequestReference" : getRequestReference(),
-                    "ConfigurationReference" : getConfigurationReference(),
+                    "RunId" : getCLORunId(),
+                    "RequestReference" : getCLORequestReference(),
+                    "ConfigurationReference" : getCLOConfigurationReference(),
                     "Providers" : getPluginMetadata()
                 },
                 "Stages" : contractStages
@@ -424,7 +424,7 @@
     [@processFlows
         level=level
         framework=DEFAULT_DEPLOYMENT_FRAMEWORK
-        flows=getFlows()
+        flows=getCLOFlows()
     /]
 
     [#local allStates = {}]
@@ -455,9 +455,9 @@
                     "Metadata" : {
                         "Id" : "state",
                         "Prepared" : .now?iso_utc,
-                        "RunId" : getRunId(),
-                        "RequestReference" : getRequestReference(),
-                        "ConfigurationReference" : getConfigurationReference()
+                        "RunId" : getCLORunId(),
+                        "RequestReference" : getCLORequestReference(),
+                        "ConfigurationReference" : getCLOConfigurationReference()
                     }
                 },
                 allStates
@@ -604,7 +604,7 @@
           [@processFlows
             level=level
             framework=DEFAULT_DEPLOYMENT_FRAMEWORK
-            flows=getFlows()
+            flows=getCLOFlows()
         /]
     [/#if]
 

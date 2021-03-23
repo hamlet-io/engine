@@ -5,9 +5,9 @@
         {
             "Metadata" : {
                 "Prepared" : .now?iso_utc,
-                "RequestReference" : getRequestReference(),
-                "ConfigurationReference" : getConfigurationReference(),
-                "RunId" : getRunId()
+                "RequestReference" : getCLORequestReference(),
+                "ConfigurationReference" : getCLOConfigurationReference(),
+                "RunId" : getCLORunId()
             },
             "Tenants" : [
                 {

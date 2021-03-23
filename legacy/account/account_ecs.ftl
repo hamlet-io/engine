@@ -1,5 +1,5 @@
 [#-- ECS Account Settings --]
-[#if getDeploymentUnit()?contains("ecs") || (groupDeploymentUnits!false) ]
+[#if getCLODeploymentUnit()?contains("ecs") || (groupDeploymentUnits!false) ]
     [#if deploymentSubsetRequired("generationcontract", false)]
         [@addDefaultGenerationContract subsets="epilogue" /]
     [/#if]
@@ -7,7 +7,7 @@
     [@includeServicesConfiguration
         provider=AWS_PROVIDER
         services=[ ]
-        deploymentFramework=getDeploymentFramework()
+        deploymentFramework=getCLODeploymentFramework()
     /]
 
 

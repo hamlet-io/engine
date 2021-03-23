@@ -1,4 +1,4 @@
-[#if getDeploymentUnit()?contains("console") || (groupDeploymentUnits!false) ]
+[#if getCLODeploymentUnit()?contains("console") || (groupDeploymentUnits!false) ]
 
     [#if deploymentSubsetRequired("generationcontract", false)]
         [@addDefaultGenerationContract
@@ -117,7 +117,7 @@
     [/#if]
 
     [#if deploymentSubsetRequired("console", true) &&
-            ! ( getDeploymentUnitAlternative() == "replace1" ) ]
+            ! ( getCLODeploymentUnitAlternative() == "replace1" ) ]
 
         [@createSSMDocument
             id=consoleSSMDocumentId

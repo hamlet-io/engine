@@ -360,7 +360,7 @@
                     [
                         [ SHARED_PROVIDER, occurrence.Core.Type, resourceGroup, placement.DeploymentFramework, entrance ] + asFlattenedArray(qualifier, true),
                         [ SHARED_PROVIDER, occurrence.Core.Type, placement.DeploymentFramework, entrance ] + asFlattenedArray(qualifier, true),
-                        [ SHARED_PROVIDER, occurrence.Core.Type, getDeploymentFramework(), entrance] + asFlattenedArray(qualifier, true),
+                        [ SHARED_PROVIDER, occurrence.Core.Type, getCLODeploymentFramework(), entrance] + asFlattenedArray(qualifier, true),
                         [ SHARED_PROVIDER, resourceGroup, placement.DeploymentFramework, entrance ] + asFlattenedArray(qualifier, true),
                         [ SHARED_PROVIDER, placement.DeploymentFramework, entrance ] + asFlattenedArray(qualifier, true),
                         [ SHARED_PROVIDER, entrance ] + asFlattenedArray(qualifier, true)
@@ -370,7 +370,7 @@
             [#local macroOptions += [
                 [ SHARED_PROVIDER, occurrence.Core.Type, resourceGroup, placement.DeploymentFramework, entrance],
                 [ SHARED_PROVIDER, occurrence.Core.Type, placement.DeploymentFramework, entrance],
-                [ SHARED_PROVIDER, occurrence.Core.Type, getDeploymentFramework(), entrance],
+                [ SHARED_PROVIDER, occurrence.Core.Type, getCLODeploymentFramework(), entrance],
                 [ SHARED_PROVIDER, resourceGroup, placement.DeploymentFramework, entrance],
                 [ SHARED_PROVIDER, placement.DeploymentFramework, entrance ],
                 [ SHARED_PROVIDER, entrance ]

@@ -99,7 +99,7 @@
             [#local testCase = testCases[testCaseName] ]
 
 
-            [#local outputPrefix = getDeploymentOutputPrefix() ]
+            [#local outputPrefix = getCLODeploymentOutputPrefix() ]
 
             [#-- minor fix to allow for outputs which are created for non-standard deployment groups --]
             [#-- We currently rely on the fact that outputs all have the same prefix when we now include the entrance as part of the prefix --]

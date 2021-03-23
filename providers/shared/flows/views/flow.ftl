@@ -7,36 +7,36 @@
 
     [@includeProviderViewDefinitionConfiguration
         provider=SHARED_PROVIDER
-        view=getView()
+        view=getCLOView()
     /]
 
     [@includeProviderViewConfiguration
         provider=SHARED_PROVIDER
-        view=getView()
+        view=getCLOView()
     /]
 
-    [#local primaryProvider = (getDeploymentProviders()[0])!SHARED_PROVIDER ]
+    [#local primaryProvider = (getCLODeploymentProviders()[0])!SHARED_PROVIDER ]
 
     [@includeProviderViewDefinitionConfiguration
         provider=primaryProvider
-        view=getView()
+        view=getCLOView()
     /]
 
     [@includeProviderViewConfiguration
         provider=primaryProvider
-        view=getView()
+        view=getCLOView()
     /]
 
     [#if invokeViewMacro(
             primaryProvider,
-            getDeploymentFramework(),
-            getEntranceType(),
+            getCLODeploymentFramework(),
+            getCLOEntranceType(),
             [
-                getDeploymentUnitSubset()
+                getCLODeploymentUnitSubset()
             ])]
 
             [@debug
-                message="View Processing key:" + getView() + "..."
+                message="View Processing key:" + getCLOView() + "..."
                 enabled=false
             /]
     [/#if]

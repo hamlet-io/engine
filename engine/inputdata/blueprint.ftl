@@ -43,7 +43,7 @@
     [#-- Components --]
     [@includeAllComponentDefinitionConfiguration
         SHARED_PROVIDER
-        getDeploymentProviders()
+        getCLODeploymentProviders()
     /]
 
     [#local componentChildren = []]
