@@ -176,7 +176,7 @@
     [#return content?join(separator)]
 [/#function]
 
-[#function asArray arg=[] flatten=false ignoreEmpty=false]
+[#function asArray arg flatten=false ignoreEmpty=false]
     [#local result = [] ]
     [#if arg?is_sequence]
         [#if flatten]
@@ -289,7 +289,7 @@
 [/#function]
 
 [#macro toJSON obj escaped=false]
-    [#assign serialisedOutput = getJSON(obj, escaped) ]
+    ${getJSON(obj, escaped)}
 [/#macro]
 
 [#function filterObjectAttributes obj attributes removeAttributes=false]

@@ -129,7 +129,7 @@
         /]
     [/#if]
 
-    [#return seraliseOutput(JSON_DEFAULT_OUTPUT_TYPE) ]
+    [#return serialiseOutput(JSON_DEFAULT_OUTPUT_TYPE) ]
 [/#function]
 
 [#macro addToDefaultJsonOutput content={} ]
@@ -399,6 +399,25 @@
             /]
         [/#list]
     [/#list]
+
+    [#-- Cleanup stages --]
+    [#local cleanUpStageId="cleanup" ]
+    [@contractStage
+        id=cleanUpStageId
+        executionMode=CONTRACT_EXECUTION_MODE_SERIAL
+        priority=100
+    /]
+
+    [@contractStep
+        id=formatId(cleanUpStageId, "generationcontract")
+        stageId=cleanUpStageId
+        taskType=RENAME_FILE_TASK_TYPE
+        parameters={
+            "currentFileName" : commandLineOptions.Output.FileName,
+            "newFileName" : getOutputFileName("generationcontract", "primary")
+        }
+    /]
+
 [/#macro]
 
 [#-- Occuurrence State --]

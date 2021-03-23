@@ -10,7 +10,6 @@
 [#-- Support multiple output streams simultaneously           --]
 [#-- Useful if assembling in parts e.g. resources and outputs --]
 [#assign outputs = {} ]
-[#assign serialisedOutput = {}]
 
 [#-- An output has one or more named sections to which content is added.   --]
 [#-- The serialiser macro converts the content of each section into a      --]
@@ -360,6 +359,7 @@
                 {
                     provider : {
                         subset : {
+                            "Subset" : subset,
                             "OutputType" : outputType,
                             "OutputFormat" : outputFormat,
                             "OutputSuffix" : outputSuffix
@@ -370,15 +370,23 @@
 [/#macro]
 
 [#function getGenerationContractStepOutputMapping providers subset ]
+    [#return (getGenerationContractStepOutputMappings(providers)?filter( x -> x.Subset == subset)[0] )!{} ]
+[/#function]
 
+[#function getGenerationContractStepOutputMappingFromSuffix providers suffix ]
+    [#return (getGenerationContractStepOutputMappings(providers)?filter( x -> x.OutputSuffix == suffix)[0] )!{} ]
+[/#function]
+
+[#function getGenerationContractStepOutputMappings providers ]
     [#local result = []]
-    [#list providers as provider ]
-        [#if ((generationcontractStepOutputMappings[provider][subset])!{})?has_content ]
-            [#local result += [ generationcontractStepOutputMappings[provider][subset] ]]
+    [#list providers as provider]
+        [#if ((generationcontractStepOutputMappings[provider])!{})?has_content ]
+            [#list generationcontractStepOutputMappings[provider] as id,subset ]
+                [#local result += [ subset ]]
+            [/#list]
         [/#if]
     [/#list]
-
-    [#return (result[0])!{} ]
+    [#return result]
 [/#function]
 
 [#-- Output mappings object is extended dynamically by each resource type --]
@@ -410,6 +418,33 @@
     [/#if]
 [/#function]
 
+[#function getOutputFileName subset alternative ]
+
+    [#local outputPrefix = getOutputFilePrefix(
+                                getCLOEntranceType(),
+                                getDeploymentGroup(),
+                                getDeploymentUnit(),
+                                subset,
+                                getCommandLineOptions().Layers[ACCOUNT_LAYER_TYPE],
+                                getCLOSegmentRegion(),
+                                getCLOAccountRegion(),
+                                alternative
+                            )]
+
+    [#local outputMappings = getGenerationContractStepOutputMapping(
+                                combineEntities(
+                                    getCLODeploymentProviders,
+                                    [ SHARED_PROVIDER],
+                                    UNIQUE_COMBINE_BEHAVIOUR
+                                ),
+                                subset
+                            )]
+
+    [#local outputSuffix = (outputMappings["OutputSuffix"])!"" ]
+
+    [#return formatName(outputPrefix, outputSuffix)]
+[/#function]
+
 [#function getGenerationContractStepParameters subset alternative ]
     [#local outputMappings = getGenerationContractStepOutputMapping(
                                 combineEntities(
@@ -420,27 +455,23 @@
                                 subset
                             )]
 
-    [#local outputPrefix = getOutputFilePrefix(
-                                getCLOEntranceType(),
-                                getDeploymentGroup(),
-                                getDeploymentUnit(),
-                                subset,
-                                getCommandLineOptions().Layers[ACCOUNT_LAYER_TYPE],
-                                getCLOSegmentRegion(),
-                                getCLOAccountRegion(),
-                                alternative )]
+    [#-- Handle Deployment Subset for generation --]
+    [#local deploymentUnitSubset = "" ]
+    [#if subset != "template"]
+        [#local deploymentUnitSubset = subset ]
+    [/#if]
 
-    [#local outputSuffix = outputMappings["OutputSuffix"]]
     [#return {
         "entrance"               : getCLOEntranceType(),
-        "provider"               : (getCLODeploymentProviders()?join(","))!SHARED_PROVIDER,
-        "framework"              : getCLODeploymentFramework(),
+        "flows"                  : getCLOFlows()?join(","),
+        "providers"              : (getCLODeploymentProviders?join(","))!SHARED_PROVIDER,
+        "deploymentFramework"    : getCLODeploymentFramework(),
         "outputType"             : outputMappings["OutputType"],
         "outputFormat"           : outputMappings["OutputFormat"],
-        "outputSuffix"           : outputSuffix,
-        "subset"                 : subset,
-        "alternative"            : alternative,
+        "pass"                   : subset,
+        "passAlternative"        : alternative,
         "deploymentUnit"         : getDeploymentUnit(),
+        "deploymentUnitSubset"   : deploymentUnitSubset,
         "deploymentGroup"        : getDeploymentGroup(),
         "resourceGroup"          : getCLODeploymentResourceGroup(),
         "account"                : getCommandLineOptions().Layers[ACCOUNT_LAYER_TYPE],
@@ -449,7 +480,7 @@
         "requestReference"       : getCLORequestReference(),
         "configurationReference" : getCLOConfigurationReference(),
         "deploymentMode"         : getDeploymentMode(),
-        "outputFileName"         : formatName(outputPrefix, outputSuffix)
+        "outputFileName"         : getOutputFileName(subset, alternative)
     }]
 [/#function]
 

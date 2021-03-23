@@ -139,6 +139,7 @@
 
                     [#-- Ouput handling and writing --]
                     "Output" : {
+                        "Pass" : pass!"",
                         "FileName" : outputFileName!"",
                         "Writer" : "output_dir",
                         "Directory" : outputDir!""

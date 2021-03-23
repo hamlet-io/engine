@@ -5,7 +5,7 @@
     properties=[
         {
             "Type"  : "Description",
-            "Value" : "Write  to a cmdb location using the inbuilt freemarker method"
+            "Value" : "Write to a cmdb location using the inbuilt freemarker method"
         }
     ]
 /]
@@ -13,6 +13,14 @@
 [#function shared_outputhandler_write_to_cmdb properties content ]
 
     [#local fileProperties = getOutputFileProperties() ]
+    [#local fileFormat = (fileProperties["format"])!""]
+
+    [#-- An empty JSON object is considered empty content --]
+    [#-- Even if the content is empty we still write an empty file --]
+    [#if ! content?has_content ]
+        [#local content=""]
+        [#local fileFormat=""]
+    [/#if]
 
     [#local result = toCMDB(
         formatAbsolutePath(
@@ -21,9 +29,8 @@
         ),
         content,
         {
-            "Format" : fileProperties["format"]
+            "Format" : fileFormat
         }
     )]
-
     [#return properties]
 [/#function]

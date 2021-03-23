@@ -5,7 +5,29 @@
 
 [#assign outputWriterConfiguration = {}]
 [#assign outputHandlerConfiguration = {}]
-[#assign outputFileProperties = {} ]
+[#assign outputFileProperties = {}]
+
+[#assign outputFilePropertiesAttributes = [
+    {
+        "Names" : "filename",
+        "Types" : STRING_TYPE,
+        "Description" : "The full file name including extension for the output file",
+        "Mandatory" : true
+    },
+    {
+        "Names" : "directory",
+        "Types" : STRING_TYPE,
+        "Description" : "The directory to write the file to",
+        "Mandatory" : true
+    },
+    {
+        "Names" : "format",
+        "Types" : STRING_TYPE,
+        "Description" : "The format of the file to output",
+        "Values" : [ "", "json", "yaml", "yml" ],
+        "Default" : ""
+    }
+] ]
 
 [#-- output hanlder functions to set the output file properties --]
 [#macro setOutputFileProperties filename="" directory="" format="" ]
@@ -30,13 +52,6 @@
 
 [#function getOutputFileProperties ]
     [#return outputFileProperties]
-[/#function]
-
-[#function isOutputFileDefined ]
-    [#return
-        ((outputFileProperties["filename"])!"")?has_content
-        && ((outputFileProperties["directory"])!"")?has_content
-        && ((outputFileProperties["format"])!"")?has_content ]
 [/#function]
 
 [#-- Add available output writer --]
@@ -166,13 +181,8 @@
         [/#list]
     [/#list]
 
-    [#if ! isOutputFileDefined() ]
-        [@fatal
-            message="Could not determine all file properties during output handler processing"
-            context=getOutputFileProperties()
-            enabled=true
-        /]
-    [/#if]
+    [#-- Make sure the file properties have been set --]
+    [#local finalFileProperties = getCompositeObject(outputFilePropertiesAttributes, getOutputFileProperties())]
 [/#macro]
 
 [#-- Internal macros --]
