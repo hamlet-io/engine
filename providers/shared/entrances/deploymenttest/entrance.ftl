@@ -3,10 +3,12 @@
 [#-- Entrance logic --]
 [#macro shared_entrance_deploymenttest ]
 
+    [#local deploymentGroupDetails = getDeploymentGroupDetails(getDeploymentGroup())]
+
     [@generateOutput
-        deploymentFramework=getDeploymentFramework()
-        type=getDeploymentOutputType()
-        format=getDeploymentOutputFormat()
+        deploymentFramework=getCLODeploymentFramework()
+        type=getCLODeploymentOutputType()
+        format=getCLODeploymentOutputFormat()
         level=getDeploymentLevel()
         include=(.vars[deploymentGroupDetails.CompositeTemplate])!""
     /]

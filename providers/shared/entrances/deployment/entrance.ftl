@@ -24,24 +24,23 @@
         [/#if]
     [/#if]
 
-    [#assign deploymentGroupDetails = getDeploymentGroupDetails(getDeploymentGroup())]
-    [#assign compositeTemplateContent = (.vars[deploymentGroupDetails.CompositeTemplate])!"" ]
+    [#local deploymentGroupDetails = getDeploymentGroupDetails(getDeploymentGroup())]
 
     [#-- ResourceSets  --]
     [#-- Seperates resources from their component templates in to their own deployment --]
     [#list ((deploymentGroupDetails.ResourceSets)!{})?values?filter(s -> s.Enabled ) as resourceSet ]
-        [#if getDeploymentUnit() == resourceSet["deployment:Unit"] ]
+        [#if getCLODeploymentUnit() == resourceSet["deployment:Unit"] ]
 
             [#assign groupDeploymentUnits = true]
             [#assign ignoreDeploymentUnitSubsetInOutputs = true]
 
-            [#assign contractSubsets = []]
+            [#local contractSubsets = []]
             [#list resourceSet.ResourceLabels as label ]
-                [#assign resourceLabel = getResourceLabel(label, getDeploymentLevel()) ]
-                [#assign contractSubsets = combineEntities( contractSubsets, (resourceLabel.Subsets)![], UNIQUE_COMBINE_BEHAVIOUR ) ]
+                [#local resourceLabel = getResourceLabel(label, getDeploymentLevel()) ]
+                [#local contractSubsets = combineEntities( contractSubsets, (resourceLabel.Subsets)![], UNIQUE_COMBINE_BEHAVIOUR ) ]
             [/#list]
 
-            [#if getDeploymentUnitSubset() == "generationcontract"]
+            [#if getCLODeploymentUnitSubset() == "generationcontract"]
                 [#assign groupDeploymentUnits = false]
                 [#assign ignoreDeploymentUnitSubsetInOutputs = false]
 
@@ -52,11 +51,11 @@
     [/#list]
 
     [@generateOutput
-        deploymentFramework=getDeploymentFramework()
-        type=getDeploymentOutputType()
-        format=getDeploymentOutputFormat()
+        deploymentFramework=getCLODeploymentFramework()
+        type=getCLODeploymentOutputType()
+        format=getCLODeploymentOutputFormat()
         level=getDeploymentLevel()
-        include=compositeTemplateContent
+        include=(.vars[deploymentGroupDetails.CompositeTemplate])!""
     /]
 [/#macro]
 
@@ -68,7 +67,7 @@
         description="Entrance"
     /]
 
-    [@addSeederToInputPipeline
+    [@addSeederToConfigPipeline
         stage=COMMANDLINEOPTIONS_SHARED_INPUT_STAGE
         seeder=DEPLOYMENT_ENTRANCE_TYPE
     /]
@@ -76,7 +75,7 @@
 [/#macro]
 
 [#-- Adjust the subset if required --]
-[#function deployment_inputseeder_commandlineoptions filter state]
+[#function deployment_configseeder_commandlineoptions filter state]
     [#local deploymentGroupDetails = getDeploymentGroupDetails(state.CommandLineOptions.Deployment.Group.Name)]
 
     [#-- ResourceSets  --]

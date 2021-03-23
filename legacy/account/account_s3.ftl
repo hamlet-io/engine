@@ -5,7 +5,7 @@
     [#list buckets as bucket]
 
         [#if replica ]
-            [#local bucketName = formatAccountS3ReplicaBucketName(bucket, getSegmentRegion())]
+            [#local bucketName = formatAccountS3ReplicaBucketName(bucket, getCLOSegmentRegion())]
         [#else]
             [#local bucketName = formatAccountS3PrimaryBucketName(bucket)]
         [/#if]
@@ -150,7 +150,7 @@
 
 [#assign preconditionsMet = true]
 
-[#if getDeploymentUnit() == "s3" || getDeploymentUnit() == "s3replica" || (groupDeploymentUnits!false) ]
+[#if getCLODeploymentUnit() == "s3" || getCLODeploymentUnit() == "s3replica" || (groupDeploymentUnits!false) ]
 
     [@includeServicesConfiguration
         provider=AWS_PROVIDER
@@ -163,7 +163,7 @@
     /]
 
     [#assign accountCMKId = formatAccountCMKTemplateId()]
-    [#assign accountCMKArn = getExistingReference(accountCMKId, ARN_ATTRIBUTE_TYPE, getSegmentRegion())]
+    [#assign accountCMKArn = getExistingReference(accountCMKId, ARN_ATTRIBUTE_TYPE, getCLOSegmentRegion())]
     [#assign s3EncryptionEnabled = (accountObject.S3.Encryption.Enabled)!false ]
     [#assign s3EncryptionSource = (accountObject.S3.Encryption.EncryptionSource)!"EncryptionService" ]
     [#assign s3VersioningEnabled = (accountObject.S3.Versioning.Enabled)!false]
@@ -190,7 +190,7 @@
 [/#if]
 
 [#-- Standard set of buckets for an account --]
-[#if preconditionsMet && ( getDeploymentUnit() == "s3" || (groupDeploymentUnits!false) ) ]
+[#if preconditionsMet && ( getCLODeploymentUnit() == "s3" || (groupDeploymentUnits!false) ) ]
     [#if deploymentSubsetRequired("generationcontract", false)]
         [@addDefaultGenerationContract subsets=["template", "epilogue"] /]
     [/#if]
@@ -289,7 +289,7 @@
 [/#if]
 
 
-[#if preconditionsMet && ( getDeploymentUnit() == "s3replica" || (groupDeploymentUnits!false)) ]
+[#if preconditionsMet && ( getCLODeploymentUnit() == "s3replica" || (groupDeploymentUnits!false)) ]
     [#if deploymentSubsetRequired("generationcontract", false)]
         [@addDefaultGenerationContract subsets=["template"] /]
     [/#if]

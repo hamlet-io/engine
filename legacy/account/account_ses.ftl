@@ -1,5 +1,5 @@
 [#-- SES ruleset --]
-[#if getDeploymentUnit()?contains("sesruleset") || (groupDeploymentUnits!false) ]
+[#if getCLODeploymentUnit()?contains("sesruleset") || (groupDeploymentUnits!false) ]
     [#if deploymentSubsetRequired("generationcontract", false)]
         [@addDefaultGenerationContract subsets="template" /]
     [/#if]
@@ -8,7 +8,7 @@
         [@includeServicesConfiguration
             provider=AWS_PROVIDER
             services=[AWS_SIMPLE_EMAIL_SERVICE ]
-            deploymentFramework=getDeploymentFramework()
+            deploymentFramework=getCLODeploymentFramework()
         /]
 
         [#if (accountObject["aws:SES"].RuleSet.Name)?has_content]

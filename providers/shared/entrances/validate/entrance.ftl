@@ -5,14 +5,14 @@
 
     [#assign allDeploymentUnits = true]
 
-    [#if getDeploymentUnitSubset() == "generationcontract" ]
+    [#if getCLODeploymentUnitSubset() == "generationcontract" ]
         [#assign allDeploymentUnits = false]
     [/#if]
 
   [@generateOutput
-    deploymentFramework=getDeploymentFramework()
-    type=getDeploymentOutputType()
-    format=getDeploymentOutputFormat()
+    deploymentFramework=getCLODeploymentFramework()
+    type=getCLODeploymentOutputType()
+    format=getCLODeploymentOutputFormat()
   /]
 
 [/#macro]
@@ -25,7 +25,7 @@
         description="Entrance"
     /]
 
-    [@addSeederToInputPipeline
+    [@addSeederToConfigPipeline
         stage=COMMANDLINEOPTIONS_SHARED_INPUT_STAGE
         seeder=VALIDATE_ENTRANCE_TYPE
     /]
@@ -33,7 +33,7 @@
 [/#macro]
 
 [#-- Set the required flow/view and enable validation --]
-[#function validate_inputseeder_commandlineoptions filter state]
+[#function validate_configseeder_commandlineoptions filter state]
 
     [#return
         mergeObjects(

@@ -7,7 +7,7 @@
 [#macro shared_view_default_info ]
 
     [#-- Load sections which are dynamically loaded through discovery --]
-    [#local providersList = asFlattenedArray( [ SHARED_PROVIDER, getDeploymentProviders() ] ) ]
+    [#local providersList = asFlattenedArray( [ SHARED_PROVIDER, getCLODeploymentProviders() ] ) ]
     [@includeAllComponentDefinitionConfiguration providersList /]
     [@includeAllViewConfiguration providersList /]
 
@@ -35,7 +35,7 @@
         /]
     [/#list]
 
-    [#list getEntranceTypes() as type ]
+    [#list getCLOEntranceTypes() as type ]
         [#local entranceProperties = getEntranceProperties(type)]
         [#local entranceDescription = entranceProperties?filter( prop -> prop.Type == "Description")?map( prop -> prop.Value )?join(' ') ]
 

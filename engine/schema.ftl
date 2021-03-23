@@ -99,7 +99,7 @@
         [#local schemaName = formatJsonSchemaBaseName(composite)]
         [#if !references?seq_contains(schemaName)]
             [#if schemaId?has_content]
-                [#local section = getDeploymentUnit()]
+                [#local section = getCLODeploymentUnit()]
                 [#local schemaId = formatPath(false, schemaId?remove_ending(".json"), section + ".json")]
             [/#if]
 

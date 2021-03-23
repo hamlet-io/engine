@@ -20,7 +20,7 @@
             [#local occurrenceStart = .now]
             [#list requiredOccurrences(
                 getOccurrences(tier, component),
-                getDeploymentUnit(),
+                getCLODeploymentUnit(),
                 getDeploymentGroup(),
                 "",
                 true) as occurrence]
@@ -38,18 +38,18 @@
                     [#if invokeComponentMacro(
                             occurrence,
                             key,
-                            getEntranceType(),
+                            getCLOEntranceType(),
                             [
-                                [ getDeploymentUnitSubset(), level  ]
-                                getDeploymentUnitSubset(),
+                                [ getCLODeploymentUnitSubset(), level  ]
+                                getCLODeploymentUnitSubset(),
                                 level
                             ])]
 
                             [@debug
                                 message="Component Processing resourceGroup: " + key + "..."
                                 context={
-                                    "entrance" : getEntranceType(),
-                                    "subset" : getDeploymentUnitSubset(),
+                                    "entrance" : getCLOEntranceType(),
+                                    "subset" : getCLODeploymentUnitSubset(),
                                     "level" : level
                                 }
                                 enabled=true

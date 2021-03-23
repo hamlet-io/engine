@@ -24,15 +24,15 @@
     /]
 [/#macro--]
 
-[#function getRunId ]
+[#function getCLORunId ]
     [#return (getCommandLineOptions().Run.Id)!"" ]
 [/#function]
 
-[#function getRequestReference ]
+[#function getCLORequestReference ]
     [#return (getCommandLineOptions().References.Request)!"" ]
 [/#function]
 
-[#function getConfigurationReference ]
+[#function getCLOConfigurationReference ]
     [#return (getCommandLineOptions().References.Configuration)!"" ]
 [/#function]
 
@@ -44,51 +44,51 @@
     [#return (getCommandLineOptions().Input.Filter)!"" ]
 [/#function]
 
-[#function getEntranceType ]
+[#function getCLOEntranceType ]
     [#return (getCommandLineOptions().Entrance.Type)!"" ]
 [/#function]
 
-[#function getDeploymentProviders]
+[#function getCLODeploymentProviders]
     [#return (getCommandLineOptions().Deployment.Provider.Names)![] ]
 [/#function]
 
-[#function getFlows]
+[#function getCLOFlows]
     [#return (getCommandLineOptions().Flow.Names)![] ]
 [/#function]
 
-[#function getView]
+[#function getCLOView]
     [#return (getCommandLineOptions().View.Name)!"" ]
 [/#function]
 
-[#function getDeploymentFramework ]
+[#function getCLODeploymentFramework ]
     [#return (getCommandLineOptions().Deployment.Framework.Name)!"" ]
 [/#function]
 
-[#function getDeploymentOutputType ]
+[#function getCLODeploymentOutputType ]
     [#return (getCommandLineOptions().Deployment.Output.Type)!"" ]
 [/#function]
 
-[#function getDeploymentOutputFormat ]
+[#function getCLODeploymentOutputFormat ]
     [#return (getCommandLineOptions().Deployment.Output.Format)!"" ]
 [/#function]
 
-[#function getDeploymentOutputPrefix ]
+[#function getCLODeploymentOutputPrefix ]
     [#return (getCommandLineOptions().Deployment.Output.Prefix)!"" ]
 [/#function]
 
-[#function getDeploymentUnit ]
+[#function getCLODeploymentUnit ]
     [#return (getCommandLineOptions().Deployment.Unit.Name)!"" ]
 [/#function]
 
-[#function getDeploymentUnitSubset ]
+[#function getCLODeploymentUnitSubset ]
     [#return (getCommandLineOptions().Deployment.Unit.Subset)!"" ]
 [/#function]
 
-[#function getDeploymentUnitAlternative ]
+[#function getCLODeploymentUnitAlternative ]
     [#return (getCommandLineOptions().Deployment.Unit.Alternative)!"" ]
 [/#function]
 
-[#function getDeploymentResourceGroup ]
+[#function getCLODeploymentResourceGroup ]
     [#return (getCommandLineOptions().Deployment.ResourceGroup.Name)!"" ]
 [/#function]
 
@@ -100,27 +100,27 @@
     [#return (getCommandLineOptions().Deployment.Mode)!"" ]
 [/#function]
 
-[#function getSegmentRegion]
+[#function getCLOSegmentRegion]
     [#return (getCommandLineOptions().Regions.Segment)!"" ]
 [/#function]
 
-[#function getAccountRegion]
+[#function getCLOAccountRegion]
     [#return (getCommandLineOptions().Regions.Account)!"" ]
 [/#function]
 
-[#function getCompositeBlueprint]
+[#function getCLOCompositeBlueprint]
     [#return (getCommandLineOptions().Composites.Blueprint)!{} ]
 [/#function]
 
-[#function getCompositeSettings]
+[#function getCLOCompositeSettings]
     [#return (getCommandLineOptions().Composites.Settings)!{} ]
 [/#function]
 
-[#function getCompositeDefinitions]
+[#function getCLOCompositeDefinitions]
     [#return (getCommandLineOptions().Composites.Definitions)!{} ]
 [/#function]
 
-[#function getCompositeStackOutputs]
+[#function getCLOCompositeStackOutputs]
     [#return (getCommandLineOptions().Composites.StackOutputs)![] ]
 [/#function]
 

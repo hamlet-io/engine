@@ -2,7 +2,7 @@
 
 [#-- Is a resource part of a deployment unit --]
 [#function isPartOfDeploymentUnit resourceId deploymentUnit deploymentUnitSubset]
-  [#local resourceObject = getStackOutputObject( getDeploymentProviders()[0], resourceId)]
+  [#local resourceObject = getStackOutputObject( getCLODeploymentProviders()[0], resourceId)]
   [#local
     currentDeploymentUnit =
       deploymentUnit +
@@ -20,10 +20,10 @@
   [#return
     isPartOfDeploymentUnit(
       resourceId,
-      getDeploymentUnit(),
+      getCLODeploymentUnit(),
       (ignoreDeploymentUnitSubsetInOutputs!false)?then(
         "",
-        getDeploymentUnitSubset()
+        getCLODeploymentUnitSubset()
       )
     )
   ]

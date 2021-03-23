@@ -59,7 +59,7 @@
                         deploymentUnit=deploymentUnit
                         deploymentPriority=999
                         deploymentGroup=deploymentGroup
-                        deploymentProvider=(getDeploymentProviders()[0])!SHARED_PROVIDER
+                        deploymentProvider=(getCLODeploymentProviders()[0])!SHARED_PROVIDER
                         currentState="orphaned"
                         deploymentMode="_orphan"
                     /]

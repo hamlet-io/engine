@@ -10,27 +10,27 @@
     description="Shared inputs"
 /]
 
-[@addSeederToInputPipeline
+[@addSeederToConfigPipeline
     stage=COMMANDLINEOPTIONS_SHARED_INPUT_STAGE
     seeder=SHARED_INPUT_SEEDER
 /]
 
-[@addSeederToInputPipeline
+[@addSeederToConfigPipeline
     stage=MASTERDATA_SHARED_INPUT_STAGE
     seeder=SHARED_INPUT_SEEDER
 /]
 
-[@addSeederToOutputPipeline
+[@addSeederToConfigPipeline
     stage=FIXTURE_SHARED_INPUT_STAGE
     seeder=SHARED_INPUT_SEEDER
 /]
 
-[@addSeederToOutputPipeline
+[@addSeederToStatePipeline
     stage=SIMULATE_SHARED_INPUT_STAGE
     seeder=SHARED_INPUT_SEEDER
 /]
 
-[@addTransformerToInputPipeline
+[@addTransformerToConfigPipeline
     stage=QUALIFY_SHARED_INPUT_STAGE
     transformer=SHARED_INPUT_SEEDER
 /]
@@ -53,7 +53,7 @@
 [/#macro]
 
 [#-- Command line options seeders --]
-[#function shared_inputseeder_commandlineoptions filter state]
+[#function shared_configseeder_commandlineoptions filter state]
 
     [#return
         mergeObjects(
@@ -142,10 +142,10 @@
     ]
 [/#function]
 
-[#function shared_inputseeder_commandlineoptions_composite filter state]
+[#function shared_configseeder_commandlineoptions_composite filter state]
     [#return
         mergeObjects(
-            shared_inputseeder_commandlineoptions(filter, state),
+            shared_configseeder_commandlineoptions(filter, state),
             {
                 "CommandLineOptions" : {
                     "References" : {
@@ -180,10 +180,10 @@
     ]
 [/#function]
 
-[#function shared_inputseeder_commandlineoptions_mock filter state]
+[#function shared_configseeder_commandlineoptions_mock filter state]
     [#return
         mergeObjects(
-            shared_inputseeder_commandlineoptions(filter, state),
+            shared_configseeder_commandlineoptions(filter, state),
             {
                 "CommandLineOptions" : {
                     "Regions" : {
@@ -203,12 +203,12 @@
     ]
 [/#function]
 
-[#function shared_inputseeder_commandlineoptions_whatif filter state]
-    [#return shared_inputseeder_commandlineoptions_composite(filter, state)]
+[#function shared_configseeder_commandlineoptions_whatif filter state]
+    [#return shared_configseeder_commandlineoptions_composite(filter, state)]
 [/#function]
 
 [#-- Masterdata seeders --]
-[#function shared_inputseeder_masterdata filter state]
+[#function shared_configseeder_masterdata filter state]
 
     [#return
         mergeObjects(
@@ -222,10 +222,10 @@
 [/#function]
 
 
-[#function shared_inputseeder_masterdata_mock filter state]
+[#function shared_configseeder_masterdata_mock filter state]
     [#return
         mergeObjects(
-            shared_inputseeder_masterdata(filter, state),
+            shared_configseeder_masterdata(filter, state),
             {
                 "Masterdata" : {
                     "Regions": {
@@ -248,7 +248,7 @@
 [/#function]
 
 
-[#function shared_outputseeder_mock filter state]
+[#function shared_stateseeder_mock filter state]
 
     [#local id = state.Id]
     [#switch id?split("X")?last ]
@@ -273,14 +273,14 @@
 
 [/#function]
 
-[#function shared_outputseeder_simulate filter state]
+[#function shared_stateseeder_simulate filter state]
     [#if ! state.Value?has_content]
-        [#return shared_outputseeder_mock(filter, state) ]
+        [#return shared_stateseeder_mock(filter, state) ]
     [/#if]
     [#return state]
 [/#function]
 
-[#function shared_inputtransformer_qualify filter state]
+[#function shared_configtransformer_qualify filter state]
 
     [#-- Now process the qualifications, validating on the basis of known layer filter attributes --]
     [#return

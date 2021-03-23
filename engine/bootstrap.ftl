@@ -94,20 +94,20 @@
 [#-- Update the providers list based on the plugins defined in the layer --]
 [@addEnginePluginMetadata getCommandLineOptions().Plugins.State /]
 
-[#if getEntranceType() != "loader" ]
+[#if getCLOEntranceType() != "loader" ]
     [@includeLayers /]
     [@addPluginsFromLayers getCommandLineOptions().Plugins.State /]
     [@clearLayerData /]
 [/#if]
 
 [#-- Load providers based on the providers list  --]
-[@includeProviders getDeploymentProviders() /]
-[@includeCoreProviderConfiguration getDeploymentProviders() /]
+[@includeProviders getCLODeploymentProviders() /]
+[@includeCoreProviderConfiguration getCLODeploymentProviders() /]
 
 [#-- Input data Seeding --]
 [#-- This controls the collection of all input data provided to the engine --]
 [#assign refreshInputData = false ]
-[#assign seedProviders = [ SHARED_PROVIDER, getDeploymentProviders() ]]
+[#assign seedProviders = [ SHARED_PROVIDER, getCLODeploymentProviders() ]]
 [#assign seedInputTypes = [ "blueprint", "stackoutput", "setting", "definition" ]]
 
 [@seedProviderInputSourceData

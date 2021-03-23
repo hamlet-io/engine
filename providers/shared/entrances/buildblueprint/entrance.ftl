@@ -4,9 +4,9 @@
 [#macro shared_entrance_buildblueprint ]
 
   [@generateOutput
-      deploymentFramework=getDeploymentFramework()
-      type=getDeploymentOutputType()
-      format=getDeploymentOutputFormat()
+      deploymentFramework=getCLODeploymentFramework()
+      type=getCLODeploymentOutputType()
+      format=getCLODeploymentOutputFormat()
   /]
 
 [/#macro]

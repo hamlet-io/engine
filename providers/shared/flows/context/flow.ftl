@@ -172,7 +172,7 @@
                 true,
                 MINIMAL_FILTER_BEHAVIOUR
             ),
-            getDeploymentUnit()
+            getCLODeploymentUnit()
         ) ]
 
     [@debug

@@ -1,4 +1,4 @@
-[#if getDeploymentUnit()?contains("iam") ]
+[#if getCLODeploymentUnit()?contains("iam") ]
     [#if deploymentSubsetRequired("generationcontract", false)]
         [@addDefaultGenerationContract subsets="template" /]
     [/#if]

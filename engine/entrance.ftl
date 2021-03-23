@@ -103,7 +103,7 @@
 [#macro invokeEntranceMacro type ]
 
     [#local macroOptions = []]
-    [#list getDeploymentProviders() as provider ]
+    [#list getCLODeploymentProviders() as provider ]
         [#local macroOptions +=
             [
                 [ provider, "entrance", type ]
@@ -133,7 +133,7 @@
 [#macro addEntranceInputSteps type ]
 
     [#local macroOptions = []]
-    [#list getDeploymentProviders() as provider ]
+    [#list getCLODeploymentProviders() as provider ]
         [#local macroOptions +=
             [
                 [ provider, "entrance", type, "inputsteps" ]

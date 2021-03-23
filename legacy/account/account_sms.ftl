@@ -1,5 +1,5 @@
 [#-- SMS --]
-[#if getDeploymentUnit()?contains("sms") || (groupDeploymentUnits!false) ]
+[#if getCLODeploymentUnit()?contains("sms") || (groupDeploymentUnits!false) ]
 
 
     [@includeProviderComponentDefinitionConfiguration
@@ -20,7 +20,7 @@
     [@includeServicesConfiguration
         provider=AWS_PROVIDER
         services=[AWS_IDENTITY_SERVICE ]
-        deploymentFramework=getDeploymentFramework()
+        deploymentFramework=getCLODeploymentFramework()
     /]
 
     [#assign cloudWatchRoleId = formatAccountRoleId("sms","cloudwatch")]

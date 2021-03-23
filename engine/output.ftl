@@ -196,9 +196,9 @@
             formatCommentsForTextOutput(
                 name,
                 [
-                    "--Hamlet-RequestReference=${getRequestReference()}",
-                    "--Hamlet-ConfigurationReference=${getConfigurationReference()}",
-                    "--Hamlet-RunId=${getRunId()}"
+                    "--Hamlet-RequestReference=${getCLORequestReference()}",
+                    "--Hamlet-ConfigurationReference=${getCLOConfigurationReference()}",
+                    "--Hamlet-RunId=${getCLORunId()}"
                 ]
             )
         treatAsContent=false
@@ -399,7 +399,7 @@
 
 [#function getGenerationContractStepParameters subset alternative ]
     [#local outputMappings = getGenerationContractStepOutputMapping(
-                                (getDeploymentProviders()[0])!SHARED_PROVIDER,
+                                (getCLODeploymentProviders()[0])!SHARED_PROVIDER,
                                 subset
                             )]
     [#if ! outputMappings?has_content]
@@ -411,8 +411,8 @@
         /]
     [/#if]
     [#return {
-        "provider"      : (getDeploymentProviders()?join(","))!SHARED_PROVIDER,
-        "framework"     : getDeploymentFramework(),
+        "provider"      : (getCLODeploymentProviders()?join(","))!SHARED_PROVIDER,
+        "framework"     : getCLODeploymentFramework(),
         "outputType"    : outputMappings["OutputType"],
         "outputFormat"  : outputMappings["OutputFormat"],
         "outputSuffix"  : outputMappings["OutputSuffix"],

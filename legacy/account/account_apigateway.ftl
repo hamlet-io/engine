@@ -1,5 +1,5 @@
 [#-- API Gateway --]
-[#if getDeploymentUnit()?contains("apigateway") || (groupDeploymentUnits!false) ]
+[#if getCLODeploymentUnit()?contains("apigateway") || (groupDeploymentUnits!false) ]
     [#if deploymentSubsetRequired("generationcontract", false)]
         [@addDefaultGenerationContract subsets="template" /]
     [/#if]
@@ -7,7 +7,7 @@
     [@includeServicesConfiguration
         provider=AWS_PROVIDER
         services=[AWS_IDENTITY_SERVICE ]
-        deploymentFramework=getDeploymentFramework()
+        deploymentFramework=getCLODeploymentFramework()
     /]
 
     [#assign cloudWatchRoleId = formatAccountRoleId("cloudwatch")]

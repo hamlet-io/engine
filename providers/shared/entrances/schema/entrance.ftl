@@ -4,9 +4,9 @@
 [#macro shared_entrance_schema ]
 
   [@generateOutput
-    deploymentFramework=getDeploymentFramework()
-    type=getDeploymentOutputType()
-    format=getDeploymentOutputFormat()
+    deploymentFramework=getCLODeploymentFramework()
+    type=getCLODeploymentOutputType()
+    format=getCLODeploymentOutputFormat()
   /]
 
 [/#macro]
@@ -19,7 +19,7 @@
         description="Entrance"
     /]
 
-    [@addSeederToInputPipeline
+    [@addSeederToConfigPipeline
         stage=COMMANDLINEOPTIONS_SHARED_INPUT_STAGE
         seeder=SCHEMA_ENTRANCE_TYPE
     /]
@@ -27,7 +27,7 @@
 [/#macro]
 
 [#-- Set the required flow/view --]
-[#function schema_inputseeder_commandlineoptions filter state]
+[#function schema_configseeder_commandlineoptions filter state]
 
     [#return
         mergeObjects(

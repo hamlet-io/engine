@@ -3,7 +3,7 @@
 [#-- Initial seeding of settings data based on input data --]
 [#macro shared_input_whatif_setting_seed ]
 
-    [#local compositeSettings = getCompositeSettings() ]
+    [#local compositeSettings = getCLOCompositeSettings() ]
     [@addSettings
         type="Settings"
         scope="Accounts"

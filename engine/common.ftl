@@ -70,7 +70,7 @@
 
 [#function deploymentSubsetRequired subset default=false]
 
-    [#local selectedSubset = getDeploymentUnitSubset() ]
+    [#local selectedSubset = getCLODeploymentUnitSubset() ]
     [#return
         selectedSubset?has_content?then(
             selectedSubset?lower_case?contains(subset),

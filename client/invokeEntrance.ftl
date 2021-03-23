@@ -4,7 +4,7 @@
 [#-- Load the entrance to make sure that it is defined --]
 [#-- Avoid the variable "entrance" to ensure the input --]
 [#-- variable isn't overwritten                        --]
-[#assign entranceType = getEntranceType() ]
+[#assign entranceType = getCLOEntranceType() ]
 [#assign entranceEntry = getEntrance(entranceType) ]
 
 [#--
