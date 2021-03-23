@@ -568,11 +568,6 @@
 
     [#local filename = "" ]
 
-    [@debug
-        message="FileName parts"
-        context=filename_parts
-    /]
-
     [#list filename_part_order as part ]
         [#if ((filename_parts[part])!"")?has_content ]
             [#local filename = formatName( filename, filename_parts[part] ) ]

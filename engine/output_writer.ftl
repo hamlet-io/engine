@@ -113,8 +113,9 @@
 [#-- We have two stages of the output process which use handlers in essentially the same way --]
 [#-- - setup - is run before we work through creating any outputs - this is where we recommend naming outputs so they can be used in output content --]
 [#-- - write - is run after all outputs are run - this is where the file should be written by the engine --]
-[#macro setupOutput ]
-    [#local handlers = getOutputWriterHandlers(commandLineOptions.Output.Writer, "prologue" ) ]
+
+[#macro invokeOutputHandlers writer stage content={} ]
+    [#local handlers = getOutputWriterHandlers(writer, stage ) ]
 
     [#list handlers as handler ]
         [#if ! isOutputHandlerDefined(handler) ]
@@ -134,7 +135,7 @@
             ]]
             [#local handlerFunction = getFirstDefinedDirective(handlerFunctionOptions)]
             [#if handlerFunction?has_content]
-                [#local result = (.vars[handlerFunction])( getOutputFileProperties(), {} ) ]
+                [#local result = (.vars[handlerFunction])( getOutputFileProperties(), content) ]
                 [@setOutputFileProperties?with_args(result) /]
             [#else]
                 [@debug
@@ -147,39 +148,20 @@
     [/#list]
 [/#macro]
 
+[#macro setupOutput ]
+    [@invokeOutputHandlers
+        writer=commandLineOptions.Output.Writer
+        stage="prologue"
+    /]
+[/#macro]
 
 [#macro writeOutput content ]
-    [#local handlers = getOutputWriterHandlers(commandLineOptions.Output.Writer, "epilogue" ) ]
 
-    [#list handlers as handler ]
-        [#if ! isOutputHandlerDefined(handler) ]
-            [@fatal
-                message="Output handler not defined"
-                context={
-                    "RequestedHandler" : handler,
-                    "AvailableHandlers" : outputHandlerConfiguration?keys
-                }
-            /]
-            [#break]
-        [/#if]
-
-        [#list combineEntities( (commandLineOptions.Deployment.Provider.Names)![], [ SHARED_PROVIDER ]) as provider ]
-            [#local handlerFunctionOptions = [
-                [ provider, "outputhandler", handler ]
-            ]]
-            [#local handlerFunction = getFirstDefinedDirective(handlerFunctionOptions)]
-            [#if handlerFunction?has_content]
-                [#local result = (.vars[handlerFunction])( getOutputFileProperties(), content ) ]
-                [@setOutputFileProperties?with_args(result) /]
-            [#else]
-                [@debug
-                    message="Unable to invoke output handler"
-                    context=handlerFunctionOptions
-                    enabled=true
-                /]
-            [/#if]
-        [/#list]
-    [/#list]
+    [@invokeOutputHandlers
+        writer=commandLineOptions.Output.Writer
+        stage="epilogue"
+        content=content
+    /]
 
     [#-- Make sure the file properties have been set --]
     [#local finalFileProperties = getCompositeObject(outputFilePropertiesAttributes, getOutputFileProperties())]

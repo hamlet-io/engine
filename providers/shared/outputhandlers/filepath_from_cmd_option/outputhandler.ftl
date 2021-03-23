@@ -24,8 +24,5 @@
             [/#if]
         [/#list]
     [/#if]
-
-    [@debug message="FilePath" context=properties enabled=true /]
-
     [#return properties]
 [/#function]
