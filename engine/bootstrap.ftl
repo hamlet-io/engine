@@ -92,9 +92,6 @@
 [#-- Setup the contract outputs before invoking the entrance to allow for errors to be caught --]
 [@setupContractOutputs /]
 
-[#-- Update the providers list based on the plugins defined in the layer --]
-[@addEnginePluginMetadata getCommandLineOptions().Plugins.State /]
-
 [#-- Load providers based on the providers list  --]
 [@includeProviders getCLODeploymentProviders() /]
 [@includeCoreProviderConfiguration getCLODeploymentProviders() /]

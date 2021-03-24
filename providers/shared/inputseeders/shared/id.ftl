@@ -315,6 +315,11 @@
 
 [#function shared_configtransformer_pluginload filter state]
 
+    [#-- Update the providers list based on the plugins defined in the layer --]
+    [@addEnginePluginMetadata
+        pluginState=(state["CommandLineOptions"]["Plugins"]["State"])!{}
+    /]
+
     [#-- Look through the active layers and update the providers list to include plugins defined on the layers --]
     [#local definedPlugins = getActivePluginsFromLayers() ]
 
