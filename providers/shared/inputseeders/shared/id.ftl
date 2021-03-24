@@ -315,67 +315,74 @@
 
 [#function shared_configtransformer_pluginload filter state]
 
-    [#-- Update the providers list based on the plugins defined in the layer --]
-    [@addEnginePluginMetadata
-        pluginState=(state["CommandLineOptions"]["Plugins"]["State"])!{}
-    /]
+    [#local entrance = (state["CommandLineOptions"]["Entrance"]["Type"])!"" ]
 
-    [#-- Look through the active layers and update the providers list to include plugins defined on the layers --]
-    [#local definedPlugins = getActivePluginsFromLayers() ]
-
-    [#local providers = [] ]
-
-    [#list definedPlugins?sort_by("Priority") as plugin]
-        [#local pluginRequired = plugin.Required]
-
-        [#local definedPluginState = (pluginState["Plugins"][plugin.Id])!{} ]
-
-        [#if pluginRequired && !(definedPluginState?has_content) && plugin.Source != "local" ]
-            [@fatal
-                message="Plugin setup not complete"
-                detail="A plugin was required but plugin setup has not been run"
-                context=plugin
-            /]
-        [/#if]
-
-
-        [#local pluginProviderMarker = providerMarkers?filter(
-                                            marker -> marker.Path?keep_after_last("/") == plugin.Name ) ]
-
-        [#if !(pluginProviderMarker?has_content) && pluginRequired  ]
-            [@fatal
-                message="Unable to load required provider"
-                detail="The provider could not be found in the local state - please load hamlet plugins"
-                context=plugin
-            /]
-            [#continue]
-        [/#if]
-
-        [@addPluginMetadata
-            id=plugin.Id
-            ref=(definedPluginState.ref)!plugin.Source
+    [#if entrance != "loader" ]
+        [#-- Update the providers list based on the plugins defined in the layer --]
+        [#local pluginState = (state["CommandLineOptions"]["Plugins"]["State"])!{}]
+        [@addEnginePluginMetadata
+            pluginState=pluginState
         /]
 
-        [#local providers += [ plugin.Name ] ]
+        [#-- Look through the active layers and update the providers list to include plugins defined on the layers --]
+        [#local definedPlugins = getActivePluginsFromLayers() ]
 
-    [/#list]
+        [#local providers = [] ]
 
-    [#local currentProviders = (state["CommandLineOptions"]["Deployment"]["Provider"]["Names"])![] ]
+        [#list definedPlugins?sort_by("Priority") as plugin]
+            [#local pluginRequired = plugin.Required]
 
-    [#return
-        mergeObjects(
-            state,
-            {
-                "CommandLineOptions" : {
-                    "Deployment" : {
-                        "Provider" : {
-                            "Names" : combineEntities(currentProviders, providers, UNIQUE_COMBINE_BEHAVIOUR )
+            [#local definedPluginState = (pluginState["Plugins"][plugin.Id])!{} ]
+
+            [#if pluginRequired && !(definedPluginState?has_content) && plugin.Source != "local" ]
+                [@fatal
+                    message="Plugin setup not complete"
+                    detail="A plugin was required but plugin setup has not been run"
+                    context=plugin
+                /]
+            [/#if]
+
+
+            [#local pluginProviderMarker = providerMarkers?filter(
+                                                marker -> marker.Path?keep_after_last("/") == plugin.Name ) ]
+
+            [#if !(pluginProviderMarker?has_content) && pluginRequired  ]
+                [@fatal
+                    message="Unable to load required provider"
+                    detail="The provider could not be found in the local state - please load hamlet plugins"
+                    context=plugin
+                /]
+                [#continue]
+            [/#if]
+
+            [@addPluginMetadata
+                id=plugin.Id
+                ref=(definedPluginState.ref)!plugin.Source
+            /]
+
+            [#local providers += [ plugin.Name ] ]
+
+        [/#list]
+
+        [#local currentProviders = (state["CommandLineOptions"]["Deployment"]["Provider"]["Names"])![] ]
+
+        [#return
+            mergeObjects(
+                state,
+                {
+                    "CommandLineOptions" : {
+                        "Deployment" : {
+                            "Provider" : {
+                                "Names" : combineEntities(currentProviders, providers, UNIQUE_COMBINE_BEHAVIOUR )
+                            }
                         }
                     }
                 }
-            }
-        )
-     ]
+            )
+        ]
+    [/#if]
+
+    [#return state]
 [/#function]
 
 [#function shared_configtransformer_qualify filter state]
