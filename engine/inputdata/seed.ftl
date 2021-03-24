@@ -49,7 +49,7 @@
         [@(.vars[moduleMacro])?with_args(moduleDetails.Parameters) /]
     [#else]
         [@debug
-            message="Unable to invoke module or parmeters were invalid"
+            message="Unable to invoke module or parameters were invalid"
             context=moduleMacroOptions
             enabled=true
         /]

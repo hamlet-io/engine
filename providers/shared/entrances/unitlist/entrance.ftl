@@ -18,7 +18,7 @@
 [/#macro]
 
 [#-- Add seeder for command line options --]
-[#macro shared_entrance_loader_inputsteps ]
+[#macro shared_entrance_unitlist_inputsteps ]
 
     [@registerInputSeeder
         id=UNITLIST_ENTRANCE_TYPE
