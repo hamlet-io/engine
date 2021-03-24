@@ -14,6 +14,9 @@
 [#-- Input from CMDB --]
 [#assign CMDB_SHARED_INPUT_STAGE = "cmdb"]
 
+[#-- Setup the active layers and their configuration data --]
+[#assign LAYERS_SHARED_INPUT_STAGE = "layers"]
+
 [#-- Allow normalisation of data e.g. stack outputs from the cmdb --]
 [#assign NORMALISE_SHARED_INPUT_STAGE = "normalise"]
 
@@ -21,3 +24,5 @@
 [#assign SIMULATE_SHARED_INPUT_STAGE = "simulate"]
 
 [#assign QUALIFY_SHARED_INPUT_STAGE = "qualify"]
+
+[#assign PLUGINLOAD_SHARED_INPUT_STAGE = "pluginload"]

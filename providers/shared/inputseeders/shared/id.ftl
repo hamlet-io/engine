@@ -37,6 +37,12 @@
     transformer=SHARED_INPUT_SEEDER
 /--]
 
+[@addTransformerToConfigPipeline
+    stage=PLUGINLOAD_SHARED_INPUT_STAGE
+    transformer=SHARED_INPUT_SEEDER
+/]
+
+
 [#macro shared_inputloader path]
     [#assign shared_cmdb_masterdata =
         (
@@ -257,6 +263,23 @@
     ]
 [/#function]
 
+[#-- Define and setup the layer data so that it can be used by the plugin transformer --]
+[#function shared_configseeder_layers filter state]
+
+    [#local commandLineLayers = state["CommandLineOptions"]["Layers"] ]
+
+    [#list layerConfiguration as id, layer ]
+        [@addLayerData
+            type=layer.Type
+            data=(blueprintObject[layer.ReferenceLookupType])!{}
+        /]
+        [@setActiveLayer
+            type=layer.Type
+            commandLineOptionId=(commandLineLayers[layer.Type])!""
+            data=blueprintObject[layer.Type]
+        /]
+    [/#list]
+[/#function]
 
 [#function shared_stateseeder_mock filter state]
 
@@ -288,6 +311,66 @@
         [#return shared_stateseeder_mock(filter, state) ]
     [/#if]
     [#return state]
+[/#function]
+
+[#function shared_configtransformer_pluginload filter state]
+
+    [#-- Look through the active layers and update the providers list to include plugins defined on the layers --]
+    [#local definedPlugins = getActivePluginsFromLayers() ]
+
+    [#local providers = [] ]
+
+    [#list definedPlugins?sort_by("Priority") as plugin]
+        [#local pluginRequired = plugin.Required]
+
+        [#local definedPluginState = (pluginState["Plugins"][plugin.Id])!{} ]
+
+        [#if pluginRequired && !(definedPluginState?has_content) && plugin.Source != "local" ]
+            [@fatal
+                message="Plugin setup not complete"
+                detail="A plugin was required but plugin setup has not been run"
+                context=plugin
+            /]
+        [/#if]
+
+
+        [#local pluginProviderMarker = providerMarkers?filter(
+                                            marker -> marker.Path?keep_after_last("/") == plugin.Name ) ]
+
+        [#if !(pluginProviderMarker?has_content) && pluginRequired  ]
+            [@fatal
+                message="Unable to load required provider"
+                detail="The provider could not be found in the local state - please load hamlet plugins"
+                context=plugin
+            /]
+            [#continue]
+        [/#if]
+
+        [@addPluginMetadata
+            id=plugin.Id
+            ref=(definedPluginState.ref)!plugin.Source
+        /]
+
+        [#local providers += [ plugin.Name ] ]
+
+    [/#list]
+
+    [#local currentProviders = (state["CommandLineOptions"]["Deployment"]["Provider"]["Names"])![] ]
+
+    [#return
+        mergeObjects(
+            state,
+            {
+                "CommandLineOptions" : {
+                    "Deployment" : {
+                        "Provider" : {
+                            "Names" : combineEntities(currentProviders, providers, UNIQUE_COMBINE_BEHAVIOUR )
+                        }
+                    }
+                }
+            }
+        )
+     ]
 [/#function]
 
 [#function shared_configtransformer_qualify filter state]

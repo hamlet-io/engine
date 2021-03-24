@@ -95,12 +95,6 @@
 [#-- Update the providers list based on the plugins defined in the layer --]
 [@addEnginePluginMetadata getCommandLineOptions().Plugins.State /]
 
-[#if getCLOEntranceType() != "loader" ]
-    [@includeLayers /]
-    [@addPluginsFromLayers getCommandLineOptions().Plugins.State /]
-    [@clearLayerData /]
-[/#if]
-
 [#-- Load providers based on the providers list  --]
 [@includeProviders getCLODeploymentProviders() /]
 [@includeCoreProviderConfiguration getCLODeploymentProviders() /]
