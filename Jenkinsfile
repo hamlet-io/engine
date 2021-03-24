@@ -21,7 +21,7 @@ pipeline {
 
             steps {
                 sh '''#!/usr/bin/env bash
-                    hamlet -i mock -p shared -p aws -p azure schema create-schemas -o "${SCHEMA_OUTPUT_DIR}"
+                    hamlet -i mock -p shared schema create-schemas -o "${SCHEMA_OUTPUT_DIR}"
                 '''
             }
         }
