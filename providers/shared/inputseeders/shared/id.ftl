@@ -20,7 +20,7 @@
     seeder=SHARED_INPUT_SEEDER
 /]
 
-[@addSeederToConfigPipeline
+[@addSeederToStatePipeline
     stage=FIXTURE_SHARED_INPUT_STAGE
     seeder=SHARED_INPUT_SEEDER
 /]
