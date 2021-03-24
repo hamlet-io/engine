@@ -5,13 +5,13 @@
     description="Shared inputs"
 /]
 
-[@addSeederToInputPipeline
+[@addSeederToConfigPipeline
     stage=MASTERDATA_SHARED_INPUT_STAGE
     seeder=SHAREDTEST_INPUT_SEEDER
 /]
 
 [#-- Masterdata seeders --]
-[#function sharedtest_inputseeder_masterdata filter state]
+[#function sharedtest_configseeder_masterdata filter state]
 
     [#return
         mergeObjects(
