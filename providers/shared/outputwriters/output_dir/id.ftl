@@ -6,13 +6,12 @@
         [
             {
                 "Type"  : "Description",
-                "Value" : "Output to a directory provided as a command line option"
+                "Value" : "Output to a file and directory provided as a command line option"
             }
         ]
     prologueHandlers=[
         "setup_cmdb",
-        "filepath_from_cmd_option",
-        "filename_from_base_options"
+        "filepath_from_cmd_option"
     ]
 
     epilogueHandlers=[

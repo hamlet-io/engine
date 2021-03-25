@@ -803,7 +803,7 @@ are added.
     [/#list]
 
     [#-- Validate --]
-    [#if commandLineOptions.Validate!false && evaluatedRefAttributes?? ]
+    [#if getCommandLineOptions().Validate!false && evaluatedRefAttributes?? ]
 
         [#-- Common Parameters that are used throughout        --]
         [#-- but are as-yet unaccounted for in the             --]

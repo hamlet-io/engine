@@ -40,7 +40,7 @@
         [#local outputMappings =
             getGenerationContractStepOutputMapping(
                                 combineEntities(
-                                    commandLineOptions.Deployment.Provider.Names,
+                                    getCLODeploymentProviders(),
                                     [ SHARED_PROVIDER],
                                     UNIQUE_COMBINE_BEHAVIOUR
                                 ),

@@ -413,7 +413,7 @@
         stageId=cleanUpStageId
         taskType=RENAME_FILE_TASK_TYPE
         parameters={
-            "currentFileName" : commandLineOptions.Output.FileName,
+            "currentFileName" : getCommandLineOptions().Output.FileName,
             "newFileName" : getOutputFileName("generationcontract", "primary")
         }
     /]
