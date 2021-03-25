@@ -129,7 +129,7 @@
             [#break]
         [/#if]
 
-        [#list combineEntities( commandLineOptions.Deployment.Provider.Names, [ SHARED_PROVIDER ]) as provider ]
+        [#list combineEntities( getCLODeploymentProviders(), [ SHARED_PROVIDER ], UNIQUE_COMBINE_BEHAVIOUR) as provider ]
             [#local handlerFunctionOptions = [
                 [ provider, "outputhandler", handler ]
             ]]
@@ -150,7 +150,7 @@
 
 [#macro setupOutput ]
     [@invokeOutputHandlers
-        writer=commandLineOptions.Output.Writer
+        writer=getCommandLineOptions().Output.Writer
         stage="prologue"
     /]
 [/#macro]
@@ -158,7 +158,7 @@
 [#macro writeOutput content ]
 
     [@invokeOutputHandlers
-        writer=commandLineOptions.Output.Writer
+        writer=getCommandLineOptions().Output.Writer
         stage="epilogue"
         content=content
     /]

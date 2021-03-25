@@ -422,8 +422,8 @@
 
     [#local outputPrefix = getOutputFilePrefix(
                                 getCLOEntranceType(),
-                                getDeploymentGroup(),
-                                getDeploymentUnit(),
+                                getCLODeploymentGroup(),
+                                getCLODeploymentUnit(),
                                 subset,
                                 getCommandLineOptions().Layers[ACCOUNT_LAYER_TYPE],
                                 getCLOSegmentRegion(),
@@ -433,7 +433,7 @@
 
     [#local outputMappings = getGenerationContractStepOutputMapping(
                                 combineEntities(
-                                    getCLODeploymentProviders,
+                                    getCLODeploymentProviders(),
                                     [ SHARED_PROVIDER],
                                     UNIQUE_COMBINE_BEHAVIOUR
                                 ),
@@ -464,15 +464,15 @@
     [#return {
         "entrance"               : getCLOEntranceType(),
         "flows"                  : getCLOFlows()?join(","),
-        "providers"              : (getCLODeploymentProviders?join(","))!SHARED_PROVIDER,
+        "providers"              : (getCLODeploymentProviders()?join(","))!SHARED_PROVIDER,
         "deploymentFramework"    : getCLODeploymentFramework(),
         "outputType"             : outputMappings["OutputType"],
         "outputFormat"           : outputMappings["OutputFormat"],
         "pass"                   : subset,
         "passAlternative"        : alternative,
-        "deploymentUnit"         : getDeploymentUnit(),
+        "deploymentUnit"         : getCLODeploymentUnit(),
         "deploymentUnitSubset"   : deploymentUnitSubset,
-        "deploymentGroup"        : getDeploymentGroup(),
+        "deploymentGroup"        : getCLODeploymentGroup(),
         "resourceGroup"          : getCLODeploymentResourceGroup(),
         "account"                : getCommandLineOptions().Layers[ACCOUNT_LAYER_TYPE],
         "accountRegion"          : getCLOAccountRegion(),

@@ -99,7 +99,7 @@
             [#local testCase = testCases[testCaseName] ]
 
             [#local outputProviders = combineEntities(
-                                            (commandLineOptions.Deployment.Provider.Names)![],
+                                            getCLODeploymentProviders(),
                                             [ SHARED_PROVIDER],
                                             UNIQUE_COMBINE_BEHAVIOUR
                                         )]
@@ -107,8 +107,8 @@
             [#local outputMapping = getGenerationContractStepOutputMappingFromSuffix( outputProviders, testCase.OutputSuffix)]
             [#local filePrefix = getOutputFilePrefix(
                                     "deployment"
-                                    getDeploymentGroup(),
-                                    getDeploymentUnit(),
+                                    getCLODeploymentGroup(),
+                                    getCLODeploymentUnit(),
                                     outputMapping["Subset"],
                                     getCommandLineOptions().Layers[ACCOUNT_LAYER_TYPE],
                                     getCLOSegmentRegion(),

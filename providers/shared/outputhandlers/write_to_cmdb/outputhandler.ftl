@@ -22,15 +22,19 @@
         [#local fileFormat=""]
     [/#if]
 
-    [#local result = toCMDB(
-        formatAbsolutePath(
-            fileProperties["directory"],
-            fileProperties["filename"]
-        ),
-        content,
-        {
-            "Format" : fileFormat
-        }
-    )]
+    [#if (fileProperties["directory"])!"")?has_content &&
+            (fileProperties["filename"])!"")?has_content ]
+
+        [#local result = toCMDB(
+            formatAbsolutePath(
+                (fileProperties["directory"])!"",
+                (fileProperties["filename"])!""
+            ),
+            content,
+            {
+                "Format" : fileFormat
+            }
+        )]
+    [/#if]
     [#return properties]
 [/#function]
