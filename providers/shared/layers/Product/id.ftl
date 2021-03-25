@@ -17,18 +17,6 @@
         ]
     attributes=[
         {
-            "Names" : "*",
-            "Description" : "Individual deployment-unit configuration overrides. Attribute must match the DeploymentUnit value.",
-            "Types" : OBJECT_TYPE,
-            "Children" : [
-                {
-                    "Names" : "Region",
-                    "Description" : "An override of the Region for a single DeploymentUnit.",
-                    "Types" : STRING_TYPE
-                }
-            ]
-        },
-        {
             "Names" : "Region",
             "Types" : STRING_TYPE
         },
@@ -122,6 +110,18 @@
             "Names" : "PlacementProfiles",
             "SubObjects" : true,
             "Children" : placementProfileConfiguration
+        },
+        {
+            "Names" : "*",
+            "Description" : "Individual deployment-unit configuration overrides. Attribute must match the DeploymentUnit value.",
+            "Types" : OBJECT_TYPE,
+            "Children" : [
+                {
+                    "Names" : "Region",
+                    "Description" : "An override of the Region for a single DeploymentUnit.",
+                    "Types" : STRING_TYPE
+                }
+            ]
         }
     ]
 /]

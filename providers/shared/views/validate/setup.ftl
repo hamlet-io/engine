@@ -10,6 +10,11 @@
     [#local blueprintAttributes = getBlueprintConfiguration()]
     [#local validComposite = getBluePrintObject(blueprintAttributes, blueprintObject)]
 
+    [@validateCompositeObject
+        attributes=blueprintAttributes
+        object=validComposite
+    /]
+
     [#if getLogLevel() > INFORMATION_LOG_LEVEL]
         [#local logLevel = updateLogLevel(INFORMATION_LOG_LEVEL)]
     [/#if]

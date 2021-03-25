@@ -25,6 +25,16 @@
     seeder=SHARED_INPUT_SEEDER
 /]
 
+[@addSeederToConfigPipeline
+    stage=LAYERS_SHARED_INPUT_STAGE
+    seeder=SHARED_INPUT_SEEDER
+/]
+
+[@addSeederToConfigPipeline
+    stage=LAYERCLEANER_SHARED_INPUT_STAGE
+    seeder=SHARED_INPUT_SEEDER
+/]
+
 [@addSeederToStatePipeline
     stage=SIMULATE_SHARED_INPUT_STAGE
     seeder=SHARED_INPUT_SEEDER
@@ -159,6 +169,12 @@
 [/#function]
 
 [#function shared_configseeder_commandlineoptions_composite filter state]
+
+    [#local blueprint = (blueprint!"")?has_content?then(
+                                            blueprint?eval_json,
+                                            {}
+                        )]
+
     [#return
         mergeObjects(
             shared_configseeder_commandlineoptions(filter, state),
@@ -169,10 +185,7 @@
                         "Configuration" : configurationReference!""
                     },
                     "Composites" : {
-                        "Blueprint" : (blueprint!"")?has_content?then(
-                                            blueprint?eval,
-                                            {}
-                        ),
+                        "Blueprint" : blueprint,
                         "Settings" : (settings!"")?has_content?then(
                                             settings?eval,
                                             {}
@@ -190,7 +203,8 @@
                         "Segment" : region!"",
                         "Account" : accountRegion!""
                     }
-                }
+                },
+                "Blueprint" : blueprint
             }
         )
     ]
@@ -267,18 +281,25 @@
 [#function shared_configseeder_layers filter state]
 
     [#local commandLineLayers = state["CommandLineOptions"]["Layers"] ]
+    [#local blueprint = state["Blueprint"] ]
 
     [#list layerConfiguration as id, layer ]
         [@addLayerData
             type=layer.Type
-            data=(blueprintObject[layer.ReferenceLookupType])!{}
+            data=(blueprint[layer.ReferenceLookupType])!{}
         /]
         [@setActiveLayer
             type=layer.Type
             commandLineOptionId=(commandLineLayers[layer.Type])!""
-            data=blueprintObject[layer.Type]
+            data=(blueprint[layer.Type])!{}
         /]
     [/#list]
+    [#return state]
+[/#function]
+
+[#function shared_configseeder_layercleaner filter state ]
+    [@clearLayerData /]
+    [#return state]
 [/#function]
 
 [#function shared_stateseeder_mock filter state]

@@ -72,6 +72,7 @@
 [#-- This will configure the bootstrap input source     --]
 [#-- which means command line options will be available --]
 [@includeProviders SHARED_PROVIDER /]
+[@includeCoreProviderConfiguration SHARED_PROVIDER /]
 
 [#-- Set desired logging configuration  --]
 [@setLogLevel getCommandLineOptions().Logging.Level /]
@@ -83,7 +84,6 @@
     inputFilter=getCLOInputFilter()
 /]
 
-[@includeCoreProviderConfiguration SHARED_PROVIDER /]
 [@seedProviderInputSourceData
     providers=[ SHARED_PROVIDER ]
     inputTypes=[ "blueprint" ]

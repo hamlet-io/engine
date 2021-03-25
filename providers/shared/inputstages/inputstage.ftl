@@ -16,6 +16,7 @@
 
 [#-- Setup the active layers and their configuration data --]
 [#assign LAYERS_SHARED_INPUT_STAGE = "layers"]
+[#assign LAYERCLEANER_SHARED_INPUT_STAGE = "layercleaner" ]
 
 [#-- Allow normalisation of data e.g. stack outputs from the cmdb --]
 [#assign NORMALISE_SHARED_INPUT_STAGE = "normalise"]

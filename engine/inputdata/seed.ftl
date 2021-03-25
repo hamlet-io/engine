@@ -46,7 +46,14 @@
     [#local moduleDetails = getModuleDetails(name, provider, parameterConfig)]
 
     [#if moduleMacro?has_content && moduleDetails?has_content ]
-        [@(.vars[moduleMacro])?with_args(moduleDetails.Parameters) /]
+        [#attempt]
+            [@(.vars[moduleMacro])?with_args(moduleDetails.Parameters) /]
+        [#recover]
+            [@fatal
+                message="Macro invocation failed"
+                context=moduleDetails
+            /]
+        [/#attempt]
     [#else]
         [@debug
             message="Unable to invoke module or parameters were invalid"
