@@ -22,8 +22,8 @@
         [#local fileFormat=""]
     [/#if]
 
-    [#if (fileProperties["directory"])!"")?has_content &&
-            (fileProperties["filename"])!"")?has_content ]
+    [#if ((fileProperties["directory"])!"")?has_content &&
+            ((fileProperties["filename"])!"")?has_content ]
 
         [#local result = toCMDB(
             formatAbsolutePath(
