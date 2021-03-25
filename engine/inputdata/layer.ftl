@@ -110,7 +110,7 @@
     [#else]
         [@fatal
             message="Could not find layer"
-            detail=type
+            context={ "type" : type, "ActiveLayers" : layerActiveData }
         /]
         [#return {} ]
     [/#if]
@@ -140,16 +140,18 @@
     [#return results + asArray(default) ]
 [/#function]
 
-[#macro includeLayers ]
+[#macro includeLayers  ]
+    [#local blueprintData = mergeObjects(blueprintObject!{}, getInputState().Blueprint!{}) ]
+
     [#list layerConfiguration as id, layer ]
         [@addLayerData
             type=layer.Type
-            data=(blueprintObject[layer.ReferenceLookupType])!{}
+            data=(blueprintData[layer.ReferenceLookupType])!{}
         /]
         [@setActiveLayer
             type=layer.Type
             commandLineOptionId=(getCommandLineOptions().Layers[layer.Type])!""
-            data=blueprintObject[layer.Type]
+            data=blueprintData[layer.Type]
         /]
     [/#list]
 [/#macro]

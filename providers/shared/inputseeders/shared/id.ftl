@@ -20,7 +20,7 @@
     seeder=SHARED_INPUT_SEEDER
 /]
 
-[@addSeederToStatePipeline
+[@addSeederToConfigPipeline
     stage=FIXTURE_SHARED_INPUT_STAGE
     seeder=SHARED_INPUT_SEEDER
 /]
@@ -226,6 +226,15 @@
                     },
                     "Run" : {
                         "Id" : "runId098"
+                    },
+
+                    [#-- Layer Details --]
+                    "Layers" : {
+                        "Tenant" : "mockten",
+                        "Account" : "mockacct",
+                        "Product" : "mockedup",
+                        "Environment" : "int",
+                        "Segment" : "default"
                     }
                 }
             }
@@ -250,7 +259,6 @@
     ]
 
 [/#function]
-
 
 [#function shared_configseeder_masterdata_mock filter state]
     [#return
@@ -277,11 +285,84 @@
     ]
 [/#function]
 
+[#-- Fixture seeders --]
+[#function shared_configseeder_fixture filter state ]
+
+    [#local fixtureData =
+        {
+            "Tenant": {
+                "Id": "mockten",
+                "CertificateBehaviours": {
+                    "External": true
+                }
+            },
+            "Account": {
+                "Region": "mock-region-1",
+                "Domain": "mock",
+                "Audit": {
+                    "Offline": 90,
+                    "Expiration": 2555
+                },
+                "Id": "mockacct",
+                "Seed": "abc123",
+                "ProviderId": "0123456789"
+            },
+            "Product": {
+                "Id": "mockedup",
+                "Region": "mock-region-1",
+                "Domain": "mockedup",
+                "Profiles": {
+                    "Placement": "default"
+                }
+            },
+            "Environment": {
+                "Id": "int",
+                "Name": "integration"
+            },
+            "Segment": {
+                "Id": "default",
+                "Bastion": {
+                    "Active": false
+                },
+                "multiAZ": true
+            },
+            "IPAddressGroups": {},
+            "Domains": {
+                "Validation": "mock.local",
+                "mockdomain": {
+                    "Stem": "mock.local"
+                }
+            },
+            "Certificates": {
+                "mockedup": {
+                    "Domain": "mockdomain"
+                }
+            },
+            "Solution": {
+                "Id": "mockapp"
+            }
+        }
+
+    ]
+
+    [#return mergeObjects(
+        state,
+        {
+            "CommandLineOptions" : {
+                "Composites" : {
+                    "Blueprint" : fixtureData
+                }
+            },
+            "Blueprint" :fixtureData
+        }
+    )]
+[/#function]
+
 [#-- Define and setup the layer data so that it can be used by the plugin transformer --]
 [#function shared_configseeder_layers filter state]
 
-    [#local commandLineLayers = state["CommandLineOptions"]["Layers"] ]
-    [#local blueprint = state["Blueprint"] ]
+    [#local commandLineLayers = (state["CommandLineOptions"]["Layers"])!{} ]
+    [#local blueprint = (state["Blueprint"])!{} ]
 
     [#list layerConfiguration as id, layer ]
         [@addLayerData
