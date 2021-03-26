@@ -30,10 +30,12 @@
     seeder=SHARED_INPUT_SEEDER
 /]
 
-[@addTransformerToConfigPipeline
+[#-- TODO(mfl) Reenable once layers are in the input processing --]
+[#-- so the layer ids can be included in the qualifiers         --]
+[#--@addTransformerToConfigPipeline
     stage=QUALIFY_SHARED_INPUT_STAGE
     transformer=SHARED_INPUT_SEEDER
-/]
+/--]
 
 [#macro shared_inputloader path]
     [#assign shared_cmdb_masterdata =
