@@ -210,7 +210,7 @@
     /]
 
     [#local schemaType = commandLineOptions.Deployment.Unit.Name]
-    [#return schema = getOutputContent("schema",  schemaType)!{}]
+    [#return getOutputContent("schema",  schemaType)!{} ]
 [/#function]
 
 [#macro addSchemaToDefaultJsonOutput section config schemaId=""]
