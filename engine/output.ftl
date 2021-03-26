@@ -114,13 +114,14 @@
     [#return outputs[name].ContentAdded!false ]
 [/#function]
 
-[#macro serialiseOutput name]
+[#function serialiseOutput name]
     [#local serialiser = outputs[name].Serialiser ]
     [#if (outputs[name].ContentAdded!false) && serialiser?has_content]
         [#-- Output is serialisable --]
-        [@invokeMacro serialiser outputs[name] /]
+        [#return invokeFunction(serialiser, outputs[name]) /]
     [/#if]
-[/#macro]
+    [#return ""]
+[/#function]
 
 [#-- OUTPUT_TEXT_FORMAT --]
 
@@ -206,7 +207,9 @@
 [/#macro]
 
 [#-- Sort the sections and then serialise as lines of text --]
-[#macro text_output_serialiser args=[] ]
+[#function text_output_serialiser args=[] ]
+    [#local result = "" ]
+
     [#local output = asFlattenedArray(args)[0] ]
     [#local sections = output.Sections?keys?sort]
     [#list sections as sectionKey]
@@ -216,12 +219,13 @@
             [#local lines = invokeFunction(section.Converter, section.Content)]
         [/#if]
         [#if lines?is_sequence]
-            [#list lines as line]
-            ${line}
+            [#list lines as line ]
+                [#local result += "${line}${'\n'}" ]
             [/#list]
         [/#if]
     [/#list]
-[/#macro]
+    [#return result ]
+[/#function]
 
 [#-- OUTPUT_JSON_FORMAT --]
 
@@ -278,7 +282,7 @@
     /]
 [/#macro]
 
-[#macro json_output_serialiser args=[] ]
+[#function json_output_serialiser args=[] ]
     [#local output = asFlattenedArray(args)[0] ]
     [#local sections = output.Sections?keys?sort]
     [#local result = {} ]
@@ -292,8 +296,8 @@
             [#local result = mergeObjects(result, content) ]
         [/#if]
     [/#list]
-    [@toJSON result /]
-[/#macro]
+    [#return result ]
+[/#function]
 
 [#-- Cross-format support --]
 [#macro addMessagesToOutput name messages section="zzzfooter" ]
@@ -317,24 +321,33 @@
 
 [#macro generateOutput deploymentFramework type format="" level="" include=""]
 
+    [@setupOutput /]
+
     [#-- Remember the output attributes to determine --]
-    [#local macroOptions =
+    [#local functionOptions =
         [
             [deploymentFramework, "output", type, format],
             [DEFAULT_DEPLOYMENT_FRAMEWORK, "output", type, format]
         ] ]
 
-    [#local macro = getFirstDefinedDirective(macroOptions) ]
+    [#local outputFunction = getFirstDefinedDirective(functionOptions) ]
 
-    [#if macro?has_content]
-        [@(.vars[macro]) level=level include=include /]
+    [#local content = "" ]
+
+    [#if outputFunction?has_content]
+        [#local content = (.vars[outputFunction])( level, include )]
     [#else]
         [@debug
-            message="Unable to invoke output macro"
-            context=macroOptions
+            message="Unable to invoke output function"
+            context=functionOptions
             enabled=false
         /]
     [/#if]
+
+    [@writeOutput content=content /]
+
+    [#-- Always write log messages to the standard output file --]
+    ${getJSON({ "HamletMessages" : logMessages }, escaped)}
 [/#macro]
 
 [#-- Generation Contracts --]
@@ -346,6 +359,7 @@
                 {
                     provider : {
                         subset : {
+                            "Subset" : subset,
                             "OutputType" : outputType,
                             "OutputFormat" : outputFormat,
                             "OutputSuffix" : outputSuffix
@@ -354,6 +368,26 @@
                 }
         )]
 [/#macro]
+
+[#function getGenerationContractStepOutputMapping providers subset ]
+    [#return (getGenerationContractStepOutputMappings(providers)?filter( x -> x.Subset == subset)[0] )!{} ]
+[/#function]
+
+[#function getGenerationContractStepOutputMappingFromSuffix providers suffix ]
+    [#return (getGenerationContractStepOutputMappings(providers)?filter( x -> x.OutputSuffix == suffix)[0] )!{} ]
+[/#function]
+
+[#function getGenerationContractStepOutputMappings providers ]
+    [#local result = []]
+    [#list providers as provider]
+        [#if ((generationcontractStepOutputMappings[provider])!{})?has_content ]
+            [#list generationcontractStepOutputMappings[provider] as id,subset ]
+                [#local result += [ subset ]]
+            [/#list]
+        [/#if]
+    [/#list]
+    [#return result]
+[/#function]
 
 [#-- Output mappings object is extended dynamically by each resource type --]
 [#assign outputMappings = {} ]
@@ -384,42 +418,165 @@
     [/#if]
 [/#function]
 
-[#function getGenerationContractStepOutputMapping provider subset ]
-    [#if ((generationcontractStepOutputMappings[provider][subset])!{})?has_content ]
-        [#return generationcontractStepOutputMappings[provider][subset]]
-    [/#if]
+[#function getOutputFileName subset alternative ]
 
-    [#if ((generationcontractStepOutputMappings[SHARED_PROVIDER][subset])!{})?has_content ]
-        [#return generationcontractStepOutputMappings[SHARED_PROVIDER][subset]]
-    [/#if]
+    [#local outputPrefix = getOutputFilePrefix(
+                                getCLOEntranceType(),
+                                getCLODeploymentGroup(),
+                                getCLODeploymentUnit(),
+                                subset,
+                                getCommandLineOptions().Layers[ACCOUNT_LAYER_TYPE],
+                                getCLOSegmentRegion(),
+                                getCLOAccountRegion(),
+                                alternative
+                            )]
 
-    [#return {}]
+    [#local outputMappings = getGenerationContractStepOutputMapping(
+                                combineEntities(
+                                    getCLODeploymentProviders(),
+                                    [ SHARED_PROVIDER],
+                                    UNIQUE_COMBINE_BEHAVIOUR
+                                ),
+                                subset
+                            )]
+
+    [#local outputSuffix = (outputMappings["OutputSuffix"])!"" ]
+
+    [#return formatName(outputPrefix, outputSuffix)]
 [/#function]
-
 
 [#function getGenerationContractStepParameters subset alternative ]
     [#local outputMappings = getGenerationContractStepOutputMapping(
-                                (getCLODeploymentProviders()[0])!SHARED_PROVIDER,
+                                combineEntities(
+                                    getCLODeploymentProviders(),
+                                    [ SHARED_PROVIDER],
+                                    UNIQUE_COMBINE_BEHAVIOUR
+                                ),
                                 subset
                             )]
-    [#if ! outputMappings?has_content]
-        [@fatal
-            message="Missing output mapping"
-            context=generationcontractStepOutputMappings
-            detail=subset
-            stop=true
-        /]
+
+    [#-- Handle Deployment Subset for generation --]
+    [#local deploymentUnitSubset = "" ]
+    [#if subset != "template"]
+        [#local deploymentUnitSubset = subset ]
     [/#if]
+
     [#return {
-        "provider"      : (getCLODeploymentProviders()?join(","))!SHARED_PROVIDER,
-        "framework"     : getCLODeploymentFramework(),
-        "outputType"    : outputMappings["OutputType"],
-        "outputFormat"  : outputMappings["OutputFormat"],
-        "outputSuffix"  : outputMappings["OutputSuffix"],
-        "subset"        : subset,
-        "alternative"   : alternative
+        "entrance"               : getCLOEntranceType(),
+        "flows"                  : getCLOFlows()?join(","),
+        "providers"              : (getCLODeploymentProviders()?join(","))!SHARED_PROVIDER,
+        "deploymentFramework"    : getCLODeploymentFramework(),
+        "outputType"             : outputMappings["OutputType"],
+        "outputFormat"           : outputMappings["OutputFormat"],
+        "pass"                   : subset,
+        "passAlternative"        : alternative,
+        "deploymentUnit"         : getCLODeploymentUnit(),
+        "deploymentUnitSubset"   : deploymentUnitSubset,
+        "deploymentGroup"        : getCLODeploymentGroup(),
+        "resourceGroup"          : getCLODeploymentResourceGroup(),
+        "account"                : getCommandLineOptions().Layers[ACCOUNT_LAYER_TYPE],
+        "accountRegion"          : getCLOAccountRegion(),
+        "region"                 : getCLOSegmentRegion(),
+        "requestReference"       : getCLORequestReference(),
+        "configurationReference" : getCLOConfigurationReference(),
+        "deploymentMode"         : getDeploymentMode(),
+        "outputFileName"         : getOutputFileName(subset, alternative)
     }]
 [/#function]
+
+[#function getOutputFilePrefix
+        entrance
+        deployment_group
+        deployment_unit
+        deployment_subset
+        account
+        region
+        account_region
+        alternative
+    ]
+
+    [#local deploymentGroupDetails = getDeploymentGroupDetails(deployment_group)]
+    [#local level_prefix = ((deploymentGroupDetails.OutputPrefix)!deploymentGroupDetails.Name)!"" ]
+
+    [#-- set the default values for the file name parts --]
+    [#local filename_parts = {
+        "entrance_prefix" : entrance,
+        "level_prefix" : level_prefix,
+        "deployment_unit_prefix" : deployment_unit,
+        "account_prefix" : account,
+        "region_prefix" : region,
+        "alternative_prefix" : alternative
+    }]
+
+    [#local filename_part_order = [
+        "entrance_prefix",
+        "level_prefix",
+        "deployment_unit_prefix",
+        "account_prefix",
+        "region_prefix",
+        "alternative_prefix"
+    ]]
+
+    [#if filename_parts["alternative_prefix"] == "primary" ]
+        [#local filename_parts =
+            mergeObjects(
+                filename_parts,
+                {
+                    "alternative_prefix" : ""
+                })]
+    [/#if]
+
+    [#switch entrance ]
+        [#case "deployment" ]
+        [#case "deploymenttest" ]
+
+        [#switch level_prefix ]
+            [#case "account" ]
+                [#local filename_parts =
+                            mergeObjects(
+                                filename_parts,
+                                {
+                                    "entrance_prefix" : "",
+                                    "region_prefix" : account_region
+                                })]
+
+                [#break]
+
+            [#case "soln" ]
+            [#case "seg" ]
+            [#case "app" ]
+                [#local filename_parts =
+                            mergeObjects(
+                                filename_parts,
+                                {
+                                    "entrance_prefix" : ""
+                                })]
+                [#break]
+
+        [/#switch]
+        [#break]
+
+        [#default]
+            [#local filename_parts =
+                mergeObjects(
+                    filename_parts,
+                    {
+                        "account_prefix" : "",
+                        "region_prefix" :  ""
+                    })]
+    [/#switch]
+
+    [#local filename = "" ]
+
+    [#list filename_part_order as part ]
+        [#if ((filename_parts[part])!"")?has_content ]
+            [#local filename = formatName( filename, filename_parts[part] ) ]
+        [/#if]
+    [/#list]
+
+    [#return filename ]
+[/#function]
+
 
 [#----------------------------------------------------
 -- Internal support functions for output generation --

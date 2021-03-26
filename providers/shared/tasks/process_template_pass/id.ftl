@@ -10,12 +10,22 @@
         ]
     attributes=[
         {
-            "Names" : "provider",
+            "Names" : "entrance",
             "Types" : STRING_TYPE,
             "Mandatory" : true
         },
         {
-            "Names" : "framework",
+            "Names" : "flows",
+            "Types" : STRING_TYPE,
+            "Mandatory" : true
+        },
+        {
+            "Names" : "providers",
+            "Types" : STRING_TYPE,
+            "Mandatory" : true
+        },
+        {
+            "Names" : "deploymentFramework",
             "Types" : STRING_TYPE,
             "Mandatory" : true
         },
@@ -30,17 +40,67 @@
             "Mandatory" : true
         },
         {
-            "Names" : "outputSuffix",
+            "Names" : "pass",
             "Types" : STRING_TYPE,
             "Mandatory" : true
         },
         {
-            "Names" : "subset",
+            "Names" : "passAlternative",
             "Types" : STRING_TYPE,
             "Mandatory" : true
         },
         {
-            "Names" : "alternative",
+            "Names" : "outputFileName",
+            "Types" : STRING_TYPE,
+            "Mandatory" : true
+        },
+        {
+            "Names" : "deploymentUnit",
+            "Types" : STRING_TYPE,
+            "Mandatory" : true
+        },
+        {
+            "Names" : "deploymentUnitSubset",
+            "Types" : STRING_TYPE,
+            "Mandatory" : true
+        },
+        {
+            "Names" : "deploymentGroup",
+            "Types" : STRING_TYPE,
+            "Mandatory" : true
+        },
+        {
+            "Names" : "resourceGroup",
+            "Types" : STRING_TYPE,
+            "Mandatory" : true
+        },
+        {
+            "Names" : "account",
+            "Types" : STRING_TYPE,
+            "Mandatory" : true
+        },
+        {
+            "Names" : "accountRegion",
+            "Types" : STRING_TYPE,
+            "Mandatory" : true
+        },
+        {
+            "Names" : "region",
+            "Types" : STRING_TYPE,
+            "Mandatory" : true
+        },
+        {
+            "Names" : "requestReference",
+            "Types" : STRING_TYPE,
+            "Mandatory" : true
+        },
+        {
+            "Names" : "configurationReference",
+            "Types" : STRING_TYPE,
+            "Mandatory" : true
+        },
+        {
+            "Names" : "deploymentMode",
             "Types" : STRING_TYPE,
             "Mandatory" : true
         }

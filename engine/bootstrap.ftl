@@ -56,6 +56,7 @@
 
 [#-- Output handling --]
 [#include "output.ftl" ]
+[#include "output_writer.ftl" ]
 
 [#-- openapi handling --]
 [#include "openapi.ftl"]

@@ -98,26 +98,31 @@
         [#if testCases[testCaseName]?? ]
             [#local testCase = testCases[testCaseName] ]
 
+            [#local outputProviders = combineEntities(
+                                            getCLODeploymentProviders(),
+                                            [ SHARED_PROVIDER],
+                                            UNIQUE_COMBINE_BEHAVIOUR
+                                        )]
 
-            [#local outputPrefix = getCLODeploymentOutputPrefix() ]
+            [#local outputMapping = getGenerationContractStepOutputMappingFromSuffix( outputProviders, testCase.OutputSuffix)]
+            [#local filePrefix = getOutputFilePrefix(
+                                    "deployment"
+                                    getCLODeploymentGroup(),
+                                    getCLODeploymentUnit(),
+                                    outputMapping["Subset"],
+                                    getCommandLineOptions().Layers[ACCOUNT_LAYER_TYPE],
+                                    getCLOSegmentRegion(),
+                                    getCLOAccountRegion(),
+                                    "primary"
+                            )]
 
-            [#-- minor fix to allow for outputs which are created for non-standard deployment groups --]
-            [#-- We currently rely on the fact that outputs all have the same prefix when we now include the entrance as part of the prefix --]
-            [#if outputPrefix?starts_with(DEPLOYMENTTEST_ENTRANCE_TYPE) ]
-                [#local outputPrefix = outputPrefix?remove_beginning(DEPLOYMENTTEST_ENTRANCE_TYPE)?ensure_starts_with(DEPLOYMENT_ENTRANCE_TYPE) ]
-            [/#if]
+            [#local outputFileName = formatName(filePrefix, outputMapping["OutputSuffix"]) ]
 
             [#local tests = mergeObjects(
                 tests,
                 {
                     testCaseFullName  : {
-                        "filename" : concatenate(
-                                        [
-                                            outputPrefix,
-                                            testCase.OutputSuffix
-                                        ],
-                                        ""
-                                    ),
+                        "filename" : outputFileName,
                         "cfn_lint" : testCase.Tools.CFNLint,
                         "cfn_nag"  : testCase.Tools.CFNNag
                     }

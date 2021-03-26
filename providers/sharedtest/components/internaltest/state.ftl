@@ -21,7 +21,6 @@
 
     [#-- Add in extension specifics including override of defaults --]
     [#if solution.Extensions?has_content ]
-        [@debug message="ExtensionHunting" enabled=true/]
         [#local _context = invokeExtensions( occurrence, _context )]
     [/#if]
 
