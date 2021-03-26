@@ -23,6 +23,11 @@
                             "Mandatory" : true
                         },
                         {
+                            "Names" : "MountPath",
+                            "Types" : STRING_TYPE,
+                            "Description" : "The OS path to mount the volume"
+                        },
+                        {
                             "Names" : "Size",
                             "Types" : NUMBER_TYPE,
                             "Mandatory" : true
