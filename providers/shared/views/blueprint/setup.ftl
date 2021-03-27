@@ -1,7 +1,7 @@
 [#ftl]
 
 [#function getTenantBlueprint]
-    [#local result=
+    [#local result =
         {
             "Metadata" : {
                 "Prepared" : .now?iso_utc,
@@ -18,7 +18,7 @@
                     "Products" : getProductBlueprint()
                 }
             ]
-        }
+        }]
     [#return result]
 [/#function]
 
