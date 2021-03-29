@@ -21,7 +21,7 @@
 [#include "inputdata/blueprint.ftl" ]
 [#include "inputdata/reference.ftl" ]
 [#include "inputdata/setting.ftl" ]
-[#include "inputdata/stackOutput.ftl" ]
+[#--include "inputdata/stackOutput.ftl" --]
 [#include "inputdata/definition.ftl" ]
 [#include "inputdata/seed.ftl" ]
 
@@ -76,6 +76,7 @@
 [#-- Set desired logging configuration  --]
 [@setLogLevel getCommandLineOptions().Logging.Level /]
 [@setLogFatalStopThreshold getCommandLineOptions().Logging.FatalStopThreshold /]
+[@setLogDepthLimit getCommandLineOptions().Logging.DepthLimit /]
 
 [#-- Reinitialise the input system based on the CLO input source and filter --]
 [@initialiseInputProcessing

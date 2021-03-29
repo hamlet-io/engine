@@ -25,17 +25,22 @@
     "fatal"
     ] ]
 
+[#-- Log history during invocation of the engine --]
 [#assign logMessages = [] ]
 
-[#-- Set LogLevel variable to use a different log level --]
-[#-- Can either be set as a number or as a string       --]
-[#assign currentLogLevel = FATAL_LOG_LEVEL ]
+[#-- Default value ensures any startup message before   --]
+[#-- any user log level setting is applied are captured --]
+[#assign currentLogLevel = INFORMATION_LOG_LEVEL ]
 
 [#-- Set the stop threshold                             --]
 [#-- Number of fatal errors at which processing will    --]
 [#-- be stopped                                         --]
 [#-- <=0 ==> skip threshold checking                    --]
 [#assign logFatalStopThreshold = 0]
+
+[#-- Set the depth threshold                            --]
+[#-- Limits the depth of objects logged                 --]
+[#assign logMessageDepthLimit = 0]
 
 [#function getLogLevel ]
     [#return currentLogLevel]
@@ -56,8 +61,22 @@
     [#return getLogLevel()]
 [/#function]
 
+[#-- Set LogLevel variable to use a different log level --]
+[#-- Can either be set as a number or as a string       --]
 [#macro setLogLevel level]
     [#local level = updateLogLevel(level) ]
+[/#macro]
+
+[#-- Set LogLevel variable to use a different log level --]
+[#-- Can either be set as a number or as a string       --]
+[#macro setLogDepthLimit depth]
+    [#local requiredDepth = depth]
+    [#if depth?is_string]
+        [#local requiredDepth = depth?number]
+    [/#if]
+    [#if requiredDepth?is_number && requiredDepth > 0]
+        [#assign logMessageDepthLimit = requiredDepth ]
+    [/#if]
 [/#macro]
 
 [#function willLog level ]
@@ -66,16 +85,20 @@
 
 [#macro logMessage severity message context={} detail={} enabled=false]
     [#if enabled && willLog(severity)]
-        [#assign logMessages +=
-            [
-                {
-                    "Timestamp" : datetimeAsString(.now),
-                    "Severity" : logLevelDescriptions[severity]!"unknown",
-                    "Message" : message
-                } +
-                attributeIfContent("Context", context) +
-                attributeIfContent("Detail", detail)
-            ] ]
+        [#local entry =
+            {
+                "Timestamp" : datetimeAsString(.now),
+                "Severity" : logLevelDescriptions[severity]!"unknown",
+                "Message" : message
+            } +
+            attributeIfContent("Context", context) +
+            attributeIfContent("Detail", detail)
+        ]
+        [#if logMessageDepthLimit > 0]
+            [#-- Allow for the overall entry structure in the depth calculation --]
+            [#local entry = getEntityToDepth(entry, logMessageDepthLimit + 1) ]
+        [/#if]
+        [#assign logMessages += [entry] ]
     [/#if]
 [/#macro]
 

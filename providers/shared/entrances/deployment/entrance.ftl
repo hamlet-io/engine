@@ -91,7 +91,7 @@
                             "CommandLineOptions" : {
                                 "Deployment" : {
                                     "Unit" : {
-                                        "Subset" : state.Deployment.Unit.Name
+                                        "Subset" : state.CommandLineOptions.Deployment.Unit.Name
                                     }
                                 }
                             }
@@ -101,7 +101,6 @@
             [/#if]
         [/#if]
     [/#list]
-
     [#return state]
 
 [/#function]

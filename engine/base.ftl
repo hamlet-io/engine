@@ -704,140 +704,12 @@ are added.
         [/#if]
     [/#list]
 
-    [#-- Normalise attributes --]
-    [#local normalisedAttributes = [] ]
-    [#local inhibitEnabled = false]
-    [#local explicitEnabled = false]
-    [#if attributes?has_content]
-        [#list asFlattenedArray(attributes) as attribute]
-            [#local normalisedAttribute =
-                {
-                    "Names" : asArray(attribute),
-                    "Types" : [ANY_TYPE],
-                    "Mandatory" : false,
-                    "DefaultBehaviour" : "ignore",
-                    "DefaultProvided" : false,
-                    "Default" : "",
-                    "Values" : [],
-                    "Children" : [],
-                    "SubObjects" : false,
-                    "PopulateMissingChildren" : true,
-                    "AttributeSet" : "",
-                    "Component" : ""
-                } ]
-            [#if normalisedAttribute.Names?seq_contains("InhibitEnabled") ]
-                [#local inhibitEnabled = true ]
-            [/#if]
-            [#if attribute?is_hash ]
-                [#local names = attribute.Names!"Hamlet:Missing" ]
-                [#if (names?is_string) && (names == "Hamlet:Missing") ]
-                    [@fatal
-                        message="Attribute must have a \"Names\" attribute"
-                        context=attribute
-                    /]
-                [/#if]
-                [#local normalisedAttribute =
-                    {
-                        "Names" : asArray(names),
-                        "Types" : asArray(attribute.Types!attribute.Type!ANY_TYPE),
-                        "Mandatory" : attribute.Mandatory!false,
-                        "DefaultBehaviour" : attribute.DefaultBehaviour!"ignore",
-                        "DefaultProvided" : attribute.Default??,
-                        "Default" : attribute.Default!"",
-                        "Values" : asArray(attribute.Values![]),
-                        "Children" : asArray(attribute.Children![]),
-                        "SubObjects" : attribute.SubObjects!attribute.Subobjects!false,
-                        "PopulateMissingChildren" : attribute.PopulateMissingChildren!true,
-                        "AttributeSet" : attribute.AttributeSet!"",
-                        "Component" : attribute.Component!""
-                    } ]
-            [/#if]
-            [#local normalisedAttributes += [normalisedAttribute] ]
-            [#local explicitEnabled = explicitEnabled || normalisedAttribute.Names?seq_contains("Enabled") ]
-        [/#list]
-        [#if (!explicitEnabled) && (!inhibitEnabled) ]
-            [#-- Put "Enabled" first to ensure it is processed in case a name of "*" is used --]
-            [#local normalisedAttributes =
-                [
-                    {
-                        "Names" : ["Enabled"],
-                        "Types" : [BOOLEAN_TYPE],
-                        "Mandatory" : false,
-                        "DefaultBehaviour" : "ignore",
-                        "DefaultProvided" : true,
-                        "Default" : true,
-                        "Values" : [],
-                        "Children" : [],
-                        "SubObjects" : false,
-                        "PopulateMissingChildren" : true,
-                        "AttributeSet" : "",
-                        "Component" : ""
-                    }
-                ] +
-                normalisedAttributes ]
-        [/#if]
-    [/#if]
-
-    [#-- If attribute value is defined as an AttributeSet, evaluate --]
-    [#-- it and use the result as the attribute's Children.         --]
-    [#local evaluatedRefAttributes = []]
-    [#list normalisedAttributes![] as attribute]
-        [#if attribute.AttributeSet?has_content ]
-            [#-- AttributeSet provides the child attributes --]
-            [#local children = (attributeSetConfiguration[attribute.AttributeSet].Attributes)![] ]
-
-            [#if !children?has_content ]
-                [@fatal
-                    message="Unable to determine child attributes from AttributeSet"
-                    context=attribute
-                /]
-                [#-- Add a minimal child configuration to ensure processing completes --]
-                [#local children = [{"Names" : "AttributeSet", "Types" : STRING_TYPE}] ]
-            [/#if]
-
-            [#local evaluatedRefAttributes += [ attribute + { "Children" : children } ] ]
-        [#else]
-            [#-- Attribute has no reference to evaluate, so add to results --]
-            [#local evaluatedRefAttributes += [attribute]]
-        [/#if]
-    [/#list]
-
-    [#-- Validate --]
-    [#if getCommandLineOptions().Validate!false && evaluatedRefAttributes?? ]
-
-        [#-- Common Parameters that are used throughout        --]
-        [#-- but are as-yet unaccounted for in the             --]
-        [#-- composite object definitions.                     --]
-        [#-- TODO(rossmurr4y): add commonParams to definitions --]
-        [#local commonParams = [
-            "multiAZ", "MultiAZ"]
-        ]
-
-        [#local validKeys = asFlattenedArray(evaluatedRefAttributes?map(c -> (c?is_hash && c.Names??)?then(c.Names, c)))]
-        [#list asFlattenedArray(objects) as object]
-            [#list object?keys as key]
-                [#if !(validKeys?seq_contains("*")) &&
-                     !(validKeys?seq_contains(key)) &&
-                     !(commonParams?seq_contains(key))]
-
-                    [@fatal
-                        message="Invalid Attribute Found."
-                        context=
-                            {
-                                "InvalidAttribute" : key,
-                                "ValidAttributes" : validKeys,
-                                "InvalidObject" : object
-                            }
-                    /]
-                [/#if]
-            [/#list]
-        [/#list]
-    [/#if]
+    [#local normalisedAttributes = normaliseCompositeConfiguration(attributes)]
 
     [#-- Determine the attribute values --]
     [#local result = {} ]
-    [#if evaluatedRefAttributes?has_content]
-        [#list evaluatedRefAttributes as attribute]
+    [#if normalisedAttributes?has_content]
+        [#list normalisedAttributes as attribute]
 
             [#local populateMissingChildren = attribute.PopulateMissingChildren ]
 
@@ -1091,6 +963,141 @@ are added.
     [/#list]
     [#return result ]
 [/#function]
+
+[#function normaliseCompositeConfiguration attributes ]
+    [#-- Normalise attributes --]
+    [#local normalisedAttributes = [] ]
+    [#local inhibitEnabled = false]
+    [#local explicitEnabled = false]
+    [#if attributes?has_content]
+        [#list asFlattenedArray(attributes) as attribute]
+            [#local normalisedAttribute =
+                {
+                    "Names" : asArray(attribute),
+                    "Types" : [ANY_TYPE],
+                    "Mandatory" : false,
+                    "DefaultBehaviour" : "ignore",
+                    "DefaultProvided" : false,
+                    "Default" : "",
+                    "Values" : [],
+                    "Children" : [],
+                    "SubObjects" : false,
+                    "PopulateMissingChildren" : true,
+                    "AttributeSet" : "",
+                    "Component" : ""
+                } ]
+            [#if normalisedAttribute.Names?seq_contains("InhibitEnabled") ]
+                [#local inhibitEnabled = true ]
+            [/#if]
+            [#if attribute?is_hash ]
+                [#local names = attribute.Names!"Hamlet:Missing" ]
+                [#if (names?is_string) && (names == "Hamlet:Missing") ]
+                    [@fatal
+                        message="Attribute must have a \"Names\" attribute"
+                        context=attribute
+                    /]
+                [/#if]
+                [#local normalisedAttribute =
+                    {
+                        "Names" : asArray(names),
+                        "Types" : asArray(attribute.Types!attribute.Type!ANY_TYPE),
+                        "Mandatory" : attribute.Mandatory!false,
+                        "DefaultBehaviour" : attribute.DefaultBehaviour!"ignore",
+                        "DefaultProvided" : attribute.Default??,
+                        "Default" : attribute.Default!"",
+                        "Values" : asArray(attribute.Values![]),
+                        "Children" : asArray(attribute.Children![]),
+                        "SubObjects" : attribute.SubObjects!attribute.Subobjects!false,
+                        "PopulateMissingChildren" : attribute.PopulateMissingChildren!true,
+                        "AttributeSet" : attribute.AttributeSet!"",
+                        "Component" : attribute.Component!""
+                    } ]
+            [/#if]
+            [#local normalisedAttributes += [normalisedAttribute] ]
+            [#local explicitEnabled = explicitEnabled || normalisedAttribute.Names?seq_contains("Enabled") ]
+        [/#list]
+        [#if (!explicitEnabled) && (!inhibitEnabled) ]
+            [#-- Put "Enabled" first to ensure it is processed in case a name of "*" is used --]
+            [#local normalisedAttributes =
+                [
+                    {
+                        "Names" : ["Enabled"],
+                        "Types" : [BOOLEAN_TYPE],
+                        "Mandatory" : false,
+                        "DefaultBehaviour" : "ignore",
+                        "DefaultProvided" : true,
+                        "Default" : true,
+                        "Values" : [],
+                        "Children" : [],
+                        "SubObjects" : false,
+                        "PopulateMissingChildren" : true,
+                        "AttributeSet" : "",
+                        "Component" : ""
+                    }
+                ] +
+                normalisedAttributes ]
+        [/#if]
+    [/#if]
+
+    [#-- If attribute value is defined as an AttributeSet, evaluate --]
+    [#-- it and use the result as the attribute's Children.         --]
+    [#local evaluatedRefAttributes = []]
+    [#list normalisedAttributes![] as attribute]
+        [#if attribute.AttributeSet?has_content ]
+            [#-- AttributeSet provides the child attributes --]
+            [#local children = (attributeSetConfiguration[attribute.AttributeSet].Attributes)![] ]
+
+            [#if !children?has_content ]
+                [@fatal
+                    message="Unable to determine child attributes from AttributeSet"
+                    context=attribute
+                /]
+                [#-- Add a minimal child configuration to ensure processing completes --]
+                [#local children = [{"Names" : "AttributeSet", "Types" : STRING_TYPE}] ]
+            [/#if]
+
+            [#local evaluatedRefAttributes += [ attribute + { "Children" : children } ] ]
+        [#else]
+            [#-- Attribute has no reference to evaluate, so add to results --]
+            [#local evaluatedRefAttributes += [attribute]]
+        [/#if]
+    [/#list]
+    [#return evaluatedRefAttributes ]
+[/#function]
+
+[#macro validateCompositeObject attributes=[] objects=[] ]
+
+    [#-- Common Parameters that are used throughout        --]
+    [#-- but are as-yet unaccounted for in the             --]
+    [#-- composite object definitions.                     --]
+    [#-- TODO(rossmurr4y): add commonParams to definitions --]
+    [#local commonParams = [
+        "multiAZ", "MultiAZ"]
+    ]
+
+    [#local attributes = normaliseCompositeConfiguration(attributes)]
+
+    [#local validKeys = asFlattenedArray(attributes?map(c -> (c?is_hash && c.Names??)?then(c.Names, c)))]
+    [#list asFlattenedArray(objects) as object]
+        [#list object?keys as key]
+            [#if !(validKeys?seq_contains("*")) &&
+                    !(validKeys?seq_contains(key)) &&
+                    !(commonParams?seq_contains(key))]
+
+                [@fatal
+                    message="Invalid Attribute Found."
+                    context=
+                        {
+                            "InvalidAttribute" : key,
+                            "ValidAttributes" : validKeys,
+                            "InvalidObject" : object
+                        }
+                /]
+            [/#if]
+        [/#list]
+    [/#list]
+[/#macro]
+
 
 [#-- Wraps the getCompositeObject function, adding     --]
 [#-- the FrameworkObjectAttributes to valid Attributes --]
@@ -1622,11 +1629,21 @@ are not included in the Match Filter
     [#return (getFilterAttribute(filter,attribute)[0])!"" ]
 [/#function]
 
-[#function filterAttributeContainsValue filter attribute values...]
+[#function getMatchingFilterAttributeValues filter attribute values...]
     [#return
         getArrayIntersection(
             getFilterAttribute(filter, attribute),
             asFlattenedArray(values)
+        )
+    ]
+[/#function]
+
+[#function filterAttributeContainsValue filter attribute values...]
+    [#return
+        getMatchingFilterAttributeValues(
+            filter,
+            attribute,
+            values
         )?has_content
     ]
 [/#function]
@@ -1920,3 +1937,35 @@ Qualifiers can be nested, so processing is recursive.
 
     [#return result]
 [/#function]
+
+[#function getEntityToDepth entity depth=1 ]
+    [#if depth > 0]
+        [#if entity?is_sequence]
+            [#local result = [] ]
+            [#list entity as element]
+                [#local result += [getEntityToDepth(element, depth - 1)] ]
+            [/#list]
+            [#return result]
+        [/#if]
+
+        [#if entity?is_hash]
+            [#local result = {} ]
+            [#list entity as key,value]
+                [#local result += {key: getEntityToDepth(value, depth - 1)} ]
+            [/#list]
+            [#return result]
+        [/#if]
+    [#else]
+        [#if entity?is_sequence]
+            [#return "..."] ]
+        [/#if]
+
+        [#if entity?is_hash]
+            [#return "..." ]
+        [/#if]
+    [/#if]
+
+    [#-- Primitive --]
+    [#return entity]
+[/#function]
+
