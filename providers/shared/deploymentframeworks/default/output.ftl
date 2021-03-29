@@ -201,7 +201,7 @@
 [#function default_output_schema level="" include=""]
 
     [@setOutputFileProperties format="json" /]
-    [@initialiseJsonOutput name="scheam" /]
+    [@initialiseJsonOutput name="schema" /]
 
     [@processFlows
         level=level
@@ -209,7 +209,7 @@
         flows=getCLOFlows()
     /]
 
-    [#local schemaType = commandLineOptions.Deployment.Unit.Name]
+    [#local schemaType = getCLODeploymentUnit()]
     [#return getOutputContent("schema",  schemaType)!{} ]
 [/#function]
 
