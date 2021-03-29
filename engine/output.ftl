@@ -495,13 +495,10 @@
         alternative
     ]
 
-    [#local deploymentGroupDetails = getDeploymentGroupDetails(deployment_group)]
-    [#local level_prefix = ((deploymentGroupDetails.OutputPrefix)!deploymentGroupDetails.Name)!"" ]
-
     [#-- set the default values for the file name parts --]
     [#local filename_parts = {
         "entrance_prefix" : entrance,
-        "level_prefix" : level_prefix,
+        "level_prefix" : deployment_group,
         "deployment_unit_prefix" : deployment_unit,
         "account_prefix" : account,
         "region_prefix" : region,
@@ -530,7 +527,18 @@
         [#case "deployment" ]
         [#case "deploymenttest" ]
 
-        [#switch level_prefix ]
+        [#-- overrride the level prefix to align with older deployment groups --]
+        [#local deploymentGroupDetails = getDeploymentGroupDetails(deployment_group)]
+        [#local filename_parts =
+                    mergeObjects(
+                        filename_parts,
+                        {
+                            "level_prefix" : ((deploymentGroupDetails.OutputPrefix)!deploymentGroupDetails.Name)!deployment_group
+                        }
+                    )
+        ]
+
+        [#switch filename_parts["level_prefix"] ]
             [#case "account" ]
                 [#local filename_parts =
                             mergeObjects(
