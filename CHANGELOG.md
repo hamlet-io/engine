@@ -1,4 +1,231 @@
-# [0.0.0](https://github.com/hamlet-io/engine-plugin-aws/compare/v8.0.0...v0.0.0) (2021-01-11)
+# [0.0.0](https://github.com/hamlet-io/engine-plugin-aws/compare/v8.0.1...v0.0.0) (2021-03-30)
+
+
+### Bug Fixes
+
+* correct spelling of output type ([99120e6](https://github.com/hamlet-io/engine-plugin-aws/commit/99120e6917ad30a78d8846002394ad6613485fd8))
+* deploymentGroup validation ([8637833](https://github.com/hamlet-io/engine-plugin-aws/commit/8637833f3a38ab981a33a77db5acc071639de750))
+* disable qualifier transformer ([b5a1f63](https://github.com/hamlet-io/engine-plugin-aws/commit/b5a1f6364d22413e7685c663cb34ee74f0dc441a))
+* isolate testing to only include local code ([#1594](https://github.com/hamlet-io/engine-plugin-aws/issues/1594)) ([6944564](https://github.com/hamlet-io/engine-plugin-aws/commit/69445643fec465f1f9472be1c4fbdfabad4898fa))
+* output naming for deployment group prefix ([#1606](https://github.com/hamlet-io/engine-plugin-aws/issues/1606)) ([2a0816e](https://github.com/hamlet-io/engine-plugin-aws/commit/2a0816e3ea6367ece42e9b753494327f3edeaa86))
+* schema output return ([9e86d82](https://github.com/hamlet-io/engine-plugin-aws/commit/9e86d82532eca256e5f4d5f098b2d64cb44ed2a3))
+* shared fixture seeder ([26c2ac5](https://github.com/hamlet-io/engine-plugin-aws/commit/26c2ac51a82abd72ab1dac09a96ca86887405d68))
+* shared test seeder ([d15022c](https://github.com/hamlet-io/engine-plugin-aws/commit/d15022c670ddb8f50ccda0e991265de8f098a2b0))
+* typo in blueprint generation ([be67c7b](https://github.com/hamlet-io/engine-plugin-aws/commit/be67c7bf672d4fd13dacd68bb7dbaa6030839cc1))
+* update layer type for region ([529e539](https://github.com/hamlet-io/engine-plugin-aws/commit/529e539ba7856691471db86ed09eac631a6480b4))
+
+
+### Features
+
+* add support for engine output writing ([#1583](https://github.com/hamlet-io/engine-plugin-aws/issues/1583)) ([6643881](https://github.com/hamlet-io/engine-plugin-aws/commit/664388182f59de66d4cdca03924e7327eb9dcc8e))
+* adds mount path to volume config ([4ca8735](https://github.com/hamlet-io/engine-plugin-aws/commit/4ca87359e98d9702fb421b515713c5238f6b43f9))
+
+
+
+## [8.0.1](https://github.com/hamlet-io/engine-plugin-aws/compare/v8.0.0...v8.0.1) (2021-03-22)
+
+
+### Bug Fixes
+
+* allow for loading provider input replacement ([d0daa86](https://github.com/hamlet-io/engine-plugin-aws/commit/d0daa86b898e25f4a836c0a69703ad5e4a7ff835))
+* AttributeSet handling ([#1529](https://github.com/hamlet-io/engine-plugin-aws/issues/1529)) ([754916e](https://github.com/hamlet-io/engine-plugin-aws/commit/754916e54ba80f24fe71e3039e0d7e4902615c94))
+* attributeset schema one per ([2f8684f](https://github.com/hamlet-io/engine-plugin-aws/commit/2f8684faafc363e30b44a85975533d86ac66fc36))
+* corrected a missed composite object data type update ([#1519](https://github.com/hamlet-io/engine-plugin-aws/issues/1519)) ([f4d0c21](https://github.com/hamlet-io/engine-plugin-aws/commit/f4d0c21d096c798240b5ec8eb0b1d590dbc78a4c))
+* define deploymentgroups for schemas ([#1586](https://github.com/hamlet-io/engine-plugin-aws/issues/1586)) ([3317b6b](https://github.com/hamlet-io/engine-plugin-aws/commit/3317b6b403c9de5afb4aa2611de0879c4aa780a6))
+* domain assembly process ([#1573](https://github.com/hamlet-io/engine-plugin-aws/issues/1573)) ([5444f66](https://github.com/hamlet-io/engine-plugin-aws/commit/5444f66673fb7251eaafdda1486755c7c12170a3))
+* domain zone configuration ([#1572](https://github.com/hamlet-io/engine-plugin-aws/issues/1572)) ([18b650d](https://github.com/hamlet-io/engine-plugin-aws/commit/18b650dd409b6958d2812c33f34c203d14c4993e))
+* flowlog configuration ([#1531](https://github.com/hamlet-io/engine-plugin-aws/issues/1531)) ([3d7187d](https://github.com/hamlet-io/engine-plugin-aws/commit/3d7187d0554bc7c7506e5ac20aa12934516ee4f9))
+* freemarker wrapper write functions ([#1542](https://github.com/hamlet-io/engine-plugin-aws/issues/1542)) ([ae39331](https://github.com/hamlet-io/engine-plugin-aws/commit/ae393314b0f36d48c2cbd5238a9e802ebc91a0de))
+* handle empty deployment unit Ids unitlist ([ee6834d](https://github.com/hamlet-io/engine-plugin-aws/commit/ee6834deeeff2008c91dcb1d153a8b76dd26830a))
+* handle missing product domain ([#1580](https://github.com/hamlet-io/engine-plugin-aws/issues/1580)) ([d5ab89a](https://github.com/hamlet-io/engine-plugin-aws/commit/d5ab89a771dab978dc17decd52ed656f2cbebf79))
+* handling of log level lookup ([#1569](https://github.com/hamlet-io/engine-plugin-aws/issues/1569)) ([89f1b15](https://github.com/hamlet-io/engine-plugin-aws/commit/89f1b15d65212b063186e0d7171b6a2669c48ed5))
+* image url override for containerregistry ([#1534](https://github.com/hamlet-io/engine-plugin-aws/issues/1534)) ([a11b566](https://github.com/hamlet-io/engine-plugin-aws/commit/a11b5668733e3dbe947153ffaa3f9954755c9e21))
+* internaltest component definition ([#1547](https://github.com/hamlet-io/engine-plugin-aws/issues/1547)) ([fc0c3fd](https://github.com/hamlet-io/engine-plugin-aws/commit/fc0c3fd4a1e0261c772cce4b7290b5be4d7ecc89))
+* link attributeset in s3 inventory reports ([0455e5b](https://github.com/hamlet-io/engine-plugin-aws/commit/0455e5b31a074a638fd448b9e206d4d90a5f8d7b))
+* Links as subobjects ([#1545](https://github.com/hamlet-io/engine-plugin-aws/issues/1545)) ([382afe0](https://github.com/hamlet-io/engine-plugin-aws/commit/382afe02fd398a1866db4e66359e5ffbdddd7f41))
+* RawId and Name values for subcomponents ([#1585](https://github.com/hamlet-io/engine-plugin-aws/issues/1585)) ([8b68140](https://github.com/hamlet-io/engine-plugin-aws/commit/8b68140df20570248569b5caeebcd11811f275fe))
+* regression in unlist generation ([79bc914](https://github.com/hamlet-io/engine-plugin-aws/commit/79bc914dac5915b3b4886cc05721d91e7b8d67a2))
+* revert type updates ([#1520](https://github.com/hamlet-io/engine-plugin-aws/issues/1520)) ([7f2065e](https://github.com/hamlet-io/engine-plugin-aws/commit/7f2065e8e1ac24627e946a9827dbf70b4a2216e3))
+* schema assignment of multiple data types ([aa3cf30](https://github.com/hamlet-io/engine-plugin-aws/commit/aa3cf301bd426f1b53584b3477f889609dd51408))
+* schema data type generation ([4fb5d95](https://github.com/hamlet-io/engine-plugin-aws/commit/4fb5d95b5fb73b95ae29db9b712e8ac81f06715c))
+* update hamlet cli test cmds ([#1575](https://github.com/hamlet-io/engine-plugin-aws/issues/1575)) ([88c3518](https://github.com/hamlet-io/engine-plugin-aws/commit/88c351898af5cea6fd647978ce3e15e944e15708))
+* **account:** update script store clone setup ([#1541](https://github.com/hamlet-io/engine-plugin-aws/issues/1541)) ([661fe6a](https://github.com/hamlet-io/engine-plugin-aws/commit/661fe6adb40cb5afb9d36f65560bf86ef1f1fb56))
+* **lambda:** correct type for Fixed code version ([2481c50](https://github.com/hamlet-io/engine-plugin-aws/commit/2481c504a509640d6b773eac9c05635c8eb06bd6))
+* **schema:** reference data as one schema per schema ([c2a71c7](https://github.com/hamlet-io/engine-plugin-aws/commit/c2a71c7901185794038173f02e5e1b21817e0188))
+* **sqs:** typo in id details ([38f0df0](https://github.com/hamlet-io/engine-plugin-aws/commit/38f0df049c4e2825ab701860f64a721922582275))
+
+
+### Feat
+
+* New Entrance - validate (the blueprint) ([#1548](https://github.com/hamlet-io/engine-plugin-aws/issues/1548)) ([88079c2](https://github.com/hamlet-io/engine-plugin-aws/commit/88079c26bd9f2e7409d915e344f4beca84336286))
+
+
+### Features
+
+* **baseline:** add support for extensions on keys ([#1533](https://github.com/hamlet-io/engine-plugin-aws/issues/1533)) ([cff85a9](https://github.com/hamlet-io/engine-plugin-aws/commit/cff85a918bbd6cf2a588cf70b7bb1c6f6d74e437))
+* **externalnetwork:** Alerting support ([#1515](https://github.com/hamlet-io/engine-plugin-aws/issues/1515)) ([1dd46bf](https://github.com/hamlet-io/engine-plugin-aws/commit/1dd46bf8fa0b58b59c83d24c6f1fc9a0e040f01c))
+* **gateway:** add dpd action configuration ([e27fd1d](https://github.com/hamlet-io/engine-plugin-aws/commit/e27fd1d96395b515aa377ee65d9e0eff8ece18b8))
+* **jenkins:** handle plugin upgrades ([#1543](https://github.com/hamlet-io/engine-plugin-aws/issues/1543)) ([d78dadf](https://github.com/hamlet-io/engine-plugin-aws/commit/d78dadfad3e71b6abeee50d174c5020864a258fb))
+* layerpath attributeset ([#1537](https://github.com/hamlet-io/engine-plugin-aws/issues/1537)) ([ab48232](https://github.com/hamlet-io/engine-plugin-aws/commit/ab48232d2ebdf2d6fd1597916195a59b88fcc33f))
+* **s3:** add s3vpcaccess extension ([cf741a8](https://github.com/hamlet-io/engine-plugin-aws/commit/cf741a89ca0540c64de52d255810f2aec543a357))
+* **s3:** add support for inventory reports ([d044379](https://github.com/hamlet-io/engine-plugin-aws/commit/d0443796caa73c4967da5169f88a0d4e523346a6))
+* **schema:** new entrance type - schemaset ([c08c358](https://github.com/hamlet-io/engine-plugin-aws/commit/c08c358a97ac16ae82a5fe38bbd78d03361b501e))
+* **spa:** image source from url ([#1522](https://github.com/hamlet-io/engine-plugin-aws/issues/1522)) ([4170867](https://github.com/hamlet-io/engine-plugin-aws/commit/41708672c826197e686c900a8e1580329eddcc18))
+* linkChildConfiguration to attributeSet attrs ([cba502d](https://github.com/hamlet-io/engine-plugin-aws/commit/cba502d5597d498c546cc8f714221755e0c5d7a9))
+* **sqs:** ordering configuration for sqs queues ([54cfa31](https://github.com/hamlet-io/engine-plugin-aws/commit/54cfa31c12e67cdba9d11f025015bf5d0176cc50))
+* add default schemacontract generation macro ([0140e03](https://github.com/hamlet-io/engine-plugin-aws/commit/0140e03eee6151f0f58641b560024e7f40b04236))
+* add occurrences entrance ([#1578](https://github.com/hamlet-io/engine-plugin-aws/issues/1578)) ([e9f96e0](https://github.com/hamlet-io/engine-plugin-aws/commit/e9f96e09f19589e880e7c022ba0c4af5f0865b93))
+* add raw ids for occurrence details ([#1539](https://github.com/hamlet-io/engine-plugin-aws/issues/1539)) ([3f75f01](https://github.com/hamlet-io/engine-plugin-aws/commit/3f75f0157360c9b577ab15601dc2339f337c729e))
+* add schema generation for modules ([#1550](https://github.com/hamlet-io/engine-plugin-aws/issues/1550)) ([bb3c721](https://github.com/hamlet-io/engine-plugin-aws/commit/bb3c721e89851c9df1f6e88967982d3e2e508c81))
+* additional wrapper search options ([#1553](https://github.com/hamlet-io/engine-plugin-aws/issues/1553)) ([b2f6f68](https://github.com/hamlet-io/engine-plugin-aws/commit/b2f6f68ae87975017c80c49bc67a1018a0145ee9))
+* deployment state reporting ([#1574](https://github.com/hamlet-io/engine-plugin-aws/issues/1574)) ([31fb507](https://github.com/hamlet-io/engine-plugin-aws/commit/31fb50743a8cbadea9de3102b060554f8ec976f0))
+* ipaddressgroups on bastion component ([#1567](https://github.com/hamlet-io/engine-plugin-aws/issues/1567)) ([cbb7b96](https://github.com/hamlet-io/engine-plugin-aws/commit/cbb7b96fcad81b4b537f7c11454d19ff5e0327bb))
+* **template:** url image sourcing ([#1513](https://github.com/hamlet-io/engine-plugin-aws/issues/1513)) ([98ac9ff](https://github.com/hamlet-io/engine-plugin-aws/commit/98ac9ffa3b976be94aa8c02cff5d858a6bf228e4))
+* **userpool:** add schema attribute constraints ([#1564](https://github.com/hamlet-io/engine-plugin-aws/issues/1564)) ([b61f45f](https://github.com/hamlet-io/engine-plugin-aws/commit/b61f45fbf281bc9062289ffb3a8ad6a61929dae7))
+* new schemaset view type ([ae7336e](https://github.com/hamlet-io/engine-plugin-aws/commit/ae7336ea44500f97c7ae361e394f81ba2154b3c7))
+* new task type: schemaset ([646be64](https://github.com/hamlet-io/engine-plugin-aws/commit/646be645e5cca1d5495a816233bd5ba078fd9052))
+* refactor input sources ([#1549](https://github.com/hamlet-io/engine-plugin-aws/issues/1549)) ([b92f99b](https://github.com/hamlet-io/engine-plugin-aws/commit/b92f99b8f41cd1efbb39bd7d70f75e155f67d712))
+* **userpool:** authprovider extensions ([#1521](https://github.com/hamlet-io/engine-plugin-aws/issues/1521)) ([d3b5f20](https://github.com/hamlet-io/engine-plugin-aws/commit/d3b5f2035e85e07c72f8576948b1a936b47bccd5))
+* Stop on fatal ([#1556](https://github.com/hamlet-io/engine-plugin-aws/issues/1556)) ([9316d10](https://github.com/hamlet-io/engine-plugin-aws/commit/9316d106b9c87a696bc8b9dc4eb75da02db84aa8))
+* validate deployment mode provided ([#1576](https://github.com/hamlet-io/engine-plugin-aws/issues/1576)) ([052ac56](https://github.com/hamlet-io/engine-plugin-aws/commit/052ac56db0905ea0270f9782aadde25a2c655de7))
+* whatif input provider ([#1538](https://github.com/hamlet-io/engine-plugin-aws/issues/1538)) ([c97b159](https://github.com/hamlet-io/engine-plugin-aws/commit/c97b159661c4f3a2f139334f3d2f3c4dc7d3ae1c))
+* wrapper upgrade ([#1530](https://github.com/hamlet-io/engine-plugin-aws/issues/1530)) ([2da4545](https://github.com/hamlet-io/engine-plugin-aws/commit/2da4545baa00fe0455455e40f46c3d10d4ee608d))
+
+
+### BREAKING CHANGES
+
+* The composite object model in Hamlet is used
+throughout hamlet to define the various data types used by the engine.
+These data types are then used within Hamlet Tenants/Accounts/Products
+by end-users in order to configure their CMDB's.
+
+Currently, to determine a given attribute's value the composite object
+model simply says : here is the composite object, give me attribute
+"x", normalise it, evalute its attriubute sets and return it to me.
+The remainder of the composite object is not validated. In this way
+it is trivial for a hamlet user to input a typo, an attribute in the
+wrong object level or be otherwise wrong and not know it - hamlet
+will work as expected so long as all the mandatory Attributes are
+found.
+
+This introduces a new parameter into the composite object model:
+AllowAdditionalParameters.
+
+False by default, this will provide fatal error and sufficient
+debugging information in the event that the composite object
+being evaluated contains configuration that is undefined.
+
+Where necessary, this can then just be disabled on a per-attribute
+basis.
+
+* fix: remove invalid configuration from masterdata
+
+* fix: define Region attr on all layers
+
+* fixup: additional commonParams
+
+* fix: define Domain on account/product layers
+
+* fix: add missing product layer build child attribute
+
+* fixup: rework the logic of the attribute validation
+
+* fixup: check for subobjects of both variants
+
+* refactor: update coreComponent config with missing attr defs
+
+* refactor: frameworkObjectAttributes fleshed out into attribute defs
+
+* fix: update attribute SubObjects param across engine
+
+* fix: missing syntax
+
+* refactor: add extension definition as versions child
+
+* refactor: product layer attribute definitions
+
+Adds in unnaccounted for but expected-to-be-there layer attribute
+definitions.
+
+The Product layer also provides the ability to define single-region
+overrides for individual deployment-units. This attribute is
+represented by a wildcard as the deployment-unit names are highly
+specific.
+
+Also removed the "frameworkObjectAttributes" from here, as they
+are added to every object level in the blueprint outside of this
+definition and do not need to be defined unless providing overrides.
+
+* fixup: remove unused attribute property
+
+* fix: more missing syntax
+
+* fixup: framework object attributes
+
+the new structure for the framework object attributes
+(now using the composite object model attribute structure
+instead of strings) receives an inclusion of "Enabled".
+
+Also removes the definition of the Qualifiers structure completely, as
+there are several valid sub-structures.
+
+* feat: blueprint composite model
+
+The composite object model for the blueprint has previously been
+something that you had to about - no model for all the possible
+attributes for the top-most level of configuration existed.
+
+The cookiecutter templates would get you started with the necessary
+layers, but only through experience (or reading the code) could
+you know all possible options in the blueprint.
+
+This introduces a new function to construct the model.
+
+* feat: get blueprint object helper function
+
+getBluePrintObject() provides a wrapper around getCompositeObject().
+
+It walks the attributes (and their children) adding the
+"Framework Object Attributes" to every level. In this way these
+attributes are available to be defined at every level of the blueprint.
+
+* fixup: perform object validation at topmost-level
+
+previously was only validating children
+
+* feat: new entrance - validate (the blueprint)
+
+Introduces a new entrance which will perform validation
+of a blueprint. The validation will notify you of any
+additional attributes that are present where they should
+not be.
+
+This offers a "soft" validation mechanism whereby a user can ensure
+that their configuration is valid, whilst not causing immediate
+failure in existing configuration that may contain a typo or two.
+
+Example usage:
+
+hamlet entrance -i mock invoke-entrance -e validate -o .
+
+This will use the mock input source along with the shared-provider
+masterdata to form a blueprint, and validate it.
+
+* fixup: remove deployment:Priority/Group from core config
+
+* fixup: dont require extensions on Versions attr
+
+* fixup rename function to getBlueprintConfiguration
+
+* fixup: add all resourcegroup attrs to valid config for validation
+
+* fixup: remove erroroneous settingschildren
+
+* fixup: define domainChildConfiguration and refactor existing uses
+
+* fixup: create validate view and move out of blueprint view
+
+Co-authored-by: Ross Murray <rossmurray@protonmail.com>
 
 
 
