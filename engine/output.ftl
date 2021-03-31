@@ -587,6 +587,7 @@
             [/#switch]
             [#break]
 
+        [#case "diagraminfo"]
         [#case "info"]
             [#local filename_parts = 
                 mergeObjects(
