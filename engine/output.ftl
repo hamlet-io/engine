@@ -550,42 +550,57 @@
         [#case "deployment" ]
         [#case "deploymenttest" ]
 
-        [#-- overrride the level prefix to align with older deployment groups --]
-        [#local deploymentGroupDetails = getDeploymentGroupDetails(deployment_group)]
-        [#local filename_parts =
-                    mergeObjects(
-                        filename_parts,
-                        {
-                            "deployment_group_prefix" : ((deploymentGroupDetails.OutputPrefix)!deploymentGroupDetails.Name)!deployment_group
-                        }
-                    )
-        ]
+            [#-- overrride the level prefix to align with older deployment groups --]
+            [#local deploymentGroupDetails = getDeploymentGroupDetails(deployment_group)]
+            [#local filename_parts =
+                        mergeObjects(
+                            filename_parts,
+                            {
+                                "deployment_group_prefix" : ((deploymentGroupDetails.OutputPrefix)!deploymentGroupDetails.Name)!deployment_group
+                            }
+                        )
+            ]
 
-        [#switch filename_parts["deployment_group_prefix"] ]
-            [#case "account" ]
-                [#local filename_parts =
-                            mergeObjects(
-                                filename_parts,
-                                {
-                                    "entrance_prefix" : "",
-                                    "region_prefix" : account_region
-                                })]
+            [#switch filename_parts["deployment_group_prefix"] ]
+                [#case "account" ]
+                    [#local filename_parts =
+                                mergeObjects(
+                                    filename_parts,
+                                    {
+                                        "entrance_prefix" : "",
+                                        "region_prefix" : account_region
+                                    })]
 
-                [#break]
+                    [#break]
 
-            [#case "soln" ]
-            [#case "seg" ]
-            [#case "app" ]
-                [#local filename_parts =
-                            mergeObjects(
-                                filename_parts,
-                                {
-                                    "entrance_prefix" : ""
-                                })]
-                [#break]
+                [#case "soln" ]
+                [#case "seg" ]
+                [#case "app" ]
+                    [#local filename_parts =
+                                mergeObjects(
+                                    filename_parts,
+                                    {
+                                        "entrance_prefix" : ""
+                                    })]
+                    [#break]
 
-        [/#switch]
-        [#break]
+            [/#switch]
+            [#break]
+
+        [#case "info"]
+            [#local filename_parts = 
+                mergeObjects(
+                    filename_parts,
+                    {
+                        "entrance_prefix" : "",
+                        "deployment_group_prefix" : "",
+                        "deployment_unit_prefix" : "",
+                        "account_prefix" : "",
+                        "region_prefix" : "",
+                        "alternative_prefix" : ""
+                    }
+                )]
+            [#break]
 
         [#default]
             [#local filename_parts =
