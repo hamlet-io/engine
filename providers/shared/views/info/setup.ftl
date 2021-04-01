@@ -35,7 +35,7 @@
         /]
     [/#list]
 
-    [#list getCLOEntranceTypes() as type ]
+    [#list getEntranceTypes() as type ]
         [#local entranceProperties = getEntranceProperties(type)]
         [#local entranceDescription = entranceProperties?filter( prop -> prop.Type == "Description")?map( prop -> prop.Value )?join(' ') ]
 

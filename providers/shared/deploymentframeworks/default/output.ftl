@@ -421,7 +421,7 @@
 [/#macro]
 
 [#-- Occuurrence State --]
-[#macro default_output_state level="" include=""]
+[#function default_output_state level="" include=""]
     [@initialiseJsonOutput name="states" /]
 
     [@processFlows
@@ -468,8 +468,8 @@
             attributeIfContent("HamletMessages", logMessages)
         /]
     [/#if]
-    [@serialiseOutput name=JSON_DEFAULT_OUTPUT_TYPE /]
-[/#macro]
+    [#return serialiseOutput(JSON_DEFAULT_OUTPUT_TYPE) ]
+[/#function]
 
 [#macro stateEntry type id state ]
     [@mergeWithJsonOutput
