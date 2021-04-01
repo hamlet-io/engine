@@ -26,19 +26,6 @@ pipeline {
             }
         }
 
-        stage('Run Schemas Generation as Test') {
-            environment {
-                GENERATION_ENGINE_DIR="${WORKSPACE}"
-                SCHEMA_OUTPUT_DIR="${WORKSPACE}"
-            }
-
-            steps {
-                sh '''#!/usr/bin/env bash
-                    hamlet -i mock -p shared schema create-schemas -o "${SCHEMA_OUTPUT_DIR}"
-                '''
-            }
-        }
-
         stage('Run Shared Provider Tests') {
             environment {
                 GENERATION_ENGINE_DIR="${WORKSPACE}"
@@ -53,6 +40,19 @@ pipeline {
                 always {
                     junit 'hamlet_tests/junit.xml'
                 }
+            }
+        }
+
+        stage('Run Schemas Generation as Test') {
+            environment {
+                GENERATION_ENGINE_DIR="${WORKSPACE}"
+                SCHEMA_OUTPUT_DIR="${WORKSPACE}"
+            }
+
+            steps {
+                sh '''#!/usr/bin/env bash
+                    hamlet -i mock -p shared schema create-schemas -o "${SCHEMA_OUTPUT_DIR}"
+                '''
             }
         }
 
