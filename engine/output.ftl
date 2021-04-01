@@ -514,6 +514,7 @@
         "alternative_prefix"
     ]]
 
+    [#-- Alternatives --]
     [#if filename_parts["alternative_prefix"] == "primary" ]
         [#local filename_parts =
             mergeObjects(
@@ -523,6 +524,28 @@
                 })]
     [/#if]
 
+    [#-- Deployment detail prefix handling --]
+    [#switch entrance ]
+        [#case "blueprint"]
+        [#case "info"]
+        [#case "loader"]
+        [#case "occurrences"]
+        [#case "schemaset"]
+        [#case "unitlist"]
+        [#case "validate"]
+            [#local filename_parts =
+                        mergeObjects(
+                            filename_parts,
+                            {
+                                "deployment_group_prefix" : "",
+                                "deployment_unit_prefix" : ""
+                            }
+                        )
+            ]
+            [#break]
+    [/#switch]
+
+    [#-- Deployment based prefixing --]
     [#switch entrance ]
         [#case "deployment" ]
         [#case "deploymenttest" ]
