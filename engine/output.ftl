@@ -543,6 +543,16 @@
                         )
             ]
             [#break]
+        [#case "diagram"]
+            [#local filename_parts =
+                        mergeObjects(
+                            filename_parts,
+                            {
+                                "deployment_group_prefix" : ""
+                            }
+                        )
+            ]
+            [#break]
     [/#switch]
 
     [#-- Deployment based prefixing --]
