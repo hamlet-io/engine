@@ -36,18 +36,17 @@
 [#function occurrences_configseeder_commandlineoptions filter state]
 
     [#return
-        mergeObjects(
+        addToConfigPipelineClass(
             state,
+            COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS,
             {
-                "CommandLineOptions" : {
-                    "Deployment" : {
-                        "Group" : {
-                            "Name" : "*"
-                        }
-                    },
-                    "Flow" : {
-                        "Names" : [ "components" ]
+                "Deployment" : {
+                    "Group" : {
+                        "Name" : "*"
                     }
+                },
+                "Flow" : {
+                    "Names" : [ "components" ]
                 }
             }
         )

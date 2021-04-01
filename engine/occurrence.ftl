@@ -630,7 +630,7 @@
     [#-- Fudge prefixes for accounts --]
     [#return
         internalCreateOccurrenceSettings(
-            (settingsObject.Settings.Accounts)!{},
+            (getSettings().Settings.Accounts)!{},
             accountName,
             [""],
             alternatives) ]
@@ -642,7 +642,7 @@
 
     [#local occurrenceBuild =
         internalCreateOccurrenceSettings(
-            (settingsObject.Builds.Products)!{},
+            (getSettings().Builds.Products)!{},
             productName,
             cmdbProductLookupPrefixes,
             namespaces
@@ -669,7 +669,7 @@
         [/#if]
         [#local occurrenceBuild +=
             internalCreateOccurrenceSettings(
-                (settingsObject.Builds.Products)!{},
+                (getSettings().Builds.Products)!{},
                 productName,
                 buildLookupPrefixes,
                 [
@@ -718,7 +718,7 @@
     [#local namespaces = occurrence.Configuration.SettingNamespaces ]
     [#return
         internalCreateOccurrenceSettings(
-            (settingsObject.Settings.Products)!{},
+            (getSettings().Settings.Products)!{},
             productName,
             cmdbProductLookupPrefixes,
             namespaces) ]
@@ -730,7 +730,7 @@
     [#return
         markAsSensitiveSettings(
             internalCreateOccurrenceSettings(
-                (settingsObject.Sensitive.Products)!{},
+                (getSettings().Sensitive.Products)!{},
                 productName,
                 cmdbProductLookupPrefixes,
                 namespaces) ) ]

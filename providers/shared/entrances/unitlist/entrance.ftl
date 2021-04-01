@@ -18,7 +18,7 @@
 [/#macro]
 
 [#-- Add seeder for command line options --]
-[#macro shared_entrance_loader_inputsteps ]
+[#macro shared_entrance_unitlist_inputsteps ]
 
     [@registerInputSeeder
         id=UNITLIST_ENTRANCE_TYPE
@@ -36,21 +36,20 @@
 [#function unitlist_configseeder_commandlineoptions filter state]
 
     [#return
-        mergeObjects(
+        addToConfigPipelineClass(
             state,
+            COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS,
             {
-                "CommandLineOptions" : {
-                    "Deployment" : {
-                        "Group" : {
-                            "Name" : "*"
-                        }
-                    },
-                    "Flow" : {
-                        "Names" : [ "components", "views"  ]
-                    },
-                    "View" : {
-                        "Name" : UNITLIST_VIEW_TYPE
+                "Deployment" : {
+                    "Group" : {
+                        "Name" : "*"
                     }
+                },
+                "Flow" : {
+                    "Names" : [ "components", "views"  ]
+                },
+                "View" : {
+                    "Name" : UNITLIST_VIEW_TYPE
                 }
             }
         )

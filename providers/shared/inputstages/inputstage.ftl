@@ -14,10 +14,23 @@
 [#-- Input from CMDB --]
 [#assign CMDB_SHARED_INPUT_STAGE = "cmdb"]
 
-[#-- Allow normalisation of data e.g. stack outputs from the cmdb --]
+[#-- Layers (precursor to plugins) --]
+[#assign LAYER_SHARED_INPUT_STAGE = "layer"]
+
+[#-- Plugins - if any not already loaded, restart inpout processing  --]
+[#assign PLUGIN_SHARED_INPUT_STAGE = "plugin"]
+
+[#-- Modules - they shouldn't affect layers  --]
+[#assign MODULE_SHARED_INPUT_STAGE = "module"]
+
+[#-- Allow normalisation of data                        --]
+[#-- - blueprint etc to include module provided content --]
+[#-- - stack outputs from the cmdb                      --]
 [#assign NORMALISE_SHARED_INPUT_STAGE = "normalise"]
 
-[#-- Populate any missing data --]
+[#-- Populate any missing data                                --]
+[#-- Mainly for state where we want to pretend all components --]
+[#-- have been deployed                                       --]
 [#assign SIMULATE_SHARED_INPUT_STAGE = "simulate"]
 
 [#assign QUALIFY_SHARED_INPUT_STAGE = "qualify"]

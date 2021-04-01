@@ -209,6 +209,11 @@ state - a single output in the CMDB state
     [#-- Schedule refresh of input state if affected by new step --]
     [#local stages = internalGetInputStages(getInputSource()) ]
     [#list stages?filter(s -> s.Id == stage) as s ]
+        [@debug
+            message="Triggering state refresh after adding " + step + " seeder to " + stage + " stage"
+            enabled=false
+        /]
+
         [@internalScheduleInputStateRefresh /]
     [/#list]
 [/#macro]
@@ -224,6 +229,12 @@ state - a single output in the CMDB state
             priority=priority
             sources=sources
         /]
+    [#else]
+        [@fatal
+            message="Attempt to add an unknown seeder to a stage"
+            context=seeder
+            stop=true
+        /]
     [/#if]
 [/#macro]
 
@@ -237,6 +248,12 @@ state - a single output in the CMDB state
             pipeline=STATE_SEEDER_PIPELINE_TYPE
             priority=priority
             sources=sources
+        /]
+    [#else]
+        [@fatal
+            message="Attempt to add an unknown seeder to a stage"
+            context=seeder
+            stop=true
         /]
     [/#if]
 [/#macro]
@@ -252,6 +269,12 @@ state - a single output in the CMDB state
             priority=priority
             sources=sources
         /]
+    [#else]
+        [@fatal
+            message="Attempt to add an unknown transformer to a stage"
+            context=transformer
+            stop=true
+        /]
     [/#if]
 [/#macro]
 
@@ -265,6 +288,12 @@ state - a single output in the CMDB state
             pipeline=STATE_SEEDER_PIPELINE_TYPE
             priority=priority
             sources=sources
+        /]
+    [#else]
+        [@fatal
+            message="Attempt to add an unknown transformer to a stage"
+            context=transformer
+            stop=true
         /]
     [/#if]
 [/#macro]
@@ -329,47 +358,94 @@ to filter the data returned
 
 [#-- Manage input state --]
 
-[#--
-Get the current state of various categories of input
---]
+[#-- Classes of input config data --]
+[#assign COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS = "CommandLineOptions" ]
+[#assign BLUEPRINT_CONFIG_INPUT_CLASS = "Blueprint" ]
+[#assign SETTINGS_CONFIG_INPUT_CLASS = "Settings" ]
+[#assign DEFINITIONS_CONFIG_INPUT_CLASS = "Definitions" ]
+[#assign FRAGMENT_CONFIG_INPUT_CLASS = "Fragments" ]
+[#assign STATE_CONFIG_INPUT_CLASS = "State" ]
+[#assign LOADER_CONFIG_INPUT_CLASS = "Loader" ]
+[#assign LAYERS_CONFIG_INPUT_CLASS = "Layers" ]
+
+[#-- Cache of stage data for situations where back --]
+[#-- referencing is need in subsequent stages      --]
+[#assign CONFIG_INPUT_PIPELINE_STAGE_CACHE = "StageData" ]
+
+[#-- Convenience Accessor functions that ensure state is up to date --]
 [#function getCommandLineOptions ]
-    [#return getInputState().CommandLineOptions!{} ]
+    [#return getInputState()[COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS]!{} ]
 [/#function]
 
+[#-- TODO(mfl) Remove once input processing complete --]
 [#function getMasterdata ]
-    [#return getInputState().Masterdata!{} ]
+    [#return
+        getConfigPipelineClassCacheForStage(
+            getInputState(),
+            BLUEPRINT_CONFIG_INPUT_CLASS,
+            MASTERDATA_SHARED_INPUT_STAGE
+        )!{} ]
 [/#function]
 
 [#function getBlueprint ]
-    [#return getInputState().Blueprint!{} ]
+    [#return getInputState()[BLUEPRINT_CONFIG_INPUT_CLASS]!{} ]
 [/#function]
 
 [#function getSettings ]
-    [#return getInputState().Settings!{} ]
+    [#return getInputState()[SETTINGS_CONFIG_INPUT_CLASS]!{} ]
 [/#function]
 
 [#function getDefinitions ]
-    [#return getInputState().Definitions!{} ]
+    [#return getInputState()[DEFINITIONS_CONFIG_INPUT_CLASS]!{} ]
 [/#function]
 
 [#function getFragments ]
-    [#return getInputState().Fragments!{} ]
+    [#return getInputState()[FRAGMENT_CONFIG_INPUT_CLASS]!{} ]
+[/#function]
+
+[#function getState ]
+    [#return getInputState()[STATE_CONFIG_INPUT_CLASS]![] ]
+[/#function]
+
+[#function getLayers ]
+    [#return getInputState()[LAYERS_CONFIG_INPUT_CLASS]![] ]
+[/#function]
+
+[#function getLoader ]
+    [#return getInputState()[LOADER_CONFIG_INPUT_CLASS]!{} ]
 [/#function]
 
 [#--
-TODO(mfl) handle getting outputs specially to support simulation stage
-We will need to run input processing before attempting to use the
-stack outputs to resolve the request
+Get the value for a point within the state
 --]
-[#function getOutputs ]
-    [#return getInputState().Outputs![] ]
+[#function getStatePoint id deploymentUnit="" account="" region="" level="" ]
+    [#-- Get point on basis of current input state --]
+    [#local topOfStack = getTopOfStack(inputStateStack) ]
+
+    [#-- Determine result from the state pipeline --]
+    [#return
+        internalGetStatePipelineValue(
+            topOfStack.Source,
+            topOfStack.Filter,
+            id,
+            deploymentUnit,
+            account,
+            region,
+            level
+        )
+    ]
 [/#function]
 
+[#function getStatePointValue id deploymentUnit="" account="" region="" level="" ]
+    [#return getStatePoint(id, deploymentUnit, account, region, level).Value ]
+[/#function]
 [#--
 A stack is used to capture the history of input state changes
 --]
-[#function getInputState]
-    [@internalRefreshInputState /]
+[#function getInputState refresh=true]
+    [#if refresh]
+        [@internalRefreshInputState /]
+    [/#if]
     [#return
         isStackEmpty(inputStateStack)?then(
             {},
@@ -396,20 +472,20 @@ A stack is used to capture the history of input state changes
     ]
 [/#function]
 
-[#assign refreshInProgress = false]
+[#assign inputStateRefreshInProgress = false]
 
 [#-- Refresh current state on basis of input state stack --]
 [#-- Return whether the cache satisfied the refresh      --]
 [#function refreshInputState checkCache=true]
 
     [#-- Recursion detection - may occur if input state is accessed in seeder routines --]
-    [#if refreshInProgress]
+    [#if inputStateRefreshInProgress]
         [@fatal
             message="Attempt to refresh state while a refresh was in progress. Check for input state access in an input seeder function"
             stop=true
         /]
     [/#if]
-    [#assign refreshInProgress = true]
+    [#assign inputStateRefreshInProgress = true]
 
     [#-- Assume cache miss --]
     [#local cacheHit = false]
@@ -433,13 +509,96 @@ A stack is used to capture the history of input state changes
 
         [#if !cacheHit]
             [#-- refresh not yet satisfied --]
-            [#assign inputState =
-                internalAddToInputStateCache(
-                    topOfStack.Filter,
-                    internalGetConfigPipelineValue(topOfStack.Source, topOfStack.Filter),
-                    knownMiss
-                )
-            ]
+            [#-- Use a list to simulate a while loop --]
+            [#-- It is possible that processing is restarted because new plugins/providers --]
+            [#-- need to be loaded (which may in turn register new seeders)                --]
+            [#local restartRequired  = false]
+            [#local newState = {} ]
+            [#list 1..10 as index]
+                [#-- Assume a restart won't be necessary --]
+                [#local newState =
+                    internalGetConfigPipelineValue(
+                        topOfStack.Source,
+                        topOfStack.Filter,
+                        {
+                            LOADER_CONFIG_INPUT_CLASS : {
+                                "Plugins" : [],
+                                "Providers" : []
+                            }
+                        }
+                    )
+                ]
+                [#local restartRequired = newState.RestartRequired!false]
+                [#if restartRequired]
+                    [@debug
+                        message="Pipeline restart required"
+                        context={
+                            "Plugins" : newState[LOADER_CONFIG_INPUT_CLASS].Plugins,
+                            "Providers" : newState[LOADER_CONFIG_INPUT_CLASS].Providers
+                        }
+                        enabled=true
+                    /]
+                    [#-- TODO(mfl) Distinguish between loading a plugin --]
+                    [#-- and loading a provider                         --]
+
+                    [#-- Temporarily allow access to the input state    --]
+                    [#-- during plugin/provider loading                 --]
+                    [@internalSuspendInputStateRefresh /]
+
+                    [#-- Provide the state thus far - mainly for CLO access --]
+                    [#assign inputState = newState]
+
+                    [#-- Ensure required plugins --]
+                    [#if newState[COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS].Plugins.MissingPluginAction?lower_case == "stop"]
+                        [#local unloadedPlugins =
+                            getUnloadedPlugins(
+                                newState[COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS].Plugins.State,
+                                newState[LOADER_CONFIG_INPUT_CLASS].Plugins
+                            )
+                        ]
+                        [#if unloadedPlugins?has_content ]
+                            [@fatal
+                                message="Required plugin(s) not loaded"
+                                context=unloadedPlugins
+                                stop=true
+                            /]
+                        [/#if]
+                    [/#if]
+
+                    [#-- Ensure all providers listed have been loaded   --]
+                    [#-- Plugin stage will force a restart if not all   --]
+                    [#-- required providers are loaded                  --]
+                    [@includeProviders newState[LOADER_CONFIG_INPUT_CLASS].Providers /]
+                    [@includeCoreProviderConfiguration newState[LOADER_CONFIG_INPUT_CLASS].Providers /]
+
+                    [#-- Resume input refresh monitoring --]
+                    [@internalResumeInputStateRefresh /]
+                [/#if]
+            [/#list]
+            [#if restartRequired]
+                [#-- Looks like some sort of problem with plugin/provider loading --]
+                [@fatal
+                    message="Unable to complete pipeline refresh - restarts exhausted"
+                    context={
+                        "InputFilter" : topOfStack.Filter,
+                        "InputSource" : inputSources[topOfStack.Source],
+                        "InputStages" : inputStages,
+                        "InputSeeders" : inputSeeders,
+                        "InputTransformers" : inputTransformers,
+                        "Plugins" : newState[LOADER_CONFIG_INPUT_CLASS].Plugins,
+                        "Providers" : newState[LOADER_CONFIG_INPUT_CLASS].Providers
+                    }
+                    stop=true
+                /]
+            [#else]
+                [#assign inputState =
+                    internalAddToInputStateCache(
+                        topOfStack.Filter,
+                        newState,
+                        knownMiss
+                    )
+                ]
+            [/#if]
         [/#if]
     [/#if]
 
@@ -448,7 +607,7 @@ A stack is used to capture the history of input state changes
     [@addCommandLineOption inputState.CommandLineOptions!{} /]
 
     [#-- End of critical section --]
-    [#assign refreshInProgress = false]
+    [#assign inputStateRefreshInProgress = false]
 
     [#return cacheHit]
 [/#function]
@@ -457,6 +616,12 @@ A stack is used to capture the history of input state changes
 
     [#-- Always include the InputSource in the filter --]
     [#local newFilter = inputFilter + {"InputSource" : inputSource} ]
+
+    [@debug
+        message="Pushing input source"
+        context=newFilter
+        enabled=false
+    /]
 
     [#-- Update the stack --]
     [#assign inputStateStack =
@@ -483,7 +648,7 @@ A stack is used to capture the history of input state changes
     [#assign inputStateStackHistory += [historyEntry] ]
 
     [@debug
-        message="Pushing input state"
+        message="New input source state"
         context=historyEntry + {"State" : inputState}
         enabled=false
     /]
@@ -513,6 +678,14 @@ which is useful in situations like link processing.
 
 [#macro popInputState]
     [#assign inputStateStack = popOffStack(inputStateStack) ]
+    [#local topOfStack = getTopOfStack(inputStateStack) ]
+
+    [@debug
+        message="Popping input state, new top of stack"
+        context=topOfStack.Filter
+        enabled=false
+
+    /]
 
     [#-- Determine the new state leveraging the cache --]
     [#local cacheHit = refreshInputState(true) ]
@@ -520,18 +693,120 @@ which is useful in situations like link processing.
     [#local historyEntry =
         {
             "Action" : "pop",
+            "Filter" : topOfStack.Filter,
             "FromCache" : cacheHit
         }
     ]
     [#assign inputStateStackHistory += [historyEntry] ]
 
-    [@debug
-        message="Popping input state"
-        context=historyEntry
-        enabled=false
-    /]
-
 [/#macro]
+
+[#assign pointSetConfiguration =
+    {
+        "Properties" : [
+            {
+                "Type"  : "Description",
+                "Value" : "Attributes of deployed resources"
+            }
+        ],
+        "Attributes" : [
+            {
+                "Names" : ["Account", "Subscription"],
+                "Types" : STRING_TYPE,
+                "Mandatory" : true
+            },
+            {
+                "Names" : "Region",
+                "Types" : STRING_TYPE,
+                "Mandatory" : true
+            },
+            {
+                "Names" : "Level",
+                "Types" : STRING_TYPE,
+                "Default" : ""
+            },
+            {
+                "Names" : "DeploymentUnit",
+                "Types" : STRING_TYPE,
+                "Default" : ""
+            },
+            {
+                "Names" : "*",
+                "Types" : STRING_TYPE
+            }
+        ]
+    }
+]
+
+[#function validatePointSet pointSet]
+    [#return getCompositeObject(pointSetConfiguration.Attributes, pointSet) ]
+[/#function]
+
+[#-- Step support functions --]
+
+[#-- Add data to the current state of a class --]
+[#function addToConfigPipelineClass state class data stage="" behaviour=MERGE_COMBINE_BEHAVIOUR]
+    [#local result =
+        combineEntities(
+            state,
+            {
+                class : data
+            },
+            behaviour
+        )
+    ]
+    [#if stage?has_content]
+        [#local result =
+            addToConfigPipelineStageCacheForClass(result, class, data, stage, behaviour) ]
+    [/#if]
+    [#return result]
+[/#function]
+
+[#function addToConfigPipelineStageCache state data stage behaviour=MERGE_COMBINE_BEHAVIOUR]
+    [#return
+        combineEntities(
+            state,
+            {
+                CONFIG_INPUT_PIPELINE_STAGE_CACHE : {
+                    stage : data
+                }
+            },
+            behaviour
+        )
+    ]
+[/#function]
+
+[#function addToConfigPipelineStageCacheForClass state class data stage behaviour=MERGE_COMBINE_BEHAVIOUR]
+    [#return
+        addToConfigPipelineStageCache(
+            state,
+            {
+                class : data
+            },
+            stage,
+            behaviour
+        )
+    ]
+[/#function]
+
+[#-- Get combined class cache data for one or more stages --]
+[#function getConfigPipelineClassCacheForStages state class stages=[] ]
+    [#local result = {} ]
+    [#list asArray(stages) as stage]
+        [#if (state[CONFIG_INPUT_PIPELINE_STAGE_CACHE][stage][class])?? ]
+            [#local result =
+                combineEntities(
+                    result,
+                    {
+                        class : state[CONFIG_INPUT_PIPELINE_STAGE_CACHE][stage][class]
+                    },
+                    APPEND_COMBINE_BEHAVIOUR
+                )
+            ]
+        [/#if]
+    [/#list]
+    [#return result]
+[/#function]
 
 [#---------------------------------------------------
 -- Internal support functions for input processing --
@@ -558,8 +833,15 @@ Get the steps in order for an input stage
 [#--
 Get the effective value of a pipeline for the current input filter
 --]
-[#function internalGetInputPipelineValue inputSource inputFilter pipeline startingState ]
-    [#local state = startingState ]
+[#function internalGetInputPipelineValue inputSource inputFilter pipeline initialState ]
+    [@debug
+        message="Evaluating " + pipeline + " pipeline"
+        context=inputFilter
+        detail=initialState
+        enabled=false
+
+    /]
+    [#local state = initialState ]
     [#-- Get the ordered list of stages to invoke --]
     [#list internalGetInputStages(inputSource) as inputStage]
         [#-- Get the ordered list of steps to invoke --]
@@ -579,6 +861,10 @@ Get the effective value of a pipeline for the current input filter
                 [#local stepFunction = getFirstDefinedDirective(stepFunctionOptions)]
 
                 [#if (.vars[stepFunction]!"")?is_directive]
+                    [@debug
+                        message="Invoking step function " + stepFunction
+                        enabled=false
+                    /]
                     [#local state = (.vars[stepFunction])(inputFilter, state) ]
                 [#else]
                     [#-- This means a step has been registered but its corresponding    --]
@@ -590,34 +876,48 @@ Get the effective value of a pipeline for the current input filter
                     /]
                 [/#if]
             [/#if]
+            [#-- Terminate if a restart is required --]
+            [#if state.RestartRequired!false]
+                [#break]
+            [/#if]
         [/#list]
+        [#-- Terminate if a restart is required --]
+        [#if state.RestartRequired!false]
+            [#break]
+        [/#if]
     [/#list]
+    [@debug
+        message="Evaluation of " + pipeline + " pipeline complete"
+        context=inputFilter
+        enabled=false
+    /]
 
     [#return state]
 [/#function]
 
 [#--
-Get the config pipeline effective value for the current input filter
+Get the effective value of the config pipeline for the current input source/filter
 --]
-[#function internalGetConfigPipelineValue inputSource inputFilter ]
-    [#return internalGetInputPipelineValue(inputSource, inputFilter, CONFIG_SEEDER_PIPELINE_TYPE, {} ) ]
+[#function internalGetConfigPipelineValue inputSource inputFilter initialState={} ]
+    [#return internalGetInputPipelineValue(inputSource, inputFilter, CONFIG_SEEDER_PIPELINE_TYPE, initialState ) ]
 [/#function]
 
 [#--
-Get the state pipeline effective value for the current input filter
+Get the effective value of the state pipeline for the current input source/filter
 --]
-[#function internalGetStatePipelineValue inputSource inputFilter id deploymentUnit="" level="" region="" account="" ]
+[#function internalGetStatePipelineValue inputSource inputFilter id deploymentUnit account region level ]
     [#return
         internalGetInputPipelineValue(
             inputSource,
             inputFilter,
             STATE_SEEDER_PIPELINE_TYPE,
             {
+                "Id" : id,
+                "DeploymentUnit" : deploymentUnit,
                 "Account" : account,
                 "Region" : region,
                 "Level" : level,
-                "DeploymentUnit" : deploymentUnit,
-                "Id" : id
+                "Value" : ""
             }
         )
     ]
@@ -647,13 +947,15 @@ as processing is typically centred around the initially provided filter values
 [/#function]
 
 [#function internalAddToInputStateCache inputFilter inputState knownMiss=false]
+    [#-- Remove any cached information to keep memory usage down --]
+    [#local strippedInputState = removeObjectAttributes(inputState, CONFIG_INPUT_PIPELINE_STAGE_CACHE) ]
     [#if knownMiss ]
         [#-- Always put at the end --]
         [#assign inputStateCache +=
             [
                 {
                     "Filter" : inputFilter,
-                    "State" : inputState
+                    "State" : strippedInputState
                 }
             ]
         ]
@@ -665,7 +967,7 @@ as processing is typically centred around the initially provided filter values
                 [
                     {
                         "Filter" : inputFilter,
-                        "State" : inputState
+                        "State" : strippedInputState
                     }
                 ]
             ]
@@ -678,7 +980,7 @@ as processing is typically centred around the initially provided filter values
                         [
                             {
                                 "Filter" : inputFilter,
-                                "State" : inputState
+                                "State" : strippedInputState
                             }
                         ]
                     ]
@@ -693,20 +995,29 @@ as processing is typically centred around the initially provided filter values
 [/#function]
 
 [#assign inputStateRefreshRequired = false]
+[#assign inputStateRefreshSuspended = false]
 
-[#macro internalScheduleInputStateRefresh]
+[#macro internalScheduleInputStateRefresh ]
     [#assign inputStateRefreshRequired = true]
 [/#macro]
 
+[#macro internalSuspendInputStateRefresh ]
+    [#assign inputStateRefreshSuspended = true]
+[/#macro]
+
+[#macro internalResumeInputStateRefresh ]
+    [#assign inputStateRefreshSuspended = false]
+[/#macro]
+
 [#macro internalRefreshInputState]
-    [#if inputStateRefreshRequired]
+    [#if inputStateRefreshRequired && !inputStateRefreshSuspended]
         [#-- Force cache state to (potentially) new value --]
         [#local cacheHit = refreshInputState(false) ]
 
         [#-- We want to detect any attempt to access the input state    --]
         [#-- from a seeder/transformer during refresh, so reset the     --]
-        [#-- refresh flag AFTER performing the refresh                  --]
-        [#-- Seeders should rely on the state provided as an --]
+        [#-- refresh required flag AFTER performing the refresh         --]
+        [#-- Seeders should rely on the state provided as an parameter  --]
         [#assign inputStateRefreshRequired = false]
     [/#if]
 [/#macro]

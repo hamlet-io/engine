@@ -14,7 +14,7 @@
         mandatory=true
     /]
 
-    [#list getActivePluginsFromLayers() as activePlugin ]
+    [#list getLoader().Plugins as activePlugin ]
 
         [@contractStep
             id=activePlugin.Id

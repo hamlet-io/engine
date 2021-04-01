@@ -4,16 +4,66 @@
 -- Public functions for setting processing --
 ---------------------------------------------]
 
-[#assign settingsObject = {} ]
+[#function formatSettingsEntry type scope settings={} namespace="" ]
+    [#return internalFormatSettingsEntry(type, scope, settings, namespace) ]
+[/#function]
 
-[#macro addSettings type scope namespace="" settings={} ]
-    [@internalMergeSettings
-        type=type
-        scope=scope
-        namespace=namespace
-        settings=settings
-    /]
-[/#macro]
+[#-- Normalise setting data --]
+[#function normaliseCompositeSettings compositeSettings]
+    [#return
+        mergeObjects(
+            internalFormatSettingsEntry(
+                "Settings",
+                "Accounts"
+                internalReformatSettings(
+                    (compositeSettings.Accounts.Settings)!{}
+                )
+            ),
+            internalFormatSettingsEntry(
+                "Settings",
+                "Products",
+                mergeObjects(
+                    internalReformatSettings(
+                        (compositeSettings.Products.Settings)!{},
+                        r"^(?!.*build\.json|.*credentials\.json|.*sensitive\.json$).*$"
+                    ),
+                    internalReformatSettings(
+                        (compositeSettings.Products.Operations)!{},
+                        r"^(?!.*build\.json|.*credentials\.json|.*sensitive\.json$).*$"
+                    )
+                )
+            ),
+            internalFormatSettingsEntry(
+                "Builds",
+                "Products"
+                mergeObjects(
+                    internalReformatSettings(
+                        (compositeSettings.Products.Settings)!{},
+                        r"^.*build\.json$"
+                    ),
+                    internalReformatSettings(
+                        (compositeSettings.Products.Builds)!{},
+                        r"^.*build\.json$"
+                    )
+                )
+            ),
+            internalFormatSettingsEntry(
+                "Sensitive",
+                "Products"
+                mergeObjects(
+                    internalReformatSettings(
+                        (compositeSettings.Products.Settings)!{},
+                        r"^.*credentials\.json|.*sensitive\.json$"
+                    ),
+                    internalReformatSettings(
+                        (compositeSettings.Products.Operations)!{},
+                        r"^.*credentials\.json|.*sensitive\.json$"
+                    )
+                )
+            )
+        )
+    ]
+[/#function]
 
 [#function formatSettingName upperCase parts...]
     [#-- First join the parts and force to upper case --]
@@ -164,7 +214,7 @@
 -- Internal support functions for setting processing --
 -------------------------------------------------------]
 
-[#macro internalMergeSettings type scope namespace="" settings={} ]
+[#function internalFormatSettingsEntry type scope settings={} namespace="" ]
     [#local types=[ "Settings", "Builds", "Sensitive" ]]
     [#local scopes=[ "Accounts", "Products" ]]
 
@@ -181,28 +231,118 @@
         [/#if]
 
         [#if namespace?has_content ]
-            [#assign settingsObject =
-                mergeObjects(
-                    settingsObject,
-                    {
-                        type : {
-                            scope : {
-                                namespace : settings
-                            }
+            [#return
+                {
+                    type : {
+                        scope : {
+                            namespace : settings
                         }
                     }
-                )]
+                }
+            ]
         [#else]
-            [#assign settingsObject =
-                mergeObjects(
-                    settingsObject,
-                    {
-                        type : {
-                            scope : settings
-                        }
+            [#return
+                {
+                    type : {
+                        scope : settings
                     }
-                )
+                }
             ]
         [/#if]
     [/#if]
-[/#macro]
+    [#return {} ]
+[/#function]
+
+[#function internalReformatSettings objects fileRegex=".*"]
+    [#local result = {}]
+    [#list objects!{} as key,value]
+        [#local result =
+            mergeObjects(
+                result,
+                internalReformatFiles(key, value!{}, fileRegex)
+            )]
+    [/#list]
+    [#return result]
+[/#function]
+
+[#function internalReformatFiles key settingsFiles fileRegex]
+    [#local result = {} ]
+    [#list settingsFiles.Files![] as file ]
+        [#-- Ignore the file if it doesn't match the desired regex --]
+        [#if ! file.FileName?lower_case?trim?matches(fileRegex)]
+            [#continue]
+        [/#if]
+
+        [#-- Locate files reative to the CMDB root --]
+        [#local relativeFile =
+            concatenate(
+                [
+                    file.FilePath?remove_beginning(settingsFiles.RootDirectory)?remove_beginning("/"),
+                    file.FileName
+                ],
+                "/"
+            ) ]
+
+        [#-- The namespace starts with the key, followed by any parts of the file path --]
+        [#-- relative to the base directory --]
+        [#local extension = file.FileName?keep_after_last(".")]
+        [#local base = file.FileName?remove_ending("." + extension)]
+        [#local namespace =
+            concatenate(
+                [
+                    key,
+                    file.FilePath?remove_beginning(settingsFiles.BaseDirectory)?lower_case?replace("/", " ")?trim?split(" ")
+                ],
+                "-"
+            ) ]
+
+        [#-- Attribute for file contents --]
+        [#local attribute = base?replace("-","_")?upper_case]
+
+        [#-- asFile --]
+        [#if file.FilePath?lower_case?contains("asfile")]
+            [#local result =
+                mergeObjects(
+                    result,
+                    {
+                        namespace : {
+                            attribute : {
+                                "Value" : file.FileName,
+                                "AsFile" : relativeFile
+                            }
+                        }
+                    }
+                 ) ]
+            [#continue]
+        [/#if]
+
+        [#-- Settings format depends on file extension --]
+        [#switch extension?lower_case]
+            [#case "json"]
+                [#local result =
+                    mergeObjects(
+                        result,
+                        {
+                            namespace : file.Content[0]
+                        }
+                     ) ]
+                [#break]
+            [#default]
+                [#local result =
+                    mergeObjects(
+                        result,
+                        {
+                            namespace : {
+                                attribute : {
+                                    "Value" : file.Content[0],
+                                    "FromFile" : relativeFile
+                                }
+                            }
+                        }
+                    ) ]
+                [#break]
+        [/#switch]
+    [/#list]
+    [#return result]
+[/#function]
+

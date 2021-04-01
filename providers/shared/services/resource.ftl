@@ -2,7 +2,7 @@
 
 [#-- Is a resource part of a deployment unit --]
 [#function isPartOfDeploymentUnit resourceId deploymentUnit deploymentUnitSubset]
-  [#local resourceObject = getStackOutputObject( getCLODeploymentProviders()[0], resourceId)]
+  [#local resourceObject = getStatePoint(resourceId)]
   [#local
     currentDeploymentUnit =
       deploymentUnit +

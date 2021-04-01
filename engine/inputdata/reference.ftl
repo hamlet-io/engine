@@ -53,9 +53,9 @@
     [/#if]
 [/#function]
 
-[#macro includeReferences ]
+[#macro includeReferences blueprint]
     [#list referenceConfiguration as id, reference ]
-        [@addReferenceData type=reference.Type.Singular base=blueprintObject /]
+        [@addReferenceData type=reference.Type.Singular base=blueprint /]
     [/#list]
 [/#macro]
 
