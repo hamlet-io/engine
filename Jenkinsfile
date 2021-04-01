@@ -3,15 +3,28 @@
 def slackChannel = '#devops-framework'
 
 pipeline {
-    options {
-        durabilityHint('PERFORMANCE_OPTIMIZED')
-    }
 
     agent {
         label 'hamlet-latest'
     }
 
+    environment {
+        HAMLET_CLONE_ROOT       = '/tmp/hamlet-latest'
+        GENERATION_BASE_DIR     = '/tmp/hamlet-latest/executor'
+        GENERATION_DIR          = '/tmp/hamlet-latest/executor/cli'
+        GENERATION_PLUGIN_DIRS  = ''
+    }
+
     stages {
+
+        stage('Setup') {
+            steps {
+                sh '''#!/usr/bin/env bash
+                    curl -L https://raw.githubusercontent.com/hamlet-io/hamlet-bootstrap/master/install.sh | bash
+                    pip install hamlet-cli
+                '''
+            }
+        }
 
         stage('Run Schemas Generation as Test') {
             environment {
