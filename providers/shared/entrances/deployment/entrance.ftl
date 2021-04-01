@@ -85,14 +85,13 @@
 
             [#if !((state.CommandLineOptions.Deployment.Unit.Subset)?has_content)]
                 [#return
-                    mergeObjects(
+                    addToConfigPipelineClass(
                         state,
+                        COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS,
                         {
-                            "CommandLineOptions" : {
-                                "Deployment" : {
-                                    "Unit" : {
-                                        "Subset" : state.CommandLineOptions.Deployment.Unit.Name
-                                    }
+                            "Deployment" : {
+                                "Unit" : {
+                                    "Subset" : state.CommandLineOptions.Deployment.Unit.Name
                                 }
                             }
                         }

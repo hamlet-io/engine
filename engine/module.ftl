@@ -50,37 +50,38 @@
 [/#function]
 
 [#-- Loads the module data into the input data --]
+
 [#macro loadModule
     blueprint={}
     settingSets=[]
     stackOutputs=[]
     commandLineOption={}
-]
+    definitions={} ]
 
-    [#if blueprint?has_content ]
-        [@addBlueprint
-            blueprint=blueprint
-        /]
-    [/#if]
-
+    [#-- Normalise settings --]
+    [#local formattedModuleSettings = {} ]
     [#list settingSets as settingSet ]
-        [@addSettings
-            type=settingSet.Type!"Settings"
-            scope=settingSet.Scope!"Products"
-            namespace=settingSet.Namespace
-            settings=settingSet.Settings!{}
-        /]
+        [#local formattedModuleSettings =
+            mergeObjects(
+                formattedModuleSettings,
+                formatSettingsEntry(
+                    settingSet.Type!"Settings"
+                    settingSet.Scope!"Products"
+                    settingSet.Settings!{}
+                    settingSet.Namespace
+                )
+            )
+        ]
     [/#list]
 
-    [@addStackOutputs
-        outputs=stackOutputs
-    /]
-
-    [#if commandLineOption?has_content ]
-        [@addCommandLineOption options=commandLineOption /]
-    [/#if]
+    [#assign moduleInputState =
+        attributeIfContent(COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS, commandLineOption) +
+        attributeIfContent(BLUEPRINT_CONFIG_INPUT_CLASS, blueprint) +
+        attributeIfContent(SETTINGS_CONFIG_INPUT_CLASS, formattedModuleSettings) +
+        attributeIfContent(DEFINITIONS_CONFIG_INPUT_CLASS, definitions) +
+        attributeIfContent(STATE_CONFIG_INPUT_CLASS, stackOutputs)
+    ]
 [/#macro]
-
 
 [#-- Helper macro - not for general use --]
 [#macro internalMergeModuleConfiguration name provider configuration]

@@ -2,16 +2,16 @@
 
 [#macro shared_view_unitlist_managementcontract ]
 
-    [#-- Look through all stack outputs to determine all of the possible deployments that exisit --]
-    [#-- Stack outputs not part of the deployment state are considered orphaned --]
+    [#-- Look through all pointSets to determine all of the possible deployments that exist --]
+    [#-- Points not part of the deployment state are considered orphaned --]
     [#-- Using this state we then create a contract step using the _orphan deployment mode to decide what to do --]
-    [#list stackOutputsList as stackOutput ]
+    [#list getState() as pointSet ]
 
-        [#local deploymentUnit = stackOutput.DeploymentUnit ]
+        [#local deploymentUnit = pointSet.DeploymentUnit ]
 
         [#local deploymentGroups = []]
-        [#if ((stackOutput.Level)!"")?has_content ]
-            [#local deploymentGroups = getDeploymentGroupFromOutputPrefix(stackOutput.Level) ]
+        [#if ((pointSet.Level)!"")?has_content ]
+            [#local deploymentGroups = getDeploymentGroupFromOutputPrefix(pointSet.Level) ]
         [#else]
             [#local deploymentGroups = getDeploymentGroupsFromState() ]
         [/#if]

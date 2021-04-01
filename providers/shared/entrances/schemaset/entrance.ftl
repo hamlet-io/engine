@@ -30,21 +30,20 @@
 [#function schemaset_configseeder_commandlineoptions filter state]
 
     [#return
-        mergeObjects(
+        addToConfigPipelineClass(
             state,
+            COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS,
             {
-                "CommandLineOptions" : {
-                    "Deployment" : {
-                        "Framework" : {
-                            "Name" : DEFAULT_DEPLOYMENT_FRAMEWORK
-                        }
-                    },
-                    "Flow" : {
-                        "Names" : [ "views" ]
-                    },
-                    "View" : {
-                        "Name" : SCHEMASET_VIEW_TYPE
+                "Deployment" : {
+                    "Framework" : {
+                        "Name" : DEFAULT_DEPLOYMENT_FRAMEWORK
                     }
+                },
+                "Flow" : {
+                    "Names" : [ "views" ]
+                },
+                "View" : {
+                    "Name" : SCHEMASET_VIEW_TYPE
                 }
             }
         )

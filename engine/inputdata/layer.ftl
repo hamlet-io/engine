@@ -140,16 +140,16 @@
     [#return results + asArray(default) ]
 [/#function]
 
-[#macro includeLayers ]
+[#macro includeLayers cloLayers blueprint]
     [#list layerConfiguration as id, layer ]
         [@addLayerData
             type=layer.Type
-            data=(blueprintObject[layer.ReferenceLookupType])!{}
+            data=(blueprint[layer.ReferenceLookupType])!{}
         /]
         [@setActiveLayer
             type=layer.Type
-            commandLineOptionId=(getCommandLineOptions().Layers[layer.Type])!""
-            data=blueprintObject[layer.Type]
+            commandLineOptionId=(cloLayers[layer.Type])!""
+            data=blueprint[layer.Type]
         /]
     [/#list]
 [/#macro]

@@ -20,6 +20,43 @@
     seeder=SHARED_INPUT_SEEDER
 /]
 
+[@addSeederToConfigPipeline
+    stage=FIXTURE_SHARED_INPUT_STAGE
+    seeder=SHARED_INPUT_SEEDER
+/]
+
+[@addSeederToConfigPipeline
+    stage=CMDB_SHARED_INPUT_STAGE
+    seeder=SHARED_INPUT_SEEDER
+/]
+
+[@addSeederToConfigPipeline
+    stage=LAYER_SHARED_INPUT_STAGE
+    seeder=SHARED_INPUT_SEEDER
+/]
+
+[@addSeederToConfigPipeline
+    stage=PLUGIN_SHARED_INPUT_STAGE
+    seeder=SHARED_INPUT_SEEDER
+/]
+
+[@addSeederToConfigPipeline
+    stage=MODULE_SHARED_INPUT_STAGE
+    seeder=SHARED_INPUT_SEEDER
+/]
+
+[@addSeederToConfigPipeline
+    stage=NORMALISE_SHARED_INPUT_STAGE
+    seeder=SHARED_INPUT_SEEDER
+/]
+
+[#-- TODO(mfl) Reenable once layers are in the input processing --]
+[#-- so the layer ids can be included in the qualifiers         --]
+[#--@addTransformerToConfigPipeline
+    stage=QUALIFY_SHARED_INPUT_STAGE
+    transformer=SHARED_INPUT_SEEDER
+/--]
+
 [@addSeederToStatePipeline
     stage=FIXTURE_SHARED_INPUT_STAGE
     seeder=SHARED_INPUT_SEEDER
@@ -34,13 +71,6 @@
     stage=SIMULATE_SHARED_INPUT_STAGE
     seeder=SHARED_INPUT_SEEDER
 /]
-
-[#-- TODO(mfl) Reenable once layers are in the input processing --]
-[#-- so the layer ids can be included in the qualifiers         --]
-[#--@addTransformerToConfigPipeline
-    stage=QUALIFY_SHARED_INPUT_STAGE
-    transformer=SHARED_INPUT_SEEDER
-/--]
 
 [#macro shared_inputloader path]
     [#assign shared_cmdb_masterdata =
@@ -90,19 +120,17 @@
                     "State" : (pluginState!"")?has_content?then(
                                     pluginState?eval,
                                     {}
-                    )
+                    ),
+                    "MissingPluginAction" : missingPluginAction!"stop"
                 },
                 [#-- Deployment Details --]
                 "Deployment" : {
                     "Provider" : {
-                        "Names" : combineEntities(
-                                        (providers!"")?has_content?then(
-                                            providers?split(","),
-                                            []
-                                        ),
-                                        (commandLineOptions.Deployment.Provider.Names)![],
-                                        UNIQUE_COMBINE_BEHAVIOUR
-                                    )
+                        "Names" :
+                            (providers!"")?has_content?then(
+                                providers?split(","),
+                                []
+                            )
                     },
                     "Framework" : {
                         "Name" : deploymentFramework!"default"
@@ -128,10 +156,11 @@
                 [#-- Layer Details --]
                 "Layers" : {
                     "Tenant" : tenant!"",
-                    "Account" : account!"",
                     "Product" : product!"",
                     "Environment" : environment!"",
-                    "Segment" : segment!""
+                    "Segment" : segment!"",
+                    "Account" : account!"",
+                    "Region" : region!""
                 },
                 [#-- Logging Details --]
                 "Logging" : {
@@ -158,45 +187,17 @@
 
 [#function shared_configseeder_commandlineoptions_composite filter state]
     [#return
-        mergeObjects(
-            addToConfigPipelineClass(
-                shared_configseeder_commandlineoptions(filter, state),
-                COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS,
-                {
-                    "References" : {
-                        "Request" : requestReference!"",
-                        "Configuration" : configurationReference!""
-                    },
-                    "Composites" : {
-                        "Blueprint" : (blueprint!"")?has_content?then(
-                                            blueprint?eval,
-                                            {}
-                        ),
-                        "Settings" : (settings!"")?has_content?then(
-                                            settings?eval,
-                                            {}
-                        ),
-                        "Definitions" : ((definitions!"")?has_content && (!definitions?contains("null")))?then(
-                                            definitions?eval,
-                                            {}
-                        )
-                    },
-                    "Regions" : {
-                        "Segment" : region!"",
-                        "Account" : accountRegion!""
-                    }
-                }
-            ),
-            [#-- Temporary patch to test point processing --]
+        addToConfigPipelineClass(
+            shared_configseeder_commandlineoptions(filter, state),
+            COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS,
             {
-                CONFIG_INPUT_PIPELINE_STAGE_CACHE : {
-                    CMDB_SHARED_INPUT_STAGE : {
-                        STATE_CONFIG_INPUT_CLASS :
-                            (stackOutputs!"")?has_content?then(
-                                stackOutputs?eval,
-                                []
-                            )
-                    }
+                "References" : {
+                    "Request" : requestReference!"",
+                    "Configuration" : configurationReference!""
+                },
+                "Regions" : {
+                    "Segment" : region!"",
+                    "Account" : accountRegion!""
                 }
             }
         )
@@ -232,56 +233,299 @@
 
 [#-- Masterdata seeders --]
 [#function shared_configseeder_masterdata filter state]
-
-    [#attempt]
-        [#return
-            addToConfigPipelineClass(
-                state,
-                BLUEPRINT_CONFIG_INPUT_CLASS,
-                shared_cmdb_masterdata,
-                MASTERDATA_SHARED_INPUT_STAGE
-            )
-        ]
-    [#recover]
-        [@fatal
-            message="In shared_configseeder_masterdata"
-            stop=true
-        /]
-    [/#attempt]
-
+    [#return
+        addToConfigPipelineClass(
+            state,
+            BLUEPRINT_CONFIG_INPUT_CLASS,
+            shared_cmdb_masterdata,
+            MASTERDATA_SHARED_INPUT_STAGE
+        )
+    ]
 [/#function]
 
 
 [#function shared_configseeder_masterdata_mock filter state]
-    [#attempt]
-        [#return
-            addToConfigPipelineClass(
-                state,
-                BLUEPRINT_CONFIG_INPUT_CLASS,
-                {
-                    "Regions": {
-                        "mock-region-1": {
-                            "Locality": "MockLand",
-                            "Zones": {
-                                "a": {
-                                    "Title": "Zone A"
-                                },
-                                "b": {
-                                    "Title": "Zone C"
-                                }
+    [#return
+        addToConfigPipelineClass(
+            shared_configseeder_masterdata(filter, state),
+            BLUEPRINT_CONFIG_INPUT_CLASS,
+            {
+                "Regions": {
+                    "mock-region-1": {
+                        "Locality": "MockLand",
+                        "Zones": {
+                            "a": {
+                                "Title": "Zone A"
+                            },
+                            "b": {
+                                "Title": "Zone C"
                             }
                         }
                     }
+                }
+            },
+            MASTERDATA_SHARED_INPUT_STAGE
+        )
+    ]
+[/#function]
+
+[#function shared_configseeder_fixture filter state]
+    [#return
+        addToConfigPipelineClass(
+            state,
+            BLUEPRINT_CONFIG_INPUT_CLASS,
+            {
+                "Tenant": {
+                    "Id": "mockten",
+                    "CertificateBehaviours": {
+                        "External": true
+                    }
                 },
-                MASTERDATA_SHARED_INPUT_STAGE
+                "Account": {
+                    "Region": "mock-region-1",
+                    "Domain": "mock",
+                    "Audit": {
+                        "Offline": 90,
+                        "Expiration": 2555
+                    },
+                    "Id": "mockacct",
+                    "Seed": "abc123",
+                    "ProviderId": "0123456789"
+                },
+                "Product": {
+                    "Id": "mockedup",
+                    "Region": "mock-region-1",
+                    "Domain": "mockedup",
+                    "Profiles": {
+                        "Placement": "default"
+                    }
+                },
+                "Environment": {
+                    "Id": "int",
+                    "Name": "integration"
+                },
+                "Segment": {
+                    "Id": "default",
+                    "Bastion": {
+                        "Active": false
+                    },
+                    "multiAZ": true
+                },
+                "IPAddressGroups": {},
+                "Domains": {
+                    "Validation": "mock.local",
+                    "mockdomain": {
+                        "Stem": "mock.local"
+                    }
+                },
+                "Certificates": {
+                    "mockedup": {
+                        "Domain": "mockdomain"
+                    }
+                },
+                "Solution": {
+                    "Id": "mockapp"
+                }
+            },
+            FIXTURE_SHARED_INPUT_STAGE
+        )
+    ]
+[/#function]
+
+
+[#function shared_configseeder_cmdb filter state]
+    [#-- Handle any composites --]
+    [#local result = state]
+
+    [#local compositeBlueprint = (blueprint!"")?has_content?then(blueprint?eval, {}) ]
+
+    [#if compositeBlueprint?has_content]
+        [#-- Blueprint needed for subsequent stages --]
+        [#local result =
+            addToConfigPipelineClass(
+                result,
+                BLUEPRINT_CONFIG_INPUT_CLASS,
+                compositeBlueprint,
+                CMDB_SHARED_INPUT_STAGE
             )
         ]
-    [#recover]
-        [@fatal
-            message="In shared_configseeder_masterdata_mock"
-            stop=true
+    [/#if]
+
+    [#local compositeSettings = (settings!"")?has_content?then(settings?eval, {}) ]
+
+    [#if compositeSettings?has_content]
+        [#-- Settings not needed for plugin/module determination --]
+        [#local result =
+            addToConfigPipelineStageCacheForClass(
+                result,
+                SETTINGS_CONFIG_INPUT_CLASS,
+                normaliseCompositeSettings(compositeSettings),
+                CMDB_SHARED_INPUT_STAGE
+            )
+        ]
+    [/#if]
+
+    [#local compositeDefinitions =
+        ((definitions!"")?has_content && (!definitions?contains("null")))?then(
+            definitions?eval,
+            {}
+        )
+    ]
+    [#if compositeDefinitions?has_content]
+        [#-- Definitions not needed for plugin/module determination --]
+        [#local result =
+            addToConfigPipelineStageCacheForClass(
+                result,
+                DEFINITIONS_CONFIG_INPUT_CLASS,
+                compositeDefinitions,
+                CMDB_SHARED_INPUT_STAGE
+            )
+        ]
+    [/#if]
+
+    [#local compositeStackOutputs = (stackOutputs!"")?has_content?then(stackOutputs?eval, []) ]
+
+    [#if compositeStackOutputs?has_content]
+        [#-- Stack outputs are not needed for plugin/module determination --]
+        [#local result =
+            addToConfigPipelineStageCacheForClass(
+                result,
+                STATE_CONFIG_INPUT_CLASS,
+                (stackOutputs!"")?has_content?then(
+                    stackOutputs?eval,
+                    []
+                ),
+                CMDB_SHARED_INPUT_STAGE
+            )
+        ]
+    [/#if]
+    [#return result]
+
+[/#function]
+
+[#function shared_configseeder_layer filter state]
+
+    [#-- Calculate the layers from the current blueprint --]
+    [@clearLayerData /]
+    [@includeLayers state[COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS].Layers state[BLUEPRINT_CONFIG_INPUT_CLASS] /]
+
+    [#local result =
+        addToConfigPipelineClass(
+            state,
+            LAYERS_CONFIG_INPUT_CLASS,
+            layerActiveData
+        )
+    ]
+
+    [#return result]
+
+[/#function]
+
+[#function shared_configseeder_plugin filter state]
+
+    [#-- Check for plugins configured in the CMDB --]
+    [#local plugins = getActivePluginsFromLayers() ]
+
+    [#-- At a minimum, need providers from the command line --]
+    [#local providers = (state[COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS].Deployment.Provider.Names) ]
+
+    [#-- And for now, load plugins as providers as well --]
+    [#list plugins as plugin]
+        [#local providers = combineEntities(providers, plugin.Name, UNIQUE_COMBINE_BEHAVIOUR) ]
+    [/#list]
+
+    [#-- Determine if the required providers are already loaded --]
+    [#local unloadedProviders = getUnloadedProviders(providers) ]
+    [#if unloadedProviders?has_content]
+        [@debug
+            message="Unloaded providers"
+            context=unloadedProviders
+            detail=unloadedProviders?has_content
+            enabled=false
         /]
-    [/#attempt]
+    [/#if]
+    [#return
+        addToConfigPipelineClass(
+            state,
+            LOADER_CONFIG_INPUT_CLASS,
+            {
+                "Plugins" : plugins,
+                "Providers" : providers
+            }
+        ) +
+        [#-- Force a restart of inpout processing if required --]
+        {
+            "RestartRequired" : unloadedProviders?has_content
+        }
+    ]
+[/#function]
+
+[#function shared_configseeder_module filter state]
+
+    [#local activeModules = getActiveModulesFromLayers() ]
+    [#local moduleState = {} ]
+    [#if activeModules?has_content ]
+        [@debug
+            message="Active modules"
+            context=activeModules
+            enabled=false
+        /]
+        [#list activeModules as module ]
+            [#-- loadModule will populate this variable assuming the module has been loaded --]
+            [#assign moduleInputState = {} ]
+
+            [@seedModuleData
+                provider=module.Provider
+                name=module.Name
+                parameters=module.Parameters
+            /]
+            [#local moduleState =
+                combineEntities(
+                    moduleState,
+                    moduleInputState,
+                    APPEND_COMBINE_BEHAVIOUR
+                )
+            ]
+        [/#list]
+        [#return
+            [#-- Cache data ready for normalisation --]
+            addToConfigPipelineStageCache(
+                state,
+                moduleState,
+                MODULE_SHARED_INPUT_STAGE
+            )
+        ]
+    [/#if]
+    [#return state]
+[/#function]
+
+[#function shared_configseeder_normalise filter state]
+
+    [#-- reorganise input classes to implement correct overrides --]
+    [#-- master data, fixtures, modules, cmdb --]
+    [#local classes = {} ]
+    [#list
+        [
+            BLUEPRINT_CONFIG_INPUT_CLASS,
+            SETTINGS_CONFIG_INPUT_CLASS,
+            DEFINITIONS_CONFIG_INPUT_CLASS
+        ] as class]
+
+        [#local classes +=
+            getConfigPipelineClassCacheForStages(
+                state,
+                class,
+                [
+                    MASTERDATA_SHARED_INPUT_STAGE,
+                    FIXTURE_SHARED_INPUT_STAGE,
+                    MODULE_SHARED_INPUT_STAGE,
+                    CMDB_SHARED_INPUT_STAGE
+                ]
+            )
+        ]
+    [/#list]
+
+    [#return state + classes ]
 [/#function]
 
 [#function shared_configtransformer_qualify filter state]

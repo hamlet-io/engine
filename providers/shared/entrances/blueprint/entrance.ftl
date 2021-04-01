@@ -36,27 +36,26 @@
 [#function blueprint_configseeder_commandlineoptions filter state]
 
     [#return
-        mergeObjects(
+        addToConfigPipelineClass(
             state,
+            COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS,
             {
-                "CommandLineOptions" : {
-                    "Deployment" : {
-                        "Unit" : {
-                            "Name" : ""
-                        },
-                        "Group" : {
-                            "Name" : "*"
-                        },
-                        "Framework" : {
-                            "Name" : DEFAULT_DEPLOYMENT_FRAMEWORK
-                        }
+                "Deployment" : {
+                    "Unit" : {
+                        "Name" : ""
                     },
-                    "Flow" : {
-                        "Names" : [ "views" ]
+                    "Group" : {
+                        "Name" : "*"
                     },
-                    "View" : {
-                        "Name" : BLUEPRINT_VIEW_TYPE
+                    "Framework" : {
+                        "Name" : DEFAULT_DEPLOYMENT_FRAMEWORK
                     }
+                },
+                "Flow" : {
+                    "Names" : [ "views" ]
+                },
+                "View" : {
+                    "Name" : BLUEPRINT_VIEW_TYPE
                 }
             }
         )

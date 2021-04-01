@@ -365,6 +365,8 @@ to filter the data returned
 [#assign DEFINITIONS_CONFIG_INPUT_CLASS = "Definitions" ]
 [#assign FRAGMENT_CONFIG_INPUT_CLASS = "Fragments" ]
 [#assign STATE_CONFIG_INPUT_CLASS = "State" ]
+[#assign LOADER_CONFIG_INPUT_CLASS = "Loader" ]
+[#assign LAYERS_CONFIG_INPUT_CLASS = "Layers" ]
 
 [#-- Cache of stage data for situations where back --]
 [#-- referencing is need in subsequent stages      --]
@@ -403,6 +405,14 @@ to filter the data returned
 
 [#function getState ]
     [#return getInputState()[STATE_CONFIG_INPUT_CLASS]![] ]
+[/#function]
+
+[#function getLayers ]
+    [#return getInputState()[LAYERS_CONFIG_INPUT_CLASS]![] ]
+[/#function]
+
+[#function getLoader ]
+    [#return getInputState()[LOADER_CONFIG_INPUT_CLASS]!{} ]
 [/#function]
 
 [#--
@@ -499,13 +509,96 @@ A stack is used to capture the history of input state changes
 
         [#if !cacheHit]
             [#-- refresh not yet satisfied --]
-            [#assign inputState =
-                internalAddToInputStateCache(
-                    topOfStack.Filter,
-                    internalGetConfigPipelineValue(topOfStack.Source, topOfStack.Filter),
-                    knownMiss
-                )
-            ]
+            [#-- Use a list to simulate a while loop --]
+            [#-- It is possible that processing is restarted because new plugins/providers --]
+            [#-- need to be loaded (which may in turn register new seeders)                --]
+            [#local restartRequired  = false]
+            [#local newState = {} ]
+            [#list 1..10 as index]
+                [#-- Assume a restart won't be necessary --]
+                [#local newState =
+                    internalGetConfigPipelineValue(
+                        topOfStack.Source,
+                        topOfStack.Filter,
+                        {
+                            LOADER_CONFIG_INPUT_CLASS : {
+                                "Plugins" : [],
+                                "Providers" : []
+                            }
+                        }
+                    )
+                ]
+                [#local restartRequired = newState.RestartRequired!false]
+                [#if restartRequired]
+                    [@debug
+                        message="Pipeline restart required"
+                        context={
+                            "Plugins" : newState[LOADER_CONFIG_INPUT_CLASS].Plugins,
+                            "Providers" : newState[LOADER_CONFIG_INPUT_CLASS].Providers
+                        }
+                        enabled=true
+                    /]
+                    [#-- TODO(mfl) Distinguish between loading a plugin --]
+                    [#-- and loading a provider                         --]
+
+                    [#-- Temporarily allow access to the input state    --]
+                    [#-- during plugin/provider loading                 --]
+                    [@internalSuspendInputStateRefresh /]
+
+                    [#-- Provide the state thus far - mainly for CLO access --]
+                    [#assign inputState = newState]
+
+                    [#-- Ensure required plugins --]
+                    [#if newState[COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS].Plugins.MissingPluginAction?lower_case == "stop"]
+                        [#local unloadedPlugins =
+                            getUnloadedPlugins(
+                                newState[COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS].Plugins.State,
+                                newState[LOADER_CONFIG_INPUT_CLASS].Plugins
+                            )
+                        ]
+                        [#if unloadedPlugins?has_content ]
+                            [@fatal
+                                message="Required plugin(s) not loaded"
+                                context=unloadedPlugins
+                                stop=true
+                            /]
+                        [/#if]
+                    [/#if]
+
+                    [#-- Ensure all providers listed have been loaded   --]
+                    [#-- Plugin stage will force a restart if not all   --]
+                    [#-- required providers are loaded                  --]
+                    [@includeProviders newState[LOADER_CONFIG_INPUT_CLASS].Providers /]
+                    [@includeCoreProviderConfiguration newState[LOADER_CONFIG_INPUT_CLASS].Providers /]
+
+                    [#-- Resume input refresh monitoring --]
+                    [@internalResumeInputStateRefresh /]
+                [/#if]
+            [/#list]
+            [#if restartRequired]
+                [#-- Looks like some sort of problem with plugin/provider loading --]
+                [@fatal
+                    message="Unable to complete pipeline refresh - restarts exhausted"
+                    context={
+                        "InputFilter" : topOfStack.Filter,
+                        "InputSource" : inputSources[topOfStack.Source],
+                        "InputStages" : inputStages,
+                        "InputSeeders" : inputSeeders,
+                        "InputTransformers" : inputTransformers,
+                        "Plugins" : newState[LOADER_CONFIG_INPUT_CLASS].Plugins,
+                        "Providers" : newState[LOADER_CONFIG_INPUT_CLASS].Providers
+                    }
+                    stop=true
+                /]
+            [#else]
+                [#assign inputState =
+                    internalAddToInputStateCache(
+                        topOfStack.Filter,
+                        newState,
+                        knownMiss
+                    )
+                ]
+            [/#if]
         [/#if]
     [/#if]
 
@@ -651,74 +744,68 @@ which is useful in situations like link processing.
 
 [#-- Step support functions --]
 
-[#-- Add data to a class and optionally keep the data for subsequent stages --]
-[#function addToConfigPipelineClass state class data stage=""]
-    [#return
-        mergeObjects(
+[#-- Add data to the current state of a class --]
+[#function addToConfigPipelineClass state class data stage="" behaviour=MERGE_COMBINE_BEHAVIOUR]
+    [#local result =
+        combineEntities(
             state,
             {
                 class : data
-            } +
-            attributeIfContent(
-                CONFIG_INPUT_PIPELINE_STAGE_CACHE,
-                stage,
-                {
-                    stage : {
-                        class : data
-                    }
-                }
-            )
+            },
+            behaviour
         )
     ]
+    [#if stage?has_content]
+        [#local result =
+            addToConfigPipelineStageCacheForClass(result, class, data, stage, behaviour) ]
+    [/#if]
+    [#return result]
 [/#function]
 
-[#-- Get specific class data for a stage --]
-[#function getConfigPipelineClassCacheForStage state class stage]
-    [#return state[CONFIG_INPUT_PIPELINE_STAGE_CACHE][stage][class] ]
-[/#function]
-
-[#-- Remove specific class data for a stage --]
-[#-- Clean up any resulting empty objects   --]
-[#function removeConfigPipelineClassCacheForStage state class stage]
-    [#local stageCache =
-        removeObjectAttributes(
-            (state[CONFIG_INPUT_PIPELINE_STAGE_CACHE][stage])!{},
-            class
-        )
-    ]
-    [#if stageCache?has_content]
-        [#return
-            state +
-            {
-                CONFIG_INPUT_PIPELINE_STAGE_CACHE :
-                    state[CONFIG_INPUT_PIPELINE_STAGE_CACHE] +
-                    {
-                        stage : stageCache
-                    }
-            }
-        ]
-    [/#if]
-    [#local cache =
-        removeObjectAttributes(
-            (state[CONFIG_INPUT_PIPELINE_STAGE_CACHE])!{},
-            stage
-        )
-    ]
-    [#if cache?has_content]
-        [#return
-            state +
-            {
-                CONFIG_INPUT_PIPELINE_STAGE_CACHE : cache
-            }
-        ]
-    [/#if]
-
+[#function addToConfigPipelineStageCache state data stage behaviour=MERGE_COMBINE_BEHAVIOUR]
     [#return
-        removeObjectAttributes(
+        combineEntities(
             state,
-            CONFIG_INPUT_PIPELINE_STAGE_CACHE
+            {
+                CONFIG_INPUT_PIPELINE_STAGE_CACHE : {
+                    stage : data
+                }
+            },
+            behaviour
         )
     ]
+[/#function]
+
+[#function addToConfigPipelineStageCacheForClass state class data stage behaviour=MERGE_COMBINE_BEHAVIOUR]
+    [#return
+        addToConfigPipelineStageCache(
+            state,
+            {
+                class : data
+            },
+            stage,
+            behaviour
+        )
+    ]
+[/#function]
+
+[#-- Get combined class cache data for one or more stages --]
+[#function getConfigPipelineClassCacheForStages state class stages=[] ]
+    [#local result = {} ]
+    [#list asArray(stages) as stage]
+        [#if (state[CONFIG_INPUT_PIPELINE_STAGE_CACHE][stage][class])?? ]
+            [#local result =
+                combineEntities(
+                    result,
+                    {
+                        class : state[CONFIG_INPUT_PIPELINE_STAGE_CACHE][stage][class]
+                    },
+                    APPEND_COMBINE_BEHAVIOUR
+                )
+            ]
+        [/#if]
+    [/#list]
+    [#return result]
 [/#function]
 
 [#---------------------------------------------------
@@ -789,7 +876,15 @@ Get the effective value of a pipeline for the current input filter
                     /]
                 [/#if]
             [/#if]
+            [#-- Terminate if a restart is required --]
+            [#if state.RestartRequired!false]
+                [#break]
+            [/#if]
         [/#list]
+        [#-- Terminate if a restart is required --]
+        [#if state.RestartRequired!false]
+            [#break]
+        [/#if]
     [/#list]
     [@debug
         message="Evaluation of " + pipeline + " pipeline complete"
@@ -803,8 +898,8 @@ Get the effective value of a pipeline for the current input filter
 [#--
 Get the effective value of the config pipeline for the current input source/filter
 --]
-[#function internalGetConfigPipelineValue inputSource inputFilter ]
-    [#return internalGetInputPipelineValue(inputSource, inputFilter, CONFIG_SEEDER_PIPELINE_TYPE, {} ) ]
+[#function internalGetConfigPipelineValue inputSource inputFilter initialState={} ]
+    [#return internalGetInputPipelineValue(inputSource, inputFilter, CONFIG_SEEDER_PIPELINE_TYPE, initialState ) ]
 [/#function]
 
 [#--
@@ -852,13 +947,15 @@ as processing is typically centred around the initially provided filter values
 [/#function]
 
 [#function internalAddToInputStateCache inputFilter inputState knownMiss=false]
+    [#-- Remove any cached information to keep memory usage down --]
+    [#local strippedInputState = removeObjectAttributes(inputState, CONFIG_INPUT_PIPELINE_STAGE_CACHE) ]
     [#if knownMiss ]
         [#-- Always put at the end --]
         [#assign inputStateCache +=
             [
                 {
                     "Filter" : inputFilter,
-                    "State" : inputState
+                    "State" : strippedInputState
                 }
             ]
         ]
@@ -870,7 +967,7 @@ as processing is typically centred around the initially provided filter values
                 [
                     {
                         "Filter" : inputFilter,
-                        "State" : inputState
+                        "State" : strippedInputState
                     }
                 ]
             ]
@@ -883,7 +980,7 @@ as processing is typically centred around the initially provided filter values
                         [
                             {
                                 "Filter" : inputFilter,
-                                "State" : inputState
+                                "State" : strippedInputState
                             }
                         ]
                     ]
@@ -898,14 +995,22 @@ as processing is typically centred around the initially provided filter values
 [/#function]
 
 [#assign inputStateRefreshRequired = false]
+[#assign inputStateRefreshSuspended = false]
 
 [#macro internalScheduleInputStateRefresh ]
     [#assign inputStateRefreshRequired = true]
+[/#macro]
 
+[#macro internalSuspendInputStateRefresh ]
+    [#assign inputStateRefreshSuspended = true]
+[/#macro]
+
+[#macro internalResumeInputStateRefresh ]
+    [#assign inputStateRefreshSuspended = false]
 [/#macro]
 
 [#macro internalRefreshInputState]
-    [#if inputStateRefreshRequired]
+    [#if inputStateRefreshRequired && !inputStateRefreshSuspended]
         [#-- Force cache state to (potentially) new value --]
         [#local cacheHit = refreshInputState(false) ]
 

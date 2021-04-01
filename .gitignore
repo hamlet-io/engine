@@ -6,3 +6,5 @@ build/*
 cache/*
 
 node_modules/
+
+hamlet_tests/*

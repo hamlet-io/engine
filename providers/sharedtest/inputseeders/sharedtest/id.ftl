@@ -10,23 +10,59 @@
     seeder=SHAREDTEST_INPUT_SEEDER
 /]
 
+[@addSeederToConfigPipeline
+    stage=FIXTURE_SHARED_INPUT_STAGE
+    seeder=SHAREDTEST_INPUT_SEEDER
+/]
+
 [#-- Masterdata seeders --]
 [#function sharedtest_configseeder_masterdata filter state]
 
     [#return
-        mergeObjects(
+        addToConfigPipelineClass(
             state,
+            BLUEPRINT_CONFIG_INPUT_CLASS,
             {
-                "Masterdata" : {
-                    "DeploymentGroups" : {
-                        "internal" : {
-                            "Priority" : 500,
-                            "Level" : "solution",
-                            "ResourceSets" : {}
+                "DeploymentGroups" : {
+                    "internal" : {
+                        "Priority" : 500,
+                        "Level" : "solution",
+                        "ResourceSets" : {}
+                    }
+                }
+            },
+            MASTERDATA_SHARED_INPUT_STAGE
+        )
+    ]
+
+[/#function]
+
+[#-- Blueprint seeders --]
+[#function sharedtest_configseeder_fixture filter state]
+    [#return
+        addToConfigPipelineClass(
+            state,
+            BLUEPRINT_CONFIG_INPUT_CLASS,
+            {
+                "Solution" : {
+                    "Modules" : {
+                        "internaltest" : {
+                            "Provider" : "sharedtest",
+                            "Name" : "internaltest"
+                        }
+                    }
+                },
+                "PlacementProfiles": {
+                    "internal": {
+                        "default": {
+                            "Provider": "sharedtest",
+                            "Region": "internal",
+                            "DeploymentFramework": "default"
                         }
                     }
                 }
-            }
+            },
+            FIXTURE_SHARED_INPUT_STAGE
         )
     ]
 
