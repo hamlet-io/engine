@@ -960,17 +960,6 @@
       "MaxAge": 1800
     }
   },
-  "ScriptStores": {
-    "_startup": {
-      "Engine": "local",
-      "Source": {
-        "Directory": "$\\{GENERATION_STARTUP_DIR}/bootstrap"
-      },
-      "Destination": {
-        "Prefix": "bootstrap"
-      }
-    }
-  },
   "WAFValueSets": {
     "default": {
       "badcookies": [
