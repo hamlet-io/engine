@@ -17,12 +17,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hamlet-io/engine-plugin-aws.git"
+    "url": "git+https://github.com/hamlet-io/engine.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/hamlet-io/engine-plugin-aws/issues"
+    "url": "https://github.com/hamlet-io/engine/issues"
   },
-  "homepage": "https://github.com/hamlet-io/engine-plugin-aws#readme"
+  "homepage": "https://github.com/hamlet-io/engine#readme"
 }
