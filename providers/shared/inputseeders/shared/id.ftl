@@ -340,7 +340,7 @@
     [#local compositeBlueprint = (blueprint!"")?has_content?then(blueprint?eval, {}) ]
 
     [#if compositeBlueprint?has_content]
-        [#-- Blueprint needed for subsequent stages --]
+        [#-- Blueprint needed for plugin/module determination --]
         [#local result =
             addToConfigPipelineClass(
                 result,
@@ -354,7 +354,7 @@
     [#local compositeSettings = (settings!"")?has_content?then(settings?eval, {}) ]
 
     [#if compositeSettings?has_content]
-        [#-- Settings not needed for plugin/module determination --]
+        [#-- Cache settings ready for normalisation --]
         [#local result =
             addToConfigPipelineStageCacheForClass(
                 result,
@@ -372,7 +372,7 @@
         )
     ]
     [#if compositeDefinitions?has_content]
-        [#-- Definitions not needed for plugin/module determination --]
+        [#-- Cache definitions ready for normalisation --]
         [#local result =
             addToConfigPipelineStageCacheForClass(
                 result,
@@ -386,7 +386,7 @@
     [#local compositeStackOutputs = (stackOutputs!"")?has_content?then(stackOutputs?eval, []) ]
 
     [#if compositeStackOutputs?has_content]
-        [#-- Stack outputs are not needed for plugin/module determination --]
+        [#-- Cache stack outputs ready for normalisation --]
         [#local result =
             addToConfigPipelineStageCacheForClass(
                 result,
@@ -396,6 +396,17 @@
                     []
                 ),
                 CMDB_SHARED_INPUT_STAGE
+            )
+        ]
+    [/#if]
+
+    [#if fragmentTemplate?has_content]
+        [#-- Fragments are not affected by plugin/module determination --]
+        [#local result =
+            addToConfigPipelineClass(
+                result,
+                FRAGMENTS_CONFIG_INPUT_CLASS,
+                fragmentTemplate
             )
         ]
     [/#if]

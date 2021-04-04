@@ -158,9 +158,25 @@
 
         [#local extensionDetails = getExtensionDetails(id, provider)]
 
-        [#-- Legacy support for fragments which are part of the composite fragment file --]
+        [#-- Legacy support for fragments --]
         [#local fragmentId = id ]
-        [#include fragmentList?ensure_starts_with("/")]
+        [#-- TODO(mfl) Remove check for fragmentList once changes to --
+        [#-- support content intergretation in place --]
+        [#if fragmentList?has_content]
+            [#include fragmentList?ensure_starts_with("/") ]
+        [/#if]
+
+        [#local fragments = getFragments()?trim ]
+        [#if fragments?has_content]
+            [#if !fragments?contains("[#ftl]") ]
+                [#-- Ensure fragments are assembled into a case statement --]
+                [#local fragments = fragments?ensure_starts_with("[#ftl][#switch fragmentId]")?ensure_ends_with("[/#switch]") ]
+            [/#if]
+
+            [#-- Treat as interpretable content --]
+            [#local inlineFragment = fragments?interpret]
+            [@inlineFragment /]
+        [/#if]
 
         [#-- Find the extension function --]
         [#if !(extensionDetails?has_content) ]

@@ -120,7 +120,14 @@
     /]
 
     [#if include?has_content]
-        [#include include?ensure_starts_with("/")]
+        [#if include?contains("[#ftl]") ]
+            [#-- treat as interpretable content --]
+            [#local inlineInclude = include?interpret]
+            [@inlineInclude /]
+        [#else]
+            [#-- assume a filename --]
+            [#include include?ensure_starts_with("/") ]
+        [/#if]
     [#else]
         [@processFlows
             level=level
@@ -245,7 +252,14 @@
 
     [#-- Resources --]
     [#if include?has_content]
-        [#include include?ensure_starts_with("/")]
+        [#if include?contains("[#ftl]") ]
+            [#-- treat as interpretable content --]
+            [#local inlineInclude = include?interpret]
+            [@inlineInclude /]
+        [#else]
+            [#-- assume a filename --]
+            [#include include?ensure_starts_with("/") ]
+        [/#if]
     [#else]
         [@processFlows
             level=level
@@ -420,7 +434,7 @@
 
 [/#macro]
 
-[#-- Occuurrence State --]
+[#-- Occurrence State --]
 [#function default_output_state level="" include=""]
     [@initialiseJsonOutput name="states" /]
 
@@ -611,7 +625,14 @@
     [/#if]
 
     [#if include?has_content]
-        [#include include?ensure_starts_with("/")]
+        [#if include?contains("[#ftl]") ]
+            [#-- treat as interpretable content --]
+            [#local inlineInclude = include?interpret]
+            [@inlineInclude /]
+        [#else]
+            [#-- assume a filename --]
+            [#include include?ensure_starts_with("/") ]
+        [/#if]
     [#else]
           [@processFlows
             level=level
