@@ -2,7 +2,7 @@
 
 [#-- Is a resource part of a deployment unit --]
 [#function isPartOfDeploymentUnit resourceId deploymentUnit deploymentUnitSubset]
-  [#local resourceObject = getStatePoint(resourceId)]
+  [#local pointObject = getStatePoint(resourceId)]
   [#local
     currentDeploymentUnit =
       deploymentUnit +
@@ -11,8 +11,8 @@
         ""
       )
   ]
-  [#return !(resourceObject?has_content &&
-    (resourceObject.DeploymentUnit != currentDeploymentUnit))]
+  [#return !(pointObject.Value?has_content &&
+    (pointObject.DeploymentUnit != currentDeploymentUnit))]
 [/#function]
 
 [#-- Is a resource part of the current deployment unit --]
