@@ -363,7 +363,7 @@ to filter the data returned
 [#assign BLUEPRINT_CONFIG_INPUT_CLASS = "Blueprint" ]
 [#assign SETTINGS_CONFIG_INPUT_CLASS = "Settings" ]
 [#assign DEFINITIONS_CONFIG_INPUT_CLASS = "Definitions" ]
-[#assign FRAGMENT_CONFIG_INPUT_CLASS = "Fragments" ]
+[#assign FRAGMENTS_CONFIG_INPUT_CLASS = "Fragments" ]
 [#assign STATE_CONFIG_INPUT_CLASS = "State" ]
 [#assign LOADER_CONFIG_INPUT_CLASS = "Loader" ]
 [#assign LAYERS_CONFIG_INPUT_CLASS = "Layers" ]
@@ -400,7 +400,7 @@ to filter the data returned
 [/#function]
 
 [#function getFragments ]
-    [#return getInputState()[FRAGMENT_CONFIG_INPUT_CLASS]!{} ]
+    [#return getInputState()[FRAGMENTS_CONFIG_INPUT_CLASS]!"" ]
 [/#function]
 
 [#function getState ]
