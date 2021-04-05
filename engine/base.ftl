@@ -706,13 +706,17 @@ are added.
 
     [#local normalisedAttributes = normaliseCompositeConfiguration(attributes)]
 
-    [#-- Determine the attribute values --]
+    [#-- Determine the values for explicitly listed attributes --]
     [#local result = {} ]
+    [#local explicitAttributes = [] ]
+    [#local attributeWildcardSeen = false ]
+
     [#if normalisedAttributes?has_content]
         [#list normalisedAttributes as attribute]
 
             [#local populateMissingChildren = attribute.PopulateMissingChildren ]
 
+            [#-- TODO(mfl) Should all name alternatives be processed? Doing so would represent a change in behaviour --]
             [#-- Look for the first name alternative --]
             [#local providedName = ""]
             [#local providedValue = ""]
@@ -721,14 +725,19 @@ are added.
                 [#if attributeName == "*"]
                     [#local providedName = "*"]
                 [/#if]
+                [#-- Previous name already seen --]
                 [#if providedName?has_content]
                     [#break]
                 [#else]
                     [#list candidates?reverse as object]
                         [#if object[attributeName]??]
+                            [#-- Found a match - look for this name on all candidates --]
                             [#local providedName = attributeName ]
                             [#local providedValue = object[attributeName] ]
                             [#local providedCandidate = object ]
+
+                            [#-- Remember which attributes have been explicitly listed --]
+                            [#local explicitAttributes += [attributeName] ]
                             [#break]
                         [/#if]
                     [/#list]
@@ -736,9 +745,10 @@ are added.
             [/#list]
 
 
-            [#-- Name wildcard means include all candidate objects --]
+            [#-- Attribute wildcard seen - include any attributes not explicitly defined --]
             [#if providedName == "*"]
-                [#break]
+                [#local attributeWildcardSeen = true ]
+                [#continue]
             [/#if]
 
             [#-- Throw an exception if a mandatory attribute is missing      --]
@@ -953,13 +963,15 @@ are added.
                 [/#if]
             [/#if]
         [/#list]
-        [#if providedName != "*"]
+        [#if !attributeWildcardSeen]
             [#return result ]
         [/#if]
     [/#if]
 
+    [#-- Either no attribute configuration has been provided or a name wildcard was encountered --]
     [#list candidates as object]
-        [#local result += object ]
+        [#-- TODO(mfl) Should this be a merge? Doing so would represent a change in behaviour --]
+        [#local result += removeObjectAttributes(object, explicitAttributes) ]
     [/#list]
     [#return result ]
 [/#function]
