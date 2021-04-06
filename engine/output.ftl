@@ -220,7 +220,7 @@
         [/#if]
         [#if lines?is_sequence]
             [#list lines as line ]
-                [#local result += line?ensure_ends_with('\r\n') ]
+                [#local result += line?ensure_ends_with('\n') ]
             [/#list]
         [/#if]
     [/#list]
