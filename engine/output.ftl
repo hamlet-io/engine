@@ -220,7 +220,7 @@
         [/#if]
         [#if lines?is_sequence]
             [#list lines as line ]
-                [#local result += "${line}${'\n'}" ]
+                [#local result += line?ensure_ends_with('\r\n') ]
             [/#list]
         [/#if]
     [/#list]
@@ -599,7 +599,7 @@
 
         [#case "diagraminfo"]
         [#case "info"]
-            [#local filename_parts = 
+            [#local filename_parts =
                 mergeObjects(
                     filename_parts,
                     {
