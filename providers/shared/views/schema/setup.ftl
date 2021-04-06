@@ -17,6 +17,40 @@
     [/#if]
 
     [#switch section]
+        [#case "layer" ]
+
+            [#-- Validate layers - we validate them here for a more helpful error --]
+            [#if !(layerConfiguration?keys?seq_contains(schema?capitalize))]
+                [@fatal
+                    message="Invalid layer provided."
+                    context={"Layers" : layerConfiguration?keys}
+                /]
+                [#break]
+            [#else]
+
+                [#local schemaLayerConfig = 
+                    getLayerConfiguration(schema?capitalize)]
+
+                [#local schemaLayerAttributes = schemaLayerConfig.Attributes![]]
+
+                [@addSchema
+                    section="layer"
+                    schema=schema
+                    configuration=
+                    formatJsonSchemaFromComposite(
+                        {
+                            "Names" : schema,
+                            "Type" : OBJECT_TYPE,
+                            "SubObjects" : true,
+                            "Children" : schemaLayerAttributes
+                        },
+                        attributeSetConfiguration?keys
+                    )
+                /]
+
+            [/#if]
+
+            [#break]
 
         [#case "component"]
 
