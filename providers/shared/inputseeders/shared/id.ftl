@@ -121,7 +121,7 @@
                                     pluginState?eval,
                                     {}
                     ),
-                    "MissingPluginAction" : missingPluginAction!"stop"
+                    "RefreshRequired" :  ((pluginRefreshRequired!"") == "true")
                 },
                 [#-- Deployment Details --]
                 "Deployment" : {
@@ -475,7 +475,9 @@
 
     [#local activeModules = getActiveModulesFromLayers() ]
     [#local moduleState = {} ]
-    [#if activeModules?has_content ]
+    [#if activeModules?has_content &&
+            [#-- Don't try to load modules when refreshing plugin state --]
+            !state[COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS].Plugins.RefreshRequired]
         [@debug
             message="Active modules"
             context=activeModules

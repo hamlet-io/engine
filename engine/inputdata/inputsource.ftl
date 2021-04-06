@@ -548,8 +548,8 @@ A stack is used to capture the history of input state changes
                     [#-- Provide the state thus far - mainly for CLO access --]
                     [#assign inputState = newState]
 
-                    [#-- Ensure required plugins --]
-                    [#if newState[COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS].Plugins.MissingPluginAction?lower_case == "stop"]
+                    [#-- Ensure required plugins are loaded if not refreshing plugins --]
+                    [#if !newState[COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS].Plugins.RefreshRequired]
                         [#local unloadedPlugins =
                             getUnloadedPlugins(
                                 newState[COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS].Plugins.State,
