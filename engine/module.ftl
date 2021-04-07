@@ -75,11 +75,15 @@
     [/#list]
 
     [#assign moduleInputState =
-        attributeIfContent(COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS, commandLineOption) +
-        attributeIfContent(BLUEPRINT_CONFIG_INPUT_CLASS, blueprint) +
-        attributeIfContent(SETTINGS_CONFIG_INPUT_CLASS, formattedModuleSettings) +
-        attributeIfContent(DEFINITIONS_CONFIG_INPUT_CLASS, definitions) +
-        attributeIfContent(STATE_CONFIG_INPUT_CLASS, stackOutputs)
+        mergeObjects(
+            moduleInputState,
+            {} +
+            attributeIfContent(COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS, commandLineOption) +
+            attributeIfContent(BLUEPRINT_CONFIG_INPUT_CLASS, blueprint) +
+            attributeIfContent(SETTINGS_CONFIG_INPUT_CLASS, formattedModuleSettings) +
+            attributeIfContent(DEFINITIONS_CONFIG_INPUT_CLASS, definitions) +
+            attributeIfContent(STATE_CONFIG_INPUT_CLASS, stackOutputs)
+        )
     ]
 [/#macro]
 
