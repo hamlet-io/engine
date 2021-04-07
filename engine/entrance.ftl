@@ -103,7 +103,7 @@
 [#macro invokeEntranceMacro type ]
 
     [#local macroOptions = []]
-    [#list getLoader().Providers as provider ]
+    [#list getLoaderProviders() as provider ]
         [#local macroOptions +=
             [
                 [ provider, "entrance", type ]
