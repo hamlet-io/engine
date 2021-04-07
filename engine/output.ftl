@@ -433,7 +433,7 @@
 
     [#local outputMappings = getGenerationContractStepOutputMapping(
                                 combineEntities(
-                                    getCLODeploymentProviders(),
+                                    getLoaderProviders(),
                                     [ SHARED_PROVIDER],
                                     UNIQUE_COMBINE_BEHAVIOUR
                                 ),
@@ -448,7 +448,7 @@
 [#function getGenerationContractStepParameters subset alternative ]
     [#local outputMappings = getGenerationContractStepOutputMapping(
                                 combineEntities(
-                                    getCLODeploymentProviders(),
+                                    getLoaderProviders(),
                                     [ SHARED_PROVIDER],
                                     UNIQUE_COMBINE_BEHAVIOUR
                                 ),
@@ -464,7 +464,7 @@
     [#return {
         "entrance"               : getCLOEntranceType(),
         "flows"                  : getCLOFlows()?join(","),
-        "providers"              : (getCLODeploymentProviders()?join(","))!SHARED_PROVIDER,
+        "providers"              : (getLoaderProviders()?join(","))!SHARED_PROVIDER,
         "deploymentFramework"    : getCLODeploymentFramework(),
         "outputType"             : outputMappings["OutputType"],
         "outputFormat"           : outputMappings["OutputFormat"],

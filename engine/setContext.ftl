@@ -5,7 +5,7 @@
 [@includeSharedComponentConfiguration component="baseline" /]
 
 [#-- Temporary AWS stuff --]
-[#if getCLODeploymentProviders()?seq_contains("aws") ]
+[#if getLoaderProviders()?seq_contains("aws") ]
     [@includeProviderComponentDefinitionConfiguration provider="aws" component="baseline" /]
     [@includeProviderComponentConfiguration provider="aws" component="baseline" services="baseline" /]
     [@includeProviderComponentDefinitionConfiguration provider="aws" component="s3" /]
@@ -130,7 +130,7 @@
         [#assign accountId = accountObject.Id ]
         [#assign accountName = accountObject.Name ]
 
-        [#if getCLODeploymentProviders()?seq_contains("aws")]
+        [#if getLoaderProviders()?seq_contains("aws")]
             [#assign credentialsBucket = getExistingReference(formatAccountS3Id("credentials"))]
             [#assign credentialsBucketRegion = getExistingReference(formatAccountS3Id("credentials"), REGION_ATTRIBUTE_TYPE)]
 
@@ -204,7 +204,7 @@
 
         [/#if]
 
-        [#if getCLODeploymentProviders()?seq_contains("aws")]
+        [#if getLoaderProviders()?seq_contains("aws")]
             [#assign segmentSeed = getExistingReference(formatSegmentSeedId()) ]
 
             [#assign legacyVpc = getExistingReference(formatVPCId())?has_content ]
@@ -226,7 +226,7 @@
         [#assign sshEnabled = segmentObject.Bastion.Enabled ]
         [#assign sshActive = sshEnabled && segmentObject.Bastion.Active ]
 
-        [#if getCLODeploymentProviders()?seq_contains("aws")]
+        [#if getLoaderProviders()?seq_contains("aws")]
             [#assign sshFromProxySecurityGroup = getExistingReference(formatSSHFromProxySecurityGroupId())]
         [/#if]
 
@@ -695,5 +695,3 @@
     [/#list]
     [#return codes]
 [/#function]
-
-

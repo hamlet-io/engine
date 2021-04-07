@@ -99,7 +99,7 @@
             [#local testCase = testCases[testCaseName] ]
 
             [#local outputProviders = combineEntities(
-                                            getCLODeploymentProviders(),
+                                            getLoaderProviders(),
                                             [ SHARED_PROVIDER],
                                             UNIQUE_COMBINE_BEHAVIOUR
                                         )]

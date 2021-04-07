@@ -103,7 +103,7 @@
 [#macro invokeEntranceMacro type ]
 
     [#local macroOptions = []]
-    [#list getCLODeploymentProviders() as provider ]
+    [#list getLoader().Providers as provider ]
         [#local macroOptions +=
             [
                 [ provider, "entrance", type ]
@@ -124,16 +124,16 @@
         [@fatal
             message="Could not find entrance macro with provided options"
             context=macroOptions
-            enabled=false
+            enabled=true
+            stop=true
         /]
-        [#stop "HamletFatal: Unable to find an entrance macro: ${type}" ]
     [/#if]
 [/#macro]
 
 [#macro addEntranceInputSteps type ]
 
     [#local macroOptions = []]
-    [#list getCLODeploymentProviders() as provider ]
+    [#list getLoaderProviders() as provider ]
         [#local macroOptions +=
             [
                 [ provider, "entrance", type, "inputsteps" ]

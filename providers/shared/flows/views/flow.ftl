@@ -15,7 +15,7 @@
         view=getCLOView()
     /]
 
-    [#local primaryProvider = (getCLODeploymentProviders()[0])!SHARED_PROVIDER ]
+    [#local primaryProvider = (getLoaderProviders()[0])!SHARED_PROVIDER ]
 
     [@includeProviderViewDefinitionConfiguration
         provider=primaryProvider

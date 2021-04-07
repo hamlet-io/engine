@@ -415,6 +415,9 @@ to filter the data returned
     [#return getInputState()[LOADER_CONFIG_INPUT_CLASS]!{} ]
 [/#function]
 
+[#function getLoaderProviders ]
+    [#return (getLoader().Providers)![]]
+[/#function]
 [#--
 Get the value for a point within the state
 --]
@@ -1021,4 +1024,3 @@ as processing is typically centred around the initially provided filter values
         [#assign inputStateRefreshRequired = false]
     [/#if]
 [/#macro]
-
