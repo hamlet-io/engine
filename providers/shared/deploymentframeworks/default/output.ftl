@@ -436,6 +436,7 @@
 
 [#-- Occurrence State --]
 [#function default_output_state level="" include=""]
+    [@setOutputFileProperties format="json" /]
     [@initialiseJsonOutput name="states" /]
 
     [@processFlows
@@ -446,7 +447,7 @@
 
     [#local allStates = {}]
 
-    [#if getOutputContent("states")?has_content || logMessages?has_content ]
+    [#if getOutputContent("states")?has_content ]
 
         [#list getOutputContent("states") as type, states ]
 
@@ -466,7 +467,7 @@
             [#local allStates = mergeObjects( allStates, { type : typedStates } )]
         [/#list]
 
-        [@toJSON
+        [#return
             mergeObjects(
                 {
                     "Metadata" : {
@@ -478,11 +479,10 @@
                     }
                 },
                 allStates
-            ) +
-            attributeIfContent("HamletMessages", logMessages)
-        /]
+            )
+        ]
     [/#if]
-    [#return serialiseOutput(JSON_DEFAULT_OUTPUT_TYPE) ]
+    [#return {} ]
 [/#function]
 
 [#macro stateEntry type id state ]
