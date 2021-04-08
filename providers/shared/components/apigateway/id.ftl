@@ -247,7 +247,7 @@ object.
             },
             {
                 "Names" : "Image",
-                "Description" : "Control the source of the image that is used for the function",
+                "Description" : "Control the source of the image for the openapi specification",
                 "Children" : [
                     {
                         "Names" : "Source",
@@ -263,7 +263,7 @@ object.
                         "Children" : [
                             {
                                 "Names" : "Url",
-                                "Description" : "The Url to the lambda zip file",
+                                "Description" : "The Url to the openapi file",
                                 "Types" : STRING_TYPE
                             },
                             {
