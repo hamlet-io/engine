@@ -129,7 +129,7 @@
             [#break]
         [/#if]
 
-        [#list combineEntities( getCLODeploymentProviders(), [ SHARED_PROVIDER ], UNIQUE_COMBINE_BEHAVIOUR) as provider ]
+        [#list combineEntities( getLoaderProviders(), [ SHARED_PROVIDER ], UNIQUE_COMBINE_BEHAVIOUR) as provider ]
             [#local handlerFunctionOptions = [
                 [ provider, "outputhandler", handler ]
             ]]

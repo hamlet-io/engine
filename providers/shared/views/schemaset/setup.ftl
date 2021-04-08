@@ -22,7 +22,7 @@
             [#case "component" ]
                 [@includeAllComponentDefinitionConfiguration
                     SHARED_PROVIDER
-                    getCLODeploymentProviders()
+                    getLoaderProviders()
                 /]
                 [#local schemas = componentConfiguration?keys ]
                 [#break]
@@ -40,7 +40,7 @@
         [#local outputMappings =
             getGenerationContractStepOutputMapping(
                                 combineEntities(
-                                    getCLODeploymentProviders(),
+                                    getLoaderProviders(),
                                     [ SHARED_PROVIDER],
                                     UNIQUE_COMBINE_BEHAVIOUR
                                 ),

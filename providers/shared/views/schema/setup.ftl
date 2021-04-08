@@ -28,7 +28,7 @@
                 [#break]
             [#else]
 
-                [#local schemaLayerConfig = 
+                [#local schemaLayerConfig =
                     getLayerConfiguration(schema?capitalize)]
 
                 [#local schemaLayerAttributes = schemaLayerConfig.Attributes![]]
@@ -56,7 +56,7 @@
 
             [@includeAllComponentDefinitionConfiguration
                 SHARED_PROVIDER
-                getCLODeploymentProviders()
+                getLoaderProviders()
             /]
             [#local configuration = componentConfiguration[schema] ]
 

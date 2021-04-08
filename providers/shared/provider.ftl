@@ -125,7 +125,7 @@
             deploymentUnit=resourceSet["deployment:Unit"]
             deploymentGroup=deploymentGroupDetails.Name
             deploymentPriority=priority?has_content?then(priority, resourceSet["deployment:Priority"])
-            deploymentProvider=getCLODeploymentProviders()[0]
+            deploymentProvider=getLoaderProviders()[0]
             currentState=currentState
             deploymentMode=deploymentMode
         /]
