@@ -514,9 +514,9 @@
 
 [#function shared_configseeder_normalise filter state]
 
+    [#local result = state ]
     [#-- reorganise input classes to implement correct overrides --]
     [#-- master data, fixtures, modules, cmdb --]
-    [#local classes = {} ]
     [#list
         [
             BLUEPRINT_CONFIG_INPUT_CLASS,
@@ -524,21 +524,47 @@
             DEFINITIONS_CONFIG_INPUT_CLASS
         ] as class]
 
-        [#local classes +=
-            getConfigPipelineClassCacheForStages(
-                state,
+        [#local result =
+            addToConfigPipelineClass(
+                result,
                 class,
-                [
-                    MASTERDATA_SHARED_INPUT_STAGE,
-                    FIXTURE_SHARED_INPUT_STAGE,
-                    MODULE_SHARED_INPUT_STAGE,
-                    CMDB_SHARED_INPUT_STAGE
-                ]
+                (getConfigPipelineClassCacheForStages(
+                    state,
+                    class,
+                    [
+                        MASTERDATA_SHARED_INPUT_STAGE,
+                        FIXTURE_SHARED_INPUT_STAGE,
+                        MODULE_SHARED_INPUT_STAGE,
+                        CMDB_SHARED_INPUT_STAGE
+                    ]
+                )[class])!{}
             )
         ]
     [/#list]
 
-    [#return state + classes ]
+    [#-- Handle AWS/pseudo stacks --]
+   [#local result =
+        addToConfigPipelineClass(
+            result,
+            STATE_CONFIG_INPUT_CLASS,
+            internalNormaliseAWSStacks(
+                (getConfigPipelineClassCacheForStages(
+                    state,
+                    STATE_CONFIG_INPUT_CLASS,
+                    [
+                        FIXTURE_SHARED_INPUT_STAGE,
+                        MODULE_SHARED_INPUT_STAGE,
+                        CMDB_SHARED_INPUT_STAGE
+                    ]
+                )[STATE_CONFIG_INPUT_CLASS])![]
+            ),
+            "",
+            APPEND_COMBINE_BEHAVIOUR
+        )
+    ]
+
+    [#return result]
+
 [/#function]
 
 [#function shared_configtransformer_qualify filter state]
@@ -621,4 +647,54 @@
         [#return shared_stateseeder_fixture(filter, state) ]
     [/#if]
     [#return state]
+[/#function]
+
+[#----------------------------------------------------
+-- Internal support functions for shared seeder     --
+------------------------------------------------------]
+
+[#-- Normalise aws/pseudo stacks to internal format --]
+[#function internalNormaliseAWSStacks stackFiles]
+
+    [#-- Normalise each stack to a point set --]
+    [#local pointSets = [] ]
+
+    [#-- Looks like format from aws cli cloudformation describe-stacks command? --]
+    [#-- TODO(mfl) Remove check for .Content[0] once dynamic CMDB loading operational --]
+    [#list stackFiles?filter(s -> ((s.ContentsAsJSON!s.Content[0]).Stacks)?has_content) as stackFile]
+        [#list (stackFile.ContentsAsJSON!stackFile.Content[0]).Stacks?filter(s -> s.Outputs?has_content) as stack ]
+            [#local pointSet = {} ]
+
+            [#if stack.Outputs?is_sequence ]
+                [#list stack.Outputs as output ]
+                    [#local pointSet += {
+                        output.OutputKey : output.OutputValue
+                    }]
+                [/#list]
+            [/#if]
+
+            [#if stack.Outputs?is_hash ]
+                [#local pointSet = stack.Outputs ]
+            [/#if]
+
+            [#if pointSet?has_content ]
+                [@debug
+                    message="Normalise stack file " + stackFile.FileName!""
+                    enabled=false
+                /]
+                [#local pointSets +=
+                    [
+                        validatePointSet(
+                            mergeObjects(
+                                { "Level" : (stackFile.FileName!"")?split('-')[0]},
+                                pointSet
+                            )
+                            )
+                    ]
+                ]
+            [/#if]
+        [/#list]
+    [/#list]
+
+    [#return pointSets]
 [/#function]
