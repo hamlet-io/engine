@@ -167,7 +167,7 @@
         },
         {
             "Names" : "OSPatching",
-            "Children" : osPatchingChildConfiguration
+            "AttributeSet" : OSPATCHING_ATTRIBUTESET_TYPE
         }
     ]
 /]
