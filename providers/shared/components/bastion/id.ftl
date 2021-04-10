@@ -114,7 +114,7 @@
                         "Values" : [ "Reference" ]
                     },
                     {
-                        "Names" : "Reference",
+                        "Names" : "Source:Reference",
                         "Children" : [
                             {
                                 "Names" : "OS",
