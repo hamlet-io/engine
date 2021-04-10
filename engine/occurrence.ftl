@@ -355,6 +355,27 @@
                 [#local result += [attribute]]
             [/#if]
         [/#list]
+
+        [#local additionalAttributes = []]
+        [#list extensions as extension ]
+            [#list asArray(extension.Names) as name ]
+                [#if ! asFlattenedArray(attributes?map( a -> a.Names ))?seq_contains(name) ]
+
+                    [#local additionalAttributes = combineEntities(
+                                                        additionalAttributes,
+                                                        addPrefixToAttributes(
+                                                            [ extension ],
+                                                            prefix,
+                                                            true,
+                                                            false,
+                                                            false
+                                                        ),
+                                                        APPEND_COMBINE_BEHAVIOUR)]
+                [/#if]
+            [/#list]
+        [/#list]
+        [#local result = combineEntities(result, additionalAttributes, APPEND_COMBINE_BEHAVIOUR)]
+
     [#else]
         [#return attributes]
     [/#if]
@@ -377,10 +398,9 @@
             [#local extendedSharedAttributes = (value.Attributes[SHARED_ATTRIBUTES]![])]
         [/#if]
 
-        [#local attributes +=
-            extendedSharedAttributes +
-            (value.Attributes[DEPLOYMENT_ATTRIBUTES]![]) +
-            (value.Attributes[placement.Provider!""]![]) ]
+        [#local attributes = combineEntities(attributes, extendedSharedAttributes, APPEND_COMBINE_BEHAVIOUR)]
+        [#local attributes = combineEntities(attributes, (value.Attributes[DEPLOYMENT_ATTRIBUTES]![]), APPEND_COMBINE_BEHAVIOUR )]
+        [#local attributes = combineEntities(attributes, (value.Attributes[placement.Provider!""]![]), APPEND_COMBINE_BEHAVIOUR )]
 
     [/#list]
     [#return attributes]

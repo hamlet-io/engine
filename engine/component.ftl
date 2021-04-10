@@ -206,94 +206,6 @@
 
 [/#macro]
 
-[#function addPrefixToAttributes providerAttributes provider ]
-
-    [#-- This handles prefixing attributes and how they interact with shared attributes --]
-    [#-- The following rules are applied --]
-
-    [#-- If a provider adds an attribtue the name will be prefixed with the provider Id --]
-    [#-- If an attribute name is prefixed with the shared attribute then the prefix will be stripped and provider attribtue omitted --]
-    [#-- If values have been added to a provider attribute and the value is a string ( or list of ) then the provider is prefixed --]
-    [#-- If the value has been prefixed with the shared attribute then the prefix will be stripped and provider attribtue omitted --]
-    [#-- If the default value has been added on the provider attribute and the value is a string then the provider is prefixed --]
-    [#-- if the default has been prefixed with the shared attribute then the prefix will be stripped and the provider attribute omitted --]
-    [#-- When handling a list of values the shared and provider attributes need to be specified --]
-
-    [#local attributes = []]
-    [#list providerAttributes as providerAttribute ]
-        [#local prefixedNames = [] ]
-        [#local prefixedValues = [] ]
-        [#local prefixedDefault = "" ]
-        [#list asArray(providerAttribute.Names!providerAttribute.Name![]) as name]
-
-            [#-- This is to allow for providers to extend existing attributes without having them prefixed --]
-            [#if name?starts_with("${SHARED_ATTRIBUTES}:")]
-
-                [#local prefixedNames += [ name?remove_beginning("${SHARED_ATTRIBUTES}:") ]]
-
-                [#-- If the attribute is a shared attribute prefix the potential values and defaults to make them unique --]
-                [#if ((providerAttribute.Values)![])?has_content ]
-
-                    [#local prefixedValues = providerAttribute.Values?map(
-                            x -> x?is_string?then(
-                                                x?starts_with("${SHARED_ATTRIBUTES}:")?then(
-                                                    x?remove_beginning("${SHARED_ATTRIBUTES}:"),
-                                                    x?ensure_starts_with("${provider}:" )
-                                                ),
-                                                x)
-                            )]
-                [/#if]
-
-                [#if ((providerAttribute.Default)!"")?has_content ]
-                    [#if (providerAttribute.Default)?is_sequence ]
-                        [#local prefixedDefault = providerAttribute.Default?map(
-                                x -> x?is_string?then(
-                                    x?ensure_starts_with("${provider}:"),
-                                    x)
-                                )]
-                    [#elseif (providerAttribute.Default)?is_string ]
-                        [#local prefixedDefault = providerAttribute.Default?ensure_starts_with("${provider}:") ]
-                    [#else]
-                        [#local prefixedDefault = providerAttribute.Default ]
-                    [/#if]
-                [/#if]
-
-            [#else]
-
-                [#local prefixedNames += [ name?ensure_starts_with("${provider}:")]]
-
-                [#local prefixedValues = (providerAttribute.Values?map( x -> x?is_string?then( x?remove_beginning("${SHARED_ATTRIBUTES}:"), x ) ))![] ]
-                [#local prefixedDefault = ((providerAttribute.Default)!"")?is_string?then(
-                                                ((providerAttribute.Default)!"")?remove_beginning("${SHARED_ATTRIBUTES}:"),
-                                                (providerAttribute.Default)!""
-                                            )]
-
-            [/#if]
-        [/#list]
-
-        [#if ((providerAttribute.Children)![])?has_content ]
-            [#local prefixedChildren = addPrefixToAttributes(providerAttribute.Children, provider)]
-            [#local attributes +=  [ providerAttribute +
-                                        {
-                                            "Children" : prefixedChildren,
-                                            "Names" : prefixedNames
-                                        }]]
-        [#else]
-            [#local attributes +=
-                [
-                    providerAttribute +
-                    {
-                        "Names" : prefixedNames,
-                        "Values" : prefixedValues,
-                        "Default" : prefixedDefault
-                    }
-                ]
-            ]
-        [/#if]
-    [/#list]
-    [#return attributes]
-[/#function]
-
 [#macro addResourceGroupInformation type attributes provider resourceGroup services=[] prefixed=true ]
     [#if provider == SHARED_ATTRIBUTES ]
         [#-- Special processing for profiles --]
@@ -323,7 +235,7 @@
     [#else]
         [#if prefixed]
             [#-- Handle prefixing of provider specific attributes --]
-            [#local providerAttributes = addPrefixToAttributes( attributes, provider )]
+            [#local providerAttributes = addPrefixToAttributes( attributes, provider, true, false, false )]
         [#else]
             [#local providerAttributes = attributes ]
         [/#if]

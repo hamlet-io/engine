@@ -1110,6 +1110,90 @@ are added.
     [/#list]
 [/#macro]
 
+[#function addPrefixToAttributes attributes prefix prefixNames=true prefixValues=true prefixDefault=false maxDepth=1 disablePrefix="shared:" depth=0  ]
+
+    [#local prefix = prefix?ensure_ends_with(":")]
+
+    [#if depth gte maxDepth ]
+        [#local prefixNames = false ]
+        [#local prefixValues = false ]
+        [#local prefixDefault = false ]
+    [/#if]
+
+    [#local result = []]
+    [#list attributes as attribute ]
+        [#local prefixedNames = [] ]
+        [#local prefixedValues = [] ]
+        [#local prefixedDefault = "" ]
+
+        [#if ((attribute.Names)![])?has_content ]
+            [#local prefixedNames = asArray(attribute.Names)?map(
+                                        x -> x?is_string?then(
+                                            x?starts_with(disablePrefix)?then(
+                                                x?remove_beginning(disablePrefix),
+                                                prefixNames?then( x?ensure_starts_with(prefix), x)
+                                            ),
+                                            x)
+                                        )]
+        [/#if]
+
+        [#if ((attribute.Values)![])?has_content ]
+            [#local prefixedValues = asArray(attribute.Values)?map(
+                                        x -> x?is_string?then(
+                                                            x?starts_with(disablePrefix)?then(
+                                                                x?remove_beginning(disablePrefix),
+                                                                prefixValues?then( x?ensure_starts_with(prefix), x)
+                                                            ),
+                                                            x
+                                                        )
+                                        )]
+        [/#if]
+
+        [#if ((attribute.Default)!"")?has_content ]
+            [#if (attribute.Default)?is_string ]
+                [#local prefixedDefault = prefixDefault?then(
+                                            attribute.Default?ensure_starts_with(prefix),
+                                            attribute.Default
+                                        )]
+            [#else]
+                [#local prefixedDefault = attribute.Default ]
+            [/#if]
+        [/#if]
+
+        [#if ((attribute.Children)![])?has_content ]
+            [#local prefixedChildren = addPrefixToAttributes(
+                                            attribute.Children,
+                                            prefix,
+                                            prefixNames,
+                                            prefixValues,
+                                            prefixDefault,
+                                            maxDepth,
+                                            disablePrefix,
+                                            (depth + 1)
+                                        )]
+
+            [#local result +=  [
+                attribute +
+                {
+                    "Children" : prefixedChildren,
+                    "Names" : prefixedNames
+                }
+            ]]
+        [#else]
+            [#local result +=
+                [
+                    attribute +
+                    {
+                        "Names" : prefixedNames,
+                        "Values" : prefixedValues,
+                        "Default" : prefixedDefault
+                    }
+                ]
+            ]
+        [/#if]
+    [/#list]
+    [#return result]
+[/#function]
 
 [#-- Wraps the getCompositeObject function, adding     --]
 [#-- the FrameworkObjectAttributes to valid Attributes --]
@@ -1980,4 +2064,3 @@ Qualifiers can be nested, so processing is recursive.
     [#-- Primitive --]
     [#return entity]
 [/#function]
-
