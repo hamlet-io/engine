@@ -89,8 +89,63 @@
                 "Default" : ""
             },
             {
-                "Names" : "OSPatching",
-                "Children" : osPatchingChildConfiguration
+                "Names" : "ComputeInstance",
+                "Description" : "Configuration of compute instances used in the component",
+                "Children" : [
+                    {
+                        "Names" : "Image",
+                        "Description" : "Configures the source of the virtual machine image used for the instance",
+                        "Children" : [
+                            {
+                                "Names" : "Source",
+                                "Description" : "Where to source the image id from - Reference: uses the Regions AMIs reference property to find the image",
+                                "Values" : [ "Reference" ]
+                            },
+                            {
+                                "Names" : "Source:Reference",
+                                "Children" : [
+                                    {
+                                        "Names" : "OS",
+                                        "Description" : "The OS Image family defined in the Region AMI",
+                                        "Default" : "Centos"
+                                    },
+                                    {
+                                        "Names" : "Type",
+                                        "Description" : "The image Type defined under the family in the Region AMI",
+                                        "Default" : "EC2"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "Names" : "OperatingSystem",
+                        "Description" : "The operating system details of the compute instance",
+                        "AttributeSet" : OPERATINGSYSTEM_ATTRIBUTESET_TYPE
+                    },
+                    {
+                        "Names" : "OSPatching",
+                        "Description" : "Configuration for scheduled OS Patching",
+                        "AttributeSet" : OSPATCHING_ATTRIBUTESET_TYPE
+                    }
+                    {
+                        "Names" : "Bootstrap",
+                        "Description" : "Customisation to setup the compute instance from its image",
+                        "Children" : [
+                            {
+                                "Names" : "Extensions",
+                                "Description" : "A list of extensions to source boostrap tasks from",
+                                "Types" : ARRAY_OF_STRING_TYPE
+                            },
+                            {
+                                "Names" : "UserComputeTasksRequired",
+                                "Description" : "A list of compute task types which must be accounted for in extensions on top of the component tasks",
+                                "Types" : ARRAY_OF_STRING_TYPE,
+                                "Default" : []
+                            }
+                        ]
+                    }
+                ]
             }
         ]
 /]
