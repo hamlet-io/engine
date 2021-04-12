@@ -35,9 +35,12 @@
     [/#if]
 [/#function]
 
-[#function formatExtensionIds occurrence ids=[] ]
+[#function formatExtensionIds occurrence ids=[] idsOnly=false ]
     [#local idBases = combineEntities(
-                            getOccurrenceExtensionBase(occurrence),
+                            idsOnly?then(
+                                [],
+                                getOccurrenceExtensionBase(occurrence)
+                            ),
                             ids,
                             UNIQUE_COMBINE_BEHAVIOUR) ]
 
@@ -131,7 +134,7 @@
     [/#list]
 [/#macro]
 
-[#function invokeExtensions occurrence context baseOccurrence={} additionalIds=[] entrance="deployment" scope="setup" provider="shared"  ]
+[#function invokeExtensions occurrence context baseOccurrence={} additionalIds=[] additonalOnly=false entrance="deployment" scope="setup" provider="shared"  ]
 
     [#-- Replace the global context with the components context --]
     [#assign _context = context ]
@@ -148,7 +151,7 @@
                                 baseOccurrence,
                                 occurrence) ]
 
-    [#list formatExtensionIds(baseOccurrence, additionalIds) as id]
+    [#list formatExtensionIds(baseOccurrence, additionalIds, additonalOnly) as id]
 
         [#local extensionContext = {
             "Id" : id,
