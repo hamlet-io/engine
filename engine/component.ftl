@@ -235,21 +235,7 @@
     [#else]
         [#if prefixed]
             [#-- Handle prefixing of provider specific attributes --]
-            [#local providerAttributes = [] ]
-            [#list attributes as attribute ]
-                [#local prefixedNames = [] ]
-                [#list asArray(attribute.Names!attribute.Name![]) as name]
-                    [#local prefixedNames += [provider + ":" + name] ]
-                [/#list]
-                [#local providerAttributes +=
-                    [
-                        attribute +
-                        {
-                            "Names" : prefixedNames
-                        }
-                    ]
-                ]
-            [/#list]
+            [#local providerAttributes = addPrefixToAttributes( attributes, provider, true, false, false )]
         [#else]
             [#local providerAttributes = attributes ]
         [/#if]
