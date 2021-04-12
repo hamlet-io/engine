@@ -41,6 +41,9 @@
 [#-- Component handling --]
 [#include "component.ftl" ]
 
+[#-- Compute tasks --]
+[#include "computetask.ftl" ]
+
 [#-- Service Handling --]
 [#include "services.ftl" ]
 
@@ -103,4 +106,3 @@
 
 [#-- Level utility support --]
 [#include "commonApplication.ftl"]
-

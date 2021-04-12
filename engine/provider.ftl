@@ -334,6 +334,22 @@
                 /]
             [/#list]
 
+            [#-- Determine the computetasks for the provider --]
+            [#local directories =
+                internalGetPluginFiles(
+                    [providerMarker.Path, "computetasks"],
+                    [
+                        ["[^/]+"]
+                    ]
+                )
+            ]
+            [#list directories as directory]
+                [@internalIncludeTemplatesInDirectory
+                    directory,
+                    ["id", "computetask"]
+                /]
+            [/#list]
+
             [#-- Determine the extensions for the provider --]
             [#local directories =
                 internalGetPluginFiles(
@@ -979,6 +995,12 @@
     [@internalIncludeTemplatesInDirectory
         [providerMarker.Path, "entrances"],
         [ "entrance" ]
+    /]
+
+    [#-- aws/computetasks/computetask.ftl --]
+    [@internalIncludeTemplatesInDirectory
+        [providerMarker.Path, "computetasks"],
+        [ "computetask" ]
     /]
 
     [#-- aws/extensions/extension.ftl --]
