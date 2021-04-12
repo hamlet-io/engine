@@ -105,7 +105,8 @@
                             {
                                 "Names" : "Source",
                                 "Description" : "Where to source the image id from - Reference: uses the Regions AMIs reference property to find the image",
-                                "Values" : [ "Reference" ]
+                                "Values" : [ "Reference" ],
+                                "Default" : "Reference"
                             },
                             {
                                 "Names" : "Source:Reference",
@@ -133,18 +134,19 @@
                         "Names" : "OSPatching",
                         "Description" : "Configuration for scheduled OS Patching",
                         "AttributeSet" : OSPATCHING_ATTRIBUTESET_TYPE
-                    }
+                    },
                     {
-                        "Names" : "Bootstrap",
+                        "Names" : "ComputeTasks",
                         "Description" : "Customisation to setup the compute instance from its image",
                         "Children" : [
                             {
                                 "Names" : "Extensions",
                                 "Description" : "A list of extensions to source boostrap tasks from",
-                                "Types" : ARRAY_OF_STRING_TYPE
+                                "Types" : ARRAY_OF_STRING_TYPE,
+                                "Default" : []
                             },
                             {
-                                "Names" : "UserComputeTasksRequired",
+                                "Names" : "UserTasksRequired",
                                 "Description" : "A list of compute task types which must be accounted for in extensions on top of the component tasks",
                                 "Types" : ARRAY_OF_STRING_TYPE,
                                 "Default" : []
