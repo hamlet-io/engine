@@ -156,7 +156,6 @@
 
 
 [#-- ECS Specific Macros --]
-
 [#macro Host name value]
     [#assign _context +=
         {
@@ -374,6 +373,36 @@
                     }
                 }
         }]
+[/#macro]
+
+[#macro computeTaskConfigSection computeTaskTypes id engine priority content ]
+
+    [#assign _context +=
+        {
+            "ComputeTasks" : combineEntities(
+                                    (_context.ComputeTasks)![],
+                                    asFlattenedArray(computeTaskTypes),
+                                    UNIQUE_COMBINE_BEHAVIOUR
+                                )
+        }
+    ]
+
+    [#assign _context +=
+        {
+            "ComputeTaskConfig" :
+                (_context.ComputeTaskConfig!{}) +
+                {
+                    id : {
+                        engine : {
+                            "ComputeResourceId" : _context.ComputeResourceId,
+                            "Priorty" : priority,
+                            "Content" : content
+                        }
+
+                    }
+                }
+        }
+    ]
 [/#macro]
 
 
