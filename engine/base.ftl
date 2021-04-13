@@ -982,30 +982,32 @@ are added.
     [#-- If attribute value is defined as an AttributeSet, evaluate --]
     [#-- it and use the result as the attribute's Children.         --]
     [#local evaluatedRefAttributes = []]
-    [#list attributes![] as attribute]
-        [#if attribute?is_hash ]
-            [#if attribute.AttributeSet?has_content && !(attribute.Children?has_content)]
-                [#-- AttributeSet provides the child attributes --]
-                [#local children = (attributeSetConfiguration[attribute.AttributeSet].Attributes)![] ]
+    [#if attributes?has_content]
+        [#list asFlattenedArray(attributes) as attribute]
+            [#if attribute?is_hash ]
+                [#if attribute.AttributeSet?has_content && !(attribute.Children?has_content)]
+                    [#-- AttributeSet provides the child attributes --]
+                    [#local children = (attributeSetConfiguration[attribute.AttributeSet].Attributes)![] ]
 
-                [#if !children?has_content ]
-                    [@fatal
-                        message="Unable to determine child attributes from AttributeSet"
-                        context=attribute
-                    /]
-                    [#-- Add a minimal child configuration to ensure processing completes --]
-                    [#local children = [{"Names" : "AttributeSet", "Types" : STRING_TYPE}] ]
+                    [#if !children?has_content ]
+                        [@fatal
+                            message="Unable to determine child attributes from AttributeSet"
+                            context=attribute
+                        /]
+                        [#-- Add a minimal child configuration to ensure processing completes --]
+                        [#local children = [{"Names" : "AttributeSet", "Types" : STRING_TYPE}] ]
+                    [/#if]
+
+                    [#local evaluatedRefAttributes += [ attribute + { "Children" : expandCompositeConfiguration(children) } ] ]
+                [#else]
+                    [#-- Attribute has no reference to evaluate, so add to results --]
+                    [#local evaluatedRefAttributes += [attribute]]
                 [/#if]
-
-                [#local evaluatedRefAttributes += [ attribute + { "Children" : expandCompositeConfiguration(children) } ] ]
             [#else]
-                [#-- Attribute has no reference to evaluate, so add to results --]
                 [#local evaluatedRefAttributes += [attribute]]
             [/#if]
-        [#else]
-            [#local evaluatedRefAttributes += [attribute]]
-        [/#if]
-    [/#list]
+        [/#list]
+    [/#if]
     [#return evaluatedRefAttributes ]
 [/#function]
 
