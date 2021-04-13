@@ -6,7 +6,13 @@
 
 [#macro shared_view_default_schemaset_schemacontract ]
 
-    [#local sections = ["component", "reference", "attributeset", "module" ] ]
+    [#local sections = [ 
+        "layer",
+        "component",
+        "reference",
+        "attributeset",
+        "module"
+    ]]
 
     [#list sections as section ]
 
@@ -19,6 +25,9 @@
         /]
 
         [#switch section]
+            [#case "layer" ]
+                [#local schemas = layerConfiguration?keys ]
+                [#break]
             [#case "component" ]
                 [@includeAllComponentDefinitionConfiguration
                     SHARED_PROVIDER
