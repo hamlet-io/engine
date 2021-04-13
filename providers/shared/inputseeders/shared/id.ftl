@@ -146,7 +146,7 @@
                     "Unit" : {
                         "Name" : deploymentUnit!"",
                         "Subset" : deploymentUnitSubset!"",
-                        "Alternative" : alternative!""
+                        "Alternative" : passAlternative!""
                     },
                     "ResourceGroup" : {
                         "Name" : resourceGroup!""

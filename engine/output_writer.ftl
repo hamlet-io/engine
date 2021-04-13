@@ -141,7 +141,7 @@
                 [@debug
                     message="Unable to invoke output handler"
                     context=handlerFunctionOptions
-                    enabled=true
+                    enabled=false
                 /]
             [/#if]
         [/#list]
