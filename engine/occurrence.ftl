@@ -337,18 +337,36 @@
                         /]
                     [/#if]
                 [#else]
-                    [#local extendedValues = attribute.Values]
-                    [#list attributeExtension.Values as extensionValue]
+
+                    [#local extendedAttributes = {}]
+                    [#local extendedValues = (attribute.Values)![]]
+                    [#list (attributeExtension.Values)![] as extensionValue]
                         [#local extendedValues +=
                             [extensionValue?ensure_starts_with(prefix + ":")] ]
+
+                        [#local extendedAttributes += {
+                            "Values" : getUniqueArrayElements(extendedValues)
+                        }]
+
                     [/#list]
+
+                    [#if ((attributeExtension.Default)!"")?has_content ]
+                        [#local extendedAttributes += {
+                            "Default" : attributeExtension.Default
+                        } ]
+                    [/#if]
+
+                    [#if ((attributeExtension.AttributeSet)![])?has_content ]
+                        [#local extendedAttributes += {
+                            "AttributeSet" : attributeExtension.AttributeSet,
+                            "Children" : []
+                        }]
+                    [/#if]
 
                     [#local result += [
                         mergeObjects(
                             attribute,
-                            {
-                                "Values" : getUniqueArrayElements(extendedValues)
-                            }
+                            extendedAttributes
                         )]]
                 [/#if]
             [#else]
