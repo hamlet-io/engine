@@ -8,6 +8,10 @@
     will work as expected
 --]
 
+[#-- Extension Scopes --]
+[#-- Compute tasks work through the extensions mechanism --]
+[#assign COMPUTETASK_EXTENSION_SCOPE = "computetask"]
+
 [#assign computeTaskConfiguration = {}]
 
 [#-- Macros to assemble the component configuration --]
@@ -38,7 +42,7 @@
                         }
                     )]
 
-    [#local context = invokeExtensions(occurrence, context, {}, compteTaskExtensions, true)]
+    [#local context = invokeExtensions(occurrence, context, {}, compteTaskExtensions, true, "deployment", "computetask")]
 
     [@validateRequiredComputeTasks
         computeTasks=(context.ComputeTasks)![]

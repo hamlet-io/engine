@@ -5,6 +5,9 @@
 [#-- Generally used for advanced configuration scenarios including programmatic settings and adding specialised resource --]
 [#-- Extensions are defined as part plugin but can also be added to users CMDBs as an embedded extension --]
 
+[#-- Extension Scopes --]
+[#assign SETUP_EXTENSION_SCOPE = "setup" ]
+
 [#-- the _context variable is used during context processing to store the changes resulting from the extension --]
 [#assign _context = {}]
 
@@ -61,7 +64,7 @@
 
 
 [#-- Define properties of an extension --]
-[#macro addExtension id description supportedTypes aliases=[] entrances=["deployment"] scopes=["setup"] provider="shared" ]
+[#macro addExtension id description supportedTypes aliases=[] entrances=["deployment"] scopes=[ SETUP_EXTENSION_SCOPE ] provider=SHARED_PROVIDER ]
 
     [#local extensionConfiguration = [
         "InhibitEnabled",
@@ -227,6 +230,21 @@
                         "SupportedTypes" : extensionDetails.SupportedTypes,
                         "ComponentType" : occurrence.Core.Type,
                         "Component" : occurrence.Core.FullName
+                    }
+                /]
+                [#continue]
+            [/#if]
+
+            [#if extensionDetails?has_content && ! ( extensionDetails.Scopes?seq_contains(scope) )]
+                [@fatal
+                    message="The extension does not support the extension scope required"
+                    detail="Extensions are invoked at different stages of processing and are invoked with different scope filters on the provided extensions"
+                    context={
+                        "OccurrenceContext" : occurrenceContext,
+                        "ExtensionId" : id,
+                        "Provider" : provider,
+                        "SupportedScopes" : extensionDetails.Scopes,
+                        "CurrentScope" : scope
                     }
                 /]
                 [#continue]
