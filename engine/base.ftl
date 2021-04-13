@@ -704,7 +704,8 @@ are added.
         [/#if]
     [/#list]
 
-    [#local normalisedAttributes = normaliseCompositeConfiguration(attributes)]
+    [#local expandedAttributes = expandCompositeConfiguration(attributes)]
+    [#local normalisedAttributes = normaliseCompositeConfiguration(expandedAttributes)]
 
     [#-- Determine the values for explicitly listed attributes --]
     [#local result = {} ]
@@ -976,6 +977,38 @@ are added.
     [#return result ]
 [/#function]
 
+[#function expandCompositeConfiguration attributes ]
+
+    [#-- If attribute value is defined as an AttributeSet, evaluate --]
+    [#-- it and use the result as the attribute's Children.         --]
+    [#local evaluatedRefAttributes = []]
+    [#list attributes![] as attribute]
+        [#if attribute?is_hash ]
+            [#if attribute.AttributeSet?has_content && !(attribute.Children?has_content)]
+                [#-- AttributeSet provides the child attributes --]
+                [#local children = (attributeSetConfiguration[attribute.AttributeSet].Attributes)![] ]
+
+                [#if !children?has_content ]
+                    [@fatal
+                        message="Unable to determine child attributes from AttributeSet"
+                        context=attribute
+                    /]
+                    [#-- Add a minimal child configuration to ensure processing completes --]
+                    [#local children = [{"Names" : "AttributeSet", "Types" : STRING_TYPE}] ]
+                [/#if]
+
+                [#local evaluatedRefAttributes += [ attribute + { "Children" : expandCompositeConfiguration(children) } ] ]
+            [#else]
+                [#-- Attribute has no reference to evaluate, so add to results --]
+                [#local evaluatedRefAttributes += [attribute]]
+            [/#if]
+        [#else]
+            [#local evaluatedRefAttributes += [attribute]]
+        [/#if]
+    [/#list]
+    [#return evaluatedRefAttributes ]
+[/#function]
+
 [#function normaliseCompositeConfiguration attributes ]
     [#-- Normalise attributes --]
     [#local normalisedAttributes = [] ]
@@ -1051,30 +1084,7 @@ are added.
         [/#if]
     [/#if]
 
-    [#-- If attribute value is defined as an AttributeSet, evaluate --]
-    [#-- it and use the result as the attribute's Children.         --]
-    [#local evaluatedRefAttributes = []]
-    [#list normalisedAttributes![] as attribute]
-        [#if attribute.AttributeSet?has_content ]
-            [#-- AttributeSet provides the child attributes --]
-            [#local children = (attributeSetConfiguration[attribute.AttributeSet].Attributes)![] ]
-
-            [#if !children?has_content ]
-                [@fatal
-                    message="Unable to determine child attributes from AttributeSet"
-                    context=attribute
-                /]
-                [#-- Add a minimal child configuration to ensure processing completes --]
-                [#local children = [{"Names" : "AttributeSet", "Types" : STRING_TYPE}] ]
-            [/#if]
-
-            [#local evaluatedRefAttributes += [ attribute + { "Children" : children } ] ]
-        [#else]
-            [#-- Attribute has no reference to evaluate, so add to results --]
-            [#local evaluatedRefAttributes += [attribute]]
-        [/#if]
-    [/#list]
-    [#return evaluatedRefAttributes ]
+    [#return normalisedAttributes ]
 [/#function]
 
 [#macro validateCompositeObject attributes=[] objects=[] ]
