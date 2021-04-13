@@ -549,12 +549,6 @@
         "Description" : "Enable the collection of autoscale group detailed metrics"
     },
     {
-        "Names" : "WaitForSignal",
-        "Types" : BOOLEAN_TYPE,
-        "Default" : true,
-        "Description" : "Wait for a cfn-signal before treating the instances as alive"
-    },
-    {
         "Names" : "MinUpdateInstances",
         "Types" : NUMBER_TYPE,
         "Default" : 1,
