@@ -5,53 +5,91 @@
 
 [#assign outputWriterConfiguration = {}]
 [#assign outputHandlerConfiguration = {}]
-[#assign outputFileProperties = {}]
 
-[#assign outputFilePropertiesAttributes = [
+[#assign outputProperties = {}]
+
+[#assign outputPropertiesAttributes = [
     {
-        "Names" : "filename",
+        "Names" : "type",
         "Types" : STRING_TYPE,
-        "Description" : "The full file name including extension for the output file",
-        "Mandatory" : true
+        "Description" : "The type of output to write",
+        "Values" : [ "file", "console", "none" ],
+        "Default" : "file"
     },
     {
-        "Names" : "directory",
-        "Types" : STRING_TYPE,
-        "Description" : "The directory to write the file to",
-        "Mandatory" : true
+        "Names" : "type:console",
+        "Children" : [
+            {
+                "Names" : "stream",
+                "Types" : STRING_TYPE,
+                "Description" : "The console stream to write the output to",
+                "Values" : [ "stdout", "stderr" ],
+                "Default" : "stdout"
+            }
+        ]
     },
     {
-        "Names" : "format",
-        "Types" : STRING_TYPE,
-        "Description" : "The format of the file to output",
-        "Values" : [ "", "json", "yaml", "yml" ],
-        "Default" : ""
+        "Names" : "type:file",
+        "Children" : [
+            {
+                "Names" : "filename",
+                "Types" : STRING_TYPE,
+                "Description" : "The full file name including extension for the output file",
+                "Default" : ""
+            },
+            {
+                "Names" : "directory",
+                "Types" : STRING_TYPE,
+                "Description" : "The directory to write the file to",
+                "Default" : ""
+            },
+            {
+                "Names" : "append",
+                "Types" : BOOLEAN_TYPE,
+                "Description" : "When writing append the content to the file",
+                "Default" : false
+            },
+            {
+                "Names" : "format",
+                "Types" : STRING_TYPE,
+                "Description" : "The format of the file to output",
+                "Values" : [ "plaintext", "json", "yaml", "yml" ],
+                "Default" : "plaintext"
+            },
+            {
+                "Names" : "format:json",
+                "Children" : [
+                    {
+                        "Names" : "formatting",
+                        "Types" : STRING_TYPE,
+                        "Description" : "How to format the JSON output",
+                        "Values" : [ "compressed", "pretty" ],
+                        "Default" : "pretty"
+                    },
+                    {
+                        "Names" : "indentation",
+                        "Types" : NUMBER_TYPE,
+                        "Description" : "The space indentation applied to pretty formatting",
+                        "Default" : 2
+                    }
+                ]
+            }
+        ]
     }
+
 ] ]
 
 [#-- output hanlder functions to set the output file properties --]
-[#macro setOutputFileProperties filename="" directory="" format="" ]
-    [#assign outputFileProperties =
-        mergeObjects(
-            outputFileProperties,
-            {} +
-            attributeIfContent(
-                "filename",
-                filename
-            ) +
-            attributeIfContent(
-                "directory",
-                directory
-            ) +
-            attributeIfContent(
-                "format",
-                format
-            )
-        )]
+[#macro setOutputProperties properties ]
+    [#assign outputProperties =
+            getCompositeObject(
+                outputPropertiesAttributes,
+                mergeObjects(outputProperties, properties )
+            )]
 [/#macro]
 
-[#function getOutputFileProperties ]
-    [#return outputFileProperties]
+[#function getOutputProperties ]
+    [#return outputProperties]
 [/#function]
 
 [#-- Add available output writer --]
@@ -135,8 +173,8 @@
             ]]
             [#local handlerFunction = getFirstDefinedDirective(handlerFunctionOptions)]
             [#if handlerFunction?has_content]
-                [#local result = (.vars[handlerFunction])( getOutputFileProperties(), content) ]
-                [@setOutputFileProperties?with_args(result) /]
+                [#local result = (.vars[handlerFunction])( getOutputProperties(), content) ]
+                [@setOutputProperties properties=result /]
             [#else]
                 [@debug
                     message="Unable to invoke output handler"
@@ -148,23 +186,19 @@
     [/#list]
 [/#macro]
 
-[#macro setupOutput ]
+[#macro setupOutput writer ]
     [@invokeOutputHandlers
-        writer=getCommandLineOptions().Output.Writer
+        writer=writer
         stage="prologue"
     /]
 [/#macro]
 
-[#macro writeOutput content ]
-
+[#macro writeOutput content writer ]
     [@invokeOutputHandlers
-        writer=getCommandLineOptions().Output.Writer
+        writer=writer
         stage="epilogue"
         content=content
     /]
-
-    [#-- Make sure the file properties have been set --]
-    [#local finalFileProperties = getCompositeObject(outputFilePropertiesAttributes, getOutputFileProperties())]
 [/#macro]
 
 [#-- Internal macros --]
