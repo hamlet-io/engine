@@ -321,33 +321,38 @@
 
 [#macro generateOutput deploymentFramework type format="" level="" include=""]
 
-    [@setupOutput /]
+    [#list getCommandLineOptions().Output.Writers as writer ]
 
-    [#-- Remember the output attributes to determine --]
-    [#local functionOptions =
-        [
-            [deploymentFramework, "output", type, format],
-            [DEFAULT_DEPLOYMENT_FRAMEWORK, "output", type, format]
-        ] ]
-
-    [#local outputFunction = getFirstDefinedDirective(functionOptions) ]
-
-    [#local content = "" ]
-
-    [#if outputFunction?has_content]
-        [#local content = (.vars[outputFunction])( level, include )]
-    [#else]
-        [@debug
-            message="Unable to invoke output function"
-            context=functionOptions
-            enabled=false
+        [@setupOutput
+            writer=writer
         /]
-    [/#if]
 
-    [@writeOutput content=content /]
+        [#-- Remember the output attributes to determine --]
+        [#local functionOptions =
+            [
+                [deploymentFramework, "output", type, format],
+                [DEFAULT_DEPLOYMENT_FRAMEWORK, "output", type, format]
+            ] ]
 
-    [#-- Always write log messages to the standard output file --]
-    ${getJSON({ "HamletMessages" : logMessages }, escaped)}
+        [#local outputFunction = getFirstDefinedDirective(functionOptions) ]
+
+        [#local content = "" ]
+
+        [#if outputFunction?has_content]
+            [#local content = (.vars[outputFunction])( level, include )]
+        [#else]
+            [@debug
+                message="Unable to invoke output function"
+                context=functionOptions
+                enabled=false
+            /]
+        [/#if]
+
+        [@writeOutput
+            content=content
+            writer=writer
+        /]
+    [/#list]
 [/#macro]
 
 [#-- Generation Contracts --]

@@ -13,14 +13,28 @@
 [#function shared_outputhandler_filepath_from_cmd_option properties content ]
 
     [#if (getCommandLineOptions().Output.FileName)?has_content ]
-        [#local properties = mergeObjects( properties, { "filename" : getCommandLineOptions().Output.FileName })]
+        [#local properties = mergeObjects(
+                                properties,
+                                {
+                                    "type:file" : {
+                                        "filename" : getCommandLineOptions().Output.FileName
+                                    }
+                                }
+                            )]
     [/#if]
 
     [#if (getCommandLineOptions().Output.Directory)?has_content ]
         [#local cmdbs = getCMDBs({"ActiveOnly" : true}) ]
         [#list cmdbs as cmdb ]
             [#if cmdb.FileSystemPath == getCommandLineOptions().Output.Directory]
-                [#local properties = mergeObjects( properties, { "directory" : cmdb.CMDBPath })]
+                [#local properties = mergeObjects(
+                                        properties,
+                                        {
+                                            "type:file" : {
+                                                "directory" : cmdb.CMDBPath
+                                            }
+                                        }
+                                    )]
             [/#if]
         [/#list]
     [/#if]

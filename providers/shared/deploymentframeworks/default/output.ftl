@@ -113,7 +113,10 @@
 [#-- JSON_DEFAULT_OUTPUT_TYPE --]
 
 [#function default_output_json level include]
-    [@setOutputFileProperties format="json" /]
+    [@setOutputProperties
+        properties={ "type:file" : { "format" : "json" }}
+    /]
+
     [@initialiseJsonOutput
         name=JSON_DEFAULT_OUTPUT_TYPE
         messagesAttribute="HamletMessages"
@@ -160,7 +163,9 @@
 
 [#-- Info --]
 [#function default_output_info level="" include="" ]
-    [@setOutputFileProperties format="json" /]
+    [@setOutputProperties
+        properties={ "type:file" : { "format" : "json" }}
+    /]
 
     [@initialiseJsonOutput name="providers" /]
     [@initialiseJsonOutput name="entrances" /]
@@ -207,7 +212,10 @@
 [#-- Schema --]
 [#function default_output_schema level="" include=""]
 
-    [@setOutputFileProperties format="json" /]
+    [@setOutputProperties
+        properties={ "type:file" : { "format" : "json" }}
+    /]
+
     [@initialiseJsonOutput name="schema" /]
 
     [@processFlows
@@ -247,7 +255,10 @@
 
 [#function default_output_contract level="" include=""]
 
-    [@setOutputFileProperties format="json" /]
+    [@setOutputProperties
+        properties={ "type:file" : { "format" : "json" }}
+    /]
+
     [@setupContractOutputs /]
 
     [#-- Resources --]
@@ -436,7 +447,9 @@
 
 [#-- Occurrence State --]
 [#function default_output_state level="" include=""]
-    [@setOutputFileProperties format="json" /]
+    [@setOutputProperties
+        properties={ "type:file" : { "format" : "json" }}
+    /]
     [@initialiseJsonOutput name="states" /]
 
     [@processFlows
@@ -619,7 +632,10 @@
 
 [#-- Internal use only --]
 [#function default_output_script_internal format level include]
-    [@setOutputFileProperties format="" /]
+    [@setOutputProperties
+        properties={ "type:file" : { "format" : "plaintext" }}
+    /]
+
     [#if !isOutput(SCRIPT_DEFAULT_OUTPUT_TYPE) ]
         [@initialiseDefaultScriptOutput format=format /]
     [/#if]
