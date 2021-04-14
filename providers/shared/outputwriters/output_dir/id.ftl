@@ -10,6 +10,7 @@
             }
         ]
     prologueHandlers=[
+        "set_to_file",
         "setup_cmdb",
         "filepath_from_cmd_option"
     ]
