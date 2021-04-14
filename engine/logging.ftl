@@ -25,6 +25,8 @@
     "fatal"
     ] ]
 
+[#assign errorLogMinimumLevel = WARNING_LOG_LEVEL ]
+
 [#-- Log history during invocation of the engine --]
 [#assign logMessages = [] ]
 
@@ -82,6 +84,113 @@
 [#function willLog level ]
     [#return currentLogLevel <= level ]
 [/#function]
+
+[#function isError level ]
+    [#return errorLogMinimumLevel <= level ]
+[/#function]
+
+[#macro writeStarterMessage writers ]
+    [#list getCommandLineOptions().Logging.Writers as writer ]
+
+        [@setupOutput
+            writer=writer
+        /]
+
+        [#if willLog(INFORMATION_LOG_LEVEL)]
+
+            [#local content = [
+                    "entrance: ${getCLOEntranceType()}",
+                    "output: ${getCLODeploymentOutputType()}"
+                ] +
+                valueIfContent(
+                    [ "subset: ${getCLODeploymentUnitSubset()}" ],
+                    getCLODeploymentUnitSubset(),
+                    []
+                ) +
+                valueIfContent(
+                    [ "alternative: ${getCLODeploymentUnitAlternative()}" ],
+                    getCLODeploymentUnitAlternative(),
+                    []
+                )]
+            [@writeOutput
+                content=content?join(" | ")?ensure_starts_with("[*] ")
+                writer=writer
+            /]
+        [/#if]
+
+    [/#list]
+[/#macro]
+
+[#macro writeLogs writers ]
+    [#list getCommandLineOptions().Logging.Writers as writer ]
+        [#-- Output a logfile of the log messages --]
+        [@setupOutput
+            writer=writer
+        /]
+
+        [#switch getOutputProperties()["type"] ]
+
+            [#case "console" ]
+
+                [#list logMessages as logMessage ]
+
+                    [#if logMessage?is_first ]
+                        [@writeOutput
+                            content="\n Hamlet Engine Logs\n--------------------\n\n"
+                            writer=writer
+                        /]
+                    [/#if]
+
+                    [#if isError( ((logLevelDescriptions?seq_index_of(logMessage.Level))!0) ) ]
+                        [@setOutputProperties
+                            properties={
+                                "type:console" : {
+                                    "stream" : "stderr"
+                                }
+                            }
+                        /]
+                    [#else]
+                        [@setOutputProperties
+                            properties={
+                                "type:console" : {
+                                    "stream" : "stdout"
+                                }
+                            }
+                        /]
+                    [/#if]
+
+                    [@writeOutput
+                        content=logMessage
+                        writer=writer
+                    /]
+
+                    [#if logMessage?is_last ]
+                        [@writeOutput
+                            content="\n--------------------\n\n"
+                            writer=writer
+                        /]
+                    [/#if]
+                [/#list]
+                [#break]
+
+            [#default]
+
+                [@setOutputProperties
+                    properties={
+                        "type:file" : {
+                            "format" : "json"
+                        }
+                    }
+                /]
+
+                [@writeOutput
+                    content={ "HamletMessages" : logMessages }
+                    writer=writer
+                /]
+
+        [/#switch]
+    [/#list]
+[/#macro]
 
 [#macro logMessage severity message context={} detail={} enabled=false]
     [#if enabled && willLog(severity)]
