@@ -100,10 +100,12 @@
                 "Entrance" : {
                     "Type" : entrance!"deployment"
                 },
+
                 [#-- Flows --]
                 "Flow" : {
                     "Names" : asArray( flows?split(",") )![]
                 },
+
                 [#-- Input data control --]
                 "Input" : {
                     "Source" : inputSource!"composite",
@@ -115,6 +117,7 @@
                         attributeIfContent("Account", account!"") +
                         attributeIfContent("Region", region!"")
                 },
+
                 [#-- load the plugin state from setup --]
                 "Plugins" : {
                     "State" : (pluginState!"")?has_content?then(
@@ -123,6 +126,7 @@
                     ),
                     "RefreshRequired" :  ((pluginRefreshRequired!"") == "true")
                 },
+
                 [#-- Deployment Details --]
                 "Deployment" : {
                     "Provider" : {
@@ -153,6 +157,7 @@
                     },
                     "Mode" : deploymentMode!""
                 },
+
                 [#-- Layer Details --]
                 "Layers" : {
                     "Tenant" : tenant!"",
@@ -162,12 +167,24 @@
                     "Account" : account!"",
                     "Region" : region!""
                 },
+
                 [#-- Logging Details --]
                 "Logging" : {
                     "Level" : logLevel!"info",
                     "FatalStopThreshold" : logFatalStopThreshold!0,
-                    "DepthLimit" : logDepthLimit!0
+                    "DepthLimit" : logDepthLimit!0,
+                    "Writers" :
+                        (logWriters!"")?has_content?then(
+                            logWriters?split(","),
+                            [
+                                "console",
+                                "log_file"
+                            ]
+                        ),
+                    "FileName" : logFileName!((outputFileName!"")?ensure_ends_with(".log")),
+                    "Directory" : (logDir!outputDir)!""
                 },
+
                 [#-- RunId details --]
                 "Run" : {
                     "Id" : runId!""
@@ -177,8 +194,14 @@
                 "Output" : {
                     "Pass" : pass!"",
                     "FileName" : outputFileName!"",
-                    "Writer" : "output_dir",
-                    "Directory" : outputDir!""
+                    "Directory" : outputDir!"",
+                    "Writers" :
+                        (outputWriters!"")?has_content?then(
+                            outputWriters?split(","),
+                            [
+                                "output_dir"
+                            ]
+                        )
                 }
             }
         )
