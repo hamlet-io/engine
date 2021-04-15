@@ -284,27 +284,24 @@ behaviour.
 [#function getProcessor occurrence type processorProfileName="" ]
 
     [#local tc = formatComponentShortName( occurrence.Core.Tier.Id, occurrence.Core.Component.Id)]
-
-    [#local processorProfile = (processorProfileName?has_content)?then(
+    [#local processorProfileName = (processorProfileName?has_content)?then(
                                     processorProfileName,
                                     occurrence.Configuration.Solution.Profiles.Processor
                                 )]
 
-    [#if (component[type].Processor)??]
-        [#return component[type].Processor]
-    [/#if]
-    [#if (processors[solutionObject.CapacityProfile][tc])??]
-        [#return processors[solutionObject.CapacityProfile][tc]]
-    [/#if]
-    [#if (processors[solutionObject.CapacityProfile][type])??]
-        [#return processors[solutionObject.CapacityProfile][type]]
-    [/#if]
-    [#if (processors[processorProfile][tc])??]
-        [#return processors[processorProfile][tc]]
-    [/#if]
-    [#if (processors[processorProfile][type])??]
-        [#return processors[processorProfile][type]]
-    [/#if]
+    [#local processorProfile = (processors[processorProfileName])!{}]
+
+    [#list processorProfile as key,value ]
+        [#switch key?lower_case ]
+            [#case tc?lower_case ]
+                [#return processorProfile[key]]
+                [#break]
+            [#case type?lower_case]
+                [#return processorProfile[key]]
+                [#break]
+        [/#switch]
+    [/#list]
+
     [#return {}]
 [/#function]
 
@@ -570,27 +567,28 @@ behaviour.
 [/#function]
 
 [#-- Get storage settings --]
-[#function getStorage occurrence type extensions...]
-    [#local tc = formatComponentShortName(
-                    occurrence.Core.Tier,
-                    occurrence.Core.Component,
-                    extensions)]
-    [#local defaultProfile = "default"]
-    [#if (component[type].Storage)??]
-        [#return component[type].Storage]
-    [/#if]
-    [#if (storage[solutionObject.CapacityProfile][tc])??]
-        [#return storage[solutionObject.CapacityProfile][tc]]
-    [/#if]
-    [#if (storage[solutionObject.CapacityProfile][type])??]
-        [#return storage[solutionObject.CapacityProfile][type]]
-    [/#if]
-    [#if (storage[defaultProfile][tc])??]
-        [#return storage[defaultProfile][tc]]
-    [/#if]
-    [#if (storage[defaultProfile][type])??]
-        [#return storage[defaultProfile][type]]
-    [/#if]
+[#function getStorage occurrence type storageProfileName="" ]
+
+    [#local tc = formatComponentShortName( occurrence.Core.Tier.Id, occurrence.Core.Component.Id)]
+    [#local storageProfileName = (storageProfileName?has_content)?then(
+                                    storageProfileName,
+                                    occurrence.Configuration.Solution.Profiles.Storage
+                                )]
+
+    [#local storageProfile = (storage[storageProfileName])!{}]
+
+    [#list storageProfile as key,value ]
+        [#switch key?lower_case ]
+            [#case tc?lower_case ]
+                [#return storageProfile[key]]
+                [#break]
+            [#case type?lower_case]
+                [#return storageProfile[key]]
+                [#break]
+        [/#switch]
+    [/#list]
+
+    [#return {}]
 [/#function]
 
 

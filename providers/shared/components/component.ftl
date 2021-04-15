@@ -1174,6 +1174,11 @@
                     "Default" : "default"
                 },
                 {
+                    "Names" : "Storage",
+                    "Types" : STRING_TYPE,
+                    "Default" : "default"
+                },
+                {
                     "Names" : "Alert",
                     "Types" : STRING_TYPE,
                     "Default" : "default"
