@@ -96,6 +96,7 @@
                     "nodejs8.10",
                     "nodejs10.x",
                     "nodejs12.x",
+                    "nodejs14.x",
                     "python2.7",
                     "python3.6",
                     "python3.7",
