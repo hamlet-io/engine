@@ -631,6 +631,10 @@ behaviour.
             ]
         },
         {
+            "Names" : "Host",
+            "Types" : STRING_TYPE
+        },
+        {
             "Names" : "IncludeInHost",
             "Children" : [
                 {
@@ -659,6 +663,10 @@ behaviour.
                 },
                 {
                     "Names" : "Version",
+                    "Types" : BOOLEAN_TYPE
+                },
+                {
+                    "Names" : "Host",
                     "Types" : BOOLEAN_TYPE
                 }
             ]
