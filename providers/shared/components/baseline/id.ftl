@@ -235,6 +235,16 @@
                         "Default" : true
                     }
                 ]
+            },
+            {
+                "Names" : "Profiles",
+                "Children" : [
+                    {
+                        "Names" : "Storage",
+                        "Types" : STRING_TYPE,
+                        "Default" : "default"
+                    }
+                ]
             }
         ]
     parent=BASELINE_COMPONENT_TYPE

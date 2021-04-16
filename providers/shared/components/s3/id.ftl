@@ -17,6 +17,16 @@
     attributes=
         [
             {
+                "Names" : "Profiles",
+                "Children" : [
+                    {
+                        "Names" : "Storage",
+                        "Types" : STRING_TYPE,
+                        "Default" : "default"
+                    }
+                ]
+            },
+            {
                 "Names" : "Lifecycle",
                 "Children" : [
                     {
