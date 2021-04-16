@@ -572,7 +572,7 @@ behaviour.
     [#local tc = formatComponentShortName( occurrence.Core.Tier.Id, occurrence.Core.Component.Id)]
     [#local storageProfileName = (storageProfileName?has_content)?then(
                                     storageProfileName,
-                                    occurrence.Configuration.Solution.Profiles.Storage
+                                    (occurrence.Configuration.Solution.Profiles.Storage)!"default"
                                 )]
 
     [#local storageProfile = (storage[storageProfileName])!{}]
