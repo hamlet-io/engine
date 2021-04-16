@@ -37,6 +37,11 @@
                             "Default" : "default"
                         },
                         {
+                            "Names" : "Storage",
+                            "Types" : STRING_TYPE,
+                            "Default" : "default"
+                        },
+                        {
                             "Names" : "Network",
                             "Types" : STRING_TYPE,
                             "Default" : "default"
