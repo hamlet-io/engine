@@ -348,6 +348,12 @@
             /]
         [/#if]
 
+        [#-- Check the content for inline messages --]
+        [@inlineLogMessages
+            content=content
+        /]
+
+        [#-- Provide the output to the writer --]
         [@writeOutput
             content=content
             writer=writer

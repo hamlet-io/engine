@@ -81,6 +81,11 @@
     [/#if]
 [/#macro]
 
+[#-- Level/Severity Handling --]
+[#function getLogLevelFromDescription severity ]
+    [#return (logLevelDescriptions?seq_index_of(severity))!0 ]
+[/#function]
+
 [#function willLog level ]
     [#return currentLogLevel <= level ]
 [/#function]
@@ -89,6 +94,18 @@
     [#return errorLogMinimumLevel <= level ]
 [/#function]
 
+[#-- Exit handling --]
+[#-- Uses the generated logs to determine the exit status of the wrapper --]
+[#macro setExitStatusFromLogs failureLevel=FATAL_LOG_LEVEL ]
+    [#list logMessages as logMessage ]
+        [#if getLogLevelFromDescription(failureLevel) <= getLogLevelFromDescription(logMessage.Severity) ]
+            [#local result = setExitStatus("110")]
+        [/#if]
+    [/#list]
+[/#macro]
+
+[#-- Log Writing --]
+[#-- These are our standard log content generators which use the output writer process to get logs to users --]
 [#macro writeStarterMessage writers ]
     [#list getCommandLineOptions().Logging.Writers as writer ]
 
@@ -192,6 +209,7 @@
     [/#list]
 [/#macro]
 
+[#-- Log Message Macros --]
 [#macro logMessage severity message context={} detail={} enabled=false]
     [#if enabled && willLog(severity)]
         [#local entry =
@@ -288,8 +306,11 @@
 
     [#if stop ||
         ((logFatalStopThreshold > 0) && (logFatalMessageCount >= logFatalStopThreshold)) ]
-        [#-- report whatever has been logged as the stop cause --]
-        [#stop getJSON({"HamletMessages" : logMessages}) ]
+        [#-- Before we stop log anything in the log messages - there should always been the fatal message --]
+        [@writeLogs
+            writers=getCommandLineOptions().Logging.Writers
+        /]
+        [#stop "hamlet fatal log" ]
     [/#if]
 [/#macro]
 
@@ -313,4 +334,60 @@
         detail=detail
         enabled=enabled
     /]
+[/#macro]
+
+[#-- In-line content logging --]
+[#-- inline logs allow for creating logs as part of outputs --]
+[#assign inlineLogLevels =
+    {
+        "HamletDebug:" : DEBUG_LOG_LEVEL,
+        "HamletTrace:" : TRACE_LOG_LEVEL,
+        "HamletTiming:" : TIMING_LOG_LEVEL,
+        "HamletInfo:" : INFORMATION_LOG_LEVEL,
+        "HamletWarning:" : WARNING_LOG_LEVEL,
+        "HamletError:" : ERROR_LOG_LEVEL,
+        "HamletFatal:" : FATAL_LOG_LEVEL
+    }
+]
+
+[#function getInlineLogs content parent={} inlineLogs=[] ]
+    [#if content?is_hash ]
+        [#list content as key,value ]
+            [#list inlineLogLevels as message, severity]
+                [#if key?contains(message) ]
+                    [#local inlineLogs += [ { "severity" : severity, "context" : content, "detail" : key }]]
+                [/#if]
+            [/#list]
+
+            [#local inlineLogs = getInlineLogs(value, content, inlineLogs) ]
+        [/#list]
+    [/#if]
+
+    [#if content?is_sequence ]
+        [#list content as value ]
+            [#local inlineLogs = getInlineLogs(value, content, inlineLogs)]
+        [/#list]
+    [/#if]
+
+    [#if content?is_string ]
+        [#list inlineLogLevels as message, severity]
+            [#if content?contains(message)]
+                [#local inlineLogs += [ { "severity" : severity, "context" : parent, "detail" : content }] ]
+            [/#if]
+        [/#list]
+    [/#if]
+    [#return inlineLogs]
+[/#function]
+
+[#macro inlineLogMessages content ]
+    [#local inlineLogs = getInlineLogs(content)]
+    [#list inlineLogs as inlineLog ]
+        [@logMessage
+            severity=inlineLog.severity
+            message="In-line log message - see context for details"
+            context=inlineLog.context
+            detail=inlineLog.detail
+            enabled=true
+        /]
+    [/#list]
 [/#macro]

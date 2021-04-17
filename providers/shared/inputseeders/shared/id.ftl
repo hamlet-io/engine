@@ -171,6 +171,7 @@
                 [#-- Logging Details --]
                 "Logging" : {
                     "Level" : logLevel!"info",
+                    "StopLevel" : stopLevel!"fatal",
                     "FatalStopThreshold" : logFatalStopThreshold!0,
                     "DepthLimit" : logDepthLimit!0,
                     "Writers" :
