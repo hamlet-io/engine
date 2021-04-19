@@ -120,6 +120,10 @@
             "Type"  : STRING_TYPE
         },
         {
+            "Names" : [ "Rule" ],
+            "Type"  : STRING_TYPE
+        },
+        {
             "Names" : "Instance",
             "Type" : STRING_TYPE
         },
