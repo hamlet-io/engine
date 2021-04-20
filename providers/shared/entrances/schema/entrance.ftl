@@ -29,6 +29,16 @@
 [#-- Set the required flow/view --]
 [#function schema_configseeder_commandlineoptions filter state]
 
+    [#local schemaCLOConfig = state.CommandLineOptions.Schema!{}]
+    [#local schemaId = "" ]
+    [#local schemaPrefixed = false ]
+    [#local schemaVersion = "latest" ]
+    [#if schemaCLOConfig?has_content]
+        [#local schemaId = schemaCLOConfig.Id!"" ]
+        [#local schemaPrefixed = schemaCLOConfig.Prefixed!false ]
+        [#local schemaVersion = schemaCLOConfig.Version!"latest" ]
+    [/#if]
+
     [#return
         addToConfigPipelineClass(
             state,
@@ -44,7 +54,12 @@
                 },
                 "View" : {
                     "Name" : SCHEMA_VIEW_TYPE
-                }
+                },
+                "Schema" : {
+                    "Prefixed" : schemaPrefixed,
+                    "Version" : schemaVersion
+                } +
+                attributeIfContent("Id", schemaId)
             }
         )
     ]
