@@ -254,8 +254,12 @@
                 [/#switch]
             [/#if]
         [/#list]
+        [#assign scriptSyncContent += [
+            r'# Ensure there is some content for the function',
+            r'return 0'
+        ]]
 
-        [#-- Make sure code bucket is up to date and registires initialised --]
+        [#-- Make sure code bucket is up to date and registries initialised --]
         [@addToDefaultBashScriptOutput
             content=
                 [
