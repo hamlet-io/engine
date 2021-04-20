@@ -8,12 +8,12 @@
 
     [#local section = getCLODeploymentGroup() ]
     [#local schema = getCLODeploymentUnit() ]
-
-    [#if ["module"]?seq_contains(section)]
-        [#-- Do not assign a schema $Id attribute on non-official schemas --]
-        [#local schemaId = ""]
-    [#else]
-        [#local schemaId = formatSchemaId(section, schema)]
+    
+    [#local schemaCLO = getCommandLineOptions().Schema ]
+    [#local schemaId = schemaCLO.Id!formatSchemaId(section, schema) ]
+    [#local schemaVersion = schemaCLO.Version ]
+    [#if schemaCLO.Prefixed ]
+        [#local schemaId = formatSchemaId(section, schema, schemaVersion, schemaIdUrl )]
     [/#if]
 
     [#switch section]

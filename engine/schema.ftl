@@ -82,12 +82,12 @@
     [#return asArray(composite.Names)[0]]
 [/#function]
 
-[#function formatSchemaId section unit version="latest"]
-    [#switch section]
-        [#default]
-            [#return formatPath(false, rootSchemaPath, version, "blueprint", "schema-" + section + "-" + unit + "-schema.json")]
-            [#break]
-    [/#switch]
+[#function formatSchemaId section unit version="latest" prefix="" ]
+    [#local filename = "schema-" + section + "-" + unit + "-schema.json" ]
+    [#if prefix?has_content ]
+        [#return formatPath(false, prefix, filename) ]
+    [/#if]
+    [#return formatPath(false, rootSchemaPath, version, "blueprint", filename)]
 [/#function]
 
 [#function formatJsonSchemaFromComposite composite references=[] schemaId=""]
