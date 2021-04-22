@@ -278,7 +278,9 @@
         [#local componentRawName = component.Name ]
         [#local componentType = type ]
         [#local subComponentId = [] ]
+        [#local subComponentRawId = [] ]
         [#local subComponentName = [] ]
+        [#local subComponentRawName = [] ]
         [#local componentContexts += [component, typeObject] ]
     [#else]
         [#local tierId = parentOccurrence.Core.Tier.Id ]
@@ -289,7 +291,9 @@
         [#local componentRawName = parentOccurrence.Core.Component.RawName ]
         [#local componentType = parentOccurrence.Core.Component.Type ]
         [#local subComponentId = typeObject.Id?split("-") ]
+        [#local subComponentRawId = [ typeObject.Id ] ]
         [#local subComponentName = typeObject.Name?split("-") ]
+        [#local subComponentRawName = [ typeObject.Name ] ]
         [#local componentContexts += [typeObject] ]
     [/#if]
 
@@ -311,10 +315,18 @@
                                 subComponentId +
                                 asArray(instanceId, true, true) +
                                 asArray(versionId, true, true) ]
+                    [#local rawIdExtensions =
+                                subComponentRawId +
+                                asArray(instanceId, true, true) +
+                                asArray(versionId, true, true )]
                     [#local nameExtensions =
                                 subComponentName +
                                 asArray(instanceName, true, true) +
-                                asArray(versionName, true, true) ]
+                                asArray(versionName, true, true)]
+                    [#local rawNameExtensions =
+                                subComponentRawName +
+                                asArray(instanceName, true, true) +
+                                asArray(versionName, true, true)]
                     [#local occurrence =
                         {
                             "Core" : {
@@ -344,13 +356,19 @@
                                 },
                                 "Internal" : {
                                     "IdExtensions" : idExtensions,
-                                    "NameExtensions" : nameExtensions
+                                    "RawIdExtensions" : rawIdExtensions,
+                                    "NameExtensions" : nameExtensions,
+                                    "RawNameExtensions" : rawNameExtensions
                                 },
                                 "Extensions" : {
                                     "Id" :
                                         ((parentOccurrence.Core.Extensions.Id)![tierId, componentId]) + idExtensions,
+                                    "RawId" :
+                                        ((parentOccurrence.Core.Extensions.Id)![tierId, componentRawId]) + rawIdExtensions,
                                     "Name" :
-                                        ((parentOccurrence.Core.Extensions.Name)![tierName, componentName]) + nameExtensions
+                                        ((parentOccurrence.Core.Extensions.Name)![tierName, componentName]) + nameExtensions,
+                                    "RawName" :
+                                        ((parentOccurrence.Core.Extensions.Name)![tierName, componentRawName]) + rawNameExtensions
                                 }
 
                             } +

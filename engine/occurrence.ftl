@@ -218,19 +218,28 @@
             {
                 "Core" : {
                     "Id" : formatId(occurrence.Core.Extensions.Id),
+                    "RawId" : formatId(occurrence.Core.Extensions.RawId),
                     "TypedId" : formatId(occurrence.Core.Extensions.Id, type),
                     "Name" : formatName(occurrence.Core.Extensions.Name),
+                    "RawName" : formatName(occurrence.Core.Extensions.RawName),
                     "TypedName" : formatName(occurrence.Core.Extensions.Name, type),
                     "FullName" : formatSegmentFullName(occurrence.Core.Extensions.Name),
+                    "RawFullName" : formatSegmentFullName(occurrence.Core.Extensions.RawName),
                     "TypedFullName" : formatSegmentFullName(occurrence.Core.Extensions.Name, type),
                     "ShortName" : formatName(occurrence.Core.Extensions.Id),
+                    "ShortRawName" : formatName(occurrence.Core.Extensions.RawName),
                     "ShortTypedName" : formatName(occurrence.Core.Extensions.Id, type),
                     "ShortFullName" : formatSegmentShortName(occurrence.Core.Extensions.Id),
+                    "ShortRawFullName" : formatSegmentShortName(occurrence.Core.Extensions.RawId),
                     "ShortTypedFullName" : formatSegmentShortName(occurrence.Core.Extensions.Id, type),
                     "RelativePath" : formatRelativePath(occurrence.Core.Extensions.Name),
+                    "ReltiveRawPath" : formatRelativePath(occurrence.Core.Extensions.RawName),
                     "FullRelativePath" : formatSegmentRelativePath(occurrence.Core.Extensions.Name),
+                    "FullRealitveRawPath" : formatSegmentRelativePath(occurrence.Core.Extensions.RawName),
                     "AbsolutePath" : formatAbsolutePath(occurrence.Core.Extensions.Name),
-                    "FullAbsolutePath" : formatSegmentAbsolutePath(occurrence.Core.Extensions.Name)
+                    "AbsoluteRawPath" : formatAbsolutePath(occurrence.Core.Extensions.RawName),
+                    "FullAbsolutePath" : formatSegmentAbsolutePath(occurrence.Core.Extensions.Name),
+                    "FullAbsoluteRawPath" : formatSegmentAbsolutePath(occurrence.Core.Extensions.RawName)
                 }
             }
         ) ]
