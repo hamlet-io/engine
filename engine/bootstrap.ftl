@@ -78,6 +78,8 @@
 
 [#-- Set desired logging configuration  --]
 [@setLogLevel getCommandLineOptions().Logging.Level /]
+[@setFatalLogLevel getCommandLineOptions().Logging.StopLevel /]
+
 [@setLogFatalStopThreshold getCommandLineOptions().Logging.FatalStopThreshold /]
 [@setLogDepthLimit getCommandLineOptions().Logging.DepthLimit /]
 

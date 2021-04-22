@@ -33,6 +33,4 @@
 
 [#-- Find the logs for any that match the stop level or above --]
 [#-- Set the exit code if they are found --]
-[@setExitStatusFromLogs
-    failureLevel=getCommandLineOptions().Logging.StopLevel
-/]
+[@setExitStatusFromLogs /]
