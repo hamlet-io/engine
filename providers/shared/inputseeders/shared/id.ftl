@@ -174,6 +174,7 @@
                     "StopLevel" : stopLevel!"fatal",
                     "FatalStopThreshold" : logFatalStopThreshold!0,
                     "DepthLimit" : logDepthLimit!0,
+                    "Format" : logFormat!"compact",
                     "Writers" :
                         (logWriters!"")?has_content?then(
                             logWriters?split(","),

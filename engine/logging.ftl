@@ -26,6 +26,7 @@
     ] ]
 
 [#assign errorLogMinimumLevel = WARNING_LOG_LEVEL ]
+[#assign fatalLogLevel        = FATAL_LOG_LEVEL ]
 
 [#-- Log history during invocation of the engine --]
 [#assign logMessages = [] ]
@@ -53,12 +54,7 @@
         [#assign currentLogLevel = level]
     [/#if]
     [#if level?is_string && level?has_content]
-        [#list logLevelDescriptions as value]
-            [#if value?has_content && level?lower_case == value ]
-                [#assign currentLogLevel = value?index]
-                [#break]
-            [/#if]
-        [/#list]
+        [#assign currentLogLevel = getLogLevelFromDescription(level)]
     [/#if]
     [#return getLogLevel()]
 [/#function]
@@ -67,6 +63,15 @@
 [#-- Can either be set as a number or as a string       --]
 [#macro setLogLevel level]
     [#local level = updateLogLevel(level) ]
+[/#macro]
+
+[#macro setFatalLogLevel level ]
+    [#if level?is_number]
+        [#assign fatalLogLevel = level]
+    [/#if]
+    [#if level?is_string && level?has_content]
+        [#assign fatalLogLevel = getLogLevelFromDescription(level)]
+    [/#if]
 [/#macro]
 
 [#-- Set LogLevel variable to use a different log level --]
@@ -83,7 +88,18 @@
 
 [#-- Level/Severity Handling --]
 [#function getLogLevelFromDescription severity ]
-    [#return (logLevelDescriptions?seq_index_of(severity))!0 ]
+    [#if severity?is_number ]
+        [#return severity]
+    [/#if]
+    [#if severity?is_string && severity?has_content]
+        [#list logLevelDescriptions as value]
+            [#if value?has_content && severity?lower_case == value ]
+                [#return value?index ]
+                [#break]
+            [/#if]
+        [/#list]
+    [/#if]
+    [#return 0]
 [/#function]
 
 [#function willLog level ]
@@ -91,14 +107,18 @@
 [/#function]
 
 [#function isError level ]
-    [#return errorLogMinimumLevel <= level ]
+    [#return errorLogMinimumLevel <= getLogLevelFromDescription(level) ]
+[/#function]
+
+[#function isFatal level ]
+    [#return fatalLogLevel <= getLogLevelFromDescription(level) ]
 [/#function]
 
 [#-- Exit handling --]
 [#-- Uses the generated logs to determine the exit status of the wrapper --]
-[#macro setExitStatusFromLogs failureLevel=FATAL_LOG_LEVEL ]
+[#macro setExitStatusFromLogs ]
     [#list logMessages as logMessage ]
-        [#if getLogLevelFromDescription(failureLevel) <= getLogLevelFromDescription(logMessage.Severity) ]
+        [#if fatalLogLevel <= getLogLevelFromDescription(logMessage.Severity) ]
             [#local result = setExitStatus("110")]
         [/#if]
     [/#list]
@@ -140,54 +160,96 @@
 
 [#macro writeLogs writers ]
     [#list getCommandLineOptions().Logging.Writers as writer ]
+
         [#-- Output a logfile of the log messages --]
         [@setupOutput
             writer=writer
         /]
 
+        [#local logFormat = logMessages
+                                ?map( x -> isFatal(x.Severity) || x.Severity == "debug" )
+                                ?seq_contains(true)
+                                ?then(
+                                    "full",
+                                    getCommandLineOptions().Logging.Format
+                                )]
+
         [#switch getOutputProperties()["type"] ]
 
             [#case "console" ]
 
-                [#list logMessages as logMessage ]
-
-                    [#if logMessage?is_first ]
-                        [@writeOutput
-                            content="\n Hamlet Engine Logs\n--------------------\n\n"
-                            writer=writer
-                        /]
-                    [/#if]
-
-                    [#if isError( ((logLevelDescriptions?seq_index_of(logMessage.Level))!0) ) ]
-                        [@setOutputProperties
-                            properties={
-                                "type:console" : {
-                                    "stream" : "stderr"
-                                }
-                            }
-                        /]
-                    [#else]
-                        [@setOutputProperties
-                            properties={
-                                "type:console" : {
-                                    "stream" : "stdout"
-                                }
-                            }
-                        /]
-                    [/#if]
+                [#if logMessages?has_content ]
 
                     [@writeOutput
-                        content=logMessage
+                        content="\n Hamlet Engine Logs\n--------------------\n\n"
                         writer=writer
                     /]
 
-                    [#if logMessage?is_last ]
-                        [@writeOutput
-                            content="\n--------------------\n\n"
-                            writer=writer
-                        /]
-                    [/#if]
-                [/#list]
+                    [#list logMessages as logMessage ]
+                        [#if isError( ((logLevelDescriptions?seq_index_of(logMessage.Level))!0) ) ]
+                            [@setOutputProperties
+                                properties={
+                                    "type:console" : {
+                                        "stream" : "stderr"
+                                    }
+                                }
+                            /]
+                        [#else]
+                            [@setOutputProperties
+                                properties={
+                                    "type:console" : {
+                                        "stream" : "stdout"
+                                    }
+                                }
+                            /]
+                        [/#if]
+
+                        [#switch logFormat]
+                            [#case "compact"]
+                                [#local message = "- ${logMessage.Severity} - ${logMessage.Message}" ]
+                                [@writeOutput
+                                    content=message
+                                    writer=writer
+                                /]
+                                [#break]
+
+                            [#default]
+                                [@writeOutput
+                                    content=logMessage
+                                    writer=writer
+                                /]
+                        [/#switch]
+                    [/#list]
+
+                    [@writeOutput
+                        content="\n--------------------"
+                        writer=writer
+                    /]
+
+                    [#local logNotes = [] ]
+
+                    [#local logCounts = [] ]
+                    [#list logLevelDescriptions as description ]
+                        [#local logCount = logMessages?filter( log -> log.Severity == description )?size ]
+                        [#if logCount > 0 ]
+                            [#local logCounts += [ "${description} : ${logCount}" ] ]
+                        [/#if]
+                    [/#list]
+                    [#local logNotes += [ logCounts?join(" | ") ]]
+
+                    [#switch logFormat]
+                        [#case "compact"]
+                            [#local logNotes += [ "Compact log output format used set HAMLET_LOG_FORMAT=full for the complete details" ]]
+                            [#break]
+
+                    [/#switch]
+
+                    [@writeOutput
+                        content=(logNotes?map( x -> x?ensure_starts_with("[-] ")))?join("\n") + "\n\n"
+                        writer=writer
+                    /]
+
+                [/#if]
                 [#break]
 
             [#default]
