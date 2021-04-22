@@ -95,7 +95,7 @@
             {
                 "Names" : "Alerts",
                 "SubObjects" : true,
-                "Children" : alertChildrenConfiguration
+                "AttributeSet" : ALERT_ATTRIBUTESET_TYPE
             }
         ]
     parent=EXTERNALNETWORK_COMPONENT_TYPE

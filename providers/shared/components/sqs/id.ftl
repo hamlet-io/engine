@@ -64,7 +64,7 @@
                 "Names" : "Alerts",
                 "Description" : "Alert support for monitoring queue activity",
                 "SubObjects" : true,
-                "Children" : alertChildrenConfiguration
+                "AttributeSet" : ALERT_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "Links",

@@ -73,7 +73,7 @@
             {
                 "Names" : "Alerts",
                 "SubObjects" : true,
-                "Children" : alertChildrenConfiguration
+                "AttributeSet" : ALERT_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : ["Memory", "MemorySize"],
