@@ -10,6 +10,35 @@
         }]
     attributes=[
         {
+            "Names" : "IncludeInContext",
+            "Description" : "Include the attributes provided by this link in the environment context",
+            "Type" : ARRAY_OF_STRING_TYPE
+        },
+        {
+            "Names" : "ActiveRequired",
+            "Description" : "Require that the linked occurrence has been deployed and is active",
+            "Type" : BOOLEAN_TYPE
+        },
+        {
+            "Names" : "Role",
+            "Description" : "The role of the relationship between the components",
+            "Type" : STRING_TYPE
+        },
+        {
+            "Names" : "Direction",
+            "Description" : "The direction the role applies to between the components",
+            "Type" : STRING_TYPE
+        },
+        {
+            "Names" : "Type",
+            "Type" : STRING_TYPE
+        },
+        {
+            "Names" : "Enabled",
+            "Type" : BOOLEAN_TYPE,
+            "Default" : true
+        },
+        {
             "Names" : "Any",
             "Type" : STRING_TYPE
         },
@@ -38,6 +67,14 @@
             "Names" : "Component",
             "Type" : STRING_TYPE,
             "Mandatory" : true
+        },
+        {
+            "Names" : "Instance",
+            "Type" : STRING_TYPE
+        },
+        {
+            "Names" : "Version",
+            "Type" : STRING_TYPE
         },
         {
             "Names" : ["Function"],
@@ -124,37 +161,8 @@
             "Type"  : STRING_TYPE
         },
         {
-            "Names" : "Instance",
+            "Names" : [ "Secret" ],
             "Type" : STRING_TYPE
-        },
-        {
-            "Names" : "Version",
-            "Type" : STRING_TYPE
-        },
-        {
-            "Names" : "Secret",
-            "Type" : STRING_TYPE
-        },
-        {
-            "Names" : "Role",
-            "Type" : STRING_TYPE
-        },
-        {
-            "Names" : "Direction",
-            "Type" : STRING_TYPE
-        },
-        {
-            "Names" : "Type",
-            "Type" : STRING_TYPE
-        },
-        {
-            "Names" : "Enabled",
-            "Type" : BOOLEAN_TYPE,
-            "Default" : true
-        },
-        {
-            "Names" : "IncludeInContext",
-            "Type" : ARRAY_OF_STRING_TYPE
         }
     ]
 /]

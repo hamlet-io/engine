@@ -104,6 +104,11 @@
         [#return {} ]
     [/#if]
 
+    [#-- Allow user defined links to specify if the link is required to be active --]
+    [#if (link.ActiveRequired)?? ]
+        [#local activeRequired = link.ActiveRequired ]
+    [/#if]
+
     [#-- Handle external links --]
     [#-- They are deprecated in favour of an external tier but for now --]
     [#-- they can still be used, even with an external tier, by explicitly --]
@@ -186,7 +191,22 @@
             [@debug message="Link matched target" context=targetSubOccurrence enabled=false /]
 
             [#-- Determine if deployed --]
-            [#if ( activeOnly || activeRequired ) && !isOccurrenceDeployed(targetSubOccurrence) ]
+            [#local isDeployed = isOccurrenceDeployed(targetSubOccurrence)]
+
+            [#-- Always warn if linking to an inactive component --]
+            [#if !isDeployed && !activeRequired ]
+                [@warn
+                    message="link occurrence not deployed - ${occurrence.Core.Name} -> ${targetSubOccurrence.Core.Name}"
+                    detail="A link was made to an occurrence which has not been deployed"
+                    context={
+                        "Link" : link,
+                        "EffectiveInstance" : instanceToMatch,
+                        "EffectiveVersion" : versionToMatch
+                    }
+                /]
+            [/#if]
+
+            [#if ( activeOnly || activeRequired ) && !isDeployed ]
                 [#if activeRequired ]
                     [@postcondition
                         function="getLinkTarget"
