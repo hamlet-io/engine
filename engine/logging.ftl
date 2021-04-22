@@ -239,7 +239,7 @@
 
                     [#switch logFormat]
                         [#case "compact"]
-                            [#local logNotes += [ "Compact log output format used set HAMLET_LOG_FORMAT=full for the complete details" ]]
+                            [#local logNotes += [ "Compact log output format used set GENERATION_LOG_FORMAT=full for the complete details" ]]
                             [#break]
 
                     [/#switch]
