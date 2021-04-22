@@ -24,7 +24,7 @@
         {
             "Names" : "Schedule",
             "Description" : "The schedule to run the healthcheck",
-            "Type" : "STRING_TYPE,
+            "Type" : STRING_TYPE,
             "Default" : "rate(5 mins)"
         },
         {
