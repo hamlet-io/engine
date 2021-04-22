@@ -8,7 +8,7 @@
                 "Type"  : "Description",
                 "Value" : "Configuration of alerts that monitor component resources"
         }]
-    attributes=[    [
+    attributes=[
         {
             "Names" : "Namespace",
             "Types" : STRING_TYPE,
