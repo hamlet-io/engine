@@ -450,3 +450,12 @@
         ]
     [/#if]
 [/#macro]
+
+[#-- Healthcheck Specific Macro --]
+[#macro HealthCheckScript content ]
+    [#assign _context +=
+        {
+            "Script" : content
+        }
+    ]
+[/#macro]

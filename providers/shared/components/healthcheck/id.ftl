@@ -19,19 +19,8 @@
             "Names" : "Type",
             "Description" : "The type of healthcheck to perform",
             "Type" : STRING_TYPE,
-            "Values" : [ "simple", "complex" ]
-        },
-        {
-            "Names" : "Schedule",
-            "Description" : "The schedule to run the healthcheck",
-            "Type" : STRING_TYPE,
-            "Default" : "rate(5 mins)"
-        },
-        {
-            "Names" : "Timeout",
-            "Description" : "How long a healthcheck should run without reporting status in seconds",
-            "Type" : NUMBER_TYPE,
-            "Default" : 30
+            "Values" : [ "Simple", "Complex" ],
+            "Mandatory" : true
         },
         {
             "Names" : "Alerts",
@@ -104,12 +93,24 @@
                                     "Default" : ""
                                 }
                             ]
+                        },
+                        {
+                            "Names" : "ScriptFileName",
+                            "Description" : "The name of the healthcheck script if the image is a zip",
+                            "Types" : STRING_TYPE,
+                            "Default" : "healthcheck.py"
                         }
                     ]
                 },
                 {
                     "Names" : "Tracing",
                     "Children" : tracingChildConfiguration
+                },
+                {
+                    "Names" : "Schedule",
+                    "Description" : "The schedule to run the healthcheck",
+                    "Type" : STRING_TYPE,
+                    "Default" : "rate(5 minutes)"
                 }
             ]
         },
@@ -122,19 +123,43 @@
                     "Description" : "The desitination to perform the healthcheck on",
                     "Children" : [
                         {
+                            "Names" : "AddressType",
+                            "Description" : "The type of address to monitor",
+                            "Values" : [ "Hostname", "IP" ],
+                            "Default" : "Hostname"
+                        },
+                        {
                             "Names" : "Link",
                             "AttributeSet" : LINK_ATTRIBUTESET_TYPE
                         },
                         {
-                            "Names" : "Hostname",
-                            "Description" : "An explicit Hostname that will be monitored",
-                            "Type" : STRING_TYPE
+                            "Names" : "LinkAttribute",
+                            "Description" : "The attribute of the linked occurrence to use for the address",
+                            "Type" : STRING_TYPE,
+                            "Default" : "FQDN"
                         },
                         {
-                            "Names" : "Port",
-                            "Description" : "The name of a port which outlines the healthcheck and protocol details"
+                            "Names" : "Address",
+                            "Description" : "An explicit address to monitor",
+                            "Type" : STRING_TYPE
                         }
                     ]
+                },
+                {
+                    "Names" : "Port",
+                    "Description" : "The name of a port which sets the healthcheck protocol details",
+                    "Type" : STRING_TYPE
+                },
+                {
+                    "Names" : "HTTPSearchString",
+                    "Description" : "When using HTTP checks a string that must be present in the response body",
+                    "Type" : STRING_TYPE,
+                    "Default" : ""
+                },
+                {
+                    "Names" : "HTTPSearchSetting",
+                    "Description" : "The name of a setting that contains the HTTP Search string to use",
+                    "Type" : STRING_TYPE
                 }
             ]
         },
@@ -165,10 +190,41 @@
             ]
         },
         {
+            "Names" : "Permissions",
+            "Children" : [
+                {
+                    "Names" : "Decrypt",
+                    "Types" : BOOLEAN_TYPE,
+                    "Default" : true
+                },
+                {
+                    "Names" : "AsFile",
+                    "Types" : BOOLEAN_TYPE,
+                    "Default" : true
+                },
+                {
+                    "Names" : "AppData",
+                    "Types" : BOOLEAN_TYPE,
+                    "Default" : true
+                },
+                {
+                    "Names" : "AppPublic",
+                    "Types" : BOOLEAN_TYPE,
+                    "Default" : true
+                }
+            ]
+        },
+        {
             "Names" : "NetworkAccess",
             "Description" : "Run the healthcheck within the private network",
             "Types" : BOOLEAN_TYPE,
             "Default" : false
+        },
+        {
+            "Names" : "Regions",
+            "Description" : "A list of regions to run the health check from - _product: is the product region - _all: is all available regions",
+            "Types" : ARRAY_OF_STRING_TYPE,
+            "Default" : [ "_all" ]
         }
     ]
 /]
