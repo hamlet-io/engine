@@ -137,7 +137,7 @@
     [/#list]
 [/#macro]
 
-[#function invokeExtensions occurrence context baseOccurrence={} additionalIds=[] additonalOnly=false entrance="deployment" scope="setup" provider="shared"  ]
+[#function invokeExtensions occurrence context baseOccurrence={} additionalIds=[] additionalOnly=false entrance="deployment" scope="setup" provider="shared"  ]
 
     [#-- Replace the global context with the components context --]
     [#assign _context = context ]
@@ -154,7 +154,7 @@
                                 baseOccurrence,
                                 occurrence) ]
 
-    [#list formatExtensionIds(baseOccurrence, additionalIds, additonalOnly) as id]
+    [#list formatExtensionIds(baseOccurrence, additionalIds, additionalOnly) as id]
 
         [#local extensionContext = {
             "Id" : id,
