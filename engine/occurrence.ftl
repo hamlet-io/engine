@@ -311,8 +311,11 @@
     [#return occurrence]
 [/#function]
 
-[#function extendAttributes attributes=[] extensions=[] prefix=""]
+[#function extendAttributes attributes=[] extensions=[] prefix="" disablePrefix="shared:" ]
+
     [#local result = []]
+    [#local prefix = prefix?ensure_ends_with(":")]
+
     [#if extensions?has_content]
         [#list attributes as attribute]
 
@@ -350,8 +353,18 @@
                     [#local extendedAttributes = {}]
                     [#local extendedValues = (attribute.Values)![]]
                     [#list (attributeExtension.Values)![] as extensionValue]
-                        [#local extendedValues +=
-                            [extensionValue?ensure_starts_with(prefix + ":")] ]
+
+                        [#if extensionValue?is_string ]
+                            [#local extendedValues +=
+                                [
+                                    extensionValue?starts_with(disablePrefix)?then(
+                                        extensionValue?remove_beginning(disablePrefix),
+                                        extensionValue?ensure_starts_with(prefix)
+                                    )
+                                ]]
+                        [#else ]
+                            [#local extendedValues += extensionValue ]
+                        [/#if]
 
                         [#local extendedAttributes += {
                             "Values" : getUniqueArrayElements(extendedValues)

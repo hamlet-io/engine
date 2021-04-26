@@ -60,19 +60,33 @@
             /]
             [#local configuration = componentConfiguration[schema] ]
 
-            [#assign schemaComponentAttributes = []]
+            [#local schemaComponentAttributes = []]
 
             [#-- Construct Component Attributes --]
-            [#list providerDictionary?keys as provider]
+            [#list configuration.ResourceGroups as id, resourceGroup ]
+                [#list (resourceGroup.Attributes)!{} as provider, attributes ]
+                    [#if attributes?has_content ]
+                        [#local schemaComponentAttributes = combineEntities(
+                            schemaComponentAttributes,
+                            attributes,
+                            ADD_COMBINE_BEHAVIOUR
+                        )]
+                    [/#if]
+                [/#list]
+            [/#list]
 
-                [#if (configuration.ResourceGroups["default"].Attributes[provider]!{})?has_content]
-
-                    [#assign schemaComponentAttributes = combineEntities(
-                        schemaComponentAttributes,
-                        configuration.ResourceGroups["default"].Attributes[provider],
-                        ADD_COMBINE_BEHAVIOUR)]
-
-                [/#if]
+            [#-- Extend the attributes based on loaded providers --]
+            [#list configuration.ResourceGroups as id, resourceGroup ]
+                [#list (resourceGroup.Extensions)!{} as provider, extensions ]
+                    [#if extensions?has_content ]
+                        [#local schemaComponentAttributes =
+                                        extendAttributes(
+                                            schemaComponentAttributes,
+                                            extensions,
+                                            provider
+                                        )]
+                    [/#if]
+                [/#list]
             [/#list]
 
             [#-- Construct SubComponent References as Attributes--]
