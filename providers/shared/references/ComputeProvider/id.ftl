@@ -41,7 +41,7 @@
                 },
                 {
                     "Names" : "Additional",
-                    "Description" : "Providers who will meet the additonal compute capacity outside of the default",
+                    "Description" : "Providers who will meet the additional compute capacity outside of the default",
                     "SubObjects" : true,
                     "Children" : [
                         {
