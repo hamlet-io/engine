@@ -34,15 +34,7 @@
                 "Value" : "An orchestrated container with always on scheduling"
             }
         ]
-    attributes=[
-        {
-            "Names" : "Engine",
-            "Types" : STRING_TYPE,
-            "Values" : [ "ec2", "fargate" ],
-            "Default" : "ec2"
-        }
-    ] +
-    containerServiceAttributes
+    attributes=containerServiceAttributes
 /]
 
 [@addComponentDeployment

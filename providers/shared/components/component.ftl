@@ -1214,6 +1214,13 @@
 
 [#assign containerServiceAttributes = [
     {
+        "Names" : "Engine",
+        "Description" : "The engine used to run the container",
+        "Types" : STRING_TYPE,
+        "Values" : [ "ec2" ],
+        "Default" : "ec2"
+    },
+    {
         "Names" : "Containers",
         "SubObjects" : true,
         "Children" : containerChildrenConfiguration
@@ -1275,7 +1282,7 @@
     {
         "Names" : "NetworkMode",
         "Types" : STRING_TYPE,
-        "Values" : ["none", "bridge", "awsvpc", "host"],
+        "Values" : ["none", "bridge", "host"],
         "Default" : ""
     },
     {
@@ -1298,6 +1305,55 @@
                 "Types" : BOOLEAN_TYPE,
                 "Description" : "Each task is running on a different container instance when true",
                 "Default" : true
+            },
+            {
+                "Names" : "ComputeProvider",
+                "Description" : "The compute provider placement policy",
+                "Children" : [
+                    {
+                        "Names" : "Default",
+                        "Children" : [
+                            {
+                                "Names" : "Provider",
+                                "Description" : "The default container compute provider - _engine uses he default provider of the engine",
+                                "Types"  : STRING_TYPE,
+                                "Values" : [ "_engine" ],
+                                "Default" : "_engine"
+                            },
+                            {
+                                "Names" : "Weight",
+                                "Types" : NUMBER_TYPE,
+                                "Description" : "The ratio of containers allocated to the provider based on the configured providers",
+                                "Default" : 1
+                            },
+                            {
+                                "Names" : "RequiredCount",
+                                "Description" : "The minimum count of containers to run on the default provider",
+                                "Types" : NUMBER_TYPE,
+                                "Default" : 1
+                            }
+                        ]
+                    },
+                    {
+                        "Names" : "Additional",
+                        "Description" : "Providers who will meet the additional compute capacity outside of the default",
+                        "SubObjects" : true,
+                        "Children" : [
+                            {
+                                "Names" : "Provider",
+                                "Types" : STRING_TYPE,
+                                "Values" : [ "_engine" ],
+                                "Mandatory" : true
+                            },
+                            {
+                                "Names" : "Weight",
+                                "Types" : NUMBER_TYPE,
+                                "Description" : "The ratio of containers allocated to the provider based on the configured providers",
+                                "Default" : 1
+                            }
+                        ]
+                    }
+                ]
             }
         ]
     },
@@ -1337,8 +1393,9 @@
 [#assign containerTaskAttributes = [
     {
         "Names" : "Engine",
+        "Description" : "The engine used to run the container",
         "Types" : STRING_TYPE,
-        "Values" : [ "ec2", "fargate" ],
+        "Values" : [ "ec2" ],
         "Default" : "ec2"
     },
     {
@@ -1394,7 +1451,7 @@
     {
         "Names" : "NetworkMode",
         "Types" : STRING_TYPE,
-        "Values" : ["none", "bridge", "awsvpc", "host"],
+        "Values" : ["none", "bridge", "host"],
         "Default" : ""
     },
     {
