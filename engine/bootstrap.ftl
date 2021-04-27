@@ -95,11 +95,11 @@
 [#-- Setup the contract outputs before invoking the entrance to allow for errors to be caught --]
 [@setupContractOutputs /]
 
-[#-- Reinitialise the input system including the provider if available    --]
+[#-- Reinitialise the input system including the provider/region if available    --]
 [#-- This will include the provider specific seeders in the input process --]
 [@initialiseInputProcessing
     inputSource=getInputSource()
-    inputFilter=getInputFilter() + getProviderFilter()
+    inputFilter=getAccountLayerFilters(getProductLayerFilters(getInputFilter()))
 /]
 
 [#-- Set the context for templates processing --]

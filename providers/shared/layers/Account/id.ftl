@@ -275,12 +275,27 @@
     ]
 /]
 
-[#-- Temporary function to populate provider --]
+[#-- Temporary function --]
 [#-- TODO(mfl) remove once integrated into the input pipeline --]
-[#function getProviderFilter ]
-    [#return
-        {
-            "Provider" : getActiveLayer(ACCOUNT_LAYER_TYPE).Provider
-        }
-    ]
+[#function getAccountLayerRegion ]
+    [#local account = getActiveLayer(ACCOUNT_LAYER_TYPE) ]
+    [#return (account[getCLODeploymentUnit()].Region)!account.Region!""]
+[/#function]
+
+[#function getAccountLayerFilters filter]
+    [#local result = filter ]
+
+    [#local account = getActiveLayer(ACCOUNT_LAYER_TYPE) ]
+
+    [#-- Special defaulting for region --]
+    [#if ! isFilterAttribute(filter, "Region") ]
+        [#local result += attributeIfContent("Region", getAccountLayerRegion()) ]
+    [/#if]
+
+    [#-- Special defaulting for provider --]
+    [#if ! isFilterAttribute(filter, "Provider") ]
+        [#local result += attributeIfContent("Provider", account.Provider!"") ]
+    [/#if]
+
+    [#return result]
 [/#function]

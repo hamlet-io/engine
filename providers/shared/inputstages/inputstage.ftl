@@ -17,7 +17,7 @@
 [#-- Layers (precursor to plugins) --]
 [#assign LAYER_SHARED_INPUT_STAGE = "layer"]
 
-[#-- Plugins - if any not already loaded, restart inpout processing  --]
+[#-- Plugins - if any not already loaded, restart input processing  --]
 [#assign PLUGIN_SHARED_INPUT_STAGE = "plugin"]
 
 [#-- Modules - they shouldn't affect layers  --]

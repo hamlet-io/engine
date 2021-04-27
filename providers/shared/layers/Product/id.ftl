@@ -125,3 +125,21 @@
         }
     ]
 /]
+
+[#-- Temporary function --]
+[#-- TODO(mfl) remove once integrated into the input pipeline --]
+[#function getProductLayerRegion ]
+    [#local product = getActiveLayer(PRODUCT_LAYER_TYPE) ]
+    [#return (product[getCLODeploymentUnit()].Region)!product.Region!"" ]
+[/#function]
+
+[#function getProductLayerFilters filter]
+    [#local result = filter ]
+
+    [#-- Special defaulting for region --]
+    [#if ! isFilterAttribute(filter, "Region") ]
+        [#local result += attributeIfContent("Region", getProductLayerRegion()) ]
+    [/#if]
+
+    [#return result ]
+[/#function]
