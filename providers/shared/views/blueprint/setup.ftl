@@ -91,16 +91,17 @@
 
         [#if component?is_hash]
 
-        [#local componentType = getComponentType(component)]
+            [#assign multiAZ = component.MultiAZ!solnMultiAZ]
+            [#local componentType = getComponentType(component)]
 
-        [#-- Only include deployed Occurrences --]
-        [#local occurrences = getOccurrences(tier, component) ]
+            [#-- Only include deployed Occurrences --]
+            [#local occurrences = getOccurrences(tier, component) ]
 
-        [#local result += [
-            component + {
-            "Type" : componentType,
-            "Occurrences" : occurrences
-            } ] ]
+            [#local result += [
+                component + {
+                "Type" : componentType,
+                "Occurrences" : occurrences
+                } ] ]
 
         [/#if]
     [/#list]
