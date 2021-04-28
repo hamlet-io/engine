@@ -259,7 +259,7 @@
 [#-- Masterdata seeders --]
 [#function shared_configseeder_masterdata filter state]
     [#return
-        addToConfigPipelineClass(
+        addToConfigPipelineStageCacheForClass(
             state,
             BLUEPRINT_CONFIG_INPUT_CLASS,
             shared_cmdb_masterdata,
@@ -271,7 +271,7 @@
 
 [#function shared_configseeder_masterdata_mock filter state]
     [#return
-        addToConfigPipelineClass(
+        addToConfigPipelineStageCacheForClass(
             shared_configseeder_masterdata(filter, state),
             BLUEPRINT_CONFIG_INPUT_CLASS,
             {
@@ -441,17 +441,38 @@
 
 [#function shared_configseeder_layer filter state]
 
-    [#-- Calculate the layers from the current blueprint --]
-    [@clearLayerData /]
-    [@includeLayers state[COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS].Layers state[BLUEPRINT_CONFIG_INPUT_CLASS] /]
+    [#local result = state]
 
-    [#local result =
-        addToConfigPipelineClass(
-            state,
-            LAYERS_CONFIG_INPUT_CLASS,
-            layerActiveData
-        )
-    ]
+    [#-- At this stage, the state should only contain content contributed to --]
+    [#-- the blueprint class via fixtures or cmdb. To avoid false errors for --]
+    [#-- required layer attributes, ensure we have data to process           --]
+    [#if state[BLUEPRINT_CONFIG_INPUT_CLASS]?has_content]
+        [#-- Calculate the layers from the blueprint data so far        --]
+        [#-- Include masterdata that to this point is only in the cache --]
+        [#-- Exclude module data - it shouldn't contribute to layer determination --]
+        [#-- and should only be added by a subsequent module stage      --]
+        [@clearLayerData /]
+        [@includeLayers
+            state[COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS].Layers
+            getConfigPipelineClassCacheForStages(
+                state,
+                BLUEPRINT_CONFIG_INPUT_CLASS,
+                [
+                    MASTERDATA_SHARED_INPUT_STAGE,
+                    FIXTURE_SHARED_INPUT_STAGE,
+                    CMDB_SHARED_INPUT_STAGE
+                ]
+            )[BLUEPRINT_CONFIG_INPUT_CLASS]
+        /]
+
+        [#local result =
+            addToConfigPipelineClass(
+                state,
+                LAYERS_CONFIG_INPUT_CLASS,
+                layerActiveData
+            )
+        ]
+    [/#if]
 
     [#return result]
 

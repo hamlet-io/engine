@@ -96,12 +96,18 @@
     [#assign wafValueSets = getReferenceData(WAFVALUESET_REFERENCE_TYPE) ]
 
     [#-- Regions --]
-    [#if getCLOSegmentRegion()?has_content]
+    [#if getCLOSegmentRegion()?has_content || getProductLayerRegion()?has_content]
         [#assign regionId = getCLOSegmentRegion()]
+        [#if ! regionId?has_content]
+            [#assign regionId = getProductLayerRegion() ]
+        [/#if]
         [#assign regionObject = (regions[regionId])!{} ]
     [/#if]
-    [#if getCLOAccountRegion()?has_content]
+    [#if getCLOAccountRegion()?has_content || getAccountLayerRegion()?has_content ]
         [#assign accountRegionId = getCLOAccountRegion()]
+        [#if ! accountRegionId?has_content]
+            [#assign accountRegionId = getAccountLayerRegion() ]
+        [/#if]
         [#assign accountRegionObject = (regions[accountRegionId])!{} ]
     [/#if]
 
@@ -335,19 +341,21 @@
 
     [#-- Required zones --]
     [#assign zones = [] ]
-    [#list segmentObject.Network.Zones.Order as zoneId]
-        [#if ((regions[getCLOSegmentRegion()].Zones[zoneId])!"")?has_content]
-            [#assign zone = regions[getCLOSegmentRegion()].Zones[zoneId] ]
-            [#assign zones +=
-                [
-                    addIdNameToObject(zone, zoneId) +
-                    {
-                        "Index" : zoneId?index
-                    }
+    [#if regionId?has_content]
+        [#list segmentObject.Network.Zones.Order as zoneId]
+            [#if ((regions[regionId].Zones[zoneId])!"")?has_content]
+                [#assign zone = regions[regionId].Zones[zoneId] ]
+                [#assign zones +=
+                    [
+                        addIdNameToObject(zone, zoneId) +
+                        {
+                            "Index" : zoneId?index
+                        }
+                    ]
                 ]
-            ]
-        [/#if]
-    [/#list]
+            [/#if]
+        [/#list]
+    [/#if]
 
     [#-- Country Groups --]
     [#assign countryGroups = getReferenceData(COUNTRYGROUP_REFERENCE_TYPE, true) ]

@@ -518,6 +518,10 @@ A stack is used to capture the history of input state changes
             [#local restartRequired  = false]
             [#local newState = {} ]
             [#list 1..10 as index]
+                [@debug
+                    message="Recalculating config pipeline"
+                    enabled=false
+                /]
                 [#-- Assume a restart won't be necessary --]
                 [#local newState =
                     internalGetConfigPipelineValue(
@@ -539,7 +543,7 @@ A stack is used to capture the history of input state changes
                             "Plugins" : newState[LOADER_CONFIG_INPUT_CLASS].Plugins,
                             "Providers" : newState[LOADER_CONFIG_INPUT_CLASS].Providers
                         }
-                        enabled=true
+                        enabled=false
                     /]
                     [#-- TODO(mfl) Distinguish between loading a plugin --]
                     [#-- and loading a provider                         --]
@@ -576,6 +580,9 @@ A stack is used to capture the history of input state changes
 
                     [#-- Resume input refresh monitoring --]
                     [@internalResumeInputStateRefresh /]
+                [#else]
+                    [#-- Terminate simulated while loop --]
+                    [#break]
                 [/#if]
             [/#list]
             [#if restartRequired]
@@ -1020,7 +1027,7 @@ as processing is typically centred around the initially provided filter values
         [#-- We want to detect any attempt to access the input state    --]
         [#-- from a seeder/transformer during refresh, so reset the     --]
         [#-- refresh required flag AFTER performing the refresh         --]
-        [#-- Seeders should rely on the state provided as an parameter  --]
+        [#-- Seeders should rely on the state provided as a parameter   --]
         [#assign inputStateRefreshRequired = false]
     [/#if]
 [/#macro]
