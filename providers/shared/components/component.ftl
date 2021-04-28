@@ -1315,7 +1315,7 @@
                         "Children" : [
                             {
                                 "Names" : "Provider",
-                                "Description" : "The default container compute provider - _engine uses he default provider of the engine",
+                                "Description" : "The default container compute provider - _engine uses the default provider of the engine",
                                 "Types"  : STRING_TYPE,
                                 "Values" : [ "_engine" ],
                                 "Default" : "_engine"
