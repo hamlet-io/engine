@@ -204,6 +204,14 @@
                                 "output_dir"
                             ]
                         )
+                },
+
+                [#-- Generation Contract Stages --]
+                "Contract" : {
+                    "Stage" : (generationContractStage!"")?has_content?then(
+                                    generationContractStage?eval_json,
+                                    {}
+                                )
                 }
             }
         )

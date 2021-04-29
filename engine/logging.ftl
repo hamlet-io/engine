@@ -31,6 +31,10 @@
 [#-- Log history during invocation of the engine --]
 [#assign logMessages = [] ]
 
+[#macro resetLogMessages ]
+    [#assign logMessages = []]
+[/#macro]
+
 [#-- Default value ensures any startup message before   --]
 [#-- any user log level setting is applied are captured --]
 [#assign currentLogLevel = INFORMATION_LOG_LEVEL ]
@@ -114,15 +118,14 @@
     [#return fatalLogLevel <= getLogLevelFromDescription(level) ]
 [/#function]
 
-[#-- Exit handling --]
-[#-- Uses the generated logs to determine the exit status of the wrapper --]
-[#macro setExitStatusFromLogs ]
+[#function logsAreFatal ]
     [#list logMessages as logMessage ]
         [#if fatalLogLevel <= getLogLevelFromDescription(logMessage.Severity) ]
-            [#local result = setExitStatus("110")]
+            [#return true ]
         [/#if]
     [/#list]
-[/#macro]
+    [#return false]
+[/#function]
 
 [#-- Log Writing --]
 [#-- These are our standard log content generators which use the output writer process to get logs to users --]
