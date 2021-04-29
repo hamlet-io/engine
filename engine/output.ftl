@@ -437,8 +437,14 @@
                                 getCLODeploymentUnit(),
                                 subset,
                                 getCommandLineOptions().Layers[ACCOUNT_LAYER_TYPE],
-                                getCLOSegmentRegion(),
-                                getCLOAccountRegion(),
+                                contentIfContent(
+                                    getCLOSegmentRegion(),
+                                    getProductLayerRegion()
+                                ),
+                                contentIfContent(
+                                    getCLOAccountRegion(),
+                                    getAccountLayerRegion()
+                                )
                                 alternative
                             )]
 
@@ -486,8 +492,8 @@
         "deploymentGroup"        : getCLODeploymentGroup(),
         "resourceGroup"          : getCLODeploymentResourceGroup(),
         "account"                : getCommandLineOptions().Layers[ACCOUNT_LAYER_TYPE],
-        "accountRegion"          : getCLOAccountRegion(),
-        "region"                 : getCLOSegmentRegion(),
+        "accountRegion"          : contentIfContent(getCLOAccountRegion(), getAccountLayerRegion()),
+        "region"                 : contentIfContent(getCLOSegmentRegion(),getProductLayerRegion()),
         "requestReference"       : getCLORequestReference(),
         "configurationReference" : getCLOConfigurationReference(),
         "deploymentMode"         : getDeploymentMode(),
