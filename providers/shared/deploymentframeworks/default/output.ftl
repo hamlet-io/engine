@@ -389,15 +389,25 @@
         /]
 
         [@contractStep
-            id=formatId(stageId, "generation")
+            id=formatId(stageId, "pregeneration")
             stageId=stageId
             taskType=PROCESS_TEMPLATE_PASS_TASK_TYPE
             priority=10
             parameters=
                 getGenerationContractStepParameters(
                     "pregeneration",
-                    "primary"
+                    ""
                 )
+        /]
+
+        [@contractStep
+            id=formatId(stageId, "pregeneration", "run")
+            stageId=stageId
+            taskType=RUN_PREGENERATION_SCRIPT_TASK_TYPE
+            priority=20
+            parameters={
+                "scriptFileName" : getOutputFileName("pregeneration", "")
+            }
         /]
 
         [#local subsets = removeValueFromArray(subsets, "pregeneration")]

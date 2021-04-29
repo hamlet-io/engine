@@ -478,6 +478,10 @@
         [#local deploymentUnitSubset = subset ]
     [/#if]
 
+    [#if alternative == "primary"]
+        [#local alternative = "" ]
+    [/#if]
+
     [#return {
         "entrance"               : getCLOEntranceType(),
         "flows"                  : getCLOFlows()?join(","),
