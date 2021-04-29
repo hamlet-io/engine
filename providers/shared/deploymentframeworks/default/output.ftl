@@ -403,7 +403,7 @@
         [@contractStep
             id=formatId(stageId, "pregeneration", "run")
             stageId=stageId
-            taskType=RUN_PREGENERATION_SCRIPT_TASK_TYPE
+            taskType=RUN_BASH_SCRIPT_TASK_TYPE
             priority=20
             parameters={
                 "scriptFileName" : getOutputFileName("pregeneration", "")
