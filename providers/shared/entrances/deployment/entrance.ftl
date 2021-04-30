@@ -9,7 +9,7 @@
             [@fatal
                 message="Undefined deployment mode used"
                 detail="Could not find definition of provided DeploymentMode"
-                context={ "DeploymentMode" : commandLineOptions.Deployment.Mode }
+                context={ "DeploymentMode" : getCLODeploymentMode() }
             /]
         [/#if]
     [/#if]
@@ -19,7 +19,7 @@
             [@fatal
                 message="Undefined deployment group used"
                 detail="Could not find definition of provided DeploymentGroup"
-                context={ "DeploymentGroup" : commandLineOptions.Deployment.Group.Name }
+                context={ "DeploymentGroup" : getCLODeploymentGroup() }
             /]
         [/#if]
     [/#if]

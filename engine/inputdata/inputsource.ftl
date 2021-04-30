@@ -214,7 +214,7 @@ state - a single output in the CMDB state
             enabled=false
         /]
 
-        [@internalScheduleInputStateRefresh /]
+        [@scheduleInputStateRefresh /]
     [/#list]
 [/#macro]
 
@@ -377,16 +377,6 @@ to filter the data returned
     [#return getInputState()[COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS]!{} ]
 [/#function]
 
-[#-- TODO(mfl) Remove once input processing complete --]
-[#function getMasterdata ]
-    [#return
-        getConfigPipelineClassCacheForStage(
-            getInputState(),
-            BLUEPRINT_CONFIG_INPUT_CLASS,
-            MASTERDATA_SHARED_INPUT_STAGE
-        )!{} ]
-[/#function]
-
 [#function getBlueprint ]
     [#return getInputState()[BLUEPRINT_CONFIG_INPUT_CLASS]!{} ]
 [/#function]
@@ -442,6 +432,14 @@ Get the value for a point within the state
 [#function getStatePointValue id deploymentUnit="" account="" region="" level="" ]
     [#return getStatePoint(id, deploymentUnit, account, region, level).Value ]
 [/#function]
+
+[#assign inputStateRefreshRequired = false]
+
+[#-- Force a refresh of the input state next time input is requested --]
+[#macro scheduleInputStateRefresh ]
+    [#assign inputStateRefreshRequired = true]
+[/#macro]
+
 [#--
 A stack is used to capture the history of input state changes
 --]
@@ -611,10 +609,6 @@ A stack is used to capture the history of input state changes
             [/#if]
         [/#if]
     [/#if]
-
-    [#-- TODO(mfl) remove once migration to new input source structure complete --]
-    [#-- refresh commandLineOptions on input state change                       --]
-    [@addCommandLineOption inputState.CommandLineOptions!{} /]
 
     [#-- End of critical section --]
     [#assign inputStateRefreshInProgress = false]
@@ -1004,12 +998,7 @@ as processing is typically centred around the initially provided filter values
     [#return inputState]
 [/#function]
 
-[#assign inputStateRefreshRequired = false]
 [#assign inputStateRefreshSuspended = false]
-
-[#macro internalScheduleInputStateRefresh ]
-    [#assign inputStateRefreshRequired = true]
-[/#macro]
 
 [#macro internalSuspendInputStateRefresh ]
     [#assign inputStateRefreshSuspended = true]
