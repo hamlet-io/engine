@@ -18,20 +18,6 @@
 [#assign entrancePasses = []]
 [#assign activePass = {} ]
 
-[#-- Input seeding for handling invoking different passes through the entrance --]
-[#assign ENTRANCE_PASS_INPUT_SEEDER = "entrancepass" ]
-
-[@registerInputSeeder
-    id=ENTRANCE_PASS_INPUT_SEEDER
-    description="Input handling for passes through the entrance"
-/]
-
-[@addSeederToConfigPipeline
-    stage=COMMANDLINEOPTIONS_SHARED_INPUT_STAGE
-    seeder=ENTRANCE_PASS_INPUT_SEEDER
-/]
-
-
 [#-- The entrance passes are defined during the generation contract process --]
 [#-- If a contract stage is passed to the engine then we treat those as the entrance passes required --]
 [#if ((getCommandLineOptions().Contract.Stage)!{})?has_content ]
@@ -53,6 +39,19 @@
         }
     ]]
 [/#if]
+
+[#-- Input seeding for handling invoking different passes through the entrance --]
+[#assign ENTRANCE_PASS_INPUT_SEEDER = "entrancepass" ]
+
+[@registerInputSeeder
+    id=ENTRANCE_PASS_INPUT_SEEDER
+    description="Input handling for passes through the entrance"
+/]
+
+[@addSeederToConfigPipeline
+    stage=COMMANDLINEOPTIONS_SHARED_INPUT_STAGE
+    seeder=ENTRANCE_PASS_INPUT_SEEDER
+/]
 
 [#list entrancePasses as entrancePass ]
 
