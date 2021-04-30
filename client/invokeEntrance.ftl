@@ -15,11 +15,22 @@
 [#-- Validate Command line options are right for the entrance --]
 [#assign validCommandLineOptions = getCompositeObject(entranceEntry.Configuration, getCommandLineOptions()) ]
 
+[#assign entrancePasses = []]
+[#assign activePass = {} ]
+
 [#-- Input seeding for handling invoking different passes through the entrance --]
 [#assign ENTRANCE_PASS_INPUT_SEEDER = "entrancepass" ]
 
-[#assign entrancePasses = []]
-[#assign activePass = {} ]
+[@registerInputSeeder
+    id=ENTRANCE_PASS_INPUT_SEEDER
+    description="Input handling for passes through the entrance"
+/]
+
+[@addSeederToConfigPipeline
+    stage=COMMANDLINEOPTIONS_SHARED_INPUT_STAGE
+    seeder=ENTRANCE_PASS_INPUT_SEEDER
+/]
+
 
 [#-- The entrance passes are defined during the generation contract process --]
 [#-- If a contract stage is passed to the engine then we treat those as the entrance passes required --]
@@ -48,15 +59,9 @@
     [#-- set this globally to allow input seeding to access the pass during input refresh --]
     [#assign activePass = entrancePass]
 
-    [@registerInputSeeder
-        id=ENTRANCE_PASS_INPUT_SEEDER
-        description="Input handling for passes through the entrance"
-    /]
-
-    [@addSeederToConfigPipeline
-        stage=COMMANDLINEOPTIONS_SHARED_INPUT_STAGE
-        seeder=ENTRANCE_PASS_INPUT_SEEDER
-    /]
+    [#-- The entrance pass seeder uses the active pass to modify state --]
+    [#-- we refresh it on each pass --]
+    [@scheduleInputStateRefresh /]
 
     [#-- Write a general message about this entrance invoke --]
     [@writeStarterMessage
