@@ -1080,6 +1080,31 @@
             ]
     },
     {
+        "Names" : "Permissions",
+        "Children" : [
+            {
+                "Names" : "Decrypt",
+                "Types" : BOOLEAN_TYPE,
+                "Default" : false
+            },
+            {
+                "Names" : "AsFile",
+                "Types" : BOOLEAN_TYPE,
+                "Default" : false
+            },
+            {
+                "Names" : "AppData",
+                "Types" : BOOLEAN_TYPE,
+                "Default" : false
+            },
+            {
+                "Names" : "AppPublic",
+                "Types" : BOOLEAN_TYPE,
+                "Default" : false
+            }
+        ]
+    },
+    {
         "Names" : "AutoScaling",
         "Children" : autoScalingChildConfiguration
     },
