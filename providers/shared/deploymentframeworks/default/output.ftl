@@ -481,7 +481,7 @@
 
             /]
 
-            [#-- If pregenration is not reqiured we can complete this pass as part of this entrance invoke --]
+            [#-- If pregeneration is not required we can complete this pass as part of this entrance invoke --]
             [#if ! pregeneration ]
                 [@addEntrancePass
                     contractStep=
