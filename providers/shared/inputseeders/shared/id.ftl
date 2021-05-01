@@ -139,21 +139,11 @@
                     "Framework" : {
                         "Name" : deploymentFramework!"default"
                     },
-                    "Output" : {
-                        "Type" : outputType!"",
-                        "Format" : outputFormat!"",
-                        "Prefix" : outputPrefix!""
-                    },
                     "Group" : {
                         "Name" : deploymentGroup!""
                     },
                     "Unit" : {
-                        "Name" : deploymentUnit!"",
-                        "Subset" : deploymentUnitSubset!"",
-                        "Alternative" : passAlternative!""
-                    },
-                    "ResourceGroup" : {
-                        "Name" : resourceGroup!""
+                        "Name" : deploymentUnit!""
                     },
                     "Mode" : deploymentMode!""
                 },
@@ -194,7 +184,6 @@
 
                 [#-- Ouput handling and writing --]
                 "Output" : {
-                    "Pass" : pass!"",
                     "FileName" : outputFileName!"",
                     "Directory" : outputDir!"",
                     "Writers" :

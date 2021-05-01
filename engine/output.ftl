@@ -11,6 +11,10 @@
 [#-- Useful if assembling in parts e.g. resources and outputs --]
 [#assign outputs = {} ]
 
+[#macro clearOutputs ]
+    [#assign outputs = {}]
+[/#macro]
+
 [#-- An output has one or more named sections to which content is added.   --]
 [#-- The serialiser macro converts the content of each section into a      --]
 [#-- format suitable for the format of the output.                         --]

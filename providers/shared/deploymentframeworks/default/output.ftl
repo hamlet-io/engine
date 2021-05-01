@@ -298,6 +298,7 @@
                                                     "Id" : step.Id,
                                                     "Type" : step.Type,
                                                     "Priority" : step.Priority,
+                                                    "Status" : step.Status,
                                                     "Mandatory" : step.Mandatory,
                                                     "Parameters"  : step.Parameters
                                                 }
@@ -353,21 +354,40 @@
     /]
 [/#macro]
 
-[#macro contractStep id stageId taskType parameters priority=100 mandatory=true  ]
+[#macro contractStep id stageId taskType parameters priority=100 mandatory=true status="available"  ]
     [@mergeWithJsonOutput
         name="steps"
         content={
             stageId : {
-                id : {
-                    "Id" : id,
-                    "Mandatory" : mandatory,
-                    "Priority" : priority
-                } +
-                getTask(taskType, parameters)
+                id : formatContractStep(id, taskType, parameters, priority, mandatory, status )
             }
         }
     /]
 [/#macro]
+
+[#function formatContractStep id taskType parameters priority=100 mandatory=true status="available" ]
+
+    [#local supportedStatuses = [ "available", "completed", "failed" ]]
+    [#if ! (supportedStatuses?seq_contains(status)) ]
+        [@fatal
+            message="Invalid contract step status"
+            detail={
+                "ProvidedStatus" : status,
+                "SupportedStatuses" : supportedStatus
+            }
+        /]
+    [/#if]
+
+    [#return
+        {
+            "Id" : id,
+            "Mandatory" : mandatory,
+            "Priority" : priority,
+            "Status" : status
+        } +
+        getTask(taskType, parameters)
+    ]
+[/#function]
 
 [#-- GenerationContract --]
 
@@ -375,12 +395,16 @@
 [#macro addDefaultGenerationContract subsets=[] alternatives=["primary"] ]
 
     [#local subsets = asArray( subsets ) ]
-
     [#local alternatives = asArray(alternatives) ]
+
+    [#local pregeneration = false ]
 
     [#-- create the contract stage for the pregeneration step --]
     [#-- This will include an extra step for running the pregeneration task --]
     [#if subsets?seq_contains("pregeneration") ]
+
+        [#local pregeneration = true ]
+
         [#local stageId = "pregeneration" ]
         [@contractStage
             id=stageId
@@ -388,15 +412,30 @@
             priority=10
         /]
 
+        [#local pregenerationPassId = formatId(stageId, "pregeneration")]
+        [#local pregenerationPassParameters = getGenerationContractStepParameters(
+                                                    "pregeneration",
+                                                    ""
+                                                )]
         [@contractStep
-            id=formatId(stageId, "pregeneration")
+            id=pregenerationPassId
             stageId=stageId
             taskType=PROCESS_TEMPLATE_PASS_TASK_TYPE
             priority=10
-            parameters=
-                getGenerationContractStepParameters(
-                    "pregeneration",
-                    ""
+            parameters=pregenerationPassParameters
+            status="completed"
+
+        /]
+
+        [@addEntrancePass
+            contractStep=
+                formatContractStep(
+                    pregenerationPassId,
+                    PROCESS_TEMPLATE_PASS_TASK_TYPE
+                    pregenerationPassParameters,
+                    10,
+                    true,
+                    "completed"
                 )
         /]
 
@@ -422,16 +461,40 @@
         /]
 
         [#list subsets as subset ]
+
+            [#local stepId = formatId(stageId, subset)]
+            [#local stepParameters =
+                        getGenerationContractStepParameters(
+                            subset,
+                            alternative
+                        )]
+
             [@contractStep
                 id=formatId(stageId, subset)
                 stageId=stageId
                 taskType=PROCESS_TEMPLATE_PASS_TASK_TYPE
-                parameters=
-                    getGenerationContractStepParameters(
-                        subset,
-                        alternative
-                    )
+                parameters=stepParameters
+                status=(pregeneration)?then(
+                            "available",
+                            "completed"
+                        )
+
             /]
+
+            [#-- If pregenration is not reqiured we can complete this pass as part of this entrance invoke --]
+            [#if ! pregeneration ]
+                [@addEntrancePass
+                    contractStep=
+                        formatContractStep(
+                            stepId,
+                            PROCESS_TEMPLATE_PASS_TASK_TYPE
+                            stepParameters,
+                            100,
+                            true,
+                            "completed"
+                        )
+                /]
+            [/#if]
         [/#list]
     [/#list]
 
