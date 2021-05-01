@@ -18,27 +18,8 @@
 [#assign entrancePasses = []]
 [#assign activePass = {} ]
 
-[#-- The entrance passes are defined during the generation contract process --]
-[#-- If a contract stage is passed to the engine then we treat those as the entrance passes required --]
-[#if ((getCommandLineOptions().Contract.Stage)!{})?has_content ]
-    [#assign entrancePasses = (getCommandLineOptions().Contract.Stage.Steps)?filter( x -> x.Type == "process_template_pass") ]
-[#else]
-
-    [#-- Configure the pass as a generation contract --]
-    [#assign entrancePasses = [
-        {
-            "Type" : "process_template_pass",
-            "Parameters" : {
-                "outputFormat" : "",
-                "outputType" : "contract",
-                "pass" : "generationcontract",
-                "deploymentUnitSubset" : "generationcontract",
-                "passAlternative" : "",
-                "outputFileName" : getCommandLineOptions().Output.FileName
-            }
-        }
-    ]]
-[/#if]
+[#assign ENTRANCE_PASS_STATUS_COMPLETED = "completed" ]
+[#assign ENTRANCE_PASS_STATUS_FAILED = "failed" ]
 
 [#-- Input seeding for handling invoking different passes through the entrance --]
 [#assign ENTRANCE_PASS_INPUT_SEEDER = "entrancepass" ]
@@ -53,7 +34,60 @@
     seeder=ENTRANCE_PASS_INPUT_SEEDER
 /]
 
+[#-- The entrance passes are defined during the generation contract process --]
+[#-- If a contract stage is passed to the engine then we treat those as the entrance passes required --]
+[#if ! ((getCommandLineOptions().Contract.Stage)!{})?has_content ]
+
+    [#-- Configure the pass as a generation contract --]
+    [#assign generationContractPass =
+        {
+            "Type" : "process_template_pass",
+            "Parameters" : {
+                "outputFormat" : "",
+                "outputType" : "contract",
+                "pass" : "generationcontract",
+                "deploymentUnitSubset" : "generationcontract",
+                "passAlternative" : "",
+                "outputFileName" : getCommandLineOptions().Output.FileName
+            }
+        }
+    ]
+
+    [#assign entranceStatus = invokeEntrancePass(generationContractPass)]
+    [#if entranceStatus == ENTRANCE_PASS_STATUS_FAILED ]
+        [#assign exitResult = setExitStatus("110")]
+    [/#if]
+
+[#else]
+
+    [#assign stageEntrancePasses = (getCommandLineOptions().Contract.Stage.Steps)?filter( x -> x.Type == "process_template_pass" && x.Status == "available" ) ]
+    [#list stageEntrancePasses as stageEntrancePass ]
+        [@addEntrancePass
+            contractStep=stageEntrancePass
+        /]
+    [/#list]
+
+[/#if]
+
 [#list entrancePasses as entrancePass ]
+
+    [#assign entranceStatus = invokeEntrancePass(entrancePass)]
+
+    [#if entranceStatus == "failed" ]
+        [#assign exitResult = setExitStatus("110")]
+        [#break]
+    [/#if]
+[/#list]
+
+
+[#-- ### Utility Functions #### --]
+[#macro addEntrancePass contractStep ]
+    [#if ! (entrancePasses?map(x -> x.Id )?seq_contains(contractStep.Id)) ]
+        [#assign entrancePasses = combineEntities(entrancePasses, asArray(contractStep), APPEND_COMBINE_BEHAVIOUR) ]]
+    [/#if]
+[/#macro]
+
+[#function invokeEntrancePass entrancePass ]
 
     [#-- set this globally to allow input seeding to access the pass during input refresh --]
     [#assign activePass = entrancePass]
@@ -80,17 +114,18 @@
 
     [#-- Find the logs for any that match the stop level or above --]
     [#-- Set the exit code if they are found --]
+    [#local status=ENTRANCE_PASS_STATUS_COMPLETED ]
+
     [#if logsAreFatal() ]
-        [#assign exitResult = setExitStatus("110")]
-        [#break]
+        [#local status=ENTRANCE_PASS_STATUS_FAILED ]
     [/#if]
 
-    [#-- Clear logs for the next pass --]
+    [#-- Clear outputs for next pass --]
     [@resetLogMessages /]
-[/#list]
+    [@clearOutputs /]
 
-
-[#-- ### Internal Functions #### --]
+    [#return status ]
+[/#function]
 
 [#-- Seeds config based on the entrance pass  --]
 [#function entrancepass_configseeder_commandlineoptions filter state]
@@ -102,16 +137,16 @@
             {
                 "Deployment" : {
                     "Output" : {
-                        "Type" : activePass.Parameters.outputType,
-                        "Format" : activePass.Parameters.outputFormat
+                        "Type" : (activePass.Parameters.outputType)!"",
+                        "Format" : (activePass.Parameters.outputFormat)!""
                     },
                     "Unit" : {
-                        "Subset" : activePass.Parameters.deploymentUnitSubset,
-                        "Alternative" : activePass.Parameters.passAlternative
+                        "Subset" : (activePass.Parameters.deploymentUnitSubset)!"",
+                        "Alternative" : (activePass.Parameters.passAlternative)!""
                     }
                 },
                 "Output" : {
-                    "Pass" : activePass.Parameters.pass
+                    "Pass" : (activePass.Parameters.pass)!""
                 } +
                 attributeIfContent(
                     "FileName",
