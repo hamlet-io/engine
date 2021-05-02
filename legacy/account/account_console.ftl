@@ -3,7 +3,11 @@
     [#if deploymentSubsetRequired("generationcontract", false)]
         [@addDefaultGenerationContract
             subsets=[ "prologue", "template" ]
-            alternatives=["primary", "replace1", "replace2"]
+            alternatives=[
+                "primary",
+                { "subset" : "template", "alternative" : "replace1" },
+                { "subset" : "template", "alternative" : "replace2" }
+            ]
         /]
     [/#if]
 

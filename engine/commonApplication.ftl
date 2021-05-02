@@ -170,6 +170,16 @@
                                 ""
     )]
 
+    [#local asFileFormat = environmentSettings.FileFormat ]
+    [#switch asFileFormat ]
+        [#case "json" ]
+            [#local asFileSuffix = ".json"]
+            [#break]
+        [#case "yaml"]
+            [#local asFileSuffix = ".yaml"]
+            [#break]
+    [/#switch]
+
     [#local runId = getCLORunId()]
     [#-- Link attributes can be overridden by build and product settings, and --]
     [#-- anything can be overridden if explicitly defined via fragments --]
@@ -185,7 +195,7 @@
                 ) +
                 valueIfTrue(
                     {
-                        "SETTINGS_FILE" : ["s3:/", operationsBucket, getSettingsFilePrefix(occurrence), "config/config_" + runId + ".json"]?join("/"),
+                        "SETTINGS_FILE" : ["s3:/", operationsBucket, getSettingsFilePrefix(occurrence), "config/config_" + runId + asFileSuffix ]?join("/"),
                         "RUN_ID" : runId
                     },
                     ( asFile && hasBaselineLinks),
