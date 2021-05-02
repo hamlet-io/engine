@@ -50,8 +50,8 @@
     [#return (getCommandLineOptions().Deployment.Output.Format)!"" ]
 [/#function]
 
-[#function getCLODeploymentOutputPrefix ]
-    [#return (getCommandLineOptions().Deployment.Output.Prefix)!"" ]
+[#function getCLODeploymentOutputConversion ]
+    [#return (getCommandLineOptions().Deployment.Output.Conversion)!"" ]
 [/#function]
 
 [#function getCLODeploymentUnit ]
