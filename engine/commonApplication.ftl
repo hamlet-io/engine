@@ -170,7 +170,7 @@
                                 ""
     )]
 
-    [#local asFileFormat = environmentSettings.FileFormat ]
+    [#local asFileFormat = (environmentSettings.FileFormat)!"json" ]
     [#switch asFileFormat ]
         [#case "json" ]
             [#local asFileSuffix = ".json"]
