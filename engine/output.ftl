@@ -554,7 +554,7 @@
         "outputConversion"       : outputMappings["OutputConversion"],
         "pass"                   : subset,
         "passAlternative"        : alternative,
-        "deploymentUnitSubset"   : outputMappings["Subset"],
+        "deploymentUnitSubset"   : deploymentUnitSubset,
         "outputFileName"         : getOutputFileName(subset, alternative, converter)
     }]
 [/#function]
