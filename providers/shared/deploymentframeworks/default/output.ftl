@@ -482,7 +482,7 @@
             [/#list]
         [/#if]
 
-        [#if alternative?is_collection ]
+        [#if alternative?is_hash ]
             [#if subsets?seq_contains(alternative.subset)]
                 [#local subsetAlternatives += [{ "subset" : alternative.subset, "alternative" : alternative.alternative}] ]
             [/#if]
