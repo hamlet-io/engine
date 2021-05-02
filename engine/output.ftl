@@ -367,6 +367,7 @@
 
 [#-- Generation Contracts --]
 [#assign generationcontractStepOutputMappings = {} ]
+[#assign generationcontractStepOutputMappingConverters = {}]
 
 [#macro addGenerationContractStepOutputMapping provider subset outputType outputFormat outputSuffix]
     [#assign generationcontractStepOutputMappings = mergeObjects(
@@ -377,19 +378,59 @@
                             "Subset" : subset,
                             "OutputType" : outputType,
                             "OutputFormat" : outputFormat,
-                            "OutputSuffix" : outputSuffix
+                            "OutputSuffix" : outputSuffix,
+                            "OutputConversion" : "",
+                            "Converters" : {}
                         }
                     }
                 }
         )]
 [/#macro]
 
-[#function getGenerationContractStepOutputMapping providers subset ]
-    [#return (getGenerationContractStepOutputMappings(providers)?filter( x -> x.Subset == subset)[0] )!{} ]
+[#macro addGenerationContractStepOutputMappingConverter provider id subset outputSuffix outputConversion ]
+    [#assign generationcontractStepOutputMappings = mergeObjects(
+            generationcontractStepOutputMappings,
+            {
+                provider : {
+                    subset : {
+                        "Converters" : {
+                            id : {
+                                "OutputConversion" : outputConversion,
+                                "OutputSuffix" : outputSuffix
+                            }
+                        }
+                    }
+                }
+            }
+    )]
+[/#macro]
+
+[#function getGenerationContractStepOutputMapping providers subset converter="" ]
+    [#local mapping = (getGenerationContractStepOutputMappings(providers)?filter( x -> x.Subset == subset)[0] )!{} ]
+    [#if converter?has_content ]
+        [#local mappingConverter = (mapping["Converters"][converter])!{} ]
+        [#if mappingConverter?has_content ]
+            [#local mapping = mergeObjects(mapping, mappingConverter)]
+        [/#if]
+    [/#if]
+    [#return mapping]
 [/#function]
 
 [#function getGenerationContractStepOutputMappingFromSuffix providers suffix ]
-    [#return (getGenerationContractStepOutputMappings(providers)?filter( x -> x.OutputSuffix == suffix)[0] )!{} ]
+    [#local mappings = getGenerationContractStepOutputMappings(providers) ]
+    [#list mappings as mapping ]
+        [#if mapping.OutputSuffix == suffix ]
+            [#return mapping]
+        [/#if]
+        [#if ((mapping.Converters)!{})?has_content ]
+            [#list mapping.Converters as converter ]
+                [#if converter.OutputSuffix == suffix ]
+                    [#return mergeObjects(mapping, converter)]
+                [/#if]
+            [/#list]
+        [/#if]
+    [/#list]
+    [#return {} ]
 [/#function]
 
 [#function getGenerationContractStepOutputMappings providers ]
@@ -433,7 +474,7 @@
     [/#if]
 [/#function]
 
-[#function getOutputFileName subset alternative ]
+[#function getOutputFileName subset alternative converter ]
 
     [#local outputPrefix = getOutputFilePrefix(
                                 getCLOEntranceType(),
@@ -458,7 +499,8 @@
                                     [ SHARED_PROVIDER],
                                     UNIQUE_COMBINE_BEHAVIOUR
                                 ),
-                                subset
+                                subset,
+                                converter
                             )]
 
     [#local outputSuffix = (outputMappings["OutputSuffix"])!"" ]
@@ -466,14 +508,34 @@
     [#return formatName(outputPrefix, outputSuffix)]
 [/#function]
 
-[#function getGenerationContractStepParameters subset alternative ]
+[#function getGenerationContractProperties ]
+    [#return
+        {
+            "entrance"               : getCLOEntranceType(),
+            "flows"                  : getCLOFlows()?join(","),
+            "providers"              : (getLoaderProviders()?join(","))!SHARED_PROVIDER,
+            "deploymentFramework"    : getCLODeploymentFramework(),
+            "deploymentUnit"         : getCLODeploymentUnit(),
+            "deploymentGroup"        : getCLODeploymentGroup(),
+            "account"                : getCommandLineOptions().Layers[ACCOUNT_LAYER_TYPE],
+            "accountRegion"          : contentIfContent(getCLOAccountRegion(), getAccountLayerRegion()),
+            "region"                 : contentIfContent(getCLOSegmentRegion(),getProductLayerRegion()),
+            "requestReference"       : getCLORequestReference(),
+            "configurationReference" : getCLOConfigurationReference(),
+            "deploymentMode"         : getDeploymentMode()
+        }
+    ]
+[/#function]
+
+[#function getGenerationContractStepParameters subset alternative converter ]
     [#local outputMappings = getGenerationContractStepOutputMapping(
                                 combineEntities(
                                     getLoaderProviders(),
                                     [ SHARED_PROVIDER],
                                     UNIQUE_COMBINE_BEHAVIOUR
                                 ),
-                                subset
+                                subset,
+                                converter
                             )]
 
     [#-- Handle Deployment Subset for generation --]
@@ -487,25 +549,13 @@
     [/#if]
 
     [#return {
-        "entrance"               : getCLOEntranceType(),
-        "flows"                  : getCLOFlows()?join(","),
-        "providers"              : (getLoaderProviders()?join(","))!SHARED_PROVIDER,
-        "deploymentFramework"    : getCLODeploymentFramework(),
         "outputType"             : outputMappings["OutputType"],
         "outputFormat"           : outputMappings["OutputFormat"],
+        "outputConversion"       : outputMappings["OutputConversion"],
         "pass"                   : subset,
         "passAlternative"        : alternative,
-        "deploymentUnit"         : getCLODeploymentUnit(),
-        "deploymentUnitSubset"   : deploymentUnitSubset,
-        "deploymentGroup"        : getCLODeploymentGroup(),
-        "resourceGroup"          : getCLODeploymentResourceGroup(),
-        "account"                : getCommandLineOptions().Layers[ACCOUNT_LAYER_TYPE],
-        "accountRegion"          : contentIfContent(getCLOAccountRegion(), getAccountLayerRegion()),
-        "region"                 : contentIfContent(getCLOSegmentRegion(),getProductLayerRegion()),
-        "requestReference"       : getCLORequestReference(),
-        "configurationReference" : getCLOConfigurationReference(),
-        "deploymentMode"         : getDeploymentMode(),
-        "outputFileName"         : getOutputFileName(subset, alternative)
+        "deploymentUnitSubset"   : outputMappings["Subset"],
+        "outputFileName"         : getOutputFileName(subset, alternative, converter)
     }]
 [/#function]
 

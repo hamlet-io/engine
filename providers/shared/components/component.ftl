@@ -407,6 +407,13 @@
             "Default" : false
         },
         {
+            "Names" : "FileFormat",
+            "Types" : STRING_TYPE,
+            "Description" : "The format of the file when using AsFile",
+            "Values" : [ "json", "yaml" ],
+            "Default" : "json"
+        },
+        {
             "Names" : "Json",
             "Children" : [
                 {

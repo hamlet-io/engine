@@ -43,12 +43,13 @@
         {
             "Type" : "process_template_pass",
             "Parameters" : {
-                "outputFormat" : "",
                 "outputType" : "contract",
+                "outputFormat" : "",
+                "outputConversion" : "",
+                "outputFileName" : getCommandLineOptions().Output.FileName,
                 "pass" : "generationcontract",
                 "deploymentUnitSubset" : "generationcontract",
-                "passAlternative" : "",
-                "outputFileName" : getCommandLineOptions().Output.FileName
+                "passAlternative" : ""
             }
         }
     ]
@@ -138,7 +139,8 @@
                 "Deployment" : {
                     "Output" : {
                         "Type" : (activePass.Parameters.outputType)!"",
-                        "Format" : (activePass.Parameters.outputFormat)!""
+                        "Format" : (activePass.Parameters.outputFormat)!"",
+                        "Conversion" : (activePass.Parameters.outputConversion)!""
                     },
                     "Unit" : {
                         "Subset" : (activePass.Parameters.deploymentUnitSubset)!"",

@@ -113,8 +113,14 @@
 [#-- JSON_DEFAULT_OUTPUT_TYPE --]
 
 [#function default_output_json level include]
+
+    [#local outputFormat = "json"]
+    [#if getCLODeploymentOutputConversion() == "yaml"]
+        [#local outputFormat = "yaml"]
+    [/#if]
+
     [@setOutputProperties
-        properties={ "type:file" : { "format" : "json" }}
+        properties={ "type:file" : { "format" : outputFormat }}
     /]
 
     [@initialiseJsonOutput
@@ -250,6 +256,7 @@
     [#if ! getOutputContent("stages")?has_content ]
         [@initialiseJsonOutput name="stages" /]
         [@initialiseJsonOutput name="steps" /]
+        [@initialiseJsonOutput name="properties" /]
     [/#if]
 [/#macro]
 
@@ -281,6 +288,7 @@
 
     [#local outputStages = getOutputContent("stages")]
     [#local outputSteps = getOutputContent("steps")]
+    [#local outputProperties = getOutputContent("properties")]
 
     [#local contractStages = []]
 
@@ -333,12 +341,20 @@
                     "ConfigurationReference" : getCLOConfigurationReference(),
                     "Providers" : getPluginMetadata()
                 },
+                "Properties" : outputProperties,
                 "Stages" : contractStages
             }
         ]
     [/#if]
     [#return {}]
 [/#function]
+
+[#macro contractProperties properties ]
+    [@mergeWithJsonOutput
+        name="properties"
+        content=properties
+    /]
+[/#macro]
 
 [#macro contractStage id executionMode priority=100 mandatory=true ]
     [@mergeWithJsonOutput
@@ -392,12 +408,17 @@
 [#-- GenerationContract --]
 
 [#-- Generation Contracts create a contract document which outlines what documents need to be generated --]
-[#macro addDefaultGenerationContract subsets=[] alternatives=["primary"] ]
+[#macro addDefaultGenerationContract subsets=[] alternatives=["primary"] converters=[] ]
 
     [#local subsets = asArray( subsets ) ]
     [#local alternatives = asArray(alternatives) ]
+    [#local converters = asArray(converters) ]
 
     [#local pregeneration = false ]
+
+    [@contractProperties
+        properties=getGenerationContractProperties()
+    /]
 
     [#-- create the contract stage for the pregeneration step --]
     [#-- This will include an extra step for running the pregeneration task --]
@@ -415,6 +436,7 @@
         [#local pregenerationPassId = formatId(stageId, "pregeneration")]
         [#local pregenerationPassParameters = getGenerationContractStepParameters(
                                                     "pregeneration",
+                                                    "",
                                                     ""
                                                 )]
         [@contractStep
@@ -445,57 +467,84 @@
             taskType=RUN_BASH_SCRIPT_TASK_TYPE
             priority=20
             parameters={
-                "scriptFileName" : getOutputFileName("pregeneration", "")
+                "scriptFileName" : getOutputFileName("pregeneration", "", "")
             }
         /]
 
         [#local subsets = removeValueFromArray(subsets, "pregeneration")]
     [/#if]
 
-    [#-- create the contract stages --]
+    [#local subsetAlternatives = [] ]
     [#list alternatives as alternative ]
-        [#local stageId = formatId("generation", alternative) ]
+        [#if alternative?is_string ]
+            [#list subsets as subset ]
+                [#local subsetAlternatives += [{ "subset" : subset, "alternative" : alternative}] ]
+            [/#list]
+        [/#if]
+
+        [#if alternative?is_collection ]
+            [#if subsets?seq_contains(alternative.subset)]
+                [#local subsetAlternatives += [{ "subset" : alternative.subset, "alternative" : alternative.alternative}] ]
+            [/#if]
+        [/#if]
+    [/#list]
+
+    [#-- create the contract stages --]
+    [#local subsetStageId = formatId("generation", "subsets") ]
+    [#if subsetAlternatives?has_content ]
         [@contractStage
-            id=stageId
+            id=subsetStageId
             executionMode=CONTRACT_EXECUTION_MODE_PARALLEL
         /]
+    [/#if]
 
-        [#list subsets as subset ]
+    [#list subsetAlternatives as subsetAlternative ]
+        [#local subset = subsetAlternative.subset]
+        [#local alternative = subsetAlternative.alternative ]
 
-            [#local stepId = formatId(stageId, subset)]
-            [#local stepParameters =
-                        getGenerationContractStepParameters(
-                            subset,
-                            alternative
-                        )]
+        [#local converter = ""]
+        [#if converters?has_content && converters?is_sequence ]
+            [#list converters as subsetConverter ]
+                [#if subset == subsetConverter.subset ]
+                    [#local converter = subsetConverter.converter]
+                [/#if]
+            [/#list]
+        [/#if]
 
-            [@contractStep
-                id=formatId(stageId, subset)
-                stageId=stageId
-                taskType=PROCESS_TEMPLATE_PASS_TASK_TYPE
-                parameters=stepParameters
-                status=(pregeneration)?then(
-                            "available",
-                            "completed"
-                        )
+        [#local stepId = formatId(subsetStageId, alternative, subset)]
+        [#local stepParameters =
+                    getGenerationContractStepParameters(
+                        subset,
+                        alternative,
+                        converter
+                    )]
 
+        [@contractStep
+            id=stepId
+            stageId=subsetStageId
+            taskType=PROCESS_TEMPLATE_PASS_TASK_TYPE
+            parameters=stepParameters
+            status=(pregeneration)?then(
+                        "available",
+                        "completed"
+                    )
+
+        /]
+
+        [#-- If pregeneration is not required we can complete this pass as part of this entrance invoke --]
+        [#if ! pregeneration ]
+            [@addEntrancePass
+                contractStep=
+                    formatContractStep(
+                        stepId,
+                        PROCESS_TEMPLATE_PASS_TASK_TYPE
+                        stepParameters,
+                        100,
+                        true,
+                        "completed"
+                    )
             /]
-
-            [#-- If pregeneration is not required we can complete this pass as part of this entrance invoke --]
-            [#if ! pregeneration ]
-                [@addEntrancePass
-                    contractStep=
-                        formatContractStep(
-                            stepId,
-                            PROCESS_TEMPLATE_PASS_TASK_TYPE
-                            stepParameters,
-                            100,
-                            true,
-                            "completed"
-                        )
-                /]
-            [/#if]
-        [/#list]
+        [/#if]
     [/#list]
 
     [#-- Cleanup stages --]
@@ -512,7 +561,7 @@
         taskType=RENAME_FILE_TASK_TYPE
         parameters={
             "currentFileName" : getCommandLineOptions().Output.FileName,
-            "newFileName" : getOutputFileName("generationcontract", "primary")
+            "newFileName" : getOutputFileName("generationcontract", "primary", "")
         }
     /]
 
@@ -638,6 +687,14 @@
     outputType=JSON_DEFAULT_OUTPUT_TYPE
     outputFormat=""
     outputSuffix="config.json"
+/]
+
+[@addGenerationContractStepOutputMappingConverter
+    provider=SHARED_PROVIDER
+    subset="config"
+    id="config_yaml"
+    outputSuffix="config.yaml"
+    outputConversion="yaml"
 /]
 
 [@addGenerationContractStepOutputMapping
