@@ -45,7 +45,7 @@
                 [#assign ignoreDeploymentUnitSubsetInOutputs = false]
 
                 [#-- We need to initialise the outputs here since we are adding to it out side of the component flow --]
-                [@addDefaultGenerationContract subsets=contractSubsets /]
+                [@addDefaultGenerationContract subsets=contractSubsets templateSubset=getCLODeploymentUnit() /]
             [/#if]
         [/#if]
     [/#list]
@@ -103,4 +103,3 @@
     [#return state]
 
 [/#function]
-
