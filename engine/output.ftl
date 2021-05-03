@@ -527,7 +527,7 @@
     ]
 [/#function]
 
-[#function getGenerationContractStepParameters subset alternative converter ]
+[#function getGenerationContractStepParameters subset alternative converter templateSubset=""]
     [#local outputMappings = getGenerationContractStepOutputMapping(
                                 combineEntities(
                                     getLoaderProviders(),
@@ -539,9 +539,9 @@
                             )]
 
     [#-- Handle Deployment Subset for generation --]
-    [#local deploymentUnitSubset = "" ]
-    [#if subset != "template"]
-        [#local deploymentUnitSubset = subset ]
+    [#local deploymentUnitSubset = subset ]
+    [#if subset == "template"  ]
+        [#local deploymentUnitSubset = templateSubset ]
     [/#if]
 
     [#if alternative == "primary"]

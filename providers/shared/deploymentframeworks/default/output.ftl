@@ -408,7 +408,7 @@
 [#-- GenerationContract --]
 
 [#-- Generation Contracts create a contract document which outlines what documents need to be generated --]
-[#macro addDefaultGenerationContract subsets=[] alternatives=["primary"] converters=[] ]
+[#macro addDefaultGenerationContract subsets=[] alternatives=["primary"] converters=[] templateSubset="" ]
 
     [#local subsets = asArray( subsets ) ]
     [#local alternatives = asArray(alternatives) ]
@@ -516,7 +516,8 @@
                     getGenerationContractStepParameters(
                         subset,
                         alternative,
-                        converter
+                        converter,
+                        templateSubset
                     )]
 
         [@contractStep
