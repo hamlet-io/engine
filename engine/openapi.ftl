@@ -915,16 +915,34 @@ is useful to see what the global settings are from a debug perspective
     [#switch configuration.Type]
         [#case "docker"]
         [#case "http_proxy"]
-            [#local result +=
-                {
-                    "x-amazon-apigateway-integration" : {
-                        "type": "http_proxy",
-                        "uri" : "https://$\{stageVariables." + configuration.Variable + "}",
-                        "passthroughBehavior" : "when_no_match",
-                        "httpMethod" : verb
+            [#if ((context.PrivateHTTPEndpoints)!{})?values?filter( x -> x.StageVariable == configuration.Variable )?has_content ]
+
+                [#local privateHTTPEndpoint = context.PrivateHTTPEndpoints?values?filter( x -> x.StageVariable == configuration.Variable)[0] ]
+                [#local result +=
+                    {
+                        "x-amazon-apigateway-integration" : {
+                            "type" : "http_proxy",
+                            "uri" : privateHTTPEndpoint["uri"],
+                            "connectionType" : "VPC_LINK",
+                            "connectionId" : privateHTTPEndpoint["connectionId"],
+                            "passthroughBehavior" : "when_no_match",
+                            "httpMethod" : verb
+                        }
                     }
-                }
-            ]
+                ]
+            [#else]
+
+                [#local result +=
+                    {
+                        "x-amazon-apigateway-integration" : {
+                            "type": "http_proxy",
+                            "uri" : "https://$\{stageVariables." + configuration.Variable + "}",
+                            "passthroughBehavior" : "when_no_match",
+                            "httpMethod" : verb
+                        }
+                    }
+                ]
+            [/#if]
             [#break]
 
         [#case "lambda"]

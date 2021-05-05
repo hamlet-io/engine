@@ -108,6 +108,13 @@
                 )]
 [/#macro]
 
+[#-- API Specific Macros --]
+[#macro OpenAPIDefinition content={} ]
+    [#assign _context += {
+        "OpenAPIDefinition" : mergeObjects((_context.OpenAPIDefinition)!{}, content )
+    }]
+[/#macro]
+
 [#-- Lambda Specific Macros --]
 [#macro lambdaAttributes
         imageBucket=""
