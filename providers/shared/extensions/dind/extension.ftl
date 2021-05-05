@@ -25,16 +25,15 @@
     [@DefaultEnvironmentVariables enabled=false /]
     [@DefaultBaselineVariables enabled=false /]
 
-    [#assign settings = _context.DefaultEnvironment]
+    [#local defaultEnv = _context.DefaultEnvironment]
 
     [@Hostname hostname=(_context.Name)?replace("_", "") /]
 
-    [#local dockerStageDir = settings["DOCKER_STAGE_DIR"]!"/home/jenkins"  ]
-    [#local dockerStageSize = settings["DOCKER_STAGE_SIZE_GB"]!"20"        ]
-    [#local dockerStagePersist = (settings["DOCKER_STAGE_PERSIST"]?boolean)!false ]
-    [#local dockerLibSize = settings["DOCKER_LIB_VOLUME_SIZE"]!"20"         ]
-    [#local dindTLSVerify = settings["DIND_DOCKER_TLS_VERIFY"]!"true"      ]
-
+    [#local dockerStageDir = defaultEnv["DOCKER_STAGE_DIR"]!"/home/jenkins"  ]
+    [#local dockerStageSize = defaultEnv["DOCKER_STAGE_SIZE_GB"]!"20"        ]
+    [#local dockerStagePersist = (defaultEnv["DOCKER_STAGE_PERSIST"]?boolean)!false ]
+    [#local dockerLibSize = defaultEnv["DOCKER_LIB_VOLUME_SIZE"]!"20"         ]
+    [#local dindTLSVerify = defaultEnv["DIND_DOCKER_TLS_VERIFY"]!"true"      ]
 
     [@Attributes
         image="docker"
