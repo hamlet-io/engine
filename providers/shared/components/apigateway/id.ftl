@@ -153,6 +153,58 @@ object.
                 "Children" : certificateChildConfiguration
             },
             {
+                "Names" : "MutualTLS",
+                "Description" : "Configuration for enabling mutualTLS authentication for clients",
+                "Children" : [
+                    {
+                        "Names" : "Enabled",
+                        "Types" : BOOLEAN_TYPE,
+                        "Default" : false
+                    },
+                    {
+                        "Names" : "CertificateAuthority",
+                        "Description" : "The configuration for the certificate authority used to validate client certificates",
+                        "Children" : [
+                            {
+                                "Names" : "Source",
+                                "Description" : "The way to source the certificate authority details",
+                                "Value" : [ "link", "filesetting" ],
+                                "Default" : "filesetting"
+                            },
+                            {
+                                "Names" : "Source:link",
+                                "Description" : "Use a component to source the RootCA Value",
+                                "Children" : [
+                                    {
+                                        "Names" : "Link",
+                                        "Description" : "A link to a component that has tbe PEM file",
+                                        "AttributeSet" : LINK_ATTRIBUTESET_TYPE
+                                    },
+                                    {
+                                        "Names" : "RootCACertAttribute",
+                                        "Description" : "The attribute of the linked component which provides the certificate for the rootCA",
+                                        "Types" : STRING_TYPE,
+                                        "Default" : "ROOTCA_PEM"
+                                    }
+                                ]
+                            },
+                            {
+                                "Names" : "Source:filesetting",
+                                "Description" : "Use an asFile Setting on the apigateway for RootCA Public cert",
+                                "Children" : [
+                                    {
+                                        "Names" : "FileName",
+                                        "Description" : "The name of the asFile setting",
+                                        "Types" : STRING_TYPE,
+                                        "Default" : "rootCA.pem"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
                 "Names" : "Publish",
                 "Description" : "Deprecated - Please switch to the publishers configuration",
                 "Children" : [
