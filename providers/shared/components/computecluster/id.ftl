@@ -79,11 +79,6 @@
                 ]
             },
             {
-                "Names" : "UseInitAsService",
-                "Types" : BOOLEAN_TYPE,
-                "Default" : false
-            },
-            {
                 "Names" : "AutoScaling",
                 "Children" : autoScalingChildConfiguration
             },
@@ -91,11 +86,6 @@
                 "Names" : "ScalingPolicies",
                 "SubObjects" : true,
                 "Children" : scalingPolicyChildrenConfiguration
-            },
-            {
-                "Names" : "DockerHost",
-                "Types" : BOOLEAN_TYPE,
-                "Default" : false
             },
             {
                 "Names" : "Ports",
@@ -113,10 +103,35 @@
                 ]
             },
             {
-                "Names" : "Role",
-                "Types" : STRING_TYPE,
-                "Description" : "Server configuration role",
-                "Default" : ""
+                "Names" : "Image",
+                "Description" : "Control the source of the image that is used for the computecluster",
+                "Children" : [
+                    {
+                        "Names" : "Source",
+                        "Description" : "The source of the image - registry is the hamlet registry",
+                        "Types" : STRING_TYPE,
+                        "Mandatory" : true,
+                        "Values" : [ "registry", "url", "none" ],
+                        "Default" : "registry"
+                    },
+                    {
+                        "Names" : "Source:url",
+                        "Description" : "Url Source specific Configuration",
+                        "Children" : [
+                            {
+                                "Names" : "Url",
+                                "Description" : "The url to a source zip file",
+                                "Types" : STRING_TYPE
+                            },
+                            {
+                                "Names" : "ImageHash",
+                                "Description" : "The expected sha1 hash of the Url if empty any will be accepted",
+                                "Types" : STRING_TYPE,
+                                "Default" : ""
+                            }
+                        ]
+                    }
+                ]
             },
             {
                 "Names" : "ComputeInstance",
