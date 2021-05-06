@@ -1063,6 +1063,16 @@ behaviour.
         ] ]
 [/#function]
 
+[#-- Writes a new file which will be synced to a bucket --]
+[#function writeFileForSync filesArrayName fileName content ]
+    [#return
+        [
+            'echo "${content}" > "$\{tmpdir}/${fileName}"',
+            'addToArray "${filesArrayName}" "$\{tmpdir}/${fileName}"'
+        ]
+    ]
+[/#function]
+
 [#function findAsFilesScript filesArrayName settings]
     [#-- Create an array for the files --]
     [#local result = [] ]
