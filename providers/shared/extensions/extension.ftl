@@ -375,7 +375,7 @@
                 (_context.VolumeMounts!{}) +
                 {
                     volumeLinkId : {
-                        "DeviceId" : deviceId,
+                        "DeviceId" : "/dev/" + deviceId,
                         "MountPath" : mountPath
                     }
                 }
