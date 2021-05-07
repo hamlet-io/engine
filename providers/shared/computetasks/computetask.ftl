@@ -66,13 +66,24 @@
     ]
 /]
 
+[#assign COMPUTE_TASK_SYSTEM_VOLUME_MOUNTING = "system_volume_mounting" ]
+[@addComputeTask
+    type=COMPUTE_TASK_SYSTEM_VOLUME_MOUNTING
+    properties=[
+        {
+            "Type"  : "Description",
+            "Value" : "Handle the discovery, formatting and mounting of volumes configured as part of the component"
+        }
+    ]
+/]
+
 [#assign COMPUTE_TASK_DATA_VOLUME_MOUNTING = "data_volume_mounting" ]
 [@addComputeTask
     type=COMPUTE_TASK_DATA_VOLUME_MOUNTING
     properties=[
         {
             "Type"  : "Description",
-            "Value" : "Handle the discovery, formatting and mounting of data volumes"
+            "Value" : "Handle the discovery, formatting and mounting of links to datavolume components"
         }
     ]
 /]

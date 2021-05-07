@@ -112,6 +112,7 @@
 [#assign REGION_ATTRIBUTE_TYPE = "region"]
 [#assign EVENTSTREAM_ATTRIBUTE_TYPE = "stream"]
 [#assign SECRET_ATTRIBUTE_TYPE = "secret"]
+[#assign RESULT_ATTRIBUTE_TYPE = "result" ]
 
 [#-- special attribute type to handle references --]
 [#assign REFERENCE_ATTRIBUTE_TYPE = "ref" ]
