@@ -92,6 +92,24 @@
                         ]
                     }
                 ]
+            },
+            {
+                "Names" : "ChangeStream",
+                "Description" : "Provides a stream of changes made to the table",
+                "Children" : [
+                    {
+                        "Names" : "Enabled",
+                        "Type" : BOOLEAN_TYPE,
+                        "Default" : false
+                    },
+                    {
+                        "Names" : "ChangeView",
+                        "Description" : "The format of changes that will be provided in the stream",
+                        "Types" : STRING_TYPE,
+                        "Values": [ "KeysOnly", "NewItem", "OldItem", "NewAndOldItem" ],
+                        "Default" : "KeysOnly"
+                    }
+                ]
             }
         ]
 /]
