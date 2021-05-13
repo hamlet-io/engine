@@ -1067,8 +1067,8 @@ behaviour.
 [#function writeFileForSync filesArrayName fileName content ]
     [#return
         [
-            'echo "${content}" > "$\{tmpdir}/${fileName}"',
-            'addToArray "${filesArrayName}" "$\{tmpdir}/${fileName}"'
+            r'echo "' + content + r'" > "${tmpdir}/' + fileName + r'"',
+            r'addToArray "' + filesArrayName + r'" "${tmpdir}/' + fileName + r'"'
         ]
     ]
 [/#function]
@@ -1153,14 +1153,14 @@ behaviour.
             ]
         ) +
         [
-            "cp" + " " +
+            r'if [[ -f "' + filepath + r'" ]]; then',
+            "  cp" + " " +
                "\"" + filepath                      + "\"" + " " +
                "\"" + "$\{tmpdir}/$\{tmp_filename}" + "\"" + " || return $?",
-            "#",
-            "addToArray" + " " +
+            "  addToArray" + " " +
                filesArrayName + " " +
                "\"" + "$\{tmpdir}/$\{tmp_filename}" + "\"",
-            "#"
+            r'fi'
         ] ]
 [/#function]
 
