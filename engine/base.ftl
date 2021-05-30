@@ -1757,6 +1757,23 @@ are not included in the Match Filter
     ]
 [/#function]
 
+[#function getEnrichedFilter filter enrichmentFilter]
+    [#local result = {} ]
+    [#list filter as id, value]
+        [#local result +=
+            {
+                id :
+                    getUniqueArrayElements(
+                        value,
+                        getFilterAttribute(enrichmentFilter, id)
+                    )
+            }
+        ]
+    [/#list]
+    [#return result]
+[/#function]
+
+
 [#-- Check for a match between a Current Filter and a Match Filter --]
 [#function filterMatch currentFilter matchFilter matchBehaviour]
 
@@ -1894,21 +1911,22 @@ is the equivalent of
     "Value" : 100,
     "Qualifiers : [
         {
-            "Filter" : {"Any" : "prod"},
-            "MatchBehaviour" : ANY_FILTER_MATCH_BEHAVIOUR,
-            "Value" : 50,
-            "CombineBehaviour" : MERGE_COMBINE_BEHAVIOUR
-        },
-        {
             "Filter" : {"Any" : "industry"},
             "MatchBehaviour" : ANY_FILTER_MATCH_BEHAVIOUR,
             "Value" : 23,
+            "CombineBehaviour" : MERGE_COMBINE_BEHAVIOUR
+        },
+        {
+            "Filter" : {"Any" : "prod"},
+            "MatchBehaviour" : ANY_FILTER_MATCH_BEHAVIOUR,
+            "Value" : 50,
             "CombineBehaviour" : MERGE_COMBINE_BEHAVIOUR
         }
     ]
 }
 
-and if both prod and industry matched, the effective value would be 23.
+and if both prod and industry matched, the effective value would be 50
+since "prod" comes after "industry".
 
 Qualifiers can be nested, so processing is recursive.
 --]

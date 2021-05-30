@@ -324,6 +324,15 @@
     /]
 [/#macro]
 
+[#macro information message context={} detail={} enabled=true]
+    [@info
+        message=message
+        context=context
+        detail=detail
+        enabled=enabled
+    /]
+[/#macro]
+
 [#macro timing message context={} detail={} enabled=true]
     [@logMessage
         severity=TIMING_LOG_LEVEL
@@ -337,6 +346,15 @@
 [#macro warn message context={} detail={} enabled=true]
     [@logMessage
         severity=WARNING_LOG_LEVEL
+        message=message
+        context=context
+        detail=detail
+        enabled=enabled
+    /]
+[/#macro]
+
+[#macro warning message context={} detail={} enabled=true]
+    [@warn
         message=message
         context=context
         detail=detail
@@ -377,6 +395,16 @@
         /]
         [#stop "hamlet fatal log" ]
     [/#if]
+[/#macro]
+
+[#macro fatalstop message context={} detail={} enabled=true ]
+    [@fatal
+        message=message
+        context=context
+        detail=detail
+        enabled=enabled
+        stop=true
+    /]
 [/#macro]
 
 [#macro setLogFatalStopThreshold threshold ]

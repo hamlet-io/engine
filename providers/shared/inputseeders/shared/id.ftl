@@ -50,12 +50,10 @@
     seeder=SHARED_INPUT_SEEDER
 /]
 
-[#-- TODO(mfl) Reenable once layers are in the input processing --]
-[#-- so the layer ids can be included in the qualifiers         --]
-[#--@addTransformerToConfigPipeline
+[@addTransformerToConfigPipeline
     stage=QUALIFY_SHARED_INPUT_STAGE
     transformer=SHARED_INPUT_SEEDER
-/--]
+/]
 
 [@addSeederToStatePipeline
     stage=FIXTURE_SHARED_INPUT_STAGE
@@ -612,11 +610,14 @@
 
 [#function shared_configtransformer_qualify filter state]
 
-    [#-- Now process the qualifications, validating on the basis of known layer filter attributes --]
+    [#-- Provided filter is enriched to include ids and names for any --]
+    [#-- layer related filter attribute                               --]
+    [#-- Qualifications are validated on the basis of known layer     --]
+    [#-- filter attributes                                            --]
     [#return
         qualifyEntity(
             state,
-            filter,
+            getEnrichedFilter(filter, getLayerIdsAndNamesForFilter()),
             getQualifierChildren(getRegisteredLayerInputFilterAttributeIds())
         )
     ]

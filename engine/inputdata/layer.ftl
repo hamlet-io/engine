@@ -154,6 +154,30 @@
     [/#list]
 [/#macro]
 
+[#function getLayerIdsAndNamesForFilter]
+    [#local result = {} ]
+    [#list layerConfiguration as id, layer ]
+        [#-- Only include layers where one of the input filter attributes --]
+        [#-- matches the layer type                                       --]
+        [#list asArray(layer.InputFilterAttributes) as inputFilterAttribute]
+            [#if layer.Type == inputFilterAttribute.Id]
+                [#local activeLayerData = getActiveLayer(layer.Type) ]
+                [#local idAndName =
+                    getUniqueArrayElements(
+                        arrayIfTrue(activeLayerData.Id!"", activeLayerData.Id??),
+                        arrayIfTrue(activeLayerData.Name!"", activeLayerData.Name??)
+                    )
+                ]
+                [#if idAndName?has_content]
+                    [#local result += { inputFilterAttribute.Id : idAndName } ]
+                [/#if]
+                [#break]
+            [/#if]
+        [/#list]
+    [/#list]
+    [#return result]
+[/#function]
+
 [#-------------------------------------------------------
 -- Internal support functions for component processing --
 ---------------------------------------------------------]
