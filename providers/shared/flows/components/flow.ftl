@@ -425,7 +425,7 @@
                             occurrenceContexts).Profiles ]
 
                     [#-- Determine placement profile --]
-                    [#local placementProfile = getPlacementProfile(profiles.Placement, segmentQualifiers) ]
+                    [#local placementProfile = getPlacementProfile(profiles.Placement) ]
 
                     [#-- Add resource group placements to the occurrence --]
                     [#list getComponentResourceGroups(type)?keys as key]
@@ -650,7 +650,7 @@
             coreProfileChildConfiguration).Profiles ]
 
     [#-- Determine placement profile --]
-    [#local placementProfile = getPlacementProfile(profiles.Placement, segmentQualifiers) ]
+    [#local placementProfile = getPlacementProfile(profiles.Placement) ]
 
     [#-- Add state attributes for basestate lookup --]
     [#local targetOccurrence +=

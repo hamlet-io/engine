@@ -1243,7 +1243,7 @@ are added.
     [#return (configuration.Configured!false) && (configuration.Enabled!false) ]
 [/#function]
 
-[#function getObjectLineage collection end qualifiers...]
+[#function getObjectLineage collection end ]
     [#local result = [] ]
     [#local endingObject = "" ]
     [#list asFlattenedArray(end) as endEntry]
@@ -1261,7 +1261,6 @@ are added.
     [/#list]
 
     [#if endingObject?is_hash]
-        [#local base = getObjectAndQualifiers(endingObject, qualifiers) ]
         [#local parentId =
                 (getCompositeObject(
                     [
@@ -1270,7 +1269,7 @@ are added.
                             "Types" : STRING_TYPE
                         }
                     ],
-                    base
+                    endingObject
                 ).Parent)!"" ]
         [#local parentIds =
                 (getCompositeObject(
@@ -1280,18 +1279,18 @@ are added.
                             "Types" : ARRAY_OF_STRING_TYPE
                         }
                     ],
-                    base
+                    endingObject
                 ).Parents)!arrayIfContent(parentId, parentId) ]
 
         [#if parentIds?has_content]
             [#list parentIds as parentId]
-                [#local lines = getObjectLineage(collection, parentId, qualifiers) ]
+                [#local lines = getObjectLineage(collection, parentId) ]
                 [#list lines as line]
-                    [#local result += [ line + [base] ] ]
+                    [#local result += [ line + [endingObject] ] ]
                 [/#list]
             [/#list]
         [#else]
-            [#local result += [ [base] ] ]
+            [#local result += [ [endingObject] ] ]
         [/#if]
     [/#if]
     [#return result ]
