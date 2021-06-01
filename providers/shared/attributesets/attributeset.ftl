@@ -4,6 +4,8 @@
 
 [#assign COMPUTEIMAGE_ATTRIBUTESET_TYPE = "computeimage"]
 
+[#assign CONTTAINERTASK_ATTRIBUTESET_TYPE = "containertask"]
+
 [#assign CONTEXTPATH_ATTRIBUTESET_TYPE = "contextpath"]
 
 [#assign ECS_COMPUTEIMAGE_ATTRIBUTESET_TYPE = "ecs_computeimage"]
