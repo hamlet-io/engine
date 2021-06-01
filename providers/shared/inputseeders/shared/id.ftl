@@ -614,12 +614,13 @@
     [#-- layer related filter attribute                               --]
     [#-- Qualifications are validated on the basis of known layer     --]
     [#-- filter attributes                                            --]
+    [#local enrichedFilter = getEnrichedFilter(filter, getLayerIdsAndNamesForFilter()) ]
+    [#local qualifierChildren = getQualifierChildren(getRegisteredLayerInputFilterAttributeIds()) ]
     [#return
-        qualifyEntity(
-            state,
-            getEnrichedFilter(filter, getLayerIdsAndNamesForFilter()),
-            getQualifierChildren(getRegisteredLayerInputFilterAttributeIds())
-        )
+        qualifyEntity(state, enrichedFilter, qualifierChildren) +
+        {
+            "QualifierState" : qualifyEntity(state, enrichedFilter, qualifierChildren, "annotate")
+        }
     ]
 [/#function]
 
