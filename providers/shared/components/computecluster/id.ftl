@@ -138,6 +138,12 @@
                 "Description" : "Configuration of compute instances used in the component",
                 "Children" : [
                     {
+                        "Names" : "ManagementPorts",
+                        "Description" : "The network ports used for remote management of the instance",
+                        "Types" : ARRAY_OF_STRING_TYPE,
+                        "Default" : [ "ssh" ]
+                    },
+                    {
                         "Names" : "Image",
                         "Description" : "Configures the source of the virtual machine image used for the instance",
                         "AttributeSet" : COMPUTEIMAGE_ATTRIBUTESET_TYPE
