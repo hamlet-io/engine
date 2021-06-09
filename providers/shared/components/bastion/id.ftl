@@ -59,6 +59,19 @@
                         },
                         {
                             "Names" : "Logging",
+                            "Description" : "A profile to define where logs are forwarded to from this component",
+                            "Types" : STRING_TYPE,
+                            "Default" : "default"
+                        },
+                        {
+                            "Names" : "LogFile",
+                            "Description" : "A profile which specifies the logfiles to collect from the compute instance",
+                            "Types" : STRING_TYPE,
+                            "Default" : "default"
+                        },
+                        {
+                            "Names" : "Bootstrap",
+                            "Description" : "A profile to include additional bootstrap sources as part of the instance startup",
                             "Types" : STRING_TYPE,
                             "Default" : "default"
                         }
