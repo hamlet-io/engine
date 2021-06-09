@@ -281,28 +281,49 @@ behaviour.
 [/#function]
 
 [#-- Get processor settings --]
-[#function getProcessor occurrence type processorProfileName="" ]
-
-    [#local tc = formatComponentShortName( occurrence.Core.Tier.Id, occurrence.Core.Component.Id)]
-    [#local processorProfileName = (processorProfileName?has_content)?then(
-                                    processorProfileName,
-                                    occurrence.Configuration.Solution.Profiles.Processor
+[#function getOccurrenceProfile occurrence solutionProfilesKey profileReferenceType profileNameOverride="" type="" ]
+    [#local profileName = (profileNameOverride?has_content)?then(
+                                    proceprofileNameOverridessorProfileName,
+                                    (occurrence.Configuration.Solution.Profiles[solutionProfilesKey])!"default"
                                 )]
 
-    [#local processorProfile = (processors[processorProfileName])!{}]
+    [#local profile = (getReferenceData(profileReferenceType)[profileName])!{} ]
 
-    [#list processorProfile as key,value ]
-        [#switch key?lower_case ]
-            [#case tc?lower_case ]
-                [#return processorProfile[key]]
-                [#break]
-            [#case type?lower_case]
-                [#return processorProfile[key]]
-                [#break]
-        [/#switch]
-    [/#list]
+    [#-- we have two types of profiles --]
+    [#-- Typed - provides a profile for each compoent type under a single profile --]
+    [#-- Fixed - isn't type based and just returns the resolved profile --]
+    [#if type?has_content ]
+        [#local tc = formatComponentShortName(occurrence.Core.Tier.Id, occurrence.Core.Component.Id)]
+        [#list profile as key,value ]
+            [#switch key?lower_case ]
+                [#case tc?lower_case ]
+                    [#return profile[key]]
+                    [#break]
+                [#case type?lower_case]
+                    [#return profile[key]]
+                    [#break]
+            [/#switch]
+        [/#list]
+    [/#if]
 
-    [#return {}]
+    [#if ! profile?has_content ]
+        [@fatal
+            message="requested profile not found"
+            detail={
+                "OccurrenceId" : (occurrence.Core.RawId)!"",
+                "SolutionProfile" : solutionProfilesKey,
+                "ReferenceType" : profileReferenceType,
+                "NameOverride" : profileNameOverride,
+                "Name" : profileName,
+                "Type" : type
+            }
+        /]
+    [/#if]
+    [#return profile]
+[/#function]
+
+[#function getProcessor occurrence type profileName="" ]
+    [#return getOccurrenceProfile(occurrence, "Processor", PROCESSOR_REFERENCE_TYPE, profileName, type)]
 [/#function]
 
 [#function getProcessorCounts processorProfile multiAz=false desiredCount="" minCount="" maxCount="" ]
@@ -373,59 +394,34 @@ behaviour.
     ]
 [/#function]
 
-[#function getLogFileProfile occurrence type extensions... ]
-    [#local tc = formatComponentShortName(
-                    occurrence.Core.Tier,
-                    occurrence.Core.Component,
-                    extensions)]
-    [#local defaultProfile = "default"]
-    [#if (component[type].LogFileProfile)??]
-        [#return component[type].LogFileProfile]
-    [/#if]
-    [#if (logFileProfiles[defaultProfile][tc])??]
-        [#return logFileProfiles[defaultProfile][tc]]
-    [/#if]
-    [#if (logFileProfiles[defaultProfile][type])??]
-        [#return logFileProfiles[defaultProfile][type]]
-    [/#if]
+[#-- Get storage settings --]
+[#function getStorage occurrence type profileName="" ]
+    [#return getOccurrenceProfile(occurrence, "Storage", STORAGE_REFERENCE_TYPE, profileName, type)]
 [/#function]
 
-[#function getBootstrapProfile occurrence type extensions... ]
-    [#local tc = formatComponentShortName(
-                    occurrence.Core.Tier,
-                    occurrence.Core.Component,
-                    extensions)]
-    [#local defaultProfile = "default"]
-    [#if (component[type].BootstrapProfile)??]
-        [#return component[type].Bootstrap]
-    [/#if]
-    [#if (bootstrapProfiles[defaultProfile][tc])??]
-        [#return bootstrapProfiles[defaultProfile][tc]]
-    [/#if]
-    [#if (bootstrapProfiles[defaultProfile][type])??]
-        [#return bootstrapProfiles[defaultProfile][type]]
-    [/#if]
+[#function getLogFileProfile occurrence type profileName="" ]
+    [#return getOccurrenceProfile(occurrence, "LogFile", LOGFILEPROFILE_REFERENCE_TYPE, profileName, type)]
 [/#function]
 
-[#function getSecurityProfile profileName type engine="" ]
-
-    [#local profile = (securityProfiles[profileName][type])!{} ]
-    [#return profile[engine]!profile ]
-
+[#function getBootstrapProfile occurrence type profileName="" ]
+    [#return getOccurrenceProfile(occurrence, "Bootstrap", BOOTSTRAPPROFILE_REFERENCE_TYPE, profileName, type)]
 [/#function]
 
-[#function getNetworkProfile profileName  ]
-    [#return (networkProfiles[profileName])!{} ]
+[#function getSecurityProfile occurrence type engine="" profileName="" ]
+    [#local baseProfile = getOccurrenceProfile(occurrence, "Security", SECURITYPROFILE_REFERENCE_TYPE, profileName, type)]
+    [#return (baseProfile[engine])!baseProfile ]
 [/#function]
 
-[#function getComputeProviderProfile profileName  ]
-    [#local computeProviders = getReferenceData(COMPUTEPROVIDER_REFERENCE_TYPE)]
-    [#return (computeProviders[profileName])!{} ]
+[#function getNetworkProfile occurrence profileName=""  ]
+    [#return getOccurrenceProfile(occurrence, "Network", NETWORKPROFILE_REFERENCE_TYPE, profileName) ]
 [/#function]
 
-[#function getLoggingProfile profileName  ]
-    [#local loggingProfiles = getReferenceData(LOGGINGPROFILE_REFERENCE_TYPE)]
-    [#return (loggingProfiles[profileName])!{} ]
+[#function getComputeProviderProfile occurrence profileName=""  ]
+    [#return getOccurrenceProfile(occurrence, "ComputeProvider", COMPUTEPROVIDER_REFERENCE_TYPE, profileName) ]
+[/#function]
+
+[#function getLoggingProfile occurrence profileName=""  ]
+    [#return getOccurrenceProfile(occurrence, "Logging", LOGGINGPROFILE_REFERENCE_TYPE, profileName) ]
 [/#function]
 
 [#function getNetworkEndpoints endpointGroups zone region ]
@@ -565,32 +561,6 @@ behaviour.
 
     [#return placementProfiles[profile]!{} ]
 [/#function]
-
-[#-- Get storage settings --]
-[#function getStorage occurrence type storageProfileName="" ]
-
-    [#local tc = formatComponentShortName( occurrence.Core.Tier.Id, occurrence.Core.Component.Id)]
-    [#local storageProfileName = (storageProfileName?has_content)?then(
-                                    storageProfileName,
-                                    (occurrence.Configuration.Solution.Profiles.Storage)!"default"
-                                )]
-
-    [#local storageProfile = (storage[storageProfileName])!{}]
-
-    [#list storageProfile as key,value ]
-        [#switch key?lower_case ]
-            [#case tc?lower_case ]
-                [#return storageProfile[key]]
-                [#break]
-            [#case type?lower_case]
-                [#return storageProfile[key]]
-                [#break]
-        [/#switch]
-    [/#list]
-
-    [#return {}]
-[/#function]
-
 
 [#--Certificate/Domain Name handling --]
 

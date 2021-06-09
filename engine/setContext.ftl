@@ -37,12 +37,6 @@
     [#-- Categories --]
     [#assign categories = getReferenceData(CATEGORY_REFERENCE_TYPE) ]
 
-    [#-- Storage Profiles --]
-    [#assign storage = getReferenceData(STORAGE_REFERENCE_TYPE) ]
-
-    [#-- Processor Profiles --]
-    [#assign processors = getReferenceData(PROCESSOR_REFERENCE_TYPE) ]
-
     [#-- ComputeProvider Profiles --]
     [@addReferenceData type=COMPUTEPROVIDER_REFERENCE_TYPE base=blueprintObject /]
 
@@ -58,9 +52,6 @@
     [#-- Log File Groups --]
     [#assign logFileGroups = getReferenceData(LOGFILEGROUP_REFERENCE_TYPE) ]
 
-    [#-- Log File Profiles --]
-    [#assign logFileProfiles = getReferenceData(LOGFILEPROFILE_REFERENCE_TYPE) ]
-
     [#-- CORS Profiles --]
     [#assign CORSProfiles = getReferenceData(CORSPROFILE_REFERENCE_TYPE) ]
 
@@ -70,20 +61,11 @@
     [#-- Bootstraps --]
     [#assign bootstraps = getReferenceData(BOOTSTRAP_REFERENCE_TYPE, true) ]
 
-    [#-- Bootstrap Profiles--]
-    [#assign bootstrapProfiles = getReferenceData(BOOTSTRAPPROFILE_REFERENCE_TYPE, true) ]
-
-    [#-- Security Profiles --]
-    [#assign securityProfiles = getReferenceData(SECURITYPROFILE_REFERENCE_TYPE) ]
-
-    [#-- Network Profiles --]
-    [#assign networkProfiles = getReferenceData(NETWORKPROFILE_REFERENCE_TYPE) ]
+    [#-- Log Filters --]
+    [#assign logFilters = getReferenceData(LOGFILTER_REFERENCE_TYPE) ]
 
     [#-- Baseline Profiles --]
     [#assign baselineProfiles = getReferenceData(BASELINEPROFILE_REFERENCE_TYPE) ]
-
-    [#-- Log Filters --]
-    [#assign logFilters = getReferenceData(LOGFILTER_REFERENCE_TYPE) ]
 
     [#-- Network Endpoint Groups --]
     [#assign networkEndpointGroups = getReferenceData(NETWORKENDPOINTGROUP_REFERENCE_TYPE) ]
