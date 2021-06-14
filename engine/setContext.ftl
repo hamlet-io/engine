@@ -25,7 +25,6 @@
     [#assign shortNamePrefixes = [] ]
     [#assign fullNamePrefixes = [] ]
     [#assign cmdbProductLookupPrefixes = [] ]
-    [#assign segmentQualifiers = [] ]
 
     [#-- Testing --]
     [#assign testCases = getReferenceData(TESTCASE_REFERENCE_TYPE) ]
@@ -147,7 +146,6 @@
         [#assign shortNamePrefixes += [productId] ]
         [#assign fullNamePrefixes += [productName] ]
         [#assign cmdbProductLookupPrefixes += ["shared"] ]
-        [#assign segmentQualifiers += [productName, productId] ]
 
     [/#if]
 
@@ -176,7 +174,6 @@
                 categories[categoryId]!{} ]
             [#assign shortNamePrefixes += [environmentId] ]
             [#assign fullNamePrefixes += [environmentName] ]
-            [#assign segmentQualifiers += [environmentId, environmentName, segmentId, segmentName] ]
 
             [#assign cmdbProductLookupPrefixes +=
                 [

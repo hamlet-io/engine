@@ -203,79 +203,6 @@
     [/#if]
 [/#function]
 
-[#-- Qualification support --
-
-A qualifier allows the value used for a part of a JSON document to vary depending on
-the context. An example might be varying settings depending on the current environment.
-If no qualifier applies, then a "default" value applies.
-
-Central to the operation of qualification is the idea of a filter. A filter consists of one or
-more values for each of one or more filter attributes. A "MatchBehaviour" is used to compare filters
-for a match.
-
-The current context is represented by the "Context Filter". It is managed dynamically during
-template processing, and contains values such as the current tenant, product, environment etc.
-
-Each qualifier has a filter and a value. If the filter matches the Context Filter,
-then the qualifier value is used to amend the default value which applies if no qualifier matches.
-More than one qualifier may match, in which case they are processed in the order they are defined,
-and the result of one match becomes the default for the next match.
-
-One way to think of filters is in terms of Venn Diagrams. Each filter defines a set of configuration
-entities and if the sets overlap based on the FilterBehaviour, then the qualifier applies. (A similar
-logic is applied for links, where the link filter needs to define a set containing a single,
-"component" configuration entity.)
-
-The way in which the default value is modified is controlled by the "DefaultBehaviour" of the
-qualifier. Typically this means simple values will be replaced and for objects,
-the default value is prefix added to the qualifier value.
-
-One or more qualifiers can be added at any point in the JSON document via a reserved "Qualifiers"
-entity. Where the qualified entity is not itself an object, the desired entity is
-wrapped in an object in order that qualifiers can be attached. In this case, the default value
-should be provided via a "Default" attribute at the same level as the "Qualifiers" attribute.
-
-There is a short form and a long form for qualifiers.
-
-In the short form, the "Qualifiers" entity is an object and each attribute represents a qualifier.
-The attribute name is the value of the filter "Any" attribute, and the MatchBehaviour is "any",
-meaning the value of the Any attribute needs to match one value in any of the attributes of the
-Context Filter. The qualifier value is the value of the attribute. Because object attribute
-processing is not ordered, the short form does not provide fine control in the situation where
-multiple qualifiers match - effectively they need to be independent.
-
-The short form is useful for simple situations such as setting variation based on environment.
-
-In the long form, the "Qualifiers" entity is an array of qualifier objects. Each qualifier object
-must have a "Filter" attribute and a "Value" attribute, as well as optional "MatchBehaviour" and
-"DefaultBehaviour" attributes. By default, the MatchBehaviour is "onetoone", meaning a value of
-each attribute of the qualifier filter must match a value of the same named attribute in the Context
-Filter.
-
-The long form gives full control over the qualification process, and allows ordering of qualifier
-application, depending on the DefaultBehaviour selected.
-
-Note that override (hierarchy) behaviour takes precedence over qualifier (at level variation)
-behaviour.
-
---]
-
-
-[#assign contextFilter = {} ]
-
-[#function getObjectAndQualifiers object qualifiers...]
-    [#local result = [] ]
-    [#if object?is_hash]
-        [#local result += [object] ]
-        [#list asFlattenedArray(qualifiers) as qualifier]
-            [#if ((object.Qualifiers[qualifier])!"")?is_hash]
-                [#local result += [object.Qualifiers[qualifier]] ]
-            [/#if]
-        [/#list]
-    [/#if]
-    [#return result ]
-[/#function]
-
 [#function getOccurrenceCoreTags occurrence={} name="" zone="" propagate=false flatten=false maxTagCount=-1]
     [#return getCfTemplateCoreTags(name, (occurrence.Core.Tier)!"", (occurrence.Core.Component)!"", zone, propagate, flatten, maxTagCount)]
 [/#function]
@@ -536,7 +463,7 @@ behaviour.
     }
 ]]
 
-[#function getPlacementProfile occurrenceProfile qualifiers...]
+[#function getPlacementProfile occurrenceProfile]
     [#local profile = occurrenceProfile]
     [#if !profile?has_content]
         [#local profile = (productObject.Profiles.Placement)!""]
@@ -548,13 +475,6 @@ behaviour.
         [#local profile = DEFAULT_PLACEMENT_PROFILE]
     [/#if]
 
-    [#if profile?is_hash]
-        [#list getObjectAndQualifiers(profile, qualifiers) as option]
-            [#if option.Value??]
-                [#local profile = option.Value]
-            [/#if]
-        [/#list]
-    [/#if]
     [#if profile?is_hash]
         [#local profile = ""]
     [/#if]
@@ -678,10 +598,10 @@ behaviour.
     [#return domainObject.Role == DOMAIN_ROLE_SECONDARY ]
 [/#function]
 
-[#function getDomainObjects certificateObject qualifiers...]
+[#function getDomainObjects certificateObject ]
     [#local result = [] ]
     [#local primaryNotSeen = true]
-    [#local lines = getObjectLineage(domains, certificateObject.Domain, qualifiers) ]
+    [#local lines = getObjectLineage(domains, certificateObject.Domain) ]
     [#list lines as line]
         [#local name = "" ]
         [#local role = DOMAIN_ROLE_PRIMARY ]
@@ -763,24 +683,24 @@ behaviour.
     [#return result]
 [/#function]
 
-[#function getCertificateObject start qualifiers...]
+[#function getCertificateObject start ]
 
     [#local certificateObject =
         getCompositeObject(
             certificateChildConfiguration,
             asFlattenedArray(
-                getObjectAndQualifiers((blueprintObject.CertificateBehaviours)!{}, qualifiers) +
-                getObjectAndQualifiers((tenantObject.CertificateBehaviours)!{}, qualifiers) +
-                getObjectAndQualifiers((productObject.CertificateBehaviours)!{}, qualifiers) +
-                ((getObjectLineage(certificates, [productId, productName], qualifiers)[0])![]) +
-                ((getObjectLineage(certificates, start, qualifiers)[0])![])
+                arrayIfContent((blueprintObject.CertificateBehaviours)!{}, (blueprintObject.CertificateBehaviours)!{}) +
+                arrayIfContent((tenantObject.CertificateBehaviours)!{}, (tenantObject.CertificateBehaviours)!{}) +
+                arrayIfContent((productObject.CertificateBehaviours)!{}, (productObject.CertificateBehaviours)!{}) +
+                ((getObjectLineage(certificates, [productId, productName])[0])![]) +
+                ((getObjectLineage(certificates, start)[0])![])
             )
         )
     ]
     [#return
         certificateObject +
         {
-            "Domains" : getDomainObjects(certificateObject, qualifiers)
+            "Domains" : getDomainObjects(certificateObject)
         }
     ]
 [/#function]
