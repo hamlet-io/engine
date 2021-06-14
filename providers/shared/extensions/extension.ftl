@@ -466,3 +466,14 @@
         }
     ]
 [/#macro]
+
+[#-- Template specific Macro --]
+[#macro TemplateParameter name value ]
+    [#assign _context +=
+        {
+            "Parameters" :
+                (_context.Parameters!{}) +
+                { name, value }
+        }
+    ]
+[/#macro]
