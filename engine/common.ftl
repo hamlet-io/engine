@@ -730,7 +730,7 @@
     [#return
         certificateObject +
         {
-            "Domains" : getDomainObjects(certificateObject, qualifiers)
+            "Domains" : getDomainObjects(certificateObject)
         }
     ]
 [/#function]
