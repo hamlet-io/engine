@@ -210,7 +210,7 @@
 [#-- Get processor settings --]
 [#function getOccurrenceProfile occurrence solutionProfilesKey profileReferenceType profileNameOverride="" type="" ]
     [#local profileName = (profileNameOverride?has_content)?then(
-                                    proceprofileNameOverridessorProfileName,
+                                    profileNameOverride,
                                     (occurrence.Configuration.Solution.Profiles[solutionProfilesKey])!"default"
                                 )]
 
