@@ -209,10 +209,26 @@
 
 [#-- Get processor settings --]
 [#function getOccurrenceProfile occurrence solutionProfilesKey profileReferenceType profileNameOverride="" type="" ]
-    [#local profileName = (profileNameOverride?has_content)?then(
-                                    profileNameOverride,
-                                    (occurrence.Configuration.Solution.Profiles[solutionProfilesKey])!"default"
-                                )]
+    [#local profileName = ""]
+    [#if profileNameOverride?has_content]
+        [#local profileName = profileNameOverride ]
+    [/#if]
+
+    [#if ! profileName?has_content ]
+        [#if ((occurrence.Configuration.Solution.Profiles[solutionProfilesKey])!"")?has_content ]
+            [#local profileName = occurrence.Configuration.Solution.Profiles[solutionProfilesKey] ]
+        [#else]
+            [@fatal
+                message="Could not find profile name to use for lookup"
+                context={
+                    "OccurrenceId" : (occurrence.Core.RawId)!"",
+                    "ProfileKey" : solutionProfilesKey,
+                    "NameOverride" : profileNameOverride,
+                    "Type" : type
+                }
+            /]
+        [/#if]
+    [/#if]
 
     [#local profile = (getReferenceData(profileReferenceType)[profileName])!{} ]
 
