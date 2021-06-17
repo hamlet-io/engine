@@ -803,8 +803,7 @@ which is useful in situations like link processing.
                     result,
                     {
                         class : state[CONFIG_INPUT_PIPELINE_STAGE_CACHE][stage][class]
-                    },
-                    APPEND_COMBINE_BEHAVIOUR
+                    }
                 )
             ]
         [/#if]
