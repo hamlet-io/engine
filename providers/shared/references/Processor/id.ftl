@@ -40,7 +40,7 @@
         ]
     attributes=[
         {
-            "Names" : "NAT",
+            "Names" : ["nat", "NAT"],
             "Children" : [
                 {
                     "Names" : "Processor",
@@ -49,7 +49,7 @@
             ]
         },
         {
-            "Names" : [ "bastion", "SSH" ],
+            "Names" : ["bastion", "SSH"],
             "Children" : [
                 {
                     "Names" : "Processor",
@@ -58,7 +58,7 @@
             ]
         },
         {
-            "Names" : "EC2",
+            "Names" : ["ec2", "EC2"],
             "Children" : [
                 {
                     "Names" : "Processor",
@@ -67,7 +67,7 @@
             ]
         },
         {
-            "Names" : "ECS",
+            "Names" : ["ecs", "ECS"],
             "Children" : [
                 {
                     "Names" : "Processor",
@@ -81,7 +81,7 @@
             "Children" : nodeCountChildConfiguration
         },
         {
-            "Names" : "ComputeCluster",
+            "Names" : ["computecluster", "ComputeCluster" ],
             "Children" : [
                 {
                     "Names" : "Processor",
@@ -91,7 +91,7 @@
             nodeCountChildConfiguration
         },
         {
-            "Names" : [ "db", "RDS" ],
+            "Names" : [ "db", "DB", "rds", "RDS" ],
             "Children" : [
                 {
                     "Names" : "Processor",
@@ -101,7 +101,7 @@
             nodeCountChildConfiguration
         },
         {
-            "Names" : [ "cache", "ElastiCache" ],
+            "Names" : ["cache", "ElastiCache"],
             "Children" : [
                 {
                     "Names" : "Processor",
@@ -115,7 +115,7 @@
             ]
         },
         {
-            "Names" : [ "es", "ElasticSearch" ],
+            "Names" : ["es", "ElasticSearch"],
             "Children" : [
                 {
                     "Names" : [ "Processor", "DataNodeProcessor" ],
@@ -143,15 +143,15 @@
             ]
         },
         {
-            "Names" : "service",
+            "Names" : ["service", "Service"],
             "Children" : nodeCountChildConfiguration
         },
         {
-            "Names" : "containerservice",
+            "Names" : ["containerservice", "ContainerService" ],
             "Children" : nodeCountChildConfiguration
         },
         {
-            "Names" : "EMR",
+            "Names" : ["emr", "EMR"],
             "Children" : [
                 {
                     "Names" : "Processor",
