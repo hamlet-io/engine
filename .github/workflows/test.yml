@@ -2,6 +2,9 @@ name: test
 
 on:
   push:
+    branches:
+      - 'master'
+  pull_request:
 
 jobs:
   deploy_tests:
@@ -33,11 +36,3 @@ jobs:
           mkdir -p ~/.hamlet
           hamlet engine set-engine unicycle
           hamlet -i mock -p shared -p sharedtest -f default deploy test-deployments -p '--junitxml=junit.xml' -o "${TEST_OUTPUT_DIR}"
-
-      - name: Publish Test Report
-        uses: mikepenz/action-junit-report@v2
-        with:
-          report_paths: 'hamlet_tests/junit.xml'
-          fail_on_failure: true
-          require_tests: true
-          check_name: Results
