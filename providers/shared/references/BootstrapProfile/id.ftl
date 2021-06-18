@@ -1,6 +1,6 @@
 [#ftl]
 
-[@addReference 
+[@addReference
     type=BOOTSTRAPPROFILE_REFERENCE_TYPE
     pluralType="BootstrapProfiles"
     properties=[
@@ -11,13 +11,46 @@
         ]
     attributes=[
         {
-            "Names" : "*",
+            "Names" : ["bastion", "Bastion", "ssh"],
             "Description" : "The component type the profile applies to",
             "Children" : [
                 {
-                    "Names" : "Bootstraps",
+                    "Names" : "BootStraps",
                     "Types" : ARRAY_OF_STRING_TYPE,
-                    "Mandatory" : true
+                    "Default" : []
+                }
+            ]
+        },
+        {
+            "Names" : ["computecluster", "ComputeCluster"],
+            "Description" : "The component type the profile applies to",
+            "Children" : [
+                {
+                    "Names" : "BootStraps",
+                    "Types" : ARRAY_OF_STRING_TYPE,
+                    "Default" : []
+                }
+            ]
+        },
+        {
+            "Names" : ["ec2", "EC2" ],
+            "Description" : "The component type the profile applies to",
+            "Children" : [
+                {
+                    "Names" : "BootStraps",
+                    "Types" : ARRAY_OF_STRING_TYPE,
+                    "Default" : []
+                }
+            ]
+        },
+        {
+            "Names" : ["ecs", "ECS"],
+            "Description" : "The component type the profile applies to",
+            "Children" : [
+                {
+                    "Names" : "BootStraps",
+                    "Types" : ARRAY_OF_STRING_TYPE,
+                    "Default" : []
                 }
             ]
         }

@@ -15,3 +15,5 @@
 [#assign OPERATINGSYSTEM_ATTRIBUTESET_TYPE = "operatingsystem" ]
 
 [#assign OSPATCHING_ATTRIBUTESET_TYPE = "ospatching"]
+
+[#assign VOLUME_ATTRIBUTESET_TYPE = "volume"]
