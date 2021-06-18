@@ -15,7 +15,7 @@
             "Description" : "The component type the profile applies to",
             "Children" : [
                 {
-                    "Names" : "BootStraps",
+                    "Names" : "Bootstraps",
                     "Types" : ARRAY_OF_STRING_TYPE,
                     "Default" : []
                 }
@@ -26,7 +26,7 @@
             "Description" : "The component type the profile applies to",
             "Children" : [
                 {
-                    "Names" : "BootStraps",
+                    "Names" : "Bootstraps",
                     "Types" : ARRAY_OF_STRING_TYPE,
                     "Default" : []
                 }
@@ -37,7 +37,7 @@
             "Description" : "The component type the profile applies to",
             "Children" : [
                 {
-                    "Names" : "BootStraps",
+                    "Names" : "Bootstraps",
                     "Types" : ARRAY_OF_STRING_TYPE,
                     "Default" : []
                 }
@@ -48,7 +48,7 @@
             "Description" : "The component type the profile applies to",
             "Children" : [
                 {
-                    "Names" : "BootStraps",
+                    "Names" : "Bootstraps",
                     "Types" : ARRAY_OF_STRING_TYPE,
                     "Default" : []
                 }
