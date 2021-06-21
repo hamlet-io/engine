@@ -1,0 +1,39 @@
+name: changelog
+
+on:
+  push:
+    branches:
+      - 'master'
+
+jobs:
+  create_changelog:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: install
+        run: |
+          pip install auto-changelog
+
+      - name: generate
+        env:
+          REPO: ${{github.repository}}
+        run: |
+          auto-changelog --unreleased  \
+            --diff-url "https://github.com/${REPO}/compare/{previous}...{current}"
+            --remote "https://github.com/${REPO}.git" \
+            --issues "https://github.com/hamlet-io/${REPO}/issues/{id}"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3
+        with:
+          commit-message: "chore: changelog bump [skip actions]"
+          delete-branch: true
+          title: 'chore: update changelog'
+          body: 'Updates the changelog with the latest updates'
+          labels: 'chore'
+          base: 'master'
