@@ -24,9 +24,9 @@ jobs:
           REPO: ${{github.repository}}
         run: |
           auto-changelog --unreleased  \
-            --diff-url "https://github.com/${REPO}/compare/{previous}...{current}"
             --remote "https://github.com/${REPO}.git" \
-            --issues "https://github.com/hamlet-io/${REPO}/issues/{id}"
+            --diff-url "https://github.com/${REPO}/compare/{previous}...{current}" \
+            --issue-url "https://github.com/${REPO}/issues/{id}"
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3
