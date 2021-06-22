@@ -10,6 +10,12 @@
         }]
     attributes=[
         {
+            "Names" : "Enabled",
+            "Description" : "Should the volume be created",
+            "Types" : BOOLEAN_TYPE,
+            "Default" : true
+        },
+        {
             "Names" : "Device",
             "Description" : "The deivce Id of the volume where the disk will be attached",
             "Types" : STRING_TYPE,
