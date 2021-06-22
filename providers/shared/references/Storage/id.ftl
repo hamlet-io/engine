@@ -16,7 +16,7 @@
                 {
                     "Names" : "Volumes",
                     "SubObjects" : true,
-                    "Ref" : VOLUME_ATTRIBUTESET_TYPE
+                    "AttributeSet" : VOLUME_ATTRIBUTESET_TYPE
                 }
             ]
         },
@@ -26,7 +26,7 @@
                 {
                     "Names" : "Volumes",
                     "SubObjects" : true,
-                    "Ref" : VOLUME_ATTRIBUTESET_TYPE
+                    "AttributeSet" : VOLUME_ATTRIBUTESET_TYPE
                 },
                 {
                     "Names" : "Tier",
@@ -46,7 +46,7 @@
                 {
                     "Names" : "Volumes",
                     "SubObjects" : true,
-                    "Ref" : VOLUME_ATTRIBUTESET_TYPE
+                    "AttributeSet" : VOLUME_ATTRIBUTESET_TYPE
                 }
             ]
         },
@@ -56,7 +56,7 @@
                 {
                     "Names" : "Volumes",
                     "SubObjects" : true,
-                    "Ref" : VOLUME_ATTRIBUTESET_TYPE
+                    "AttributeSet" : VOLUME_ATTRIBUTESET_TYPE
                 }
             ]
         },
@@ -69,7 +69,31 @@
                         {
                             "Names" : ["data", "codeontap"],
                             "Description" : "A fixed volume to use for ES Data storage",
-                            "Ref" : VOLUME_ATTRIBUTESET_TYPE
+                            "Children" : [
+                                {
+                                    "Names" : "Enabled",
+                                    "Description" : "Should the volume be created",
+                                    "Types" : BOOLEAN_TYPE,
+                                    "Default" : true
+                                },
+                                {
+                                    "Names" : "Size",
+                                    "Description" : "The size in GB of the volume",
+                                    "Types" : NUMBER_TYPE,
+                                    "Mandatory" : true
+                                },
+                                {
+                                    "Names":  "Type",
+                                    "Description" : "The type of volume to provision - see provider for available types",
+                                    "Types" : STRING_TYPE,
+                                    "Default" : "gp2"
+                                },
+                                {
+                                    "Names" : "Iops",
+                                    "Description" : "For volume types which support provisioned IOPS, this sets the requested IOPS",
+                                    "Types" : NUMBER_TYPE
+                                }
+                            ]
                         }
                     ]
                 }
