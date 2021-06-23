@@ -1125,7 +1125,10 @@
             r'   "' + environment + r'" ' +
             r'   "' + segment + r'" ' +
             r'   "' + buildUnit + r'" ' +
-            r'   "' + createZip?c + r'" || exit $?'
+            r'   "' + createZip?c + r'" || exit $?',
+            r'# refresh settings to include new build file',
+            r'',
+            r'assemble_settings "${GENERATION_DATA_DIR}" "${COMPOSITE_SETTINGS}"'
         ]
     ]
 [/#function]
@@ -1155,7 +1158,10 @@
             r'   "' + buildUnit + r'" ' +
             r'   "' + registryHost + r'" ' +
             r'   "' + registryProvider + r'" ' +
-            r'   "' + region + r'" || exit $? '
+            r'   "' + region + r'" || exit $? ',
+            r'# refresh settings to include new build file',
+            r'',
+            r'assemble_settings "${GENERATION_DATA_DIR}" "${COMPOSITE_SETTINGS}"'
         ]
     ]
 [/#function]
