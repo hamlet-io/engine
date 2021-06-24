@@ -233,6 +233,12 @@
         [#assign dataPublicIPAddressGroups =
                         getActiveLayerAttributes( ["Data", "Public", "IPAddressGroups" ], [ SEGMENT_LAYER_TYPE, ENVIRONMENT_LAYER_TYPE ], "" )[0] ]
 
+        [#assign flowlogsExpiration =
+                        getActiveLayerAttributes( ["Operations", "FlowLogs", "Expiration"], [ SEGMENT_LAYER_TYPE, ENVIRONMENT_LAYER_TYPE ], 7 )[0] ]
+
+        [#assign flowlogsOffline =
+                        getActiveLayerAttributes( ["Operations", "FlowLogs", "Offline"], [ SEGMENT_LAYER_TYPE, ENVIRONMENT_LAYER_TYPE ], "" )[0] ]
+
     [/#if]
 
     [#-- Solution --]
