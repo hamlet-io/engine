@@ -24,7 +24,7 @@
                                 s3ReplicationConfigurationPermission(bucketId) ]
 
                 [#if encryption ]
-                   [#local replicaionPolicies +=  s3EncryptionReadPermission(kmsKeyId, bucketName, "*", region)]
+                   [#local replicaionPolicies +=  s3EncryptionReadPermission(kmsKeyId, bucketName, "*", regionId)]
                 [/#if]
 
                 [#local rolePolicies =
