@@ -1,4 +1,4 @@
-name: test
+name: testing
 
 on:
   push:
@@ -29,10 +29,8 @@ jobs:
 
       - name: Run Tests
         env:
-          GENERATION_PLUGIN_DIRS: ''
-          GENERATION_ENGINE_DIR: ${{ github.workspace }}
+          GENERATION_PLUGIN_DIRS: ${{ github.workspace }}
           TEST_OUTPUT_DIR: ${{ github.workspace }}/hamlet_tests
         run: |
-          mkdir -p ~/.hamlet
           hamlet engine set-engine unicycle
           hamlet -i mock -p shared -p sharedtest -f default deploy test-deployments -p '--junitxml=junit.xml' -o "${TEST_OUTPUT_DIR}"
