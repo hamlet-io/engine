@@ -29,6 +29,7 @@ jobs:
 
       - name: Run Tests
         env:
+          GENERATION_ENGINE_DIR: ${{github.workspace }}
           GENERATION_PLUGIN_DIRS: ${{ github.workspace }}
           TEST_OUTPUT_DIR: ${{ github.workspace }}/hamlet_tests
         run: |
