@@ -114,7 +114,7 @@
                     "      info \"Applying SMS account settings ...\"",
                     "      #",
                     "      update_sms_account_attributes" +
-                    "      \"" + region + "\" " +
+                    "      \"" + regionId + "\" " +
                     "      \"$\{tmpdir}/cli-" +
                                smsResourceId + "-" + smsCliCommand + ".json\" || return $?"
                 ] +

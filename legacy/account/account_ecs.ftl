@@ -16,7 +16,7 @@
 
     [#assign ecsAccountCommands = [] ]
     [#list ecsAccountSettings as setting,state ]
-        [#assign ecsAccountCommands += [ r'manage_ecs_account_settings "' + region + r'" "' + setting + r'" "' + state?then("enabled", "disabled") + r'"' ]]
+        [#assign ecsAccountCommands += [ r'manage_ecs_account_settings "' + regionId + r'" "' + setting + r'" "' + state?then("enabled", "disabled") + r'"' ]]
     [/#list]
 
     [#if deploymentSubsetRequired("epilogue", true)]
