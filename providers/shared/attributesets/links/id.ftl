@@ -69,6 +69,10 @@
             "Mandatory" : true
         },
         {
+            "Names" : "SubComponent",
+            "Type" : STRING_TYPE
+        },
+        {
             "Names" : "Instance",
             "Type" : STRING_TYPE
         },

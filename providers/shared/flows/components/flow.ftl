@@ -109,16 +109,19 @@
         [#local activeRequired = link.ActiveRequired ]
     [/#if]
 
+    [#-- Grab any explicit type requirement from the link --]
+    [#local linkType = link.Type!"" ]
+
     [#-- Handle external links --]
     [#-- They are deprecated in favour of an external tier but for now --]
     [#-- they can still be used, even with an external tier, by explicitly --]
     [#-- providing the link type --]
     [#if
         (link.Tier?lower_case == "external") &&
-        (link.Type?? || (!getTier(link.Tier)?has_content))]
+        (linkType?has_content || (!getTier(link.Tier)?has_content))]
         [#-- If a type is provided, ensure it has been included --]
-        [#if link.Type??]
-            [@includeComponentConfiguration link.Type /]
+        [#if linkType?has_content]
+            [@includeComponentConfiguration linkType /]
         [/#if]
         [#return
             internalCreateOccurrenceFromExternalLink(occurrence, link) +
@@ -140,63 +143,102 @@
             enabled=false
         /]
 
-        [#local targetType = getOccurrenceType(targetOccurrence) ]
+        [#local componentType = getOccurrenceType(targetOccurrence) ]
 
-        [#local targetSubOccurrences = [targetOccurrence] ]
-        [#local subComponentId = "" ]
+        [#local potentialOccurrences = [targetOccurrence] ]
 
         [#-- Check if suboccurrence linking is required --]
-        [#-- Support multiple alternatives --]
-        [#local subComponents = getComponentChildren(targetType) ]
-        [#list subComponents as subComponent]
-            [#list getComponentChildLinkAttributes(subComponent) as linkAttribute]
-                [#local subComponentId = link[linkAttribute]!"" ]
+        [#-- The preferred approach is to link based on the SubComponent attribute --]
+        [#-- and resolve any same named subcomponents via the Type attribute       --]
+
+        [#local subComponentId = link.SubComponent!"" ]
+        [#if ! subComponentId?has_content]
+            [#-- Support legacy links where subcomponent specific link attributes were used --]
+            [#local subComponents = getComponentChildren(componentType) ]
+            [#list subComponents as subComponent]
+                [#list getComponentChildLinkAttributes(subComponent) as linkAttribute]
+                    [#local subComponentId = link[linkAttribute]!"" ]
+                    [#if subComponentId?has_content ]
+                        [#if linkType?has_content && (linkType != subComponent.Type) ]
+                            [@fatal
+                                message="Link type of " + linkType + " is inconsistent with subcomponent link attribute " + linkAttribute
+                                context=link
+                            /]
+                            [#return {} ]
+                        [#else]
+                            [#local linkType = subComponent.Type ]
+                        [/#if]
+                        [#break]
+                    [/#if]
+                [/#list]
                 [#if subComponentId?has_content ]
                     [#break]
                 [/#if]
             [/#list]
-            [#if subComponentId?has_content ]
-                [#break]
-            [/#if]
-        [/#list]
+        [/#if]
 
         [#-- Legacy support for links to lambda without explicit function --]
         [#-- TODO(mfl): Review legacy support with view to removal --]
         [#if hasOccurrenceChildren(targetOccurrence) &&
                 subComponentId == "" &&
-                (targetType == LAMBDA_COMPONENT_TYPE) ]
+                (componentType == LAMBDA_COMPONENT_TYPE) ]
             [#local subComponentId = (getOccurrenceChildren(targetOccurrence)[0].Core.SubComponent.Id)!"" ]
+            [#local linkType = LAMBDA_FUNCTION_COMPONENT_TYPE ]
         [/#if]
 
+        [#-- Find suboccurrences with a matching id --]
         [#if subComponentId?has_content]
-            [#local targetSubOccurrences = getOccurrenceChildren(targetOccurrence) ]
-        [/#if]
+            [#local potentialOccurrences = [] ]
+            [#list getOccurrenceChildren(targetOccurrence) as potentialOccurrence]
+                [#if
+                    (subComponentId == (getOccurrenceSubComponent(potentialOccurrence).Id)!"") &&
+                    (getOccurrenceInstance(potentialOccurrence).Id == instanceToMatch) &&
+                    (getOccurrenceVersion(potentialOccurrence).Id == versionToMatch) &&
+                    (
+                        (!linkType?has_content) ||
+                        (linkType == getOccurrenceType(potentialOccurrence))
+                    ) ]
 
-        [#list targetSubOccurrences as targetSubOccurrence]
-
-            [#-- Subcomponent checking --]
-            [#if subComponentId?has_content &&
-                    (subComponentId != (getOccurrenceSubComponent(targetSubOccurrence).Id)!"") ]
-                [#continue]
+                    [#local potentialOccurrences += [potentialOccurrence] ]
+                [/#if]
+            [/#list]
+            [#if potentialOccurrences?size > 1 ]
+                [@fatal
+                    message="Multiple matching subcomponents with id " + subComponentId + ". Use a Type attribute to differentiate them."
+                    context=link
+                /]
+                [#return {} ]
             [/#if]
+         [/#if]
 
-            [#-- Match needs to be exact                            --]
+        [#-- Should only be 0 or 1 array elements --]
+        [#list potentialOccurrences as potentialOccurrence]
+
+            [#-- Match needs to be exact                             --]
             [#-- If occurrences do not match, overrides can be added --]
-            [#-- to the link.                                       --]
-            [#if (getOccurrenceInstance(targetSubOccurrence).Id != instanceToMatch) ||
-                (getOccurrenceVersion(targetSubOccurrence).Id != versionToMatch) ]
+            [#-- to the link.                                        --]
+            [#if (getOccurrenceInstance(potentialOccurrence).Id != instanceToMatch) ||
+                (getOccurrenceVersion(potentialOccurrence).Id != versionToMatch) ]
                 [#continue]
             [/#if]
 
-            [@debug message="Link matched target" context=targetSubOccurrence enabled=false /]
+            [#-- Ensure any provided type matches - needed where subcomponent ids the same --]
+            [#if linkType?has_content && (linkType != getOccurrenceType(potentialOccurrence)) ]
+                [@fatal
+                    message="Link type of " + linkType + " is inconsistent with matched occurrence type of " + getOccurrenceType(potentialOccurrence)
+                    context=link
+                /]
+            [/#if]
+
+            [@debug message="Link matched target" context=potentialOccurrence enabled=false /]
 
             [#-- Determine if deployed --]
-            [#local isDeployed = isOccurrenceDeployed(targetSubOccurrence)]
+            [#local isDeployed = isOccurrenceDeployed(potentialOccurrence)]
 
             [#-- Always warn if linking to an inactive component --]
             [#if !isDeployed && !activeRequired ]
                 [@warn
-                    message="link occurrence not deployed - ${occurrence.Core.Name} -> ${targetSubOccurrence.Core.Name}"
+                    message="link occurrence not deployed - ${occurrence.Core.Name} -> ${potentialOccurrence.Core.Name}"
                     detail="A link was made to an occurrence which has not been deployed"
                     context={
                         "Link" : link,
@@ -229,10 +271,10 @@
             [#local direction = (link.Direction?lower_case)!"outbound"]
 
             [#local role =
-                link.Role!getOccurrenceDefaultRole(targetSubOccurrence, direction)]
+                link.Role!getOccurrenceDefaultRole(potentialOccurrence, direction)]
 
             [#return
-                targetSubOccurrence +
+                potentialOccurrence +
                 {
                     "Direction" : direction,
                     "Role" : role,
