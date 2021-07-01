@@ -22,16 +22,21 @@ jobs:
 
       - name: Install
         run: |
-          pip install --pre hamlet-cli
-
-          sudo apt-get update
+          pip install hamlet-cli
           sudo apt-get install -y jq dos2unix
 
       - name: Run Tests
         env:
           GENERATION_ENGINE_DIR: ${{github.workspace }}
           GENERATION_PLUGIN_DIRS: ${{ github.workspace }}
-          TEST_OUTPUT_DIR: ${{ github.workspace }}/hamlet_tests
         run: |
           hamlet engine set-engine unicycle
-          hamlet -i mock -p shared -p sharedtest -f default deploy test-deployments -p '--junitxml=junit.xml' -o "${TEST_OUTPUT_DIR}"
+          hamlet -i mock -p shared -p sharedtest -f default deploy test-deployments -p '--junitxml=junit.xml' -o 'hamlet_tests/'
+
+      - name: Test Results
+        uses: mikepenz/action-junit-report@v2
+        with:
+          report_paths: 'hamlet_tests/junit.xml'
+          fail_on_failure: true
+          require_tests: true
+          check_name: deploy_tests results
