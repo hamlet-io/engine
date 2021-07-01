@@ -16,9 +16,11 @@ on:
     types:
       - completed
 
+  pull_request:
+
 jobs:
   build:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     steps:
 
@@ -49,6 +51,7 @@ jobs:
             latest=${{ github.ref == 'refs/heads/master' }}
           tags: |
             type=semver,pattern={{version}}
+            type=sha
 
       - name: build and push container
         uses: docker/build-push-action@v2
