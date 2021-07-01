@@ -48,9 +48,10 @@ jobs:
         with:
           images: ghcr.io/${{github.repository}}
           flavor: |
-            latest=${{ github.ref == 'refs/heads/master' }}
+            latest=auto
           tags: |
             type=semver,pattern={{version}}
+            type=edge,branch=master
             type=sha
 
       - name: build and push container
