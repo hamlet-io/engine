@@ -23,7 +23,7 @@ jobs:
         env:
           REPO: ${{github.repository}}
         run: |
-          auto-changelog --unreleased --latest-version latest \
+          auto-changelog --unreleased \
             --remote "https://github.com/${REPO}.git" \
             --diff-url "https://github.com/${REPO}/compare/{previous}...{current}" \
             --issue-url "https://github.com/${REPO}/issues/{id}"
