@@ -224,6 +224,7 @@
                     "Name" : formatName(occurrence.Core.Extensions.Name),
                     "RawName" : formatName(occurrence.Core.Extensions.RawName),
                     "TypedName" : formatName(occurrence.Core.Extensions.Name, type),
+                    "TypedRawName" : formatName(occurrence.Core.Extensions.RawName, type),
                     "FullName" : formatSegmentFullName(occurrence.Core.Extensions.Name),
                     "RawFullName" : formatSegmentFullName(occurrence.Core.Extensions.RawName),
                     "TypedFullName" : formatSegmentFullName(occurrence.Core.Extensions.Name, type),
