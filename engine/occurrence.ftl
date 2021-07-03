@@ -40,11 +40,12 @@
         [#local instanceId = parentOccurrence.Core.Instance.Id ]
         [#local versionId = parentOccurrence.Core.Version.Id ]
         [#local subComponentId = occurrence.Core.SubComponent.Id ]
+        [#local subComponentType = occurrence.Core.Type ]
         [#local subInstanceId = occurrence.Core.Instance.Id ]
         [#local subVersionId = occurrence.Core.Version.Id ]
 
         [#local occurrenceDetails =
-            (occurrenceCache[tierId][componentId][instanceId][versionId]["SubComponents"][subComponentId][subInstanceId][subVersionId])!{} ]
+            (occurrenceCache[tierId][componentId][instanceId][versionId]["SubComponents"][subComponentId][subComponentType][subInstanceId][subVersionId])!{} ]
     [#else]
         [#local tierId = occurrence.Core.Tier.Id ]
         [#local componentId = occurrence.Core.Component.RawId ]
