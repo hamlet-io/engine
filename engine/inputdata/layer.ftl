@@ -38,6 +38,11 @@
     [/#list]
 [/#macro]
 
+[#-- Check if layer is configured/known --]
+[#function isLayerConfigured type ]
+    [#return layerConfiguration[type]?? ]
+[/#function]
+
 [#macro addLayerData type data={} ]
     [#local layerConfig = layerConfiguration[type] ]
     [#if layerConfig?has_content]

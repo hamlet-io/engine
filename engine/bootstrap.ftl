@@ -17,11 +17,11 @@
 [#-- Input data handling --]
 [#include "inputdata/inputsource.ftl" ]
 [#include "inputdata/layer.ftl" ]
+[#include "inputdata/district.ftl" ]
 [#include "inputdata/commandLineOptions.ftl" ]
 [#include "inputdata/reference.ftl" ]
 [#include "inputdata/setting.ftl" ]
 [#include "inputdata/seed.ftl" ]
-
 
 [#-- entrances --]
 [#include "entrance.ftl" ]
