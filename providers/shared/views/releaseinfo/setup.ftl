@@ -14,7 +14,7 @@
     [#-- Determine the available registries --]
     [#list accountObject["Registry"]["Registries"] as id, details ]
         [#if details?is_hash && details.Enabled ]
-            [#switch (details.Type)?lower_case ]
+            [#switch ((details.Storage)!"")?lower_case ]
                 [#case "objectstore"]
                     [#if accountObject.Provider == "aws" ]
                         [#local environemnt_vars += {
@@ -27,8 +27,8 @@
                 [#case "snapshotstore"]
                     [#if accountObject.Provider == "aws" ]
                         [#local environemnt_vars += {
-                            ("${accountId}_${id}_PREFIX)?upper_case : "registry",
-                            ("${accountId}_${id}_REGION)?upper_case : regionId
+                            ("${accountId}_${id}_PREFIX")?upper_case : "registry",
+                            ("${accountId}_${id}_REGION")?upper_case : regionId
                         }]
                     [/#if]
                     [#break]
