@@ -237,6 +237,173 @@
                     "Description" : "A list of regions to replicate registries to",
                     "Types" : ARRAY_OF_STRING_TYPE,
                     "Default" : []
+                },
+                {
+                    "Names" : "Registries",
+                    "Description" : "Defines the registries available for image hosting",
+                    "Children" : [
+                        {
+                            "Names" : "dataset",
+                            "Children" : [
+                                {
+                                    "Names" : "Enabled",
+                                    "Type" : BOOLEAN_TYPE,
+                                    "Default" : true
+                                },
+                                {
+                                    "Names" : "Storage",
+                                    "Description" : "How the images are stored",
+                                    "Values" : [ "objectstore" ],
+                                    "Default" : "objectstore"
+                                }
+                            ]
+                        },
+                        {
+                            "Names" : "contentnode",
+                            "Children" : [
+                                {
+                                    "Names" : "Enabled",
+                                    "Type" : BOOLEAN_TYPE,
+                                    "Default" : true
+                                },
+                                {
+                                    "Names" : "Storage",
+                                    "Description" : "How the images are stored",
+                                    "Values" : [ "objectstore" ],
+                                    "Default" : "objectstore"
+                                }
+                            ]
+                        },
+                        {
+                            "Names" : "lambda",
+                            "Children" : [
+                                {
+                                    "Names" : "Enabled",
+                                    "Type" : BOOLEAN_TYPE,
+                                    "Default" : true
+                                },
+                                {
+                                    "Names" : "Storage",
+                                    "Description" : "How the images are stored",
+                                    "Values" : [ "objectstore" ],
+                                    "Default" : "objectstore"
+                                }
+                            ]
+                        },
+                        {
+                            "Names" : "pipeline",
+                            "Children" : [
+                                {
+                                    "Names" : "Enabled",
+                                    "Type" : BOOLEAN_TYPE,
+                                    "Default" : true
+                                },
+                                {
+                                    "Names" : "Storage",
+                                    "Description" : "How the images are stored",
+                                    "Values" : [ "objectstore" ],
+                                    "Default" : "objectstore"
+                                }
+                            ]
+                        },
+                        {
+                            "Names" : "scripts",
+                            "Children" : [
+                                {
+                                    "Names" : "Enabled",
+                                    "Type" : BOOLEAN_TYPE,
+                                    "Default" : true
+                                },
+                                {
+                                    "Names" : "Storage",
+                                    "Description" : "How the images are stored",
+                                    "Values" : [ "objectstore" ],
+                                    "Default" : "objectstore"
+                                }
+                            ]
+                        },
+                        {
+                            "Names" : "spa",
+                            "Children" : [
+                                {
+                                    "Names" : "Enabled",
+                                    "Type" : BOOLEAN_TYPE,
+                                    "Default" : true
+                                },
+                                {
+                                    "Names" : "Storage",
+                                    "Description" : "How the images are stored",
+                                    "Values" : [ "objectstore" ],
+                                    "Default" : "objectstore"
+                                }
+                            ]
+                        },
+                        {
+                            "Names" : "swagger",
+                            "Children" : [
+                                {
+                                    "Names" : "Enabled",
+                                    "Type" : BOOLEAN_TYPE,
+                                    "Default" : true
+                                },
+                                {
+                                    "Names" : "Storage",
+                                    "Description" : "How the images are stored",
+                                    "Values" : [ "objectstore" ],
+                                    "Default" : "objectstore"
+                                }
+                            ]
+                        },
+                        {
+                            "Names" : "openapi",
+                            "Children" : [
+                                {
+                                    "Names" : "Enabled",
+                                    "Type" : BOOLEAN_TYPE,
+                                    "Default" : true
+                                },
+                                {
+                                    "Names" : "Storage",
+                                    "Description" : "How the images are stored",
+                                    "Values" : [ "objectstore" ],
+                                    "Default" : "objectstore"
+                                }
+                            ]
+                        },
+                        {
+                            "Names" : [ "rdssnapshot", "dbsnapshot" ],
+                            "Children" : [
+                                {
+                                    "Names" : "Enabled",
+                                    "Type" : BOOLEAN_TYPE,
+                                    "Default" : true
+                                },
+                                {
+                                    "Names" : "Storage",
+                                    "Description" : "How the images are stored",
+                                    "Type" : STRING_TYPE,
+                                    "Values" : [ "snapshotstore" ],
+                                    "Default" : "snapshotstore"
+                                }
+                            ]
+                        },
+                        {
+                            "Names" : "docker",
+                            "Children" : [
+                                {
+                                    "Names" : "Enabled",
+                                    "Type" : BOOLEAN_TYPE,
+                                    "Default" : true
+                                },
+                                {
+                                    "Names" : "Storage",
+                                    "Description" : "How the images are stored",
+                                    "Values" : [ "providerregistry" ],
+                                    "Default" : "providerregistry"
+                                }
+                            ]
+                        }
+                    ]
                 }
             ]
         },
