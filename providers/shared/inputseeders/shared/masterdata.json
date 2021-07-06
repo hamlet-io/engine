@@ -687,6 +687,16 @@
         "Timeout": "5"
       }
     },
+    "sqlsvr": {
+      "Port": 1433,
+      "IPProtocol": "tcp",
+      "HealthCheck": {
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
     "nfs": {
       "Port": 2049,
       "Protocol": "TCP",
