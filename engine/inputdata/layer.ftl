@@ -1,41 +1,57 @@
 [#ftl]
 
-[#---------------------------------------------
--- Public functions for reference data processing --
------------------------------------------------]
+[#-----------------------------------------
+-- Public functions for layer processing --
+-------------------------------------------]
 
-[#-- Reference Data is extended dynamically by each reference Data type --]
+[#-- Layer Data is extended dynamically by each layer type --]
 [#assign layerConfiguration = {} ]
-[#assign layerData = {}]
-[#assign layerActiveData = {}]
 
-[#macro clearLayerData  ]
-    [#assign layerData = {}]
-    [#assign layerActiveData = {}]
-[/#macro]
-
-[#-- Macros to assemble the component configuration --]
-[#macro addLayer type referenceLookupType properties attributes inputFilterAttributes ]
-    [#local configuration = {
-        "Type" : type,
-        "ReferenceLookupType" : referenceLookupType,
-        "Properties" : asArray(properties),
-        "Attributes" : asArray( [ "InhibitEnabled" ] + attributes),
-        "InputFilterAttributes" : asArray(inputFilterAttributes)}
+[#-- Macro to assemble the layer configuration --]
+[#-- The reference type is an object where each child attribute  --]
+[#-- contains common or reference attribute values for the layer --]
+[#macro addLayer type referenceLookupType properties attributes inputFilterAttributes=[] ]
+    [#local configuration =
+        {
+            "Type" : type,
+            "ReferenceLookupType" : referenceLookupType,
+            "Properties" : asArray(properties),
+            "Attributes" : asArray( [ "InhibitEnabled" ] + attributes),
+            "InputFilterAttributes" : asArray(inputFilterAttributes)
+        }
     ]
 
-    [@internalMergeLayerConfiguration
-        type=type
-        configuration=configuration
-    /]
+    [#assign layerConfiguration =
+        mergeObjects(
+            layerConfiguration,
+            {
+                type : configuration
+            }
+        )
+    ]
 
-    [#-- Register input filter attributes for layer --]
-    [#list asArray(inputFilterAttributes) as inputFilterAttribute]
-        [@registerLayerInputFilterAttribute
-            id=inputFilterAttribute.Id
-            description=inputFilterAttribute.Description
+    [#-- Register input filter attributes for layer        --]
+    [#-- For now only one attribute per layer is supported --]
+    [#-- pending identification of a use case              --]
+    [#if configuration.InputFilterAttributes?size != 1]
+        [@fatal
+            message="A layer must be configured with one input filter attribute"
+            detail=configuration
         /]
-    [/#list]
+    [#else]
+        [#local inputFilterAttribute = configuration.InputFilterAttributes[0] ]
+        [#if inputFilterAttribute.Id??]
+            [@registerLayerInputFilterAttribute
+                id=inputFilterAttribute.Id
+                description=inputFilterAttribute.Description
+            /]
+        [#else]
+            [@fatal
+                message="Layer input filter attribute must have an Id"
+                context=configuration
+            /]
+        [/#if]
+     [/#if]
 [/#macro]
 
 [#-- Check if layer is configured/known --]
@@ -43,46 +59,8 @@
     [#return layerConfiguration[type]?? ]
 [/#function]
 
-[#macro addLayerData type data={} ]
-    [#local layerConfig = layerConfiguration[type] ]
-    [#if layerConfig?has_content]
-        [@internalMergeLayerData
-            type=layerConfig.Type
-            data=data
-        /]
-    [/#if]
-[/#macro]
-
-[#macro setActiveLayer type commandLineOptionId data={} ]
-    [#local layerConfig = getLayerConfiguration(type) ]
-    [#local layerData = {}]
-
-    [#local layerId = commandLineOptionId ]
-    [#if data.Id?? && data.Id?has_content ]
-        [#local layerId = data.Id ]
-    [/#if]
-
-    [#if layerConfig?has_content ]
-        [#if layerConfig.ReferenceLookupType?has_content ]
-            [#local layerData = getLayer(type, layerId )]
-        [/#if]
-
-        [#local layerDetails = mergeObjects(layerData, data + { "Id" : layerId } )  ]
-
-        [@internalMergeLayerActiveData
-            type=type
-            data=layerDetails
-        /]
-
-        [@internalMergeLayerData
-            type=type
-            data={
-                layerId : layerDetails
-            }
-        /]
-    [/#if]
-[/#macro]
-
+[#-- Fetch configuration of a layer             --]
+[#-- Assumes layer is expected to be configured --]
 [#function getLayerConfiguration type ]
     [#local layerConfig = layerConfiguration[type]]
     [#if layerConfig?has_content ]
@@ -92,26 +70,22 @@
             message="Could not find layer configuration"
             detail=type
         /]
-        [#return {}]
+        [#return {} ]
     [/#if]
 [/#function]
 
-[#function getLayer type id="" ]
-    [#local layerConfig = layerConfiguration[type]]
-    [#if layerConfig?has_content && (layerConfig.ReferenceLookupType)?has_content ]
-        [#if id?has_content ]
-            [#return (layerData[layerConfig.ReferenceLookupType][id])!{} ]
-        [#else]
-            [#return (layerData[layerConfig.ReferenceLookupType])!{}]
-        [/#if]
-    [/#if]
-    [#return {}]
+[#-- Check if layer is active based on its presence in the current input state --]
+[#function isLayerActive type]
+    [#return getActiveLayers()[type]?? ]
 [/#function]
 
+[#-- Fetch the current configuration for a layer --]
+[#-- Assumes layer is expected to be active --]
 [#function getActiveLayer type ]
-    [#local layer = (layerActiveData[type])!{} ]
-    [#if layer?has_content]
-        [#return layer ]
+    [#local activeData = getActiveLayers() ]
+    [#-- Layer may not be active depending on the input filter --]
+    [#if activeData[type]?? ]
+        [#return activeData[type] ]
     [#else]
         [@fatal
             message="Could not find layer"
@@ -121,18 +95,203 @@
     [/#if]
 [/#function]
 
-[#function getActiveLayers ]
-    [#return layerActiveData]
-[/#function]
-
 [#-- Searches all layers for a given attribute - attribute provided as array of keys --]
 [#-- Returns all of the attribute values found on the layers --]
-[#function getActiveLayerAttributes attributePath layers=[ "*" ] default=[] ]
+[#function getActiveLayerAttributes attributePath layers=[ "*" ] default=[] layersState={} ]
+
+    [#return
+        internalGetActiveLayerAttributes(
+            attributePath,
+            layersState?has_content?then(
+                layersState,
+                getActiveLayers()
+            ),
+            layers,
+            default
+        )
+    ]
+[/#function]
+
+[#-----------------------------------------------------
+-- Friend functions for use by input processing only --
+-------------------------------------------------------]
+
+[#-- Determine the layer input state --]
+[#function friendGetActiveLayersState filter blueprint]
+    [#local result = {} ]
+
+    [#list layerConfiguration as id, configuration ]
+        [#if internalIsActiveLayer(configuration, filter) ]
+            [#local result +=
+                {
+                    configuration.Type :
+                        internalGetLayerState(
+                            configuration,
+                            filter,
+                            blueprint,
+                            configuration.Attributes
+                        )
+                }
+            ]
+        [/#if]
+    [/#list]
+
+    [#return result]
+[/#function]
+
+[#-- Determine the layer filter attribute values --]
+[#function friendGetActiveLayersFilter filter blueprint]
+    [#local result = {} ]
+
+    [#list layerConfiguration as id, configuration ]
+        [#if internalIsActiveLayer(configuration, filter) ]
+            [#local result +=
+                internalGetFilterAttributeForLayer(
+                    configuration,
+                    internalGetLayerState(
+                        configuration,
+                        filter,
+                        blueprint,
+                        [
+                            "InhibitEnabled",
+                            {
+                                "Names" : "Id",
+                                "Types" : STRING_TYPE
+                            },
+                            {
+                                "Names" : "Name",
+                                "Types" : STRING_TYPE
+                            }
+                        ]
+                    )
+                )
+            ]
+        [/#if]
+    [/#list]
+    [#return result]
+[/#function]
+
+[#-- Determine the layers filter attribute values from --]
+[#-- previously calculated layers state                --]
+[#function friendGetActiveLayersFilterFromLayerState layersState]
+    [#local result = {} ]
+
+    [#list layersState as type, layerState ]
+        [#local result +=
+            internalGetFilterAttributeForLayer(
+                getLayerConfiguration(type),
+                layerState
+            )
+        ]
+    [/#list]
+
+    [#return result]
+[/#function]
+
+[#-------------------------------------------------------
+-- Internal support functions for component processing --
+---------------------------------------------------------]
+
+[#-- Determine if the layer is active based on the provided input filter --]
+[#function internalIsActiveLayer configuration filter ]
+    [#-- Temporarily assume that if a layer is known, it is active --]
+    [#-- This is mainly to handle the solution layer. Future       --]
+    [#-- refactoring will see it removed as a layer and handled by --]
+    [#-- more general solution handling code                       --]
+    [#-- TODO(mfl): Remove once solution is no longer a layer      --]
+    [#return true]
+
+    [#if getFilterAttribute(filter, configuration.InputFilterAttributes[0].Id)?has_content]
+        [#-- Assume only one attribute per filter --]
+        [#return true]
+    [/#if]
+
+    [#-- No matching attribute found --]
+    [#return false]
+[/#function]
+
+[#-- Create a filter attribute corresponding to a layer --]
+[#function internalGetFilterAttributeForLayer configuration data ]
+    [#-- Assume only one attribute per filter --]
+    [#local values =
+        getUniqueArrayElements(
+            arrayIfTrue(data.Id!"", data.Id??),
+            arrayIfTrue(data.Name!"", data.Name??)
+        )
+    ]
+    [#return
+        attributeIfContent(
+            configuration.InputFilterAttributes[0].Id,
+            values
+        )
+    ]
+[/#function]
+
+[#-- Determine the layer state based on any layer data, --]
+[#-- reference data or input filter attribute values    --]
+[#function internalGetLayerState configuration filter blueprint attributes ]
+
+    [#-- Start with what we can glean from various sources --]
+    [#local filterState = internalGetLayerFilterData(configuration, filter) ]
+    [#local layerState = internalGetLayerData(configuration, blueprint) ]
+    [#local layerId = mergeObjects(filterState, layerState).Id!"" ]
+    [#local referenceState =
+        internalGetLayerReferenceData(
+            configuration,
+            blueprint,
+            layerId
+        )
+    ]
+
+    [#-- Ensure any reference state is consistent with the layerId --]
+    [#if layerId?has_content && referenceState.Id?? && (layerId != referenceState.Id) ]
+        [@fatal
+            message="Layer reference configuration is inconsistent with layer Id"
+            context=referenceState
+            detail=layerId
+        /]
+        [#return {} ]
+    [/#if]
+
+    [#-- Now merge in the priority order --]
+    [#local state = mergeObjects(filterState, referenceState, layerState) ]
+
+    [#-- Return the requested attributes of the layer --]
+    [#return getCompositeObject( attributes, addIdNameToObject( state, state.Id!"" )) ]
+[/#function]
+
+[#-- Get layer data from the input filter --]
+[#function internalGetLayerFilterData configuration filter ]
+    [#-- If more than one value, then filter already has id and name --]
+    [#local filterAttributeValues = getFilterAttribute(filter, configuration.InputFilterAttributes[0].Id) ]
+    [#if filterAttributeValues?size == 1]
+        [#return
+            {
+                "Id" : filterAttributeValues[0]
+            }
+        ]
+    [/#if]
+    [#return {} ]
+[/#function]
+
+[#-- Get layer data from the reference data --]
+[#function internalGetLayerReferenceData configuration blueprint id ]
+    [#return (blueprint[configuration.ReferenceLookupType][id])!{} ]
+[/#function]
+
+[#-- Get layer data from the type based layer object --]
+[#function internalGetLayerData configuration blueprint ]
+    [#return (blueprint[configuration.Type])!{} ]
+[/#function]
+
+[#-- Searches provided layer data for a given attribute - attribute provided as array of keys --]
+[#-- Returns all of the attribute values found on the layers --]
+[#function internalGetActiveLayerAttributes attributePath layersState layers default ]
     [#local results = [] ]
     [#-- Process layers in turn assuming the order provided is the preferred order --]
     [#list layers as layer]
         [#-- Look up the active data --]
-        [#list getActiveLayers() as type, layerData ]
+        [#list layersState as type, layerData ]
             [#if (layer == type) || (layer == "*") ]
                 [#local layerAttribute = findAttributeInObject( layerData, attributePath ) ]
                 [#if layerAttribute?has_content ]
@@ -145,93 +304,3 @@
     [#return results + asArray(default) ]
 [/#function]
 
-[#macro includeLayers cloLayers blueprint]
-    [#list layerConfiguration as id, layer ]
-        [@addLayerData
-            type=layer.Type
-            data=(blueprint[layer.ReferenceLookupType])!{}
-        /]
-        [@setActiveLayer
-            type=layer.Type
-            commandLineOptionId=(cloLayers[layer.Type])!""
-            data=blueprint[layer.Type]
-        /]
-    [/#list]
-[/#macro]
-
-[#function getLayerIdsAndNamesForFilter]
-    [#local result = {} ]
-    [#list layerConfiguration as id, layer ]
-        [#-- Only include layers where one of the input filter attributes --]
-        [#-- matches the layer type                                       --]
-        [#list asArray(layer.InputFilterAttributes) as inputFilterAttribute]
-            [#if layer.Type == inputFilterAttribute.Id]
-                [#local activeLayerData = getActiveLayer(layer.Type) ]
-                [#local idAndName =
-                    getUniqueArrayElements(
-                        arrayIfTrue(activeLayerData.Id!"", activeLayerData.Id??),
-                        arrayIfTrue(activeLayerData.Name!"", activeLayerData.Name??)
-                    )
-                ]
-                [#if idAndName?has_content]
-                    [#local result += { inputFilterAttribute.Id : idAndName } ]
-                [/#if]
-                [#break]
-            [/#if]
-        [/#list]
-    [/#list]
-    [#return result]
-[/#function]
-
-[#-------------------------------------------------------
--- Internal support functions for component processing --
----------------------------------------------------------]
-
-[#-- Helper macro - not for general use --]
-[#macro internalMergeLayerConfiguration type configuration]
-    [#assign layerConfiguration =
-        mergeObjects(
-            layerConfiguration,
-            {
-                type : configuration
-            }
-        )]
-[/#macro]
-
-[#macro internalMergeLayerData type data=[] ]
-    [#local layerConfig = (layerConfiguration[type])!{} ]
-    [#if layerConfig?has_content ]
-        [#if data?has_content ]
-            [#list data as id,content ]
-                [#local compositeData = getCompositeObject(layerConfig.Attributes, addIdNameToObject( content, content.Id )) ]
-                [#assign layerData =
-                    mergeObjects(
-                        layerData,
-                        {
-                            layerConfig.ReferenceLookupType : {
-                                id : compositeData
-                            }
-                        }
-                    )]
-            [/#list]
-        [/#if]
-    [#else]
-        [@fatal
-            message="Attempt to add data for unknown layer reference data type"
-            detail=type
-        /]
-    [/#if]
-[/#macro]
-
-[#macro internalMergeLayerActiveData type data={} ]
-    [#local layerConfig = (layerConfiguration[type])!{} ]
-    [#if layerConfig?has_content ]
-        [#assign layerActiveData =
-            mergeObjects(
-                layerActiveData,
-                {
-                    type : getCompositeObject( layerConfig.Attributes, addIdNameToObject( data, data.Id ))
-                }
-            )]
-    [/#if]
-[/#macro]

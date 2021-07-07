@@ -108,6 +108,7 @@
                 "Input" : {
                     "Source" : inputSource!"composite",
                     "Filter" :
+                        attributeIfContent("District", district!"") +
                         attributeIfContent("Tenant", tenant!"") +
                         attributeIfContent("Product", product!"") +
                         attributeIfContent("Environment", environment!"") +
@@ -144,16 +145,6 @@
                         "Name" : deploymentUnit!""
                     },
                     "Mode" : deploymentMode!""
-                },
-
-                [#-- Layer Details --]
-                "Layers" : {
-                    "Tenant" : tenant!"",
-                    "Product" : product!"",
-                    "Environment" : environment!"",
-                    "Segment" : segment!"",
-                    "Account" : account!"",
-                    "Region" : region!""
                 },
 
                 [#-- Logging Details --]
@@ -442,13 +433,11 @@
     [#-- the blueprint class via fixtures or cmdb. To avoid false errors for --]
     [#-- required layer attributes, ensure we have data to process           --]
     [#if state[BLUEPRINT_CONFIG_INPUT_CLASS]?has_content]
-        [#-- Calculate the layers from the blueprint data so far        --]
-        [#-- Include masterdata that to this point is only in the cache --]
+        [#-- Calculate the layers from the blueprint data so far                  --]
+        [#-- Include masterdata that to this point is only in the cache           --]
         [#-- Exclude module data - it shouldn't contribute to layer determination --]
-        [#-- and should only be added by a subsequent module stage      --]
-        [@clearLayerData /]
-        [@includeLayers
-            state[COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS].Layers
+        [#-- and should only be added by a subsequent module stage                --]
+        [#local config =
             getConfigPipelineClassCacheForStages(
                 state,
                 BLUEPRINT_CONFIG_INPUT_CLASS,
@@ -458,13 +447,25 @@
                     CMDB_SHARED_INPUT_STAGE
                 ]
             )[BLUEPRINT_CONFIG_INPUT_CLASS]
-        /]
+        ]
 
+        [#-- A layer is considered active if its attribute is present in the input filter --]
+
+        [#-- Support qualification on the basis of the ids or names of the active layers --]
+        [#local enrichedFilter = getEnrichedFilter(filter, friendGetActiveLayersFilter(filter, config)) ]
+
+        [#-- Convert the layer input filter ids to their equivalent attribute configuration --]
+        [#local qualifierChildren = getQualifierChildren(getRegisteredLayerInputFilterAttributeIds(filter)) ]
+
+        [#-- Capture the state of the active layers --]
         [#local result =
             addToConfigPipelineClass(
                 state,
-                LAYERS_CONFIG_INPUT_CLASS,
-                layerActiveData
+                ACTIVE_LAYERS_CONFIG_INPUT_CLASS,
+                friendGetActiveLayersState(
+                    filter,
+                    qualifyEntity(config, enrichedFilter, qualifierChildren)
+                )
             )
         ]
     [/#if]
@@ -474,9 +475,13 @@
 [/#function]
 
 [#function shared_configseeder_plugin filter state]
+    [#local plugins = [] ]
 
     [#-- Check for plugins configured in the CMDB --]
-    [#local plugins = getActivePluginsFromLayers() ]
+    [#local layersState = state[ACTIVE_LAYERS_CONFIG_INPUT_CLASS]!{} ]
+    [#if layersState?has_content]
+        [#local plugins = getActivePluginsFromLayers(layersState) ]
+    [/#if]
 
     [#-- At a minimum, need providers from the command line --]
     [#local providers = (state[COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS].Deployment.Provider.Names) ]
@@ -513,8 +518,14 @@
 [/#function]
 
 [#function shared_configseeder_module filter state]
+    [#local activeModules = [] ]
 
-    [#local activeModules = getActiveModulesFromLayers() ]
+    [#-- Check for modules configured in the CMDB --]
+    [#local layersState = state[ACTIVE_LAYERS_CONFIG_INPUT_CLASS]!{} ]
+    [#if layersState?has_content]
+        [#local activeModules = getActiveModulesFromLayers(layersState) ]
+    [/#if]
+
     [#local moduleState = {} ]
     [#if activeModules?has_content &&
             [#-- Don't try to load modules when refreshing plugin state --]
@@ -611,11 +622,16 @@
 [#function shared_configtransformer_qualify filter state]
 
     [#-- Provided filter is enriched to include ids and names for any --]
-    [#-- layer related filter attribute                               --]
+    [#-- previously identified active layer                           --]
     [#-- Qualifications are validated on the basis of known layer     --]
     [#-- filter attributes                                            --]
-    [#local enrichedFilter = getEnrichedFilter(filter, getLayerIdsAndNamesForFilter()) ]
-    [#local qualifierChildren = getQualifierChildren(getRegisteredLayerInputFilterAttributeIds()) ]
+    [#local enrichedFilter =
+        getEnrichedFilter(
+            filter,
+            friendGetActiveLayersFilterFromLayerState(state[ACTIVE_LAYERS_CONFIG_INPUT_CLASS])
+        )
+    ]
+    [#local qualifierChildren = getQualifierChildren(getRegisteredLayerInputFilterAttributeIds(filter)) ]
     [#return
         qualifyEntity(state, enrichedFilter, qualifierChildren) +
         {

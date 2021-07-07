@@ -352,8 +352,9 @@ to filter the data returned
     ]
 [/#macro]
 
-[#function getRegisteredLayerInputFilterAttributeIds]
-    [#return layerInputFilterAttributes?keys?sort]
+[#-- Return registered attribute ids in the provided filter --]
+[#function getRegisteredLayerInputFilterAttributeIds filter]
+    [#return layerInputFilterAttributes?keys?sort?filter(k -> isFilterAttribute(filter, k)) ]
 [/#function]
 
 [#-- Manage input state --]
@@ -366,7 +367,7 @@ to filter the data returned
 [#assign FRAGMENTS_CONFIG_INPUT_CLASS = "Fragments" ]
 [#assign STATE_CONFIG_INPUT_CLASS = "State" ]
 [#assign LOADER_CONFIG_INPUT_CLASS = "Loader" ]
-[#assign LAYERS_CONFIG_INPUT_CLASS = "Layers" ]
+[#assign ACTIVE_LAYERS_CONFIG_INPUT_CLASS = "ActiveLayers" ]
 
 [#-- Cache of stage data for situations where back --]
 [#-- referencing is need in subsequent stages      --]
@@ -397,8 +398,8 @@ to filter the data returned
     [#return getInputState()[STATE_CONFIG_INPUT_CLASS]![] ]
 [/#function]
 
-[#function getLayers ]
-    [#return getInputState()[LAYERS_CONFIG_INPUT_CLASS]![] ]
+[#function getActiveLayers ]
+    [#return getInputState()[ACTIVE_LAYERS_CONFIG_INPUT_CLASS]!{} ]
 [/#function]
 
 [#function getLoader ]

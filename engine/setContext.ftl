@@ -101,21 +101,25 @@
         addIdNameToObjectAttributes(blueprintObject.Certificates!{}) ]
 
     [#-- Tenants --]
-    [#assign tenants = getLayer(TENANT_LAYER_TYPE) ]
-    [#assign tenantObject = getActiveLayer( TENANT_LAYER_TYPE )]
+    [#if isLayerActive(TENANT_LAYER_TYPE) ]
+        [#-- assign tenants = getLayer(TENANT_LAYER_TYPE) --]
+        [#assign tenantObject = getActiveLayer( TENANT_LAYER_TYPE )]
 
-    [#if ((tenantObject.Id)!"")?has_content ]
         [#assign tenantId = tenantObject.Id ]
         [#assign tenantName = tenantObject.Name ]
     [/#if]
 
     [#-- Accounts --]
-    [#assign accounts = getLayer(ACCOUNT_LAYER_TYPE) ]
-    [#assign accountObject = getActiveLayer(ACCOUNT_LAYER_TYPE)]
+    [#if isLayerActive(ACCOUNT_LAYER_TYPE) ]
+        [#-- assign accounts = getLayer(ACCOUNT_LAYER_TYPE) --]
+        [#assign accountObject = getActiveLayer(ACCOUNT_LAYER_TYPE)]
 
-    [#if ((accountObject.Id)!"")?has_content]
         [#assign accountId = accountObject.Id ]
         [#assign accountName = accountObject.Name ]
+
+        [#-- Cludge for now until access to reference data is reworked --]
+        [#-- TODO(mfl): revisit with a view to remove --]
+        [#assign accounts = {accountId : accountObject} ]
 
         [#if getLoaderProviders()?seq_contains("aws")]
             [#assign credentialsBucket = getExistingReference(formatAccountS3Id("credentials"))]
@@ -135,10 +139,10 @@
     [/#if]
 
     [#-- Products --]
-    [#assign products = getLayer(PRODUCT_LAYER_TYPE) ]
-    [#assign productObject = getActiveLayer(PRODUCT_LAYER_TYPE) ]
+    [#if isLayerActive(PRODUCT_LAYER_TYPE) ]
+        [#-- assign products = getLayer(PRODUCT_LAYER_TYPE) --]
+        [#assign productObject = getActiveLayer(PRODUCT_LAYER_TYPE) ]
 
-    [#if ((productObject.Id)!"")?has_content]
         [#assign productId = productObject.Id ]
         [#assign productName = productObject.Name ]
         [#assign productDomain = productObject.Domain!"" ]
@@ -146,21 +150,20 @@
         [#assign shortNamePrefixes += [productId] ]
         [#assign fullNamePrefixes += [productName] ]
         [#assign cmdbProductLookupPrefixes += ["shared"] ]
-
     [/#if]
 
     [#-- Segments --]
-    [#assign segments = getLayer(SEGMENT_LAYER_TYPE) ]
-    [#assign segmentObject = getActiveLayer(SEGMENT_LAYER_TYPE)]
+    [#if isLayerActive(SEGMENT_LAYER_TYPE) ]
+        [#-- assign segments = getLayer(SEGMENT_LAYER_TYPE) --]
+        [#assign segmentObject = getActiveLayer(SEGMENT_LAYER_TYPE)]
 
-    [#assign environments = getLayer(ENVIRONMENT_LAYER_TYPE) ]
-    [#assign environmentObject = getActiveLayer(ENVIRONMENT_LAYER_TYPE) ]
-
-    [#if ((segmentObject.Id)!"")?has_content]
         [#assign segmentId = segmentObject.Id ]
         [#assign segmentName = segmentObject.Name ]
 
-        [#if ((environmentObject.Id)!"")?has_content ]
+        [#if isLayerActive(ENVIRONMENT_LAYER_TYPE) ]
+            [#-- assign environments = getLayer(ENVIRONMENT_LAYER_TYPE) --]
+            [#assign environmentObject = getActiveLayer(ENVIRONMENT_LAYER_TYPE) ]
+
             [#assign environmentId = environmentObject.Id ]
             [#assign environmentName = environmentObject.Name ]
 
@@ -186,7 +189,6 @@
                 [#assign shortNamePrefixes += [segmentId] ]
                 [#assign fullNamePrefixes += [segmentName] ]
             [/#if]
-
         [/#if]
 
         [#if getLoaderProviders()?seq_contains("aws")]
@@ -242,18 +244,20 @@
     [/#if]
 
     [#-- Solution --]
-    [#assign solutionObject = getActiveLayer(SOLUTION_LAYER_TYPE) ]
-    [#if ((solutionObject.Id)!"")?has_content ]
-        [#assign solnMultiAZ =
-                    getActiveLayerAttributes( ["MultiAZ" ], [ SOLUTION_LAYER_TYPE, ENVIRONMENT_LAYER_TYPE ], false )[0] ]
-        [#assign RDSAutoMinorVersionUpgrade =
-                    getActiveLayerAttributes( ["RDS", "AutoMinorVersionUpgrade" ], [ SEGMENT_LAYER_TYPE, SOLUTION_LAYER_TYPE, ENVIRONMENT_LAYER_TYPE ], true )[0] ]
+    [#if isLayerActive(SOLUTION_LAYER_TYPE) ]
+        [#assign solutionObject = getActiveLayer(SOLUTION_LAYER_TYPE) ]
+        [#if ((solutionObject.Id)!"")?has_content ]
+            [#assign solnMultiAZ =
+                        getActiveLayerAttributes( ["MultiAZ" ], [ SOLUTION_LAYER_TYPE, ENVIRONMENT_LAYER_TYPE ], false )[0] ]
+            [#assign RDSAutoMinorVersionUpgrade =
+                        getActiveLayerAttributes( ["RDS", "AutoMinorVersionUpgrade" ], [ SEGMENT_LAYER_TYPE, SOLUTION_LAYER_TYPE, ENVIRONMENT_LAYER_TYPE ], true )[0] ]
 
-        [#assign natPerAZ = natEnabled &&
-                            (
-                                (natHosted && solnMultiAZ) ||
-                                ((segmentObject.NAT.MultiAZ)!false)
-                            ) ]
+            [#assign natPerAZ = natEnabled &&
+                                (
+                                    (natHosted && solnMultiAZ) ||
+                                    ((segmentObject.NAT.MultiAZ)!false)
+                                ) ]
+        [/#if]
     [/#if]
 
     [#-- Deployment Profiles use the standard CMDB override mechanism --]
@@ -292,54 +296,56 @@
         ) ]
 
     [#-- Required tiers --]
-    [#list segmentObject.Tiers.Order as tierId]
-        [#assign blueprintTier = (blueprintObject.Tiers[tierId])!{}]
-        [#if ! (blueprintTier?has_content) ]
-            [#continue]
-        [/#if]
-        [#assign tierNetwork =
-            {
-                "Enabled" : false
-            } ]
-
-        [#if blueprintTier.Components?has_content || ((blueprintTier.Required)!false)]
-            [#if (blueprintTier.Network.Enabled)!false ]
-                [#list segmentObject.Network.Tiers.Order![] as networkTier]
-                    [#if networkTier == tierId]
-                        [#assign tierNetwork =
-                            blueprintTier.Network +
-                            {
-                                "Index" : networkTier?index,
-                                "Link" : addIdNameToObject(blueprintTier.Network.Link, "network")
-                            } ]
-                        [#break]
-                    [/#if]
-                [/#list]
+    [#if isLayerActive(SEGMENT_LAYER_TYPE) ]
+        [#list segmentObject.Tiers.Order as tierId]
+            [#assign blueprintTier = (blueprintObject.Tiers[tierId])!{}]
+            [#if ! (blueprintTier?has_content) ]
+                [#continue]
             [/#if]
-            [#assign tiers +=
-                [
-                    addIdNameToObject(blueprintTier, tierId) +
-                    { "Network" : tierNetwork }
-                ] ]
-        [/#if]
-    [/#list]
+            [#assign tierNetwork =
+                {
+                    "Enabled" : false
+                } ]
 
-    [#-- Required zones --]
-    [#assign zones = [] ]
-    [#if regionId?has_content]
-        [#list segmentObject.Network.Zones.Order as zoneId]
-            [#if ((regions[regionId].Zones[zoneId])!"")?has_content]
-                [#assign zone = regions[regionId].Zones[zoneId] ]
-                [#assign zones +=
+            [#if blueprintTier.Components?has_content || ((blueprintTier.Required)!false)]
+                [#if (blueprintTier.Network.Enabled)!false ]
+                    [#list segmentObject.Network.Tiers.Order![] as networkTier]
+                        [#if networkTier == tierId]
+                            [#assign tierNetwork =
+                                blueprintTier.Network +
+                                {
+                                    "Index" : networkTier?index,
+                                    "Link" : addIdNameToObject(blueprintTier.Network.Link, "network")
+                                } ]
+                            [#break]
+                        [/#if]
+                    [/#list]
+                [/#if]
+                [#assign tiers +=
                     [
-                        addIdNameToObject(zone, zoneId) +
-                        {
-                            "Index" : zoneId?index
-                        }
-                    ]
-                ]
+                        addIdNameToObject(blueprintTier, tierId) +
+                        { "Network" : tierNetwork }
+                    ] ]
             [/#if]
         [/#list]
+
+        [#-- Required zones --]
+        [#assign zones = [] ]
+        [#if regionId?has_content]
+            [#list segmentObject.Network.Zones.Order as zoneId]
+                [#if ((regions[regionId].Zones[zoneId])!"")?has_content]
+                    [#assign zone = regions[regionId].Zones[zoneId] ]
+                    [#assign zones +=
+                        [
+                            addIdNameToObject(zone, zoneId) +
+                            {
+                                "Index" : zoneId?index
+                            }
+                        ]
+                    ]
+                [/#if]
+            [/#list]
+        [/#if]
     [/#if]
 
     [#-- Country Groups --]
