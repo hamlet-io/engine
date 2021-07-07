@@ -110,7 +110,7 @@
                                     getCLODeploymentGroup(),
                                     getCLODeploymentUnit(),
                                     outputMapping["Subset"],
-                                    getCommandLineOptions().Layers[ACCOUNT_LAYER_TYPE],
+                                    getActiveLayer(ACCOUNT_LAYER_TYPE).Name!"",
                                     getCLOSegmentRegion(),
                                     getCLOAccountRegion(),
                                     "primary"
