@@ -259,6 +259,13 @@
             r'return 0'
         ]]
 
+        [#assign s3RegistryIds = ""]
+        [#list accountObject["Registry"]["Registries"] as id,details ]
+            [#if details?is_hash && details.Enabled && details.Type == "objectstore" ]
+                [#assign s3RegistryIds += '"${id}" ' ]
+            [/#if]
+        [/#list]
+
         [#-- Make sure code bucket is up to date and registries initialised --]
         [@addToDefaultBashScriptOutput
             content=
@@ -284,7 +291,7 @@
                     "case $\{STACK_OPERATION} in",
                     "  create|update)",
                     "    sync_code_bucket || return $?",
-                    "    initialise_registries \"dataset\" \"contentnode\" \"lambda\" \"pipeline\" \"scripts\" \"spa\" \"swagger\" \"openapi\" \"rdssnapshot\" || return $?",
+                    "    initialise_registries ${s3RegistryIds} || return $?",
                     "    ;;",
                     " esac"
                 ]
