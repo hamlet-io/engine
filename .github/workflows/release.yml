@@ -1,0 +1,92 @@
+name: release
+
+on:
+  push:
+    branches:
+      - 'master'
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+  pull_request:
+
+jobs:
+  deploy_tests:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Java Setup
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '8'
+
+      - name: Install
+        run: |
+          pip install hamlet-cli
+          sudo apt-get install -y jq dos2unix
+
+      - name: Run Tests
+        env:
+          GENERATION_ENGINE_DIR: ${{github.workspace }}
+          GENERATION_PLUGIN_DIRS: ${{ github.workspace }}
+        run: |
+          hamlet engine set-engine unicycle
+          hamlet -i mock -p shared -p sharedtest -f default deploy test-deployments -p '--junitxml=junit.xml' -o 'hamlet_tests/'
+
+      - name: Test Results
+        uses: mikepenz/action-junit-report@v2
+        with:
+          report_paths: 'hamlet_tests/junit.xml'
+          fail_on_failure: true
+          require_tests: true
+          check_name: deploy_tests results
+
+
+  package:
+    needs:
+      - deploy_tests
+    if: ${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags') }}
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to Github Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: add build details
+        run: |
+          pip install hamlet-cli
+          hamlet engine add-engine-source-build
+
+      - name: docker meta details
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ghcr.io/${{github.repository}}
+          flavor: |
+            latest=auto
+          tags: |
+            type=semver,pattern={{version}}
+            type=edge,branch=master
+            type=sha
+
+      - name: build and push container
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: ${{ startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          target: base_package
