@@ -27,10 +27,10 @@
     [/#if]
 [/#macro]
 
-[#function getActivePluginsFromLayers  ]
+[#function getActivePluginsFromLayers  layersState ]
 
     [#local plugins = [] ]
-    [#local possiblePlugins = asFlattenedArray(getActiveLayerAttributes( [ "Plugins" ] )) ]
+    [#local possiblePlugins = asFlattenedArray(getActiveLayerAttributes( [ "Plugins" ], ["*"], [], layersState )) ]
 
     [#list possiblePlugins as pluginInstance ]
         [#list pluginInstance as id, plugin ]
@@ -154,46 +154,6 @@
             id=plugin.Id
             ref=(definedPluginState.ref)!plugin.Source
         /]
-    [/#list]
-    [#return result]
-[/#function]
-
-[#function getPluginsFromLayers pluginState ]
-    [#local result = [] ]
-    [#local definedPlugins = getActivePluginsFromLayers() ]
-
-    [#list definedPlugins?sort_by("Priority") as plugin]
-        [#local pluginRequired = plugin.Required]
-
-        [#local definedPluginState = (pluginState["Plugins"][plugin.Id])!{} ]
-
-        [#if pluginRequired && !(definedPluginState?has_content) && plugin.Source != "local" ]
-            [@fatal
-                message="Plugin setup not complete"
-                detail="A plugin was required but plugin setup has not been run"
-                context=plugin
-            /]
-        [/#if]
-
-
-        [#local pluginProviderMarker = providerMarkers?filter(
-                                            marker -> marker.Path?keep_after_last("/") == plugin.Name ) ]
-
-        [#if !(pluginProviderMarker?has_content) && pluginRequired  ]
-            [@fatal
-                message="Unable to load required provider"
-                detail="The provider could not be found in the local state - please load hamlet plugins"
-                context=plugin
-            /]
-            [#continue]
-        [/#if]
-
-        [@addPluginMetadata
-            id=plugin.Id
-            ref=(definedPluginState.ref)!plugin.Source
-        /]
-
-        [#local result += [plugin] ]
     [/#list]
     [#return result]
 [/#function]

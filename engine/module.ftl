@@ -3,11 +3,11 @@
 [#-- modules allow loading input data using the engine itself --]
 [#assign moduleConfiguration = {}]
 
-[#function getActiveModulesFromLayers  ]
+[#function getActiveModulesFromLayers layersState ]
 
     [#local modules = [] ]
 
-    [#local possibleModules = asFlattenedArray(getActiveLayerAttributes( [ "Modules" ] )) ]
+    [#local possibleModules = asFlattenedArray(getActiveLayerAttributes( [ "Modules" ], ["*"], [], layersState )) ]
 
     [#list possibleModules as moduleInstance ]
         [#list moduleInstance?values as module ]
