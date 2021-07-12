@@ -48,6 +48,12 @@
                 "SubObjects" : true,
                 "Children" : [
                     {
+                        "Names" : "IdSuffix",
+                        "Description" : "An additional suffix that will be included along with the template Id for the output - Allows for mapping multiple resource attributes",
+                        "Types" : STRING_TYPE,
+                        "Default" : ""
+                    },
+                    {
                         "Names" : "TemplateOutputKey",
                         "Description" : "The name of the template output you want to map to an attribte",
                         "Types" : STRING_TYPE,
