@@ -62,13 +62,14 @@ input source.
 
 [#assign inputStages = {} ]
 
-[#macro registerInputStage id description]
+[#macro registerInputStage id description stageState=false]
     [#assign inputStages =
         mergeObjects(
             inputStages,
             {
                 id : {
-                    "Description" : description
+                    "Description" : description,
+                    "StageState" : stageState
                 }
             }
         )
@@ -375,7 +376,12 @@ to filter the data returned
 
 [#-- Convenience Accessor functions that ensure state is up to date --]
 [#function getCommandLineOptions ]
-    [#return getInputState()[COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS]!{} ]
+    [#-- Support CLO access during input processing --]
+    [#if inputStateRefreshInProgress]
+        [#return getInputState(false)[COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS]!{} ]
+    [#else]
+        [#return getInputState(true)[COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS]!{} ]
+    [/#if]
 [/#function]
 
 [#function getBlueprint ]
@@ -399,7 +405,12 @@ to filter the data returned
 [/#function]
 
 [#function getActiveLayers ]
-    [#return getInputState()[ACTIVE_LAYERS_CONFIG_INPUT_CLASS]!{} ]
+    [#-- Support Layer access during input processing --]
+    [#if inputStateRefreshInProgress]
+        [#return getInputState(false)[ACTIVE_LAYERS_CONFIG_INPUT_CLASS]!{} ]
+    [#else]
+        [#return getInputState(true)[ACTIVE_LAYERS_CONFIG_INPUT_CLASS]!{} ]
+    [/#if]
 [/#function]
 
 [#function getLoader ]
@@ -523,17 +534,37 @@ A stack is used to capture the history of input state changes
                 /]
                 [#-- Assume a restart won't be necessary --]
                 [#local newState =
-                    internalGetConfigPipelineValue(
-                        topOfStack.Source,
-                        topOfStack.Filter,
-                        {
-                            LOADER_CONFIG_INPUT_CLASS : {
-                                "Plugins" : [],
-                                "Providers" : []
-                            }
+                    {
+                        LOADER_CONFIG_INPUT_CLASS : {
+                            "Plugins" : [],
+                            "Providers" : []
                         }
-                    )
+                    }
                 ]
+
+                [#-- Get the ordered list of steps to invoke --]
+                [#list internalGetInputStages(topOfStack.Source) as inputStage]
+                    [#local newState =
+                        internalGetInputPipelineStageValue(
+                            topOfStack.Source,
+                            topOfStack.Filter,
+                            CONFIG_SEEDER_PIPELINE_TYPE,
+                            inputStage,
+                            newState
+                        )
+                    ]
+
+                    [#-- Capture intermediate state where required --]
+                    [#if (inputStages[inputStage.Id].StageState)!false]
+                        [#assign inputState = newState]
+                    [/#if]
+
+                    [#-- Terminate if a restart is required --]
+                    [#if newState.RestartRequired!false]
+                        [#break]
+                    [/#if]
+                [/#list]
+
                 [#local restartRequired = newState.RestartRequired!false]
                 [#if restartRequired]
                     [@debug
@@ -550,9 +581,6 @@ A stack is used to capture the history of input state changes
                     [#-- Temporarily allow access to the input state    --]
                     [#-- during plugin/provider loading                 --]
                     [@internalSuspendInputStateRefresh /]
-
-                    [#-- Provide the state thus far - mainly for CLO access --]
-                    [#assign inputState = newState]
 
                     [#-- Ensure required plugins are loaded if not refreshing plugins --]
                     [#if !newState[COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS].Plugins.RefreshRequired]
@@ -835,63 +863,58 @@ Get the steps in order for an input stage
 [/#function]
 
 [#--
-Get the effective value of a pipeline for the current input filter
+Get the effective value of a pipeline stage for the current input filter
 --]
-[#function internalGetInputPipelineValue inputSource inputFilter pipeline initialState ]
+[#function internalGetInputPipelineStageValue inputSource inputFilter pipeline inputStage initialState ]
     [@debug
-        message="Evaluating " + pipeline + " pipeline"
+        message="Evaluating " + pipeline + " pipeline, stage "+ inputStage.Id
         context=inputFilter
         detail=initialState
         enabled=false
-
     /]
+
     [#local state = initialState ]
-    [#-- Get the ordered list of stages to invoke --]
-    [#list internalGetInputStages(inputSource) as inputStage]
-        [#-- Get the ordered list of steps to invoke --]
-        [#list internalGetInputSteps(inputStage.Id, pipeline) as inputStep]
-            [#-- Ensure step is registered for the input source --]
-            [#if inputStep.Sources?seq_contains(inputSource) || inputStep.Sources?seq_contains("*")]
 
-                [#-- Support various level of step specificity --]
-                [#local stepFunctionOptions =
-                    [
-                        [ inputStep.Id, inputStep.Function, inputStage.Id, inputSource ],
-                        [ inputStep.Id, inputStep.Function, inputStage.Id ],
-                        [ inputStep.Id, inputStep.Function ]
-                    ]
+    [#-- Get the ordered list of steps to invoke --]
+    [#list internalGetInputSteps(inputStage.Id, pipeline) as inputStep]
+        [#-- Ensure step is registered for the input source --]
+        [#if inputStep.Sources?seq_contains(inputSource) || inputStep.Sources?seq_contains("*")]
+
+            [#-- Support various level of step specificity --]
+            [#local stepFunctionOptions =
+                [
+                    [ inputStep.Id, inputStep.Function, inputStage.Id, inputSource ],
+                    [ inputStep.Id, inputStep.Function, inputStage.Id ],
+                    [ inputStep.Id, inputStep.Function ]
                 ]
+            ]
 
-                [#local stepFunction = getFirstDefinedDirective(stepFunctionOptions)]
+            [#local stepFunction = getFirstDefinedDirective(stepFunctionOptions)]
 
-                [#if (.vars[stepFunction]!"")?is_directive]
-                    [@debug
-                        message="Invoking step function " + stepFunction
-                        enabled=false
-                    /]
-                    [#local state = (.vars[stepFunction])(inputFilter, state) ]
-                [#else]
-                    [#-- This means a step has been registered but its corresponding    --]
-                    [#-- implementation can't be located - likely an implementation bug --]
-                    [@fatal
-                        message="Unable to invoke any of the input step function options for " + pipeline + " pipeline - check function naming"
-                        context=inputStep
-                        detail=stepFunctionOptions
-                    /]
-                [/#if]
+            [#if (.vars[stepFunction]!"")?is_directive]
+                [@debug
+                    message="Invoking step function " + stepFunction
+                    enabled=false
+                /]
+                [#local state = (.vars[stepFunction])(inputFilter, state) ]
+            [#else]
+                [#-- This means a step has been registered but its corresponding    --]
+                [#-- implementation can't be located - likely an implementation bug --]
+                [@fatal
+                    message="Unable to invoke any of the input step function options for " + pipeline + " pipeline - check function naming"
+                    context=inputStep
+                    detail=stepFunctionOptions
+                /]
             [/#if]
-            [#-- Terminate if a restart is required --]
-            [#if state.RestartRequired!false]
-                [#break]
-            [/#if]
-        [/#list]
+        [/#if]
         [#-- Terminate if a restart is required --]
         [#if state.RestartRequired!false]
             [#break]
         [/#if]
     [/#list]
+
     [@debug
-        message="Evaluation of " + pipeline + " pipeline complete"
+        message="Evaluating " + pipeline + " pipeline, stage "+ inputStage.Id + " complete"
         context=inputFilter
         enabled=false
     /]
@@ -900,31 +923,40 @@ Get the effective value of a pipeline for the current input filter
 [/#function]
 
 [#--
-Get the effective value of the config pipeline for the current input source/filter
---]
-[#function internalGetConfigPipelineValue inputSource inputFilter initialState={} ]
-    [#return internalGetInputPipelineValue(inputSource, inputFilter, CONFIG_SEEDER_PIPELINE_TYPE, initialState ) ]
-[/#function]
-
-[#--
 Get the effective value of the state pipeline for the current input source/filter
 --]
 [#function internalGetStatePipelineValue inputSource inputFilter id deploymentUnit account region level ]
-    [#return
-        internalGetInputPipelineValue(
-            inputSource,
-            inputFilter,
-            STATE_SEEDER_PIPELINE_TYPE,
-            {
-                "Id" : id,
-                "DeploymentUnit" : deploymentUnit,
-                "Account" : account,
-                "Region" : region,
-                "Level" : level,
-                "Value" : ""
-            }
-        )
+
+    [#local state =
+        {
+            "Id" : id,
+            "DeploymentUnit" : deploymentUnit,
+            "Account" : account,
+            "Region" : region,
+            "Level" : level,
+            "Value" : ""
+        }
     ]
+
+    [#-- Get the ordered list of stages to invoke --]
+    [#list internalGetInputStages(inputSource) as inputStage]
+        [#local state =
+            internalGetInputPipelineStageValue(
+                inputSource,
+                inputFilter,
+                STATE_SEEDER_PIPELINE_TYPE,
+                inputStage,
+                state
+            )
+        ]
+
+        [#-- Terminate if a restart is required --]
+        [#if state.RestartRequired!false]
+            [#break]
+        [/#if]
+    [/#list]
+
+    [#return state]
 [/#function]
 
 [#-- Manage an input state cache --]
