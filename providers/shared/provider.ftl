@@ -84,6 +84,7 @@
                             "DeploymentUnit" : deploymentUnit,
                             "DeploymentGroup" : deploymentGroupDetails.Name,
                             "DeploymentProvider" : deploymentProvider,
+                            "District" : deploymentGroupDetails.District,
                             "Operations" : deploymentModeDetails.Operations,
                             "CurrentState" : currentState
                         }

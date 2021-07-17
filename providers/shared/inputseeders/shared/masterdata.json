@@ -1736,19 +1736,19 @@
   },
   "DeploymentGroups": {
     "segment": {
-      "Priority": 10,
+      "Priority": 100,
       "Level": "segment",
       "OutputPrefix" : "seg",
       "ResourceSets": {}
     },
     "solution": {
-      "Priority": 100,
+      "Priority": 200,
       "Level": "solution",
       "OutputPrefix" : "soln",
       "ResourceSets": {}
     },
     "application": {
-      "Priority": 200,
+      "Priority": 300,
       "Level": "application",
       "OutputPrefix" : "app",
       "ResourceSets": {}

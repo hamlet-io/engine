@@ -31,8 +31,8 @@
     [#list ((deploymentGroupDetails.ResourceSets)!{})?values?filter(s -> s.Enabled ) as resourceSet ]
         [#if getCLODeploymentUnit() == resourceSet["deployment:Unit"] ]
 
-            [#assign groupDeploymentUnits = true]
-            [#assign ignoreDeploymentUnitSubsetInOutputs = true]
+            [#assign groupDeploymentUnits = resourceSet["GroupDeploymentUnit"]]
+            [#assign ignoreDeploymentUnitSubsetInOutputs = resourceSet["GroupDeploymentUnit"]]
 
             [#local contractSubsets = []]
             [#list resourceSet.ResourceLabels as label ]

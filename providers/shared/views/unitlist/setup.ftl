@@ -68,23 +68,22 @@
         [/#list]
     [/#list]
 
-    [#-- Add all of the required Resource Sets - Set deployed state to false --]
-    [#if getOutputContent("stages")?has_content ]
-        [#list getOutputContent("stages")?keys as deploymentGroup ]
-            [#local groupDetails = getDeploymentGroupDetails(deploymentGroup)]
 
-            [#list (groupDetails.ResourceSets)?values as resourceSet ]
+    [#-- Add all of the required Resource Sets--]
+    [#list getDeploymentGroups()?keys as deploymentGroup ]
+        [#local groupDetails = getDeploymentGroupDetails(deploymentGroup)]
 
-                [#local deploymentUnit = resourceSet["deployment:Unit"] ]
+        [#list (groupDetails.ResourceSets)?values as resourceSet ]
 
-                [@createResourceSetManagementContractStep
-                    deploymentGroup=deploymentGroup
-                    deploymentUnit=deploymentUnit
-                    currentState=getDeploymentUnitStates(deploymentGroup, deploymentUnit)
-                                    ?seq_contains(true)?then("deployed", "notdeployed")
-                /]
-            [/#list]
+            [#local deploymentUnit = resourceSet["deployment:Unit"] ]
+
+            [@createResourceSetManagementContractStep
+                deploymentGroup=deploymentGroup
+                deploymentUnit=deploymentUnit
+                currentState=getDeploymentUnitStates(deploymentGroup, deploymentUnit)
+                                ?seq_contains(true)?then("deployed", "notdeployed")
+            /]
         [/#list]
-    [/#if]
+    [/#list]
 
 [/#macro]
