@@ -26,6 +26,7 @@
                 "DeploymentGroups" : {
                     "internal" : {
                         "Priority" : 500,
+                        "District" : "segment",
                         "Level" : "solution",
                         "ResourceSets" : {}
                     }
