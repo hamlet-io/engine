@@ -29,6 +29,12 @@
             "Mandatory" : true
         },
         {
+            "Names" : "District",
+            "Description" : "The id of the district for components included in the deployment group",
+            "Types" : STRING_TYPE,
+            "Mandatory" : true
+        },
+        {
             "Names" : "OutputPrefix",
             "Description" : "Overrides the prefix used when generating outputs - Defaults to the Id of the Group",
             "Types" : STRING_TYPE
@@ -56,10 +62,16 @@
                     "Default" : 5
                 },
                 {
+                    "Names" : "GroupDeploymentUnit",
+                    "Description" : "Does the resource set span all units in the group",
+                    "Types" : BOOLEAN_TYPE,
+                    "Default" : true
+                },
+                {
                     "Names" : "ResourceLabels",
                     "Description" : "The resource labels to include in the subset",
                     "Types" : ARRAY_OF_STRING_TYPE,
-                    "Mandatory" : true
+                    "Default" : []
                 }
             ]
         },

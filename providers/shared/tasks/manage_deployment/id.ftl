@@ -20,6 +20,11 @@
             "Mandatory" : true
         },
         {
+            "Names" : "District",
+            "Types" : STRING_TYPE,
+            "Mandatory" : true
+        },
+        {
             "Names" : "Operations",
             "Types" : ARRAY_OF_STRING_TYPE,
             "Mandatory" : true
