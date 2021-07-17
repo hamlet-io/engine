@@ -19,7 +19,7 @@
         [#assign ecsAccountCommands += [ r'manage_ecs_account_settings "' + regionId + r'" "' + setting + r'" "' + state?then("enabled", "disabled") + r'"' ]]
     [/#list]
 
-    [#if deploymentSubsetRequired("epilogue", true)]
+    [#if deploymentSubsetRequired("epilogue", false)]
         [@addToDefaultBashScriptOutput
             content=
                 [
