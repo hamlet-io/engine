@@ -143,8 +143,8 @@
         [#-- assign products = getLayer(PRODUCT_LAYER_TYPE) --]
         [#assign productObject = getActiveLayer(PRODUCT_LAYER_TYPE) ]
 
-        [#assign productId = productObject.Id ]
-        [#assign productName = productObject.Name ]
+        [#assign productId = (productObject.Id)!"" ]
+        [#assign productName = (productObject.Name)!"" ]
         [#assign productDomain = productObject.Domain!"" ]
 
         [#assign shortNamePrefixes += [productId] ]
@@ -157,15 +157,15 @@
         [#-- assign segments = getLayer(SEGMENT_LAYER_TYPE) --]
         [#assign segmentObject = getActiveLayer(SEGMENT_LAYER_TYPE)]
 
-        [#assign segmentId = segmentObject.Id ]
-        [#assign segmentName = segmentObject.Name ]
+        [#assign segmentId = (segmentObject.Id)!"" ]
+        [#assign segmentName = (segmentObject.Name)!"" ]
 
         [#if isLayerActive(ENVIRONMENT_LAYER_TYPE) ]
             [#-- assign environments = getLayer(ENVIRONMENT_LAYER_TYPE) --]
             [#assign environmentObject = getActiveLayer(ENVIRONMENT_LAYER_TYPE) ]
 
-            [#assign environmentId = environmentObject.Id ]
-            [#assign environmentName = environmentObject.Name ]
+            [#assign environmentId = (environmentObject.Id)!"" ]
+            [#assign environmentName = (environmentObject.Name)!"" ]
 
             [#assign categoryId = (segmentObject.Category!environmentObject.Category)!"" ]
             [#assign categoryName = categoryId ]
@@ -240,7 +240,6 @@
 
         [#assign flowlogsOffline =
                         getActiveLayerAttributes( ["Operations", "FlowLogs", "Offline"], [ SEGMENT_LAYER_TYPE, ENVIRONMENT_LAYER_TYPE ], "" )[0] ]
-
     [/#if]
 
     [#-- Solution --]
@@ -257,6 +256,12 @@
                                     (natHosted && solnMultiAZ) ||
                                     ((segmentObject.NAT.MultiAZ)!false)
                                 ) ]
+
+        [#else]
+            [#-- Handle global vars when solution is not defined --]
+            [#assign solnMultiAZ = false]
+            [#assign RDSAutoMinorVersionUpgrade = false]
+            [#assign natPerAZ = false]
         [/#if]
     [/#if]
 
