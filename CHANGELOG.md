@@ -1,6 +1,34 @@
 # Changelog
 
-## Unreleased (2021-07-07)
+## Unreleased (2021-07-19)
+
+#### New Features
+
+* set districts for deployment groups
+* template output suffixes for mapping
+* (districts): Initial implementation
+#### Fixes
+
+* district assignments on groups
+* minor updates to account units
+* include suboccurrences when generate tests
+* qualification of layer data ([#1730](https://github.com/hamlet-io/engine/issues/1730))
+#### Refactorings
+
+* handle non segment districts in flows
+* clo/layer access during input processing ([#1735](https://github.com/hamlet-io/engine/issues/1735))
+
+Full set of changes: [`8.2.1...7b141e0`](https://github.com/hamlet-io/engine/compare/8.2.1...7b141e0)
+
+## 8.2.1 (2021-07-09)
+
+#### Fixes
+
+* (ci): tag trigger support in pipeline ([#1732](https://github.com/hamlet-io/engine/issues/1732))
+
+Full set of changes: [`8.2.0...8.2.1`](https://github.com/hamlet-io/engine/compare/8.2.0...8.2.1)
+
+## 8.2.0 (2021-07-09)
 
 #### New Features
 
@@ -45,8 +73,11 @@
 * set explicit typed profile attributes
 * standardise profile lookups
 * remove explicit qualification support ([#1696](https://github.com/hamlet-io/engine/issues/1696))
+#### Others
 
-Full set of changes: [`8.1.2...5c32333`](https://github.com/hamlet-io/engine/compare/8.1.2...5c32333)
+* changelog bump ([#1718](https://github.com/hamlet-io/engine/issues/1718))
+
+Full set of changes: [`8.1.2...8.2.0`](https://github.com/hamlet-io/engine/compare/8.1.2...8.2.0)
 
 ## 8.1.2 (2021-05-15)
 
