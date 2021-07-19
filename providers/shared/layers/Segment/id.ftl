@@ -43,12 +43,12 @@
         {
             "Names" : "Modules",
             "SubObjects" : true,
-            "Children"  : moduleReferenceConfiguration
+            "AttributeSet" : MODULE_ATTRIBUTESET_TYPE
         },
         {
             "Names" : "Plugins",
             "SubObjects" : true,
-            "Children" : pluginReferenceConfiguration
+            "AttributeSet" : PLUGIN_ATTRIBUTESET_TYPE
         },
         {
             "Names" : "Profiles",
