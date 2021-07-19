@@ -12,8 +12,12 @@
 
 [#assign LINK_ATTRIBUTESET_TYPE = "link"]
 
+[#assign MODULE_ATTRIBUTESET_TYPE = "module"]
+
 [#assign OPERATINGSYSTEM_ATTRIBUTESET_TYPE = "operatingsystem" ]
 
 [#assign OSPATCHING_ATTRIBUTESET_TYPE = "ospatching"]
+
+[#assign PLUGIN_ATTRIBUTESET_TYPE = "plugin"]
 
 [#assign VOLUME_ATTRIBUTESET_TYPE = "volume"]

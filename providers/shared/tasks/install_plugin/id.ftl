@@ -8,6 +8,5 @@
                 "Value" : "Install a hamlet plugin from the source provided"
             }
         ]
-    attributes=
-        pluginReferenceConfiguration
+    attributes=getAttributeSet(PLUGIN_ATTRIBUTESET_TYPE)
 /]
