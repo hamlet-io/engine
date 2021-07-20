@@ -119,6 +119,32 @@
                 ]
             },
             {
+                "Names" : "MaintenanceWindow",
+                "Children" : [
+                    {
+                        "Names" : "DayOfTheWeek",
+                        "Types" : STRING_TYPE,
+                        "Values" : [
+                            "Sunday",
+                            "Monday",
+                            "Tuesday",
+                            "Wednesday",
+                            "Thursday",
+                            "Friday",
+                            "Saturday"
+                        ]
+                    },
+                    {
+                        "Names" : "TimeOfDay",
+                        "Types" : STRING_TYPE
+                    },
+                    {
+                        "Names" : "TimeZone",
+                        "Types" : STRING_TYPE
+                    }
+                ]
+            },
+            {
                 "Names" : "AllowMajorVersionUpgrade",
                 "Description" : "If the EngineVersion paramter is updated allow for major version updates to run",
                 "Types" : BOOLEAN_TYPE,
