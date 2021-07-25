@@ -166,11 +166,6 @@
 
         [#-- Legacy support for fragments --]
         [#local fragmentId = id ]
-        [#-- TODO(mfl) Remove check for fragmentList once changes to --
-        [#-- support content intergretation in place --]
-        [#if fragmentList?has_content]
-            [#include fragmentList?ensure_starts_with("/") ]
-        [/#if]
 
         [#local fragments = getFragments()?trim ]
         [#if fragments?has_content]
