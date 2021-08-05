@@ -1100,9 +1100,12 @@ is useful to see what the global settings are from a debug perspective
         )
     ]
 
-    [#-- Add the global security --]
-    [#local globalContent +=
-        getSecurity(globalConfiguration, definition, integrations) ]
+    [#-- Add the global security for openapi 3 --]
+    [#-- AWS throws an error if this is provided for openapi 2 --]
+    [#if globalConfiguration.OpenAPI.MajorVersion gte 3]
+        [#local globalContent +=
+            getSecurity(globalConfiguration, definition, integrations) ]
+    [/#if]
 
     [#local paths = {} ]
     [#list (definition.paths!{}) + getAWSProxyPaths(globalConfiguration) as path, pathObject]
