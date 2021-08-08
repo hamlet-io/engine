@@ -1100,12 +1100,8 @@ is useful to see what the global settings are from a debug perspective
         )
     ]
 
-    [#-- Add the global security for openapi 3 --]
-    [#-- AWS throws an error if this is provided for openapi 2 --]
-    [#if globalConfiguration.OpenAPI.MajorVersion gte 3]
-        [#local globalContent +=
-            getSecurity(globalConfiguration, definition, integrations) ]
-    [/#if]
+    [#-- Add the global security --]
+    [#local globalContent += getSecurity(globalConfiguration, definition, integrations) ]
 
     [#local paths = {} ]
     [#list (definition.paths!{}) + getAWSProxyPaths(globalConfiguration) as path, pathObject]
@@ -1236,6 +1232,11 @@ is useful to see what the global settings are from a debug perspective
 
         [#local paths += { path : verbs } ]
     [/#list]
+
+    [#-- AWS throws an error if top level security is provided for openapi 2 --]
+    [#if globalConfiguration.OpenAPI.MajorVersion lt 3]
+        [#local globalContent = removeObjectAttributes(globalContent, ["security"] ) ]
+    [/#if]
 
     [#return mergeObjects( globalContent, { "paths" : paths } ) ]
 [/#function]
