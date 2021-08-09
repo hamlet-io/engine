@@ -50,7 +50,6 @@
 [/#function]
 
 [#-- Loads the module data into the input data --]
-
 [#macro loadModule
     blueprint={}
     settingSets=[]
@@ -76,11 +75,41 @@
 
     [#-- attributeIfContent() returns an empty object if no content --]
     [#assign moduleInputState =
-        attributeIfContent(COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS, commandLineOption) +
-        attributeIfContent(BLUEPRINT_CONFIG_INPUT_CLASS, blueprint) +
-        attributeIfContent(SETTINGS_CONFIG_INPUT_CLASS, formattedModuleSettings) +
-        attributeIfContent(DEFINITIONS_CONFIG_INPUT_CLASS, definitions) +
-        attributeIfContent(STATE_CONFIG_INPUT_CLASS, stackOutputs)
+        attributeIfContent(
+            COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS,
+            mergeObjects(
+                (moduleInputState[COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS])!{},
+                commandLineOption
+            )
+        ) +
+        attributeIfContent(
+            BLUEPRINT_CONFIG_INPUT_CLASS,
+            mergeObjects(
+                (moduleInputState[BLUEPRINT_CONFIG_INPUT_CLASS])!{},
+                blueprint
+            )
+        ) +
+        attributeIfContent(
+            SETTINGS_CONFIG_INPUT_CLASS,
+            mergeObjects(
+                (moduleInputState[SETTINGS_CONFIG_INPUT_CLASS])!{},
+                formattedModuleSettings
+            )
+        ) +
+        attributeIfContent(
+            DEFINITIONS_CONFIG_INPUT_CLASS,
+            mergeObjects(
+                (moduleInputState[DEFINITIONS_CONFIG_INPUT_CLASS])!{},
+                definitions
+            )
+        ) +
+        attributeIfContent(
+            STATE_CONFIG_INPUT_CLASS,
+            combineEntities(
+                (moduleInputState[STATE_CONFIG_INPUT_CLASS])![],
+                stackOutputs
+            )
+        )
     ]
 [/#macro]
 
