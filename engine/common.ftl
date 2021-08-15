@@ -617,7 +617,7 @@
 [#function getDomainObjects certificateObject ]
     [#local result = [] ]
     [#local primaryNotSeen = true]
-    [#local lines = getObjectLineage(domains, certificateObject.Domain) ]
+    [#local lines = getObjectLineage(domains, (certificateObject.Domain)!"") ]
     [#list lines as line]
         [#local name = "" ]
         [#local role = DOMAIN_ROLE_PRIMARY ]
