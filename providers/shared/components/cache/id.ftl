@@ -50,6 +50,10 @@
                 ]
             },
             {
+                "Names" : "MaintenanceWindow",
+                "AttributeSet" : MAINTENANCEWINDOW_ATTRIBUTESET_TYPE
+            },
+            {
                 "Names" : "Profiles",
                 "Children" :
                     [

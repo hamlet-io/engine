@@ -119,6 +119,10 @@
                 ]
             },
             {
+                "Names" : "MaintenanceWindow",
+                "AttributeSet" : MAINTENANCEWINDOW_ATTRIBUTESET_TYPE
+            },
+            {
                 "Names" : "AllowMajorVersionUpgrade",
                 "Description" : "If the EngineVersion paramter is updated allow for major version updates to run",
                 "Types" : BOOLEAN_TYPE,

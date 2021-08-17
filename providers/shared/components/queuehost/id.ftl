@@ -91,32 +91,7 @@
             },
             {
                 "Names" : "MaintenanceWindow",
-                "Children" : [
-                    {
-                        "Names" : "DayOfTheWeek",
-                        "Types" : STRING_TYPE,
-                        "Values" : [
-                            "Sunday",
-                            "Monday",
-                            "Tuesday",
-                            "Wednesday",
-                            "Thursday",
-                            "Friday",
-                            "Saturday"
-                        ],
-                        "Default" : "Sunday"
-                    },
-                    {
-                        "Names" : "TimeOfDay",
-                        "Types" : STRING_TYPE,
-                        "Default" : "00:00"
-                    },
-                    {
-                        "Names" : "TimeZone",
-                        "Types" : STRING_TYPE,
-                        "Default" : "UTC"
-                    }
-                ]
+                "AttributeSet" : MAINTENANCEWINDOW_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "AutoMinorUpgrade",
