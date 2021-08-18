@@ -21,3 +21,5 @@
 [#assign PLUGIN_ATTRIBUTESET_TYPE = "plugin"]
 
 [#assign VOLUME_ATTRIBUTESET_TYPE = "volume"]
+
+[#assign MAINTENANCEWINDOW_ATTRIBUTESET_TYPE = "maintenancewindow" ]

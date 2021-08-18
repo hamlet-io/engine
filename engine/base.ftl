@@ -689,6 +689,72 @@ are added.
     [#return (end?long - start?long)]
 [/#function]
 
+[#function addDateTime dateTime unit amount]
+    [#switch unit]
+        [#case "dd"]
+            [#local offset=1000*60*60*24]
+            [#break]
+        [#case "hh"]
+            [#local offset=1000*60*60]
+            [#break]
+        [#case "mm"]
+            [#local offset=1000*60]
+            [#break]
+    [/#switch]
+    [#local retval = (dateTime?datetime?long + amount?long*offset?long)?number_to_datetime]
+    [#return retval ]
+[/#function]
+
+[#function showDateTime dateTime format timezone="UTC" ]
+    [#local old_time_zone = .time_zone]
+    [#setting time_zone = timezone]
+    [#local retval = dateTime?datetime?string(format)]
+
+    [#setting time_zone = old_time_zone]
+    [#return retval ]
+[/#function]
+
+[#function convertDayOfWeek2DateTime dayOfWeek timeofDay="00:00" timeZone="UTC"]
+    [#-- 
+    The explicit dates below are used to convert a "dayOfWeek" to a date to allow for date and 
+    TimeZone manipulations.
+    Any date sufficiently far away from leap year impacts can be used 
+    --]
+    [#switch dayOfWeek]
+        [#case "Monday"]
+            [#local startTime = "05-JUL-2021 "+timeofDay+":00 "+timeZone ]
+            [#break]
+        [#case "Tuesday"]
+            [#local startTime = "06-JUL-2021 "+timeofDay+":00 "+timeZone ]
+            [#break]
+        [#case "Wednesday"]
+            [#local startTime = "07-JUL-2021 "+timeofDay+":00 "+timeZone ]
+            [#break]
+        [#case "Thursday"]
+            [#local startTime = "08-JUL-2021 "+timeofDay+":00 "+timeZone ]
+            [#break]
+        [#case "Friday"]
+            [#local startTime = "09-JUL-2021 "+timeofDay+":00 "+timeZone ]
+            [#break]
+        [#case "Saturday"]
+            [#local startTime = "10-JUL-2021 "+timeofDay+":00 "+timeZone ]
+            [#break]
+        [#case "Sunday"]
+            [#local startTime = "11-JUL-2021 "+timeofDay+":00 "+timeZone ]
+            [#break]
+    [/#switch]
+    [#local retval = startTime?datetime("dd-MMM-yyyy HH:mm:ss z") ]
+    [#return retval ]
+[/#function]
+
+[#function testMaintenanceWindow maintWindow requireDay=true requireTime=true requireTZ=true]
+    [#return !(maintWindow.Configured!false) || 
+        (!requireDay || maintWindow.DayOfTheWeek?has_content) &&
+        (!requireTime || maintWindow.TimeOfDay?has_content) &&
+        (!requireTZ || maintWindow.TimeZone?has_content)
+    ]
+[/#function]
+
 [#-- Formulate a composite object based on                                            --]
 [#--   * order precedence - lowest to highest, then                                   --]
 [#--   * qualifiers - less specific to more specific                                  --]
