@@ -63,6 +63,48 @@
                                 ]
                             }
                         ]
+                    },
+                    {
+                        "Names" : "DNSQuery",
+                        "Description" : "Log DNS Queries made in the vpc",
+                        "SubObjects" : true,
+                        "Children" : [
+                            {
+                                "Names" : "DestinationType",
+                                "Types" : STRING_TYPE,
+                                "Description" : "The destination type to send the logs to",
+                                "Values" : [ "log", "s3", "datafeed" ],
+                                "Default" : "s3"
+                            },
+                            {
+                                "Names" : "s3",
+                                "Description" : "s3 specific destination configuration",
+                                "Children" : [
+                                    {
+                                        "Names" : "Link",
+                                        "Description" : "A link to the s3 bucket destination",
+                                        "AttributeSet" : LINK_ATTRIBUTESET_TYPE
+                                    },
+                                    {
+                                        "Names" : "Prefix",
+                                        "Description" : "A prefix for the s3 bucket destination",
+                                        "Types" : STRING_TYPE,
+                                        "Default" : "FlowLogs/"
+                                    }
+                                ]
+                            },
+                            {
+                                "Names" : "datafeed",
+                                "Description" : "datafeed specific destination configuration",
+                                "Children" : [
+                                    {
+                                        "Names" : "Link",
+                                        "Description" : "A link to the datafeed destination",
+                                        "AttributeSet" : LINK_ATTRIBUTESET_TYPE
+                                    }
+                                ]
+                            }
+                        ]
                     }
                 ]
             },
