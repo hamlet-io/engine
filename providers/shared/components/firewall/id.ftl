@@ -104,11 +104,24 @@
                 "Values" : [ "pass", "drop", "inspect", "alert", "monitor" ]
             },
             {
+                "Names" : "Priority",
+                "Description" : "The priority of the rule - lowest number wins or use default as last rule",
+                "Types" : [ NUMBER_TYPE, STRING_TYPE ],
+                "Mandatory" : true
+            },
+            {
                 "Names" : "Type",
                 "Description" : "The type of rule to be applied",
                 "Types" : STRING_TYPE,
                 "Values" : [ "NetworkTuple", "HostFilter", "Complex" ],
                 "Default" : "NetworkTuple"
+            },
+            {
+                "Names" : "Inspection",
+                "Description" : "How to inspect network flows through the firewall",
+                "Types" : STRING_TYPE,
+                "Values" : [ "Stateful", "Stateless" ],
+                "Default" : "Stateful"
             },
             {
                 "Names" : "NetworkTuple",
