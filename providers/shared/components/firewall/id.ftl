@@ -107,7 +107,7 @@
                 "Names" : "Type",
                 "Description" : "The type of rule to be applied",
                 "Types" : STRING_TYPE,
-                "Values" : [ "NetworkTuple", "HostFilter", "NetworkComplex" ],
+                "Values" : [ "NetworkTuple", "HostFilter", "Complex" ],
                 "Default" : "NetworkTuple"
             },
             {
@@ -187,8 +187,8 @@
                 ]
             },
             {
-                "Names" : "NetworkComplex",
-                "Description" : "Complex network rule matching",
+                "Names" : "Complex",
+                "Description" : "Complex rule matching and processing",
                 "Children" : [
                     {
                         "Names" : "Extensions",
