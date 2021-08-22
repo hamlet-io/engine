@@ -72,6 +72,9 @@
 
 [#assign FILETRANSFER_COMPONENT_TYPE = "filetransfer"]
 
+[#assign FIREWALL_COMPONENT_TYPE = "firewall"]
+[#assign FIREWALL_RULE_COMPONENT_TYPE = "firewallrule"]
+
 [#assign GLOBALDB_COMPONENT_TYPE = "globaldb" ]
 
 [#assign HEALTHCHECK_COMPONENT_TYPE = "healthcheck" ]
