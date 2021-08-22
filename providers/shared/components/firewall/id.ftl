@@ -196,6 +196,13 @@
                         "Names" : "Hosts",
                         "Description" : "A collection of hosts to include use *. for wilcard domains",
                         "Types" : ARRAY_OF_STRING_TYPE
+                    },
+                    {
+                        "Names" : "Protocols",
+                        "Description" : "The protocols to inspect host names for",
+                        "Types" : ARRAY_OF_STRING_TYPE,
+                        "Values" : [ "http", "tls_sni", "dns" ],
+                        "Default" [ "http", "tls_sni" ]
                     }
                 ]
             },
