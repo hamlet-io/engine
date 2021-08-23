@@ -92,6 +92,7 @@
 [#assign URL_ATTRIBUTE_TYPE = "url" ]
 [#assign DNS_ATTRIBUTE_TYPE = "dns" ]
 [#assign NAME_ATTRIBUTE_TYPE = "name" ]
+[#assign INTERFACE_ATTRIBUTE_TYPE = "interface"]
 [#assign IP_ADDRESS_ATTRIBUTE_TYPE = "ip" ]
 [#assign ALLOCATION_ATTRIBUTE_TYPE = "id" ]
 [#assign CANONICAL_ID_ATTRIBUTE_TYPE = "canonicalid" ]
