@@ -1,5 +1,32 @@
 [#ftl]
 
+[#function getIANAIPProtocolNumber port ]
+    [#switch (port.IPProtocol)?lower_case ]
+        [#case "tcp" ]
+            [#return 6]
+            [#break]
+        [#case "udp"]
+            [#return 17]
+            [#break]
+        [#case "icmp"]
+            [#return 1]
+            [#break]
+        [#case "gre"]
+            [#return 47]
+            [#break]
+        [#case "esp"]
+            [#return 50]
+            [#break]
+        [#case "ah"]
+            [#return 51]
+            [#break]
+        [#case "ipv6-icmp"]
+            [#return 58]
+            [#break]
+    [/#switch]
+    [#return ""]
+[/#function]
+
 [@addReference
     type=PORT_REFERENCE_TYPE
     pluralType="Ports"
