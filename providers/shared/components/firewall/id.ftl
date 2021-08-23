@@ -21,7 +21,17 @@
                 "Names" : "Engine",
                 "Types" : STRING_TYPE,
                 "Values" : [ "network" ],
-                "Required" : true
+                "Mandatory" : true
+            },
+            {
+                "Names" : "Profiles",
+                "Children" : [
+                    {
+                        "Names" : "Logging",
+                        "Types" : STRING_TYPE,
+                        "Default" : "default"
+                    }
+                ]
             },
             {
                 "Names" : "Logging",
@@ -202,7 +212,7 @@
                         "Description" : "The protocols to inspect host names for",
                         "Types" : ARRAY_OF_STRING_TYPE,
                         "Values" : [ "http", "tls_sni", "dns" ],
-                        "Default" [ "http", "tls_sni" ]
+                        "Default" : [ "http", "tls_sni" ]
                     }
                 ]
             },
