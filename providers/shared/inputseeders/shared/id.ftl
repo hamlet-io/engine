@@ -595,7 +595,8 @@
     [/#list]
 
     [#-- Handle AWS/pseudo stacks --]
-   [#local result =
+    [#-- Note that ordering is arranged so output searching finds more specific outputs first --]
+    [#local result =
         addToConfigPipelineClass(
             result,
             STATE_CONFIG_INPUT_CLASS,
@@ -604,12 +605,28 @@
                     state,
                     STATE_CONFIG_INPUT_CLASS,
                     [
-                        FIXTURE_SHARED_INPUT_STAGE,
-                        MODULE_SHARED_INPUT_STAGE,
                         CMDB_SHARED_INPUT_STAGE
-                    ]
+                    ],
+                    APPEND_COMBINE_BEHAVIOUR
                 )[STATE_CONFIG_INPUT_CLASS])![]
             ),
+            "",
+            APPEND_COMBINE_BEHAVIOUR
+        )
+    ]
+    [#local result =
+        addToConfigPipelineClass(
+            result,
+            STATE_CONFIG_INPUT_CLASS,
+            getConfigPipelineClassCacheForStages(
+                state,
+                STATE_CONFIG_INPUT_CLASS,
+                [
+                    MODULE_SHARED_INPUT_STAGE,
+                    FIXTURE_SHARED_INPUT_STAGE
+                ],
+                APPEND_COMBINE_BEHAVIOUR
+            )[STATE_CONFIG_INPUT_CLASS]![]
             "",
             APPEND_COMBINE_BEHAVIOUR
         )
@@ -668,11 +685,17 @@
 [#function shared_stateseeder_cmdb filter state]
 
     [#-- State is assumed to have been normalised to a list of point sets, each of which --]
-    [#-- has an account and region, along with one or more point values identified by    --]
-    [#-- an id                                                                           --]
+    [#-- has an account, region and deployment unit, along with one or more point values --]
+    [#-- identified by an id                                                             --]
     [#-- It is also assumed that the filter has been applied to the point sets as part   --]
     [#-- of the config pipeline                                                          --]
+    [#-- During testing, it is useful to simulate marker points which signify legacy     --]
+    [#-- conditions, so allow a "magic" value which is replaced with an empty value.     --]
     [#list getState() as pointSet]
+        [#if !pointSet.Account?? || !pointSet.Region?? || !pointSet.DeploymentUnit?? ]
+            [@fatal message="Missing mandatory attributes on stack outputs - Account, Region and DeploymentUnit required." context=pointSet /]
+            [#continue]
+        [/#if]
         [#if
             (
                 (!state.Account?has_content) ||
@@ -692,10 +715,10 @@
                 {
                     "Account" : pointSet.Account,
                     "Region" : pointSet.Region,
-                    "Level" : pointSet.Level,
                     "DeploymentUnit" : pointSet.DeploymentUnit,
-                    "Value" : pointSet[state.Id]
-                }
+                    "Value" : valueIfTrue(pointSet[state.Id], pointSet[state.Id]?lower_case != "hamlet:empty", "")
+                } +
+                attributeIfContent("Level", pointSet.Level!"")
             ]
         [/#if]
     [/#list]

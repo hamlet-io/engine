@@ -49,7 +49,13 @@
     ]
 [/#function]
 
-[#-- Loads the module data into the input data --]
+[#-- Loads the module data into the input data      --]
+[#-- Note that a module may choose to call this     --]
+[#-- macro multiple times so we need to ensure      --]
+[#-- any pre-existing moduleInputState is preserved --]
+[#-- For state, the order to the calls should be    --]
+[#-- Highest priority first given the way output    --]
+[#-- searching is performed                         --]
 [#macro loadModule
     blueprint={}
     settingSets=[]
@@ -107,7 +113,8 @@
             STATE_CONFIG_INPUT_CLASS,
             combineEntities(
                 (moduleInputState[STATE_CONFIG_INPUT_CLASS])![],
-                stackOutputs
+                stackOutputs,
+                APPEND_COMBINE_BEHAVIOUR
             )
         )
     ]

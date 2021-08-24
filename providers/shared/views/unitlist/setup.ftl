@@ -7,6 +7,11 @@
     [#-- Using this state we then create a contract step using the _orphan deployment mode to decide what to do --]
     [#list getState() as pointSet ]
 
+        [#if !pointSet.Account?? || !pointSet.Region?? || !pointSet.DeploymentUnit?? ]
+            [@fatal message="Missing mandatory attributes on stack outputs - Account, Region and DeploymentUnit required." context=pointSet /]
+            [#continue]
+        [/#if]
+
         [#local deploymentUnit = pointSet.DeploymentUnit ]
 
         [#local deploymentGroups = []]

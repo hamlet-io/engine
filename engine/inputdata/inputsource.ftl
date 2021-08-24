@@ -823,7 +823,7 @@ which is useful in situations like link processing.
 [/#function]
 
 [#-- Get combined class cache data for one or more stages --]
-[#function getConfigPipelineClassCacheForStages state class stages=[] ]
+[#function getConfigPipelineClassCacheForStages state class stages=[] behaviour=MERGE_COMBINE_BEHAVIOUR ]
     [#local result = {} ]
     [#list asArray(stages) as stage]
         [#if (state[CONFIG_INPUT_PIPELINE_STAGE_CACHE][stage][class])?? ]
@@ -832,7 +832,8 @@ which is useful in situations like link processing.
                     result,
                     {
                         class : state[CONFIG_INPUT_PIPELINE_STAGE_CACHE][stage][class]
-                    }
+                    },
+                    behaviour
                 )
             ]
         [/#if]
