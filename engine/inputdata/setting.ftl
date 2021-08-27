@@ -142,13 +142,15 @@
         [/#if]
     [/#list]
 
+    [#local settingDetails = getJSON(settingNames)?replace('"', "'") ]
+
     [#return
         contentIfContent(
             setting,
             valueIfTrue(
                 {"Value" : ""},
                 emptyIfNotProvided,
-                {"Value" : "HamletFatal: Setting not provided"}
+                {"Value" : "HamletFatal: Setting not found. Expected a setting with a key: ${settingNames?join(', ')}" }
             )
         ) ]
 [/#function]
@@ -345,4 +347,3 @@
     [/#list]
     [#return result]
 [/#function]
-
