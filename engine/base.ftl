@@ -277,7 +277,7 @@
                 [#local result += pretty?then(""?left_pad((depth + indent), " "), "") + getJSON(entry, escaped, pretty, indent, ( depth + indent) )]
                 [#sep][#local result += "," + pretty?then("\n", "")][/#sep]
             [/#list]
-            [#local result += obj?has_content?then("\n", "") + obj?has_content?then(pretty?then(""?left_pad(depth, " "), ""),"") + "]"]
+            [#local result += obj?has_content?then(pretty?then("\n", ""), "") + obj?has_content?then(pretty?then(""?left_pad(depth, " "), ""),"") + "]"]
         [#else]
             [#if obj?is_string]
                 [#local result = "\"" + obj?json_string + "\""]
@@ -715,10 +715,10 @@ are added.
 [/#function]
 
 [#function convertDayOfWeek2DateTime dayOfWeek timeofDay="00:00" timeZone="UTC"]
-    [#-- 
-    The explicit dates below are used to convert a "dayOfWeek" to a date to allow for date and 
+    [#--
+    The explicit dates below are used to convert a "dayOfWeek" to a date to allow for date and
     TimeZone manipulations.
-    Any date sufficiently far away from leap year impacts can be used 
+    Any date sufficiently far away from leap year impacts can be used
     --]
     [#switch dayOfWeek]
         [#case "Monday"]
@@ -748,7 +748,7 @@ are added.
 [/#function]
 
 [#function testMaintenanceWindow maintWindow requireDay=true requireTime=true requireTZ=true]
-    [#return !(maintWindow.Configured!false) || 
+    [#return !(maintWindow.Configured!false) ||
         (!requireDay || maintWindow.DayOfTheWeek?has_content) &&
         (!requireTime || maintWindow.TimeOfDay?has_content) &&
         (!requireTZ || maintWindow.TimeZone?has_content)
