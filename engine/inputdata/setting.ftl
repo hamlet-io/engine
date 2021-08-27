@@ -142,8 +142,6 @@
         [/#if]
     [/#list]
 
-    [#local settingDetails = getJSON(settingNames)?replace('"', "'") ]
-
     [#return
         contentIfContent(
             setting,
