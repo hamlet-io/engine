@@ -86,7 +86,7 @@
                 "Default" : [ "_localnet" ]
             },
             {
-                "Names" : "Certificate",
+                "Names" : [ "Certificate", "Hostname" ],
                 "Children" : certificateChildConfiguration
             },
             {

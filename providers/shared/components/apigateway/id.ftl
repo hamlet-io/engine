@@ -149,7 +149,7 @@ object.
                 ]
             },
             {
-                "Names" : "Certificate",
+                "Names" : [ "Certificate", "Hostname" ],
                 "Children" : certificateChildConfiguration
             },
             {
