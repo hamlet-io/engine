@@ -24,7 +24,7 @@
                 "Mandatory" : true
             },
             {
-                "Names" : "Certificate",
+                "Names" : [ "Certificate", "Hostname" ],
                 "Description" : "Configure the domain(s) associated with this MTA",
                 "Children" : certificateChildConfiguration
             },

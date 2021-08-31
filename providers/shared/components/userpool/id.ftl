@@ -203,7 +203,7 @@
                 "Description" : "Provision a managed endpoint for login and oauth endpoints",
                 "Children" : [
                     {
-                        "Names" : "Certificate",
+                        "Names" : [ "Certificate", "Hostname" ],
                         "Children" : certificateChildConfiguration
                     }
                 ]
