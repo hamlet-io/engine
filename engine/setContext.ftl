@@ -507,6 +507,7 @@
 
     [#if groupId?starts_with("_tier") || groupId?starts_with("__tier") ]
         [#local lookupTier = groupId?split(":")[1] ]
+        [#local lookupZone = (groupId?split(":")[2])!"" ]
         [#if ! lookupTier?has_content ]
             [@fatal
                 message="Invalid Tier IP AddressGroup"
@@ -579,9 +580,10 @@
 
                 [#local tierSubnets = []]
                 [#list tierResources as zone,resource ]
-                    [#local tierSubnets += [ resource.subnet.Address ] ]
+                    [#if (lookupZone?has_content && zone == lookupZone) || ! (lookupZone?has_content) ]
+                        [#local tierSubnets += [ resource.subnet.Address ] ]
+                    [/#if]
                 [/#list]
-
                 [#return
                     {
                         "Id" : groupDetailId,
