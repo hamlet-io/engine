@@ -1038,8 +1038,10 @@ are added.
 
     [#-- Either no attribute configuration has been provided or a name wildcard was encountered --]
     [#list candidates as object]
-        [#-- TODO(mfl) Should this be a merge? Doing so would represent a change in behaviour --]
-        [#local result += removeObjectAttributes(object, explicitAttributes) ]
+        [#-- Previously object addition was used to generate the result but this was changed  --]
+        [#-- to a merge to permit multiple candidates to contribute to the value of top level --]
+        [#-- attribute that have object values                                                --]
+        [#local result = mergeObjects(result, removeObjectAttributes(object, explicitAttributes)) ]
     [/#list]
     [#return result ]
 [/#function]
