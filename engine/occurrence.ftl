@@ -716,7 +716,8 @@
     [#local occurrenceBuildFormats = occurrenceBuild.FORMATS!{} ]
     [#local occurrenceBuildScope = occurrenceBuild.SCOPE!{} ]
 
-    [#-- Reference could be a deployment unit or a component --]
+    [#-- Reference could be to a deployment unit (legacy) or a component --]
+    [#local matchedReference = "" ]
     [#if occurrenceBuild.REFERENCE?has_content]
         [#-- Support cross-segment references --]
         [#if occurrenceBuild.SEGMENT?has_content]
@@ -729,15 +730,27 @@
         [#else]
             [#local buildLookupPrefixes = cmdbProductLookupPrefixes]
         [/#if]
-        [#local occurrenceBuild +=
-            internalCreateOccurrenceSettings(
-                (getSettings().Builds.Products)!{},
-                productName,
-                buildLookupPrefixes,
-                [
-                    {"Key" : occurrenceBuild.REFERENCE.Value?replace("/","-"), "Match" : "exact"}
-                ]
-            ) ]
+        [#-- Support provision of multiple references to permit --]
+        [#-- a transition from deployment unit based references --]
+        [#-- to occurrence based references                     --]
+        [#-- Occurrence value should go last to take priority   --]
+        [#-- to permit gradual conversion of references         --]
+        [#list asArray(occurrenceBuild.REFERENCE.Value) as reference]
+            [#local formattedReference = reference?replace("/","-")]
+            [#local nextReference =
+                internalCreateOccurrenceSettings(
+                    (getSettings().Builds.Products)!{},
+                    productName,
+                    buildLookupPrefixes,
+                    [
+                        {"Key" : formattedReference, "Match" : "exact"}
+                    ]
+                ) ]
+            [#if nextReference?has_content]
+                [#local matchedReference = formattedReference ]
+                [#local occurrenceBuild += nextReference ]
+            [/#if]
+       [/#list]
     [/#if]
 
     [#return
@@ -765,8 +778,8 @@
             "BUILD_UNIT",
             occurrenceBuild.UNIT!
             valueIfContent(
-                {"Value" : (occurrenceBuild.REFERENCE.Value?replace("/","-"))!""},
-                occurrenceBuild.REFERENCE!{},
+                {"Value" : matchedReference},
+                matchedReference,
                 valueIfContent(
                     {"Value" : deploymentUnit},
                     deploymentUnit
