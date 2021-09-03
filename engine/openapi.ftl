@@ -627,6 +627,11 @@ thus adding to the requirements specified in the definition itself.
 A security attribute is explicitly written out every time so technically
 the method security attribute will always override the global one, but it
 is useful to see what the global settings are from a debug perspective
+
+Security configuration can be provided both globally and per method, both
+within the openapi specification and in the configuration (via the Patterns
+attribute). Thus this function accepts a list of definition and configuration
+objects.
 --]
 [#function getSecurity globalConfiguration definitionObjects configurationObjects ]
 
