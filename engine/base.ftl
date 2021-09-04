@@ -1935,7 +1935,7 @@ but 50 will be used assuming the Environment is prod;
 
 {
     "Value" : 100,
-    "Qualifiers : [
+    "Qualifiers" : [
         {
             "Filter" : {"Environment" : "prod"},
             "MatchBehaviour" : ONETOONE_FILTER_MATCH_BEHAVIOUR,
