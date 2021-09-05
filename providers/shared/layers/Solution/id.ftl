@@ -47,6 +47,11 @@
             "AttributeSet" : PLUGIN_ATTRIBUTESET_TYPE
         },
         {
+            "Names" : "LinkRefs",
+            "SubObjects" : true,
+            "AttributeSet" : LINK_ATTRIBUTESET_TYPE
+        },
+        {
             "Names" : "MultiAZ",
             "Types" : BOOLEAN_TYPE
         },

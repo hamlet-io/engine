@@ -104,6 +104,47 @@
         [#return {} ]
     [/#if]
 
+    [#-- Support LinkRefs --]
+    [#if link.LinkRef?has_content]
+        [#local resolvedLink =
+            mergeObjects(
+                (getBlueprint().LinkRefs[link.LinkRef])!{},
+                getActiveLayerAttributes( ["LinkRefs", link.LinkRef], [ SOLUTION_LAYER_TYPE, PRODUCT_LAYER_TYPE, TENANT_LAYER_TYPE ] )
+            )
+        ]
+        [#if ! resolvedLink?has_content]
+            [@warning
+                message="Unable to resolve linkRef " + link.LinkRef
+                context=
+                    mergeObjects(
+                        (getBlueprint().LinkRefs)!{},
+                        getActiveLayerAttributes( ["LinkRefs"], [ SOLUTION_LAYER_TYPE, PRODUCT_LAYER_TYPE, TENANT_LAYER_TYPE ] )
+                    )
+                detail=link
+            /]
+            [#return {} ]
+        [/#if]
+        [#return
+            getLinkTarget(
+                occurrence,
+                mergeObjects(
+                    removeObjectAttributes(link, "LinkRef"),
+                    resolvedLink
+                )
+                activeOnly,
+                activeRequired
+            )
+        ]
+    [/#if]
+
+    [#if ! (link.Tier?has_content && link.Component?has_content) ]
+        [@fatal
+            message="Link requires \"Tier\" and \"Component\" attributes"
+            context=link
+        /]
+        [#return {} ]
+    [/#if]
+
     [#-- Allow user defined links to specify if the link is required to be active --]
     [#if (link.ActiveRequired)?? ]
         [#local activeRequired = link.ActiveRequired ]
@@ -254,12 +295,12 @@
                         function="getLinkTarget"
                         context=
                             {
-                                "Occurrence" : occurrence,
+                                "TargetOccurrence" : potentialOccurrence,
                                 "Link" : link,
                                 "EffectiveInstance" : instanceToMatch,
                                 "EffectiveVersion" : versionToMatch
                             }
-                        detail="HamletFatal:Link target not active/deployed"
+                        detail="HamletFatal:Link target not active/deployed. Maybe the target hasn't been deployed or there is an account mismatch?"
                         enabled=true
                     /]
                 [/#if]

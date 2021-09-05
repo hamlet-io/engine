@@ -10,6 +10,10 @@
         }]
     attributes=[
         {
+            "Names" : "LinkRef",
+            "Type" : STRING_TYPE
+        },
+        {
             "Names" : "IncludeInContext",
             "Description" : "Include the attributes provided by this link in the environment context",
             "Type" : ARRAY_OF_STRING_TYPE
@@ -60,13 +64,11 @@
         },
         {
             "Names" : "Tier",
-            "Type" : STRING_TYPE,
-            "Mandatory" : true
+            "Type" : STRING_TYPE
         },
         {
             "Names" : "Component",
-            "Type" : STRING_TYPE,
-            "Mandatory" : true
+            "Type" : STRING_TYPE
         },
         {
             "Names" : "SubComponent",
