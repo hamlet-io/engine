@@ -218,12 +218,20 @@
     [#return result ]
 [/#function]
 
-[#function getArrayIntersection array1 array2]
+[#function getArrayIntersection array1 array2 regexSupport=false]
     [#local result = []]
     [#local array2AsArray = asArray(array2)]
     [#list asArray(array1) as element]
-        [#if array2AsArray?seq_contains(element)]
-            [#local result += [element]]
+        [#if regexSupport]
+            [#list array2AsArray as regex]
+                [#if element?matches(regex) ]
+                    [#local result += [element]]
+                [/#if]
+            [/#list]
+        [#else]
+            [#if array2AsArray?seq_contains(element)]
+                [#local result += [element]]
+            [/#if]
         [/#if]
     [/#list]
     [#return result]
@@ -1809,7 +1817,8 @@ are not included in the Match Filter
     [#return
         getArrayIntersection(
             getFilterAttribute(filter, attribute),
-            asFlattenedArray(values)
+            asFlattenedArray(values),
+            true
         )
     ]
 [/#function]
@@ -1850,7 +1859,7 @@ are not included in the Match Filter
                 [#return true]
             [/#if]
             [#list currentFilter as key, value]
-                [#if getArrayIntersection(value, matchFilter.Any)?has_content]
+                [#if getArrayIntersection(value, matchFilter.Any, true)?has_content]
                     [#return true]
                 [/#if]
             [/#list]
@@ -1862,7 +1871,7 @@ are not included in the Match Filter
                 [#if !(currentFilter[key]?has_content)]
                     [#return false]
                 [/#if]
-                [#if !getArrayIntersection(currentFilter[key],value)?has_content]
+                [#if !getArrayIntersection(currentFilter[key],value, true)?has_content]
                     [#return false]
                 [/#if]
             [/#list]
