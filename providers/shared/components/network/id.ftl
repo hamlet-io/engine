@@ -84,12 +84,6 @@
                                         "Names" : "Link",
                                         "Description" : "A link to the s3 bucket destination",
                                         "AttributeSet" : LINK_ATTRIBUTESET_TYPE
-                                    },
-                                    {
-                                        "Names" : "Prefix",
-                                        "Description" : "A prefix for the s3 bucket destination",
-                                        "Types" : STRING_TYPE,
-                                        "Default" : "FlowLogs/"
                                     }
                                 ]
                             },
