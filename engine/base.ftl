@@ -2176,7 +2176,7 @@ Qualifiers can be nested, so processing is recursive.
         [/#if]
         [#if annotatedQualifiers?has_content]
             [#local result =
-                entity.Value?has_content?then(
+                entity.Value???then(
                     entity +
                     {
                         "Value" : result

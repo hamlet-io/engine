@@ -467,11 +467,11 @@
                                     "Id" :
                                         ((parentOccurrence.Core.Extensions.Id)![tierId, componentId]) + idExtensions,
                                     "RawId" :
-                                        ((parentOccurrence.Core.Extensions.Id)![tierId, componentRawId]) + rawIdExtensions,
+                                        ((parentOccurrence.Core.Extensions.RawId)![tierId, componentRawId]) + rawIdExtensions,
                                     "Name" :
                                         ((parentOccurrence.Core.Extensions.Name)![tierName, componentName]) + nameExtensions,
                                     "RawName" :
-                                        ((parentOccurrence.Core.Extensions.Name)![tierName, componentRawName]) + rawNameExtensions
+                                        ((parentOccurrence.Core.Extensions.RawName)![tierName, componentRawName]) + rawNameExtensions
                                 }
 
                             } +
