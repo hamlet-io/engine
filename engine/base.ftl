@@ -1916,22 +1916,25 @@ CombineBehaviour - MERGE_COMBINE_BEHAVIOUR
 The Filter acts as a Match Filter for comparison purposes with the provided
 Context Filter.
 
-Where the filters match, the qualifier Value is combined with the nominal
+Where the filters match, the qualifier Value is combined with the default
 value of the entity based on the CombineBehaviour as defined by the
 combineEntities() base function.
 
 More than one qualifier may match, in which case the qualifiers are applied to
-the nominal value in the order in which the qualifiers are defined.
+the default value in the order in which the qualifiers are defined.
 
-One or more qualifiers can be added to any entity via a reserved "Qualifiers"
-attribute. Where the entity to be qualified is not itself an object, the
-desired entity must be wrapped in an object in order that the "Qualifiers" attribute
-can be attached. Note thet the  type of the result will be that of the provided
+One or more qualifiers can be added to any entity via the reserved "Qualifiers"
+(legacy) or "qualifier:Rules" attribute.
+
+Where the entity to be qualified is not itself an object, the
+desired entity must be wrapped in an object in order that the reserved attribute
+can be attached. Note that the  type of the result will be that of the provided
 value.
 
-There is a long form and a short form value for Qualifiers.
+There is a long form and a short form expression for Qualifiers.
 
-In the long form, the "Qualifiers" attribute value is a list of qualifier objects.
+In the long form, the "qualifier:Rules" attribute value is a list of qualifier objects,
+and the default value can be provided by a "qualifier:Default" attribute.
 
 Each qualifier object must have a "Filter" attribute and a "Value" attribute, as well
 as optional "MatchBehaviour" and "DefaultBehaviour" attributes. By default, the
@@ -1939,12 +1942,12 @@ MatchBehaviour is ONETOONE_FILTER_MATCH_BEHAVIOUR and the Combine Behaviour is
 MERGE_COMBINE_BEHAVIOUR.
 
 The long form gives full control over the qualification process and the order
-in which qualifiers are applied. In the following example, the nominal value is 100,
+in which qualifiers are applied. In the following example, the default value is 100,
 but 50 will be used assuming the Environment is prod;
 
 {
-    "Value" : 100,
-    "Qualifiers" : [
+    "qualifier:Default" : 100,
+    "qualifier:Rules" : [
         {
             "Filter" : {"Environment" : "prod"},
             "MatchBehaviour" : ONETOONE_FILTER_MATCH_BEHAVIOUR,
@@ -1954,7 +1957,11 @@ but 50 will be used assuming the Environment is prod;
     ]
 }
 
-In the short form, the "Qualifiers" attribute value is an object.
+In the short form, the "Qualifiers" attribute is used and has a value of an object.
+Any default value is provided by a "Value" attribute.
+
+If detected, the long form takes precedence and any "Qualifier" or "Value" attribute
+are be treated the same as any other attribute.
 
 Each attribute of the attribute value represents a qualifier. The attribute key
 is the value of  the "Any" attribute of the Match Filter, the MatchBehaviour is
@@ -1984,8 +1991,8 @@ Equally
 is the equivalent of
 
 {
-    "Value" : 100,
-    "Qualifiers : [
+    "qualifier:Default" : 100,
+    "qualifier:Rules : [
         {
             "Filter" : {"Any" : "industry"},
             "MatchBehaviour" : ANY_FILTER_MATCH_BEHAVIOUR,
@@ -2005,6 +2012,9 @@ and if both prod and industry matched, the effective value would be 50
 since "prod" comes after "industry".
 
 Qualifiers can be nested, so processing is recursive.
+
+NOTE: The short form is deprecated in favour of the more precise
+expression format provided by the long form.
 --]
 
 [#function getQualifierChildren filterAttributes=[] ]
@@ -2074,34 +2084,44 @@ Qualifiers can be nested, so processing is recursive.
         [#return entity]
     [/#if]
 
+    [#-- "Qualifiers" is for legacy support. qualifier:Rules is the preferred attribute --]
+    [#local ruleAttributes = ["qualifier:Rules", "Qualifiers"] ]
+    [#local defaultAttributes = ["qualifier:Default", "Value"] ]
+    [#local qualifiers = {} ]
+    [#list ruleAttributes as attribute ]
+        [#if entity[attribute]?? ]
+            [#local rulesAttribute = attribute ]
+            [#local defaultAttribute = defaultAttributes[attribute?index] ]
 
-    [#if entity.Qualifiers??]
-        [#local qualifiers = entity.Qualifiers]
-
-        [#-- Determine the nominal value --]
-        [#if entity.Value??]
-            [#local result = entity.Value]
-        [#else]
-            [#local result = removeObjectAttributes(entity, "Qualifiers")]
+            [#local qualifiers = entity[rulesAttribute] ]
+            [#if entity[ defaultAttribute ]??]
+                [#local defaultValue = true]
+                [#local result = entity[ defaultAttribute ] ]
+            [#else]
+                [#local result = removeObjectAttributes(entity, rulesAttribute) ]
+            [/#if]
+            [#break]
         [/#if]
+    [/#list]
 
-        [#-- Qualify the nominal value --]
+    [#if qualifiers?has_content ]
+
+        [#-- Qualify the default value --]
         [#local result = qualifyEntity(result, filter, qualifierChildren, mode) ]
 
         [#if qualifiers?is_hash ]
             [#local annotatedQualifiers = {} ]
-            [#local anyFilters = qualifiers?keys?sort]
-            [#list anyFilters as anyFilter]
-                [#local match = filterMatch(filter, {"Any" : anyFilter}, ANY_FILTER_MATCH_BEHAVIOUR) ]
+            [#list qualifiers?keys?sort as key]
+                [#local match = filterMatch(filter, {"Any" : key}, ANY_FILTER_MATCH_BEHAVIOUR) ]
                 [#switch mode]
                     [#case "annotate"]
                         [#local annotatedQualifiers +=
                             {
-                                anyFilter :
-                                    qualifyEntity(qualifiers[anyFilter], filter, qualifierChildren, mode) +
-                                    {
-                                        "Matched" : match?c
-                                    }
+                                key : {
+                                    "qualifier:Result": qualifyEntity(qualifiers[key], filter, qualifierChildren, mode),
+                                    "qualifier:Match" : match?c
+                                } +
+                                qualifiers[key]?is_hash?then(qualifiers[key], { "qualifier:Original" : qualifiers[key] } )
                             }
                         ]
                         [#break]
@@ -2110,7 +2130,7 @@ Qualifiers can be nested, so processing is recursive.
                             [#local result =
                                 combineEntities(
                                     result,
-                                    qualifyEntity(qualifiers[anyFilter], filter, qualifierChildren, mode),
+                                    qualifyEntity(qualifiers[key], filter, qualifierChildren, mode),
                                     MERGE_COMBINE_BEHAVIOUR
                                 )
                             ]
@@ -2141,8 +2161,8 @@ Qualifiers can be nested, so processing is recursive.
                                     [
                                         qualifier +
                                         {
-                                            "Value" : qualifyEntity(qualifier.Value, filter, qualifierChildren, mode),
-                                            "Matched" : match?c
+                                            "qualifier:Annotated" : qualifyEntity(qualifier.Value, filter, qualifierChildren, mode),
+                                            "qualifier:Match" : match?c
                                         }
                                     ]
                                 ]
@@ -2165,7 +2185,7 @@ Qualifiers can be nested, so processing is recursive.
                                 [
                                     qualifierEntry +
                                     {
-                                        "Match" : "validation failure"
+                                        "qualifier:Valid" : false
                                     }
                                 ]
                             ]
@@ -2176,14 +2196,11 @@ Qualifiers can be nested, so processing is recursive.
         [/#if]
         [#if annotatedQualifiers?has_content]
             [#local result =
-                entity.Value???then(
-                    entity +
-                    {
-                        "Value" : result
-                    },
-                    result
-                ) +
-                { "Qualifiers" : annotatedQualifiers }
+                entity +
+                {
+                    "qualifier:Result" : result,
+                    "qualifier:Annotated" : annotatedQualifiers
+                }
             ]
         [/#if]
 
