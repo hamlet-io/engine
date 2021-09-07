@@ -883,7 +883,7 @@
         } +
         attributeIfTrue("Instance", port.LB.Instance??, port.LB.Instance!"") +
         attributeIfTrue("Version",  port.LB.Version??, port.LB.Version!"") +
-        attributeIfContent("PortMapping",  portMapping)
+        attributeIfContent("SubComponent",  portMapping)
     ]
     [@debug message=targetLinkName context=targetLink enabled=false /]
 
@@ -916,7 +916,7 @@
         } +
         attributeIfTrue("Instance", port.Registry.Instance??, port.Registry.Instance!"") +
         attributeIfTrue("Version",  port.Registry.Version??, port.Registry.Version!"") +
-        attributeIfContent("RegistryService",  registryService)
+        attributeIfContent("SubComponent",  registryService)
     ]
     [@debug message=targetLinkName context=targetLink enabled=false /]
 
