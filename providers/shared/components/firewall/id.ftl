@@ -75,7 +75,7 @@
                         ]
                     }
                 ]
-            }
+            },
             {
                 "Names" : "Links",
                 "SubObjects" : true,
