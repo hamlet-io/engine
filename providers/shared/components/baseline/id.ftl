@@ -73,24 +73,6 @@
 
     [#list baselineProfile as key,value ]
         [#if baselineComponentNames?seq_contains(key)]
-            [#switch key?lower_case ]
-                [#case "opsdata" ]
-                [#case "appdata" ]
-                    [#local subComponentType = "DataBucket" ]
-                    [#break]
-
-                [#case "encryption" ]
-                [#case "sshkey" ]
-                [#case "cdnoriginkey" ]
-                    [#local subComponentType = "Key" ]
-                    [#break]
-
-                [#default]
-                    [@fatal
-                        message="Unknown baseline subcomponent"
-                        context=key
-                    /]
-            [/#switch]
 
             [#local baselineLink =
                 {
@@ -98,9 +80,9 @@
                     "Name" : "baseline",
                     "Tier" : "mgmt",
                     "Component" : "baseline",
+                    "SubComponent" : value,
                     "Instance" : "",
-                    "Version" : "",
-                    subComponentType : value
+                    "Version" : ""
                 }
             ]
             [#local baselineLinkTarget = getLinkTarget(occurrence, baselineLink, activeOnly, activeRequired )]
