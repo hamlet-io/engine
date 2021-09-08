@@ -275,12 +275,27 @@
 
             [#-- Determine if deployed --]
             [#local isDeployed = isOccurrenceDeployed(potentialOccurrence)]
+            [#local sameDeployment = occurrencesInSameDeployment(occurrence, potentialOccurrence)]
+            [#local isEnabled = (potentialOccurrence.Configuration.Solution.Enabled)!true]
 
             [#-- Always warn if linking to an inactive component --]
-            [#if !isDeployed && !activeRequired ]
+            [#if isEnabled && !sameDeployment && !isDeployed && !activeRequired ]
+
                 [@warn
-                    message="link occurrence not deployed - ${occurrence.Core.Name} -> ${potentialOccurrence.Core.Name}"
+                    message="link occurrence not deployed - ${occurrence.Core.RawName} -> ${potentialOccurrence.Core.RawName}"
                     detail="A link was made to an occurrence which has not been deployed"
+                    context={
+                        "Link" : link,
+                        "EffectiveInstance" : instanceToMatch,
+                        "EffectiveVersion" : versionToMatch
+                    }
+                /]
+            [/#if]
+
+            [#if !isEnabled ]
+                [@warn
+                    message="link occurrence is not enabled - ${occurrence.Core.RawName} -> ${potentialOccurrence.Core.RawName}"
+                    detail="A link was made to an occurrence that is not enabled"
                     context={
                         "Link" : link,
                         "EffectiveInstance" : instanceToMatch,
