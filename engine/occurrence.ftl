@@ -209,6 +209,17 @@
     [#return getOccurrenceChildren(occurrence)?has_content ]
 [/#function]
 
+[#function occurrencesInSameDeployment occurrenceA occurrenceB]
+    [#return
+        getOccurrenceDeploymentUnit(occurrenceA) == getOccurrenceDeploymentUnit(occurrenceB) &&
+        ( getOccurrenceDeploymentGroup(occurrenceA) == getOccurrenceDeploymentGroup(occurrenceB) ||
+            (
+                getOccurrenceDeploymentGroup(occurrenceB) == "" &&
+                occurrenceA.Core.Component.RawId == occurrenceB.Core.Component.RawId
+            )
+        )]
+[/#function]
+
 [#function constructOccurrenceSettings baseOccurrence type]
 
     [#local occurrence = baseOccurrence]
