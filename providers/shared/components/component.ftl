@@ -1067,6 +1067,11 @@
                 "AttributeSet" : ECS_COMPUTEIMAGE_ATTRIBUTESET_TYPE
             },
             {
+                "Names" : "MaintenanceWindow",
+                "Description" : "A configured window to apply maintenance on instances",
+                "AttributeSet" : MAINTENANCEWINDOW_ATTRIBUTESET_TYPE
+            },
+            {
                 "Names" : "OperatingSystem",
                 "Description" : "The operating system details of the compute instance",
                 "AttributeSet" : OPERATINGSYSTEM_ATTRIBUTESET_TYPE

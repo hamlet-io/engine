@@ -149,6 +149,11 @@
                         "AttributeSet" : OPERATINGSYSTEM_ATTRIBUTESET_TYPE
                     },
                     {
+                        "Names" : "MaintenanceWindow",
+                        "Description" : "A configured window to apply maintenance on instances",
+                        "AttributeSet" : MAINTENANCEWINDOW_ATTRIBUTESET_TYPE
+                    },
+                    {
                         "Names" : "OSPatching",
                         "Description" : "Configuration for scheduled OS Patching",
                         "AttributeSet" : OSPATCHING_ATTRIBUTESET_TYPE
