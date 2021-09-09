@@ -50,6 +50,8 @@
 [#assign DB_LEGACY_COMPONENT_TYPE = "rds" ]
 [#assign legacyTypeMapping += { DB_LEGACY_COMPONENT_TYPE : DB_COMPONENT_TYPE } ]
 
+[#assign DIRECTORY_COMPONENT_TYPE = "directory" ]
+
 [#assign EC2_COMPONENT_TYPE = "ec2"]
 
 [#assign ECS_COMPONENT_TYPE = "ecs" ]
