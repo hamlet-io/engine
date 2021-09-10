@@ -18,16 +18,6 @@
     attributes=
         [
             {
-                "Names" : "Profiles",
-                "Children" : [
-                    {
-                        "Names" : "Logging",
-                        "Types" : STRING_TYPE,
-                        "Default" : "default"
-                    }
-                ]
-            },
-            {
                 "Names" : "Links",
                 "SubObjects" : true,
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
