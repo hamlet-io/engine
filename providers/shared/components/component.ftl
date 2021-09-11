@@ -36,6 +36,8 @@
 [#assign CONTENTHUB_HUB_COMPONENT_TYPE = "contenthub"]
 [#assign CONTENTHUB_NODE_COMPONENT_TYPE = "contentnode"]
 
+[#assign CORRESPONDENT_COMPONENT_TYPE = "correspondent"]
+
 [#assign DATAFEED_COMPONENT_TYPE = "datafeed" ]
 
 [#assign DATAPIPELINE_COMPONENT_TYPE = "datapipeline"]
