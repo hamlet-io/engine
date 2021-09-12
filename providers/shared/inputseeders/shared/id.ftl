@@ -675,7 +675,8 @@
         mergeObjects(
             state,
             {
-                "Value" : value
+                "Value" : value,
+                "Mocked" : true
             }
         )
     ]
