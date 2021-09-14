@@ -76,6 +76,7 @@
 
 [#assign FIREWALL_COMPONENT_TYPE = "firewall"]
 [#assign FIREWALL_RULE_COMPONENT_TYPE = "firewallrule"]
+[#assign FIREWALL_DESTINATION_COMPONENT_TYPE = "firewalldestination"]
 
 [#assign GLOBALDB_COMPONENT_TYPE = "globaldb" ]
 
