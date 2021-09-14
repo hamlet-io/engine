@@ -438,6 +438,26 @@
         "Timeout": "5"
       }
     },
+    "dns-tcp": {
+      "Port": 53,
+      "IPProtocol": "tcp",
+      "HealthCheck": {
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
+    "dns-udp": {
+      "Port": 53,
+      "IPProtocol": "udp",
+      "HealthCheck": {
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
     "ednp": {
       "Port": 25672,
       "IPProtocol": "tcp",
@@ -462,6 +482,19 @@
     },
     "epmd": {
       "Port": 4369,
+      "IPProtocol": "tcp",
+      "HealthCheck": {
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
+    "globalcatalog": {
+      "PortRange": {
+        "From": 3268,
+        "To": 3269
+      },
       "IPProtocol": "tcp",
       "HealthCheck": {
         "HealthyThreshold": "3",
@@ -520,12 +553,82 @@
         "Timeout": "5"
       }
     },
+    "kerebosauth88-tcp": {
+      "Port": 88,
+      "IPProtocol": "tcp",
+      "HealthCheck": {
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
+    "kerebosauth88-udp": {
+      "Port": 88,
+      "IPProtocol": "udp",
+      "HealthCheck": {
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
+    "kerebosauth464-tcp": {
+      "Port": 464,
+      "IPProtocol": "tcp",
+      "HealthCheck": {
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
+    "kerebosauth464-udp": {
+      "Port": 464,
+      "IPProtocol": "udp",
+      "HealthCheck": {
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
     "kibana": {
       "Port": 5601,
       "Protocol": "HTTP",
       "IPProtocol": "tcp",
       "HealthCheck": {
         "Path": "/",
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
+    "ldap-tcp": {
+      "Port": 389,
+      "IPProtocol": "tcp",
+      "HealthCheck": {
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
+    "ldap-udp": {
+      "Port": 389,
+      "IPProtocol": "udp",
+      "HealthCheck": {
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
+    "ldaps": {
+      "Port": 636,
+      "IPProtocol": "tcp",
+      "HealthCheck": {
         "HealthyThreshold": "3",
         "UnhealthyThreshold": "5",
         "Interval": "30",
@@ -574,12 +677,45 @@
         "Timeout": "5"
       }
     },
+    "netlogin-tcp": {
+      "Port": 139,
+      "IPProtocol": "tcp",
+      "HealthCheck": {
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
+    "netlogin-udp": {
+      "PortRange": {
+        "From": 137,
+        "To": 138
+      },
+      "IPProtocol": "udp",
+      "HealthCheck": {
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
     "node": {
       "Port": 9000,
       "Protocol": "HTTP",
       "IPProtocol": "tcp",
       "HealthCheck": {
         "Path": "/",
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
+    "ntp": {
+      "Port": 123,
+      "IPProtocol": "udp",
+      "HealthCheck": {
         "HealthyThreshold": "3",
         "UnhealthyThreshold": "5",
         "Interval": "30",
@@ -669,6 +805,46 @@
       "Port": 6379,
       "Protocol": "TCP",
       "IPProtocol": "tcp",
+      "HealthCheck": {
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
+    "rpc": {
+      "Port": 135,
+      "IPProtocol": "tcp",
+      "HealthCheck": {
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
+    "rsync": {
+      "Port": 873,
+      "IPProtocol": "tcp",
+      "HealthCheck": {
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
+    "smb-tcp": {
+      "Port": 445,
+      "IPProtocol": "tcp",
+      "HealthCheck": {
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
+    "smb-udp": {
+      "Port": 445,
+      "IPProtocol": "udp",
       "HealthCheck": {
         "HealthyThreshold": "3",
         "UnhealthyThreshold": "5",
@@ -768,6 +944,20 @@
       },
       "IPProtocol": "udp"
     },
+    "ephemeralrpctcp": {
+      "PortRange": {
+        "From": 49152,
+        "To": 65535
+      },
+      "IPProtocol": "tcp"
+    },
+    "ephemeralrpcudp": {
+      "PortRange": {
+        "From": 49152,
+        "To": 65535
+      },
+      "IPProtocol": "udp"
+    },
     "any": {
       "PortRange": {
         "From": 0,
@@ -790,6 +980,7 @@
       "IPProtocol": "tcp"
     },
     "anyicmp": {
+      "Port": -1,
       "IPProtocol": "icmp",
       "ICMP": {
         "Code": -1,

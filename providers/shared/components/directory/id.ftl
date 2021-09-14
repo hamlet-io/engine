@@ -19,7 +19,7 @@
             {
                 "Names" : "Engine",
                 "Types" : STRING_TYPE,
-                "Values" : [ "simple" ],
+                "Values" : [ "Simple", "ActiveDirectory" ],
                 "Mandatory" : true
             },
             {
@@ -28,14 +28,13 @@
                 "Default" : false
             },
             {
-                "Names" : "DsName",
-                "Types" : STRING_TYPE,
-                "Description": "FQDN for the directory service",
-                "Mandatory" : true
+                "Names" : [ "Certificate", "Hostname" ],
+                "Children" : certificateChildConfiguration
             },
             {
-                "Names" : "Password",
-                "Types" : STRING_TYPE
+                "Names" : "IPAddressGroups",
+                "Types" : ARRAY_OF_STRING_TYPE,
+                "Default" : []
             },
             {
                 "Names" : "ShortName",
