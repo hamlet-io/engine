@@ -23,7 +23,8 @@
                 "Mandatory" : true
             },
             {
-                "Names" : [ "Certificate", "Hostname" ],
+                "Names" : "Hostname" ,
+                "Description": "FQDN for the Directory Service",
                 "Children" : certificateChildConfiguration
             },
             {
@@ -33,11 +34,14 @@
             },
             {
                 "Names" : "ShortName",
-                "Types" : STRING_TYPE
+                "Types" : STRING_TYPE,
+                "Description": "NETBIOS name of the Directory Service"
             },
             {
                 "Names" : "Size",
-                "Types" : STRING_TYPE
+                "Types" : STRING_TYPE,
+                "Values" : [ "Small", "Large" ],
+                "Mandatory" : true
             },
             {
                 "Names" : "Links",
