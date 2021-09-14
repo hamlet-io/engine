@@ -247,3 +247,44 @@
     childAttribute="Rules"
     linkAttributes="Rule"
 /]
+
+[@addChildComponent
+    type=FIREWALL_DESTINATION_COMPONENT_TYPE
+    parent=FIREWALL_COMPONENT_TYPE
+    childAttribute="Destinations"
+    linkAttributes="Destination"
+    properties=
+        [
+            {
+                "Type"  : "Description",
+                "Value" : "A network destination offerred by the firewall"
+            },
+            {
+                "Type" : "Providers",
+                "Value" : [ "aws" ]
+            },
+            {
+                "Type" : "ComponentLevel",
+                "Value" : "segment"
+            }
+        ]
+    attributes=
+        [
+            {
+                "Names" : "Active",
+                "Types" : BOOLEAN_TYPE,
+                "Default" : false
+            },
+            {
+                "Names" : "IPAddressGroups",
+                "Description" : "An IP Address Group reference",
+                "Types" : ARRAY_OF_STRING_TYPE,
+                "Default" : []
+            },
+            {
+                "Names" : "Links",
+                "SubObjects" : true,
+                "AttributeSet" : LINK_ATTRIBUTESET_TYPE
+            }
+        ]
+/]
