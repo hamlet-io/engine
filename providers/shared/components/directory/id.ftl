@@ -23,11 +23,6 @@
                 "Mandatory" : true
             },
             {
-                "Names" : "EnableSSO",
-                "Types" : BOOLEAN_TYPE,
-                "Default" : false
-            },
-            {
                 "Names" : [ "Certificate", "Hostname" ],
                 "Children" : certificateChildConfiguration
             },
