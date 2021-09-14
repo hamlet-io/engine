@@ -88,6 +88,7 @@
 
 [#-- Attribute id = resourceId + attribute type --]
 
+[#assign ALIAS_ATTRIBUTE_TYPE = "alias" ]
 [#assign ARN_ATTRIBUTE_TYPE = "arn" ]
 [#assign URL_ATTRIBUTE_TYPE = "url" ]
 [#assign DNS_ATTRIBUTE_TYPE = "dns" ]
