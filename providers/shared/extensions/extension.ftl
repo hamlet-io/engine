@@ -429,7 +429,7 @@
     [#assign _context +=
         {
             "ForwardHeaders" : (_context.ForwardHeaders![]) +
-                                    asArray(names)
+                                    asFlattenedArray(names)
         }]
 [/#macro]
 
