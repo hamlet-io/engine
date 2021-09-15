@@ -18,19 +18,25 @@
         [
             {
                 "Names" : "Engine",
+                "Description" : "The type of cache engine to use",
                 "Types" : STRING_TYPE,
+                "Values" : [ "memcached", "redis" ],
                 "Mandatory" : true
             },
             {
                 "Names" : "EngineVersion",
-                "Types" : STRING_TYPE
+                "Description" : "The version of the engine type",
+                "Types" : STRING_TYPE,
+                "Mandatory" : true
             },
             {
                 "Names" : "Port",
+                "Description" : "The network port the cache listens on - defaults to a port with the same name as the engine",
                 "Types" : STRING_TYPE
             },
             {
                 "Names" : "IPAddressGroups",
+                "Description" : "The source ip addresses that can access the cache",
                 "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : [ "_localnet" ]
             },
@@ -76,6 +82,7 @@
             },
             {
                 "Names" : "Hibernate",
+                "Description" : "Remove any services which charge by the hour",
                 "Children" : [
                     {
                         "Names" : "Enabled",
