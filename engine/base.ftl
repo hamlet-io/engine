@@ -763,13 +763,20 @@ are added.
     ]
 [/#function]
 
+[#function getCompositeObject attributes=[] objects...]
+    [#return getCompositeObjectResult("object+logs", attributes, objects) ]
+[/#function]
+
 [#-- Formulate a composite object based on                                            --]
 [#--   * order precedence - lowest to highest, then                                   --]
 [#--   * qualifiers - less specific to more specific                                  --]
 [#-- If no attributes are provided, simply combine the qualified objects              --]
 [#-- It is also possible to define an attribute with a name of "*" which will trigger --]
 [#-- the combining of the objects in addition to any attributes already created       --]
-[#function getCompositeObject attributes=[] objects...]
+[#function getCompositeObjectResult mode="object+logs" attributes=[] objects...]
+
+    [#-- Gather messages locally --]
+    [#local messages = [] ]
 
     [#-- Ignore any candidate that is not a hash --]
     [#local candidates = [] ]
@@ -834,14 +841,18 @@ are added.
                     ( !(providedName?has_content) ) &&
                     candidates?has_content &&
                     ( ! attribute.DefaultProvided )]
-                [@fatal
-                    message="Mandatory attribute missing"
-                    context=
+                [#local messages +=
+                    [
                         {
-                            "ExpectedNames" : attribute.Names,
-                            "CandidateObjects" : objects
+                            "Severity" : "fatal",
+                            "Message" : "Mandatory attribute missing",
+                            "Context" : {
+                                "ExpectedNames" : attribute.Names,
+                                "CandidateObjects" : objects
+                            }
                         }
-                /]
+                    ]
+                ]
 
                 [#-- Provide a value so hopefully generation completes successfully --]
                 [#if attribute.Children?has_content]
@@ -877,9 +888,15 @@ are added.
                         [#-- TODO(mfl) Add duplicate handling --]
                         [#list childContent as childArray]
                             [#if !isOfType(childArray, attribute.Types)]
-                                [@fatal
-                                    message="One or more children not of an accepted type"
-                                    context=childArray /]
+                                [#local messages +=
+                                    [
+                                        {
+                                            "Severity" : "fatal",
+                                            "Message" : "One or more children not of an accepted type",
+                                            "Context" : childArray
+                                        }
+                                    ]
+                                ]
                                 [#continue]
                             [/#if]
                             [#list asArray(childArray) as childEntry]
@@ -907,20 +924,32 @@ are added.
                                         [#if value?is_hash]
                                             [#local subobjectKeys += [key] ]
                                         [#else]
-                                            [@fatal
-                                                message="Subobject content is not a hash"
-                                                context={
-                                                    "InvalidValue" : value,
-                                                    "Object" : childObject,
-                                                    "Attribute" : attribute
-                                                } /]
+                                            [#local messages +=
+                                                [
+                                                    {
+                                                        "Severity" : "fatal",
+                                                        "Message" : "Subobject content is not a hash",
+                                                        "Context" : {
+                                                            "InvalidValue" : value,
+                                                            "Object" : childObject,
+                                                            "Attribute" : attribute
+                                                        }
+                                                    }
+                                                ]
+                                            ]
                                         [/#if]
                                     [/#list]
                                 [#else]
-                                    [@fatal
-                                        message="Child content is not a hash"
-                                        context=childObject /]
-                                [/#if]
+                                    [#local messages +=
+                                        [
+                                            {
+                                                "Severity" : "fatal",
+                                                "Message" : "Child content is not a hash",
+                                                "Context" : childObject
+                                            }
+                                        ]
+                                    ]
+                               [/#if]
                             [/#list]
                             [#list subobjectKeys as subobjectKey ]
                                 [#if subobjectKey == "Configuration" ]
@@ -983,28 +1012,38 @@ are added.
                     [#-- Perform type conversion and type checking --]
                     [#local providedValue = asType(providedValue, attribute.Types) ]
                     [#if !isOfType(providedValue, attribute.Types) ]
-                        [@fatal
-                          message="Attribute is not of the correct type"
-                          context=
-                            {
-                                "Name" : providedName,
-                                "Value" : providedValue,
-                                "ExpectedTypes" : attribute.Types,
-                                "Candidate" : providedCandidate
-                            } /]
+                        [#local messages +=
+                            [
+                                {
+                                    "Severity" : "fatal",
+                                    "Message" : "Attribute is not of the correct type",
+                                    "Context" : {
+                                        "Name" : providedName,
+                                        "Value" : providedValue,
+                                        "ExpectedTypes" : attribute.Types,
+                                        "Candidate" : providedCandidate
+                                    }
+                                }
+                            ]
+                        ]
                     [#else]
                         [#if attribute.Values?has_content]
                             [#list asArray(providedValue) as value]
                                 [#if !(attribute.Values?seq_contains(value)) ]
-                                    [@fatal
-                                      message="Attribute value is not one of the expected values"
-                                      context=
-                                        {
-                                            "Name" : providedName,
-                                            "Value" : value,
-                                            "ExpectedValues" : attribute.Values,
-                                            "Candidate" : providedCandidate
-                                        } /]
+                                    [#local messages +=
+                                        [
+                                            {
+                                                "Severity" : "fatal",
+                                                "Message" : "Attribute value is not one of the expected values",
+                                                "Context" : {
+                                                    "Name" : providedName,
+                                                    "Value" : value,
+                                                    "ExpectedValues" : attribute.Values,
+                                                    "Candidate" : providedCandidate
+                                                }
+                                            }
+                                        ]
+                                    ]
                                 [/#if]
                             [/#list]
                         [/#if]
@@ -1040,6 +1079,23 @@ are added.
             [/#if]
         [/#list]
         [#if !attributeWildcardSeen]
+            [#if mode?contains("messages") ]
+                [#return messages]
+            [/#if]
+            [#if mode?contains("logs") ]
+                [#list messages as message]
+                    [#switch message.Severity]
+                        [#case "fatal"]
+                        [#default]
+                            [@fatal
+                                message=message.Message
+                                context=message.Context!{}
+                                detail=message.Detail!{}
+                            /]
+                            [#break]
+                    [/#switch]
+                [/#list]
+            [/#if]
             [#return result ]
         [/#if]
     [/#if]
@@ -1051,7 +1107,26 @@ are added.
         [#-- attribute that have object values                                                --]
         [#local result = mergeObjects(result, removeObjectAttributes(object, explicitAttributes)) ]
     [/#list]
+
+    [#if mode?contains("messages") ]
+        [#return messages]
+    [/#if]
+    [#if mode?contains("logs") ]
+        [#list messages as message]
+            [#switch message.Severity]
+                [#case "fatal"]
+                [#default]
+                    [@fatal
+                        message=message.Message
+                        context=message.Context!{}
+                        detail=message.Detail!{}
+                    /]
+                    [#break]
+            [/#switch]
+        [/#list]
+    [/#if]
     [#return result ]
+
 [/#function]
 
 [#function expandCompositeConfiguration attributes ]

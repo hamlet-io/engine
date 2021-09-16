@@ -84,6 +84,8 @@
 
 [#assign HEALTHCHECK_COMPONENT_TYPE = "healthcheck" ]
 
+[#assign HOSTING_PLATFORM_COMPONENT_TYPE = "hostingplatform"]
+
 [#assign INTERNALTEST_COMPONENT_TYPE = "internaltest" ]
 
 [#assign LAMBDA_COMPONENT_TYPE = "lambda"]
@@ -131,6 +133,8 @@
 
 [#assign SQS_COMPONENT_TYPE = "sqs"]
 
+[#assign SUBSCRIPTION_COMPONENT_TYPE = "subscription"]
+
 [#assign TEMPLATE_COMPONENT_TYPE = "template"]
 
 [#assign TOPIC_COMPONENT_TYPE = "topic"]
@@ -142,6 +146,8 @@
 [#assign USERPOOL_CLIENT_COMPONENT_TYPE = "userpoolclient" ]
 [#assign USERPOOL_AUTHPROVIDER_COMPONENT_TYPE = "userpoolauthprovider" ]
 [#assign USERPOOL_RESOURCE_COMPONENT_TYPE = "userpoolresource" ]
+
+[#assign DNS_ZONE_COMPONENT_TYPE = "dnszone"]
 
 [#assign
     logWatcherChildrenConfiguration = [
