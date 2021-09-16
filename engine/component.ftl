@@ -196,8 +196,7 @@
                 "ResourceGroups" : {
                     resourceGroup : {
                         "Extensions" : {
-                            provider :
-                                extensions
+                            provider : extensions
                         }
                     }
                 }
@@ -206,7 +205,7 @@
 
 [/#macro]
 
-[#macro addResourceGroupInformation type attributes provider resourceGroup services=[] prefixed=true ]
+[#macro addResourceGroupInformation type attributes provider resourceGroup services=[] prefixed=true locations={} ]
     [#if provider == SHARED_ATTRIBUTES ]
         [#-- Special processing for profiles --]
         [#if resourceGroup == DEFAULT_RESOURCE_GROUP ]
@@ -241,17 +240,65 @@
         [/#if]
     [/#if]
 
+    [#local locationAttributes =
+        [
+            {
+                "Names" : "Locations",
+                "Description" : "Expected locations",
+                "SubObjects" : true,
+                "Children" : [
+                    {
+                        "Names" : "Mandatory",
+                        "Description" : "Is location always required?",
+                        "Types" : BOOLEAN_TYPE,
+                        "Default" : true
+                    },
+                    {
+                        "Names" : "TargetComponentTypes",
+                        "Description" : "Enable at rest encryption",
+                        "Types" : ARRAY_OF_STRING_TYPE,
+                        "Mandatory" : true
+                    }
+                ]
+            }
+        ]
+    ]
+
+    [#local locationsMessages =
+        getCompositeObjectResult(
+            "messages",
+            locationAttributes,
+            { "Locations" : locations }
+        ) ]
+
+    [#if locationsMessages?has_content ]
+        [@fatal
+            message='Invalid location configuration for component "${type}" and ResourceGroup "${resourceGroup}"'
+            context=locationErrorMessages
+        /]
+    [/#if]
+
+    [#local locationsObject =
+        getCompositeObjectResult(
+            "object",
+            locationAttributes,
+            { "Locations" : locations }
+        ).Locations ]
+
     [@internalMergeComponentConfiguration
         type=type
         configuration=
             {
                 "ResourceGroups" : {
-                    resourceGroup : {
-                        "Attributes" : {
-                            provider :
-                                providerAttributes
-                        }
-                    } +
+                    resourceGroup :
+                    valueIfContent(
+                        {
+                            "Attributes" : {
+                                provider : providerAttributes
+                            }
+                        },
+                        providerAttributes
+                    ) +
                     valueIfContent(
                         {
                             "Services" : {
@@ -259,6 +306,14 @@
                             }
                         },
                         services
+                    ) +
+                    valueIfContent(
+                        {
+                            "Locations" : {
+                                provider : locationsObject
+                            }
+                        },
+                        locationsObject
                     )
                 }
             }
@@ -271,6 +326,10 @@
 
 [#function getComponentResourceGroups type]
     [#return (componentConfiguration[type].ResourceGroups)!{} ]
+[/#function]
+
+[#function getComponentResourceGroupLocations resourceGroup provider]
+    [#return (resourceGroup.Locations[provider])!{} ]
 [/#function]
 
 [#function getComponentLegacyTypes type]
@@ -314,6 +373,7 @@
     [/#list]
     [#return result]
 [/#function]
+
 
 [#function getResourceGroupPlacement key profile]
     [#return profile[key]!{} ]
@@ -511,26 +571,27 @@
 
 [/#function]
 
-[#-- Get the attribute for the type object for a component --]
-[#function getComponentTypeObjectAttribute component]
-    [#local type = getComponentType(component) ]
-    [#list component as key,value]
-        [#-- type object based on canonical type --]
-        [#if key?lower_case == type]
-            [#return key]
-        [/#if]
-        [#-- type object based on legacy type --]
-        [#if (legacyTypeMapping[key?lower_case]!"") == type ]
-            [#return key]
-        [/#if]
+[#--
+Get the type object for a component
 
-    [/#list]
-    [#return "" ]
-[/#function]
+TODO(mfl): Add a warning if a type specific attribute is located.
 
-[#-- Get the type object for a component --]
+To simplify solutions, it is preferred to directly use the Type
+attribute and NOT have specific object for the type. Rather, the
+component configuration can be at the same level as the Type.
+For now, the logic still prefers a type specific attribute if
+present, but once the cutover is largely complete, a warning
+needs to be added if the condition is detected, and eventually
+the warning can be changed to an error. The last phase does
+imply a breaking change so needs to be managed carefully.
+--]
 [#function getComponentTypeObject component]
-    [#local typeObject = component[getComponentTypeObjectAttribute(component)]!{} ]
+    [#-- Check for type specific attribute --]
+    [#local typeObject = component[internalGetComponentTypeObjectAttribute(component)]!{} ]
+    [#if component.Type?? && (!typeObject?has_content) ]
+        [#-- No type specific attribute but the type is explicitly provided --]
+        [#return component]
+    [/#if]
     [#return valueIfTrue(typeObject, typeObject?is_hash) ]
 [/#function]
 
@@ -599,3 +660,22 @@
         )]
     [/#if]
 [/#macro]
+
+[#-- Get the attribute for the type object for a component --]
+[#function internalGetComponentTypeObjectAttribute component]
+    [#local type = getComponentType(component) ]
+    [#list component as key,value]
+        [#-- type object based on canonical type --]
+        [#if key?lower_case == type]
+            [#return key]
+        [/#if]
+        [#-- type object based on legacy type --]
+        [#if (legacyTypeMapping[key?lower_case]!"") == type ]
+            [#return key]
+        [/#if]
+
+    [/#list]
+    [#return "" ]
+[/#function]
+
+
