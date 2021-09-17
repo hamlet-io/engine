@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - 'master'
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
   create_changelog:
@@ -36,7 +38,7 @@ jobs:
           title: 'chore: update changelog'
           body: |
             Updates the changelog with the latest updates
-            This is raised as a draft and should be merged before before tagging a release
+            This is raised as a draft and should be merged after a release tag has been applied
           labels: 'chore'
           base: 'master'
           branch: create-pull-request/changelog_bump
