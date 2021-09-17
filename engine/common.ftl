@@ -510,10 +510,6 @@
             "Types" : BOOLEAN_TYPE
         },
         {
-            "Names" : "Qualifiers",
-            "Types" : OBJECT_TYPE
-        },
-        {
             "Names" : "Domain",
             "Types" : STRING_TYPE
         },

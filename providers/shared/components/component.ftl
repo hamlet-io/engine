@@ -521,11 +521,6 @@
 
 [#assign domainNameChildConfiguration = [
     {
-        "Names" : "Qualifiers",
-        "Description" : "District based overrides to domain properties",
-        "Types" : OBJECT_TYPE
-    },
-    {
         "Names" : "Domain",
         "Description" : "Explicit domain id which will override the product domain",
         "Types" : STRING_TYPE
@@ -601,10 +596,6 @@
     domainNameChildConfiguration +
     hostNameChildConfiguration +
     [
-        {
-            "Names" : "Qualifiers",
-            "Types" : OBJECT_TYPE
-        },
         {
             "Names" : "External",
             "Types" : BOOLEAN_TYPE
