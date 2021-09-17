@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=EC2_COMPONENT_TYPE
-    defaultGroup="solution"
-/]
-
 [@addComponent
     type=EC2_COMPONENT_TYPE
     properties=
@@ -174,4 +169,9 @@
                 ]
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=EC2_COMPONENT_TYPE
+    defaultGroup="solution"
 /]

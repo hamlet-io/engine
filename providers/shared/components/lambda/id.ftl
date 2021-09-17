@@ -22,11 +22,6 @@
         ]
 /]
 
-[@addComponentDeployment
-    type=LAMBDA_FUNCTION_COMPONENT_TYPE
-    defaultGroup="application"
-/]
-
 [@addChildComponent
     type=LAMBDA_FUNCTION_COMPONENT_TYPE
     properties=
@@ -257,4 +252,9 @@
     parent=LAMBDA_COMPONENT_TYPE
     childAttribute="Functions"
     linkAttributes="Function"
+/]
+
+[@addComponentDeployment
+    type=LAMBDA_FUNCTION_COMPONENT_TYPE
+    defaultGroup="application"
 /]

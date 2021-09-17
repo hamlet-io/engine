@@ -1,11 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=NETWORK_ROUTER_COMPONENT_TYPE
-    defaultGroup="segment"
-/]
-
-
 [@addComponent
     type=NETWORK_ROUTER_COMPONENT_TYPE
     properties=
@@ -46,6 +40,11 @@
                 ]
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=NETWORK_ROUTER_COMPONENT_TYPE
+    defaultGroup="segment"
 /]
 
 [@addChildComponent

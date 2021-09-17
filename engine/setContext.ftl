@@ -3,6 +3,8 @@
 [#-- Shared Provider Configurations --]
 [@includeSharedComponentConfiguration component="shared" /]
 [@includeSharedComponentConfiguration component="baseline" /]
+[@includeSharedComponentConfiguration component="s3" /]
+[@includeSharedComponentConfiguration component="ec2" /]
 
 [#-- Temporary AWS stuff --]
 [#if getLoaderProviders()?seq_contains("aws") ]

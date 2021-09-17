@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=DATAFEED_COMPONENT_TYPE
-    defaultGroup="solution"
-/]
-
 [@addComponent
     type=DATAFEED_COMPONENT_TYPE
     properties=
@@ -165,4 +160,9 @@
                 "Children" : logWatcherChildrenConfiguration
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=DATAFEED_COMPONENT_TYPE
+    defaultGroup="solution"
 /]

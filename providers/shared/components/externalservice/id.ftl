@@ -12,21 +12,6 @@
     attributes=[]
 /]
 
-[@addChildComponent
-    type=EXTERNALSERVICE_ENDPOINT_COMPONENT_TYPE
-    properties=
-        [
-            {
-                "Type"  : "Description",
-                "Value" : "An endpoint of an external serivce normally an IP address or collection"
-            }
-        ]
-    attributes=[]
-    parent=EXTERNALSERVICE_COMPONENT_TYPE
-    childAttribute="Endpoints"
-    linkAttributes="Endpoint"
-/]
-
 [@addResourceGroupInformation
     type=EXTERNALSERVICE_COMPONENT_TYPE
     attributes=[
@@ -65,6 +50,20 @@
     ]
 /]
 
+[@addChildComponent
+    type=EXTERNALSERVICE_ENDPOINT_COMPONENT_TYPE
+    properties=
+        [
+            {
+                "Type"  : "Description",
+                "Value" : "An endpoint of an external serivce normally an IP address or collection"
+            }
+        ]
+    attributes=[]
+    parent=EXTERNALSERVICE_COMPONENT_TYPE
+    childAttribute="Endpoints"
+    linkAttributes="Endpoint"
+/]
 
 [@addResourceGroupInformation
     type=EXTERNALSERVICE_ENDPOINT_COMPONENT_TYPE

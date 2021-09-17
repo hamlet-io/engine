@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=SPA_COMPONENT_TYPE
-    defaultGroup="application"
-/]
-
 [@addComponent
     type=SPA_COMPONENT_TYPE
     properties=
@@ -93,4 +88,9 @@
                 ]
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=SPA_COMPONENT_TYPE
+    defaultGroup="application"
 /]

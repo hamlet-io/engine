@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=DNS_ZONE_COMPONENT_TYPE
-    defaultGroup="solution"
-/]
-
 [@addComponent
     type=DNS_ZONE_COMPONENT_TYPE
     properties=
@@ -22,4 +17,9 @@
                 "Types" : STRING_TYPE
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=DNS_ZONE_COMPONENT_TYPE
+    defaultGroup="solution"
 /]

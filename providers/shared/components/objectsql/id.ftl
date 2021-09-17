@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=OBJECTSQL_COMPONENT_TYPE
-    defaultGroup="solution"
-/]
-
 [@addComponent
     type=OBJECTSQL_COMPONENT_TYPE
     properties=
@@ -38,4 +33,9 @@
                 "Default" : -1
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=OBJECTSQL_COMPONENT_TYPE
+    defaultGroup="solution"
 /]

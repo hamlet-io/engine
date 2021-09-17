@@ -50,11 +50,14 @@
 
     [#-- Resource groups --]
     [#list [DEFAULT_RESOURCE_GROUP] + asArray(additionalResourceGroups) as resourceGroup]
-        [@addResourceGroupInformation
+        [@internalMergeComponentConfiguration
             type=type
-            attributes=[]
-            provider=""
-            resourceGroup=resourceGroup
+            configuration=
+                {
+                    "ResourceGroups" : {
+                        resourceGroup : {}
+                    }
+                }
         /]
     [/#list]
 
@@ -220,11 +223,18 @@
 [#macro addResourceGroupInformation type attributes provider resourceGroup services=[] prefixed=true locations={} ]
 
     [#-- Ensure resource group is known - it should have been registered when the component was registered --]
-    [#if !(componentConfiguration[type].ResourceGroups[resourceGroup])?? ]
+    [#if !componentConfiguration[type]?? ]
         [@fatal
-            message='Internal error - attempt to provide information for unkwown ResourceGroup "${resourceGroup}" on component type "${type}"'
+            message='Internal error - attempt to add ResourceGroup information for provider "${provider}" on unknown component type "${type}"'
         /]
         [#return]
+    [#else]
+        [#if !componentConfiguration[type].ResourceGroups[resourceGroup]?? ]
+            [@fatal
+                message='Internal error - attempt to provide information for unknown ResourceGroup "${resourceGroup}" on component type "${type}" for provider "${provider}"'
+            /]
+            [#return]
+        [/#if]
     [/#if]
 
     [#if provider == SHARED_ATTRIBUTES ]

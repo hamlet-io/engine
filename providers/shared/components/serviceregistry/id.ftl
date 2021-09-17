@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=SERVICE_REGISTRY_COMPONENT_TYPE
-    defaultGroup="solution"
-/]
-
 [@addComponent
     type=SERVICE_REGISTRY_COMPONENT_TYPE
     properties=
@@ -34,6 +29,11 @@
                 "Children" : domainNameChildConfiguration
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=SERVICE_REGISTRY_COMPONENT_TYPE
+    defaultGroup="solution"
 /]
 
 [@addChildComponent

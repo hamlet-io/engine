@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=CACHE_COMPONENT_TYPE
-    defaultGroup="solution"
-/]
-
 [@addComponent
     type=CACHE_COMPONENT_TYPE
     properties=
@@ -103,4 +98,9 @@
                 "AttributeSet" : ALERT_ATTRIBUTESET_TYPE
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=CACHE_COMPONENT_TYPE
+    defaultGroup="solution"
 /]

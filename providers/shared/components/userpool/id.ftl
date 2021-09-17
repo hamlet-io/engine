@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=USERPOOL_COMPONENT_TYPE
-    defaultGroup="solution"
-/]
-
 [@addComponent
     type=USERPOOL_COMPONENT_TYPE
     properties=
@@ -234,6 +229,11 @@
                 "Default" : "code"
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=USERPOOL_COMPONENT_TYPE
+    defaultGroup="solution"
 /]
 
 [@addChildComponent
@@ -537,7 +537,6 @@
     childAttribute="AuthProviders"
     linkAttributes="AuthProvider"
 /]
-
 
 [@addChildComponent
     parent=USERPOOL_COMPONENT_TYPE

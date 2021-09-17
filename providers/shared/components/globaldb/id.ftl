@@ -1,11 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=GLOBALDB_COMPONENT_TYPE
-    defaultGroup="solution"
-/]
-
-
 [@addComponent
     type=GLOBALDB_COMPONENT_TYPE
     properties=
@@ -112,4 +106,9 @@
                 ]
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=GLOBALDB_COMPONENT_TYPE
+    defaultGroup="solution"
 /]

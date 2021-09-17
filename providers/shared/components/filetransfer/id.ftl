@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=FILETRANSFER_COMPONENT_TYPE
-    defaultGroup="solution"
-/]
-
 [@addComponent
     type=FILETRANSFER_COMPONENT_TYPE
     properties=
@@ -57,4 +52,9 @@
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=FILETRANSFER_COMPONENT_TYPE
+    defaultGroup="solution"
 /]

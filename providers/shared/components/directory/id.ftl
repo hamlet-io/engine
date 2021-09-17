@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=DIRECTORY_COMPONENT_TYPE
-    defaultGroup="solution"
-/]
-
 [@addComponent
     type=DIRECTORY_COMPONENT_TYPE
     properties=
@@ -107,4 +102,9 @@
                 ]
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=DIRECTORY_COMPONENT_TYPE
+    defaultGroup="solution"
 /]

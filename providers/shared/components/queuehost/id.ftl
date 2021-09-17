@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=QUEUEHOST_COMPONENT_TYPE
-    defaultGroup="solution"
-/]
-
 [@addComponent
     type=QUEUEHOST_COMPONENT_TYPE
     properties=
@@ -125,4 +120,9 @@
                 ]
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=QUEUEHOST_COMPONENT_TYPE
+    defaultGroup="solution"
 /]

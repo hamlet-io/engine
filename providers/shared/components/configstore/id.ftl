@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=CONFIGSTORE_COMPONENT_TYPE
-    defaultGroup="solution"
-/]
-
 [@addComponent
     type=CONFIGSTORE_COMPONENT_TYPE
     properties=
@@ -33,6 +28,11 @@
                 "Default" : false
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=CONFIGSTORE_COMPONENT_TYPE
+    defaultGroup="solution"
 /]
 
 [@addChildComponent

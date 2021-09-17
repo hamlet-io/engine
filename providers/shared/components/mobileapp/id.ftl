@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=MOBILEAPP_COMPONENT_TYPE
-    defaultGroup="application"
-/]
-
 [@addComponent
     type=MOBILEAPP_COMPONENT_TYPE
     properties=
@@ -77,4 +72,9 @@
                 ]
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=MOBILEAPP_COMPONENT_TYPE
+    defaultGroup="application"
 /]

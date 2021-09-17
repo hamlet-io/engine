@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=CONTENTHUB_HUB_COMPONENT_TYPE
-    defaultGroup="application"
-/]
-
 [@addComponent
     type=CONTENTHUB_HUB_COMPONENT_TYPE
     properties=
@@ -37,4 +32,9 @@
                 "Default" : ""
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=CONTENTHUB_HUB_COMPONENT_TYPE
+    defaultGroup="application"
 /]

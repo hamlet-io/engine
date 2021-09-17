@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=SQS_COMPONENT_TYPE
-    defaultGroup="solution"
-/]
-
 [@addComponent
     type=SQS_COMPONENT_TYPE
     properties=
@@ -83,4 +78,9 @@
                     ]
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=SQS_COMPONENT_TYPE
+    defaultGroup="solution"
 /]

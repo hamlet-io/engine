@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=DATAPIPELINE_COMPONENT_TYPE
-    defaultGroup="application"
-/]
-
 [@addComponent
     type=DATAPIPELINE_COMPONENT_TYPE
     properties=
@@ -100,4 +95,9 @@
                 ]
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=DATAPIPELINE_COMPONENT_TYPE
+    defaultGroup="application"
 /]

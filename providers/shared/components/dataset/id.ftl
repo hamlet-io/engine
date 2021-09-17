@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=DATASET_COMPONENT_TYPE
-    defaultGroup="application"
-/]
-
 [@addComponent
     type=DATASET_COMPONENT_TYPE
     properties=
@@ -70,4 +65,9 @@
                 ]
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=DATASET_COMPONENT_TYPE
+    defaultGroup="application"
 /]

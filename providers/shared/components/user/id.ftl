@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=USER_COMPONENT_TYPE
-    defaultGroup="application"
-/]
-
 [@addComponent
     type=USER_COMPONENT_TYPE
     properties=
@@ -87,4 +82,9 @@
             }
         ]
     dependencies=[APIGATEWAY_COMPONENT_TYPE]
+/]
+
+[@addComponentDeployment
+    type=USER_COMPONENT_TYPE
+    defaultGroup="application"
 /]

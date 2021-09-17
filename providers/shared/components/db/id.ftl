@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=DB_COMPONENT_TYPE
-    defaultGroup="solution"
-/]
-
 [@addComponent
     type=DB_COMPONENT_TYPE
     properties=
@@ -270,4 +265,9 @@
                 ]
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=DB_COMPONENT_TYPE
+    defaultGroup="solution"
 /]

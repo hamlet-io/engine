@@ -1,11 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=NETWORK_GATEWAY_COMPONENT_TYPE
-    defaultGroup="segment"
-    defaultPriority=50
-/]
-
 [@addComponent
     type=NETWORK_GATEWAY_COMPONENT_TYPE
     properties=
@@ -115,6 +109,12 @@
                 ]
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=NETWORK_GATEWAY_COMPONENT_TYPE
+    defaultGroup="segment"
+    defaultPriority=50
 /]
 
 [@addChildComponent
