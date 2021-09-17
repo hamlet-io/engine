@@ -1,6 +1,72 @@
 # Changelog
 
-## Unreleased (2021-07-07)
+## Unreleased (2021-09-17)
+
+#### New Features
+
+* (firewall): routing destination support
+* (ds): New Component - Directory Services ([#1796](https://github.com/hamlet-io/engine/issues/1796))
+* add a correspondent component ([#1793](https://github.com/hamlet-io/engine/issues/1793))
+* (lb): add support for setting a default rule
+* (linkref): initial implementation ([#1788](https://github.com/hamlet-io/engine/issues/1788))
+* Support regex in qualification filters ([#1789](https://github.com/hamlet-io/engine/issues/1789))
+* adds zone based lookup for tiers
+* add Hostname as an alternate to Certificate
+* add logging profiles and typo fix
+* add http header filter
+* add priority and inspection set
+* add firewall component
+* extend exception on setting lookup
+* add interface attribute type
+* port protocol to IANA mapping
+* (network): dns query logging
+* Add standard date functions and (optional) MaintenanceWindow to RDS ([#1741](https://github.com/hamlet-io/engine/issues/1741))
+* set districts for deployment groups
+* template output suffixes for mapping
+* (districts): Initial implementation
+#### Fixes
+
+* whatif state processing ([#1802](https://github.com/hamlet-io/engine/issues/1802))
+* annotated qualification ([#1790](https://github.com/hamlet-io/engine/issues/1790))
+* remove unused var
+* permit the mocking of empty values ([#1754](https://github.com/hamlet-io/engine/issues/1754))
+* handle missing domains on products
+* allow for multiple module loads
+* swagger 2.0 top level security removal
+* get attributes from plugin set
+* handle tests across sub components deployment
+* duplicate fragment processing
+* district assignments on groups
+* minor updates to account units
+* include suboccurrences when generate tests
+* qualification of layer data ([#1730](https://github.com/hamlet-io/engine/issues/1730))
+#### Refactorings
+
+* remove last of component qualifiers ([#1801](https://github.com/hamlet-io/engine/issues/1801))
+* cloudfront header extension handling
+* (cache): attribute descriptions
+* warnings for occurrence links
+* use SubComponent in links ([#1792](https://github.com/hamlet-io/engine/issues/1792))
+* namespace qualifier attributes ([#1791](https://github.com/hamlet-io/engine/issues/1791))
+* multi-value build references ([#1787](https://github.com/hamlet-io/engine/issues/1787))
+* wildcard behaviour of getCompositeObject ([#1786](https://github.com/hamlet-io/engine/issues/1786))
+* rename complex check type
+* remove global security for openapi 2 ([#1743](https://github.com/hamlet-io/engine/issues/1743))
+* add attribute sets for plugin/modules
+* handle non segment districts in flows
+* clo/layer access during input processing ([#1735](https://github.com/hamlet-io/engine/issues/1735))
+
+Full set of changes: [`8.2.1...3af8ebd`](https://github.com/hamlet-io/engine/compare/8.2.1...3af8ebd)
+
+## 8.2.1 (2021-07-09)
+
+#### Fixes
+
+* (ci): tag trigger support in pipeline ([#1732](https://github.com/hamlet-io/engine/issues/1732))
+
+Full set of changes: [`8.2.0...8.2.1`](https://github.com/hamlet-io/engine/compare/8.2.0...8.2.1)
+
+## 8.2.0 (2021-07-09)
 
 #### New Features
 
@@ -45,8 +111,11 @@
 * set explicit typed profile attributes
 * standardise profile lookups
 * remove explicit qualification support ([#1696](https://github.com/hamlet-io/engine/issues/1696))
+#### Others
 
-Full set of changes: [`8.1.2...5c32333`](https://github.com/hamlet-io/engine/compare/8.1.2...5c32333)
+* changelog bump ([#1718](https://github.com/hamlet-io/engine/issues/1718))
+
+Full set of changes: [`8.1.2...8.2.0`](https://github.com/hamlet-io/engine/compare/8.1.2...8.2.0)
 
 ## 8.1.2 (2021-05-15)
 
