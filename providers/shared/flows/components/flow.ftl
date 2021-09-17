@@ -1,7 +1,7 @@
 [#ftl]
-[#------------------------------------------
+[#--------------------------------------------------
 -- Public functions for component flow processing --
---------------------------------------------]
+----------------------------------------------------]
 
 [#-- Main component processing flow --]
 [#macro default_flow_components level ]
@@ -84,22 +84,29 @@
 
 [#function getLinkTarget occurrence link activeOnly=true activeRequired=false]
 
-    [#local instanceToMatch = internalConvertDefaultIdName(link.Instance!(getOccurrenceInstance(occurrence).Id)) ]
-    [#local versionToMatch = internalConvertDefaultIdName(link.Version!(getOccurrenceVersion(occurrence).Id)) ]
+    [#-- Formulate the effective target link --]
+    [#local effectiveLink =
+        link +
+        {
+            "Instance" : internalConvertDefaultIdName(link.Instance!(getOccurrenceInstance(occurrence).Id)),
+            "Version" : internalConvertDefaultIdName(link.Version!(getOccurrenceVersion(occurrence).Id))
+        }
+    ]
 
-    [@debug
+    [@fatal
         message="Getting link Target"
         context=
             {
                 "Occurrence" : occurrence,
                 "Link" : link,
-                "EffectiveInstance" : instanceToMatch,
-                "EffectiveVersion" : versionToMatch,
+                "EffectiveLink" : effectiveLink,
                 "ActiveOnly" : activeOnly,
                 "ActiveRequired" : activeRequired
             }
         enabled=false
     /]
+
+    [#-- Ignore disabled links --]
     [#if ! (link.Enabled)!true ]
         [#return {} ]
     [/#if]
@@ -174,169 +181,186 @@
         ]
     [/#if]
 
-    [#list getOccurrences(
-                getTier(link.Tier),
-                getComponent(link.Tier, link.Component)) as targetOccurrence]
+    [#-- Determine the component type --]
+    [#local component = getComponent(link.Tier, link.Component) ]
+    [#local componentType = getComponentType(component) ]
 
-        [@debug
-            message="Possible link target"
-            context=targetOccurrence
-            enabled=false
-        /]
+    [#-- Check if suboccurrence linking is required --]
+    [#-- The preferred approach is to link based on the SubComponent attribute --]
+    [#-- and resolve any same named SubComponents via the Type attribute       --]
 
-        [#local componentType = getOccurrenceType(targetOccurrence) ]
-
-        [#local potentialOccurrences = [targetOccurrence] ]
-
-        [#-- Check if suboccurrence linking is required --]
-        [#-- The preferred approach is to link based on the SubComponent attribute --]
-        [#-- and resolve any same named subcomponents via the Type attribute       --]
-
-        [#local subComponentId = link.SubComponent!"" ]
-        [#if ! subComponentId?has_content]
-            [#-- Support legacy links where subcomponent specific link attributes were used --]
-            [#local subComponents = getComponentChildren(componentType) ]
-            [#list subComponents as subComponent]
-                [#list getComponentChildLinkAttributes(subComponent) as linkAttribute]
-                    [#local subComponentId = link[linkAttribute]!"" ]
-                    [#if subComponentId?has_content ]
-                        [#if linkType?has_content && (linkType != subComponent.Type) ]
-                            [@fatal
-                                message="Link type of " + linkType + " is inconsistent with subcomponent link attribute " + linkAttribute
-                                context=link
-                            /]
-                            [#return {} ]
-                        [#else]
-                            [#local linkType = subComponent.Type ]
-                        [/#if]
-                        [#break]
-                    [/#if]
-                [/#list]
+    [#local subComponentId = link.SubComponent!"" ]
+    [#if ! subComponentId?has_content]
+        [#-- Support legacy links where SubComponent specific link attributes were used --]
+        [#local subComponents = getComponentChildren(componentType) ]
+        [#list subComponents as subComponent]
+            [#list getComponentChildLinkAttributes(subComponent) as linkAttribute]
+                [#local subComponentId = link[linkAttribute]!"" ]
                 [#if subComponentId?has_content ]
+                    [#if linkType?has_content && (linkType != subComponent.Type) ]
+                        [@fatal
+                            message='Link type of "${linkType}" is inconsistent with SubComponent link attribute "${linkAttribute}"'
+                            context=link
+                        /]
+                        [#return {} ]
+                    [#else]
+                        [#local linkType = subComponent.Type ]
+                        [#local effectiveLink = removeObjectAttributes(effectiveLink, linkAttribute) ]
+                    [/#if]
                     [#break]
                 [/#if]
             [/#list]
-        [/#if]
+            [#if subComponentId?has_content ]
+                [#break]
+            [/#if]
+        [/#list]
+    [/#if]
+
+    [#-- Update the effective target link --]
+    [#local effectiveLink +=
+        attributeIfContent("SubComponent", subComponentId) +
+        attributeIfContent("Type", linkType)
+    ]
+
+    [#-- Get the occurrences matching the effective link    --]
+    [#-- The link is needed to prevent circular references  --]
+    [#-- Because the link is included on the call, only     --]
+    [#-- matches should be been returned                    --]
+    [#-- A match to a component occurrence will also return --]
+    [#-- any SubOccurrences. A match to a SubOccurrence     --]
+    [#-- only returns the Suboccurrence itself              --]
+    [#local targetOccurrences = internalGetOccurrences(component, getTier(link.Tier), effectiveLink) ]
+
+    [#if targetOccurrences?size > 1]
+        [@fatal
+            message='Internal error - multiple component matches returned for component "${effectiveLink.Component}"'
+            context=targetOccurrences
+            detail=effectiveLink
+        /]
+        [#return {} ]
+    [/#if]
+
+    [#-- 0 or 1 occurrences --]
+    [#list targetOccurrences as targetOccurrence]
+
+        [#local subOccurrences = getOccurrenceChildren(targetOccurrence) ]
 
         [#-- Legacy support for links to lambda without explicit function --]
-        [#-- TODO(mfl): Review legacy support with view to removal --]
-        [#if hasOccurrenceChildren(targetOccurrence) &&
-                subComponentId == "" &&
-                (componentType == LAMBDA_COMPONENT_TYPE) ]
-            [#local subComponentId = (getOccurrenceChildren(targetOccurrence)[0].Core.SubComponent.Id)!"" ]
-            [#local linkType = LAMBDA_FUNCTION_COMPONENT_TYPE ]
+        [#-- Default to the first suboccurrence returned                  --]
+        [#-- TODO(mfl): Review legacy support with view to removal        --]
+        [#if subOccurrences?has_content &&
+                effectiveLink.SubComponent == "" &&
+                (getOccurrenceType(targetOccurrence) == LAMBDA_COMPONENT_TYPE) ]
+            [#local effectiveLink +=
+                {
+                    "Type" : LAMBDA_FUNCTION_COMPONENT_TYPE,
+                    "SubComponent" : (subOccurrences[0].Core.SubComponent.Id)!""
+                }
+            ]
+            [#local matchedOccurrence = subOccurrences[0] ]
+        [#else]
+
+            [#local matchedOccurrence = targetOccurrence ]
+
+            [#if effectiveLink.SubComponent?has_content]
+
+                [#-- Match is to a SubComponent --]
+
+                [#if subOccurrences?size > 1 ]
+                    [@fatal
+                        message='Multiple matching subcomponents with id "${effectiveLink.SubComponent}". Use a Type attribute to differentiate them.'
+                        context=subOccurrences
+                        detail=effectiveLink
+                    /]
+                    [#return {} ]
+                [/#if]
+
+                [#if subOccurrences?has_content]
+                    [#local matchedOccurrence = subOccurrences[0] ]
+                [#else]
+                    [#-- No match --]
+                    [#continue]
+                [/#if]
+            [/#if]
         [/#if]
 
-        [#-- Find suboccurrences with a matching id --]
-        [#if subComponentId?has_content]
-            [#local potentialOccurrences = [] ]
-            [#list getOccurrenceChildren(targetOccurrence) as potentialOccurrence]
-                [#if
-                    (subComponentId == (getOccurrenceSubComponent(potentialOccurrence).Id)!"") &&
-                    (getOccurrenceInstance(potentialOccurrence).Id == instanceToMatch) &&
-                    (getOccurrenceVersion(potentialOccurrence).Id == versionToMatch) &&
-                    (
-                        (!linkType?has_content) ||
-                        (linkType == getOccurrenceType(potentialOccurrence))
-                    ) ]
+        [@debug
+            message="Possible link target"
+            context=matchedOccurrence
+            enabled=false
+        /]
 
-                    [#local potentialOccurrences += [potentialOccurrence] ]
-                [/#if]
-            [/#list]
-            [#if potentialOccurrences?size > 1 ]
-                [@fatal
-                    message="Multiple matching subcomponents with id " + subComponentId + ". Use a Type attribute to differentiate them."
-                    context=link
-                /]
-                [#return {} ]
-            [/#if]
-         [/#if]
+        [#-- Ensure any provided type matches - needed where SubComponent ids the same --]
+        [#if effectiveLink.Type?has_content && (effectiveLink.Type != getOccurrenceType(matchedOccurrence)) ]
+            [@fatal
+                message='Link type of "${effectiveLink.Type}" is inconsistent with matched occurrence type of "${getOccurrenceType(matchedOccurrence)}"'
+                context=link
+            /]
+        [/#if]
 
-        [#-- Should only be 0 or 1 array elements --]
-        [#list potentialOccurrences as potentialOccurrence]
+        [@debug message="Link matched target" context=matchedOccurrence enabled=false /]
 
-            [#-- Match needs to be exact                             --]
-            [#-- If occurrences do not match, overrides can be added --]
-            [#-- to the link.                                        --]
-            [#if (getOccurrenceInstance(potentialOccurrence).Id != instanceToMatch) ||
-                (getOccurrenceVersion(potentialOccurrence).Id != versionToMatch) ]
-                [#continue]
-            [/#if]
+        [#-- Determine if deployed --]
+        [#local isDeployed = isOccurrenceDeployed(matchedOccurrence)]
+        [#local sameDeployment = occurrencesInSameDeployment(occurrence, matchedOccurrence)]
+        [#local isEnabled = (matchedOccurrence.Configuration.Solution.Enabled)!true]
 
-            [#-- Ensure any provided type matches - needed where subcomponent ids the same --]
-            [#if linkType?has_content && (linkType != getOccurrenceType(potentialOccurrence)) ]
-                [@fatal
-                    message="Link type of " + linkType + " is inconsistent with matched occurrence type of " + getOccurrenceType(potentialOccurrence)
-                    context=link
-                /]
-            [/#if]
+        [#-- Always warn if linking to an inactive component --]
+        [#if isEnabled && !sameDeployment && !isDeployed && !activeRequired ]
 
-            [@debug message="Link matched target" context=potentialOccurrence enabled=false /]
+            [@warn
+                message="Link occurrence not deployed - ${occurrence.Core.RawName} -> ${matchedOccurrence.Core.RawName}"
+                detail="A link was made to an occurrence which has not been deployed"
+                context={
+                    "Link" : link,
+                    "EffectiveLink" : effectiveLink
+                }
+            /]
+        [/#if]
 
-            [#-- Determine if deployed --]
-            [#local isDeployed = isOccurrenceDeployed(potentialOccurrence)]
-            [#local sameDeployment = occurrencesInSameDeployment(occurrence, potentialOccurrence)]
-            [#local isEnabled = (potentialOccurrence.Configuration.Solution.Enabled)!true]
+        [#if !isEnabled ]
+            [@warn
+                message="Link occurrence is not enabled - ${occurrence.Core.RawName} -> ${matchedOccurrence.Core.RawName}"
+                detail="A link was made to an occurrence that is not enabled"
+                context={
+                    "Link" : link,
+                    "EffectiveLink" : effectiveLink
+                }
+            /]
+        [/#if]
 
-            [#-- Always warn if linking to an inactive component --]
-            [#if isEnabled && !sameDeployment && !isDeployed && !activeRequired ]
-
-                [@warn
-                    message="link occurrence not deployed - ${occurrence.Core.RawName} -> ${potentialOccurrence.Core.RawName}"
-                    detail="A link was made to an occurrence which has not been deployed"
-                    context={
-                        "Link" : link,
-                        "EffectiveInstance" : instanceToMatch,
-                        "EffectiveVersion" : versionToMatch
-                    }
+        [#if ( activeOnly || activeRequired ) && !isDeployed ]
+            [#if activeRequired ]
+                [@postcondition
+                    function="getLinkTarget"
+                    context=
+                        {
+                            "Occurrence" : occurrence,
+                            "TargetOccurrence" : matchedOccurrence,
+                            "Link" : link,
+                            "EffectiveLink" : effectiveLink
+                        }
+                    detail="Link target not active/deployed. Maybe the target hasn't been deployed or there is an account mismatch?"
+                    enabled=true
                 /]
             [/#if]
+            [@debug message="Link matched undeployed target" enabled=false /]
+            [#return {} ]
+        [/#if]
 
-            [#if !isEnabled ]
-                [@warn
-                    message="link occurrence is not enabled - ${occurrence.Core.RawName} -> ${potentialOccurrence.Core.RawName}"
-                    detail="A link was made to an occurrence that is not enabled"
-                    context={
-                        "Link" : link,
-                        "EffectiveInstance" : instanceToMatch,
-                        "EffectiveVersion" : versionToMatch
-                    }
-                /]
-            [/#if]
+        [#-- Determine the role --]
+        [#local direction = (link.Direction?lower_case)!"outbound"]
 
-            [#if ( activeOnly || activeRequired ) && !isDeployed ]
-                [#if activeRequired ]
-                    [@postcondition
-                        function="getLinkTarget"
-                        context=
-                            {
-                                "TargetOccurrence" : potentialOccurrence,
-                                "Link" : link,
-                                "EffectiveInstance" : instanceToMatch,
-                                "EffectiveVersion" : versionToMatch
-                            }
-                        detail="HamletFatal:Link target not active/deployed. Maybe the target hasn't been deployed or there is an account mismatch?"
-                        enabled=true
-                    /]
-                [/#if]
-                [@debug message="Link matched undeployed target" enabled=false /]
-                [#return {} ]
-            [/#if]
+        [#local role =
+            link.Role!getOccurrenceDefaultRole(matchedOccurrence, direction)]
 
-            [#-- Determine the role --]
-            [#local direction = (link.Direction?lower_case)!"outbound"]
-
-            [#local role =
-                link.Role!getOccurrenceDefaultRole(potentialOccurrence, direction)]
-
-            [#return
-                potentialOccurrence +
-                {
-                    "Direction" : direction,
-                    "Role" : role,
-                    "IncludeInContext" : link.IncludeInContext![]
-                } ]
-        [/#list]
+        [#return
+            matchedOccurrence +
+            {
+                "Direction" : direction,
+                "Role" : role,
+                "IncludeInContext" : link.IncludeInContext![]
+            } ]
     [/#list]
 
     [@postcondition
@@ -345,10 +369,9 @@
             {
                 "Occurrence" : occurrence,
                 "Link" : link,
-                "EffectiveInstance" : instanceToMatch,
-                "EffectiveVersion" : versionToMatch
+                "EffectiveLink" : effectiveLink
             }
-        detail="HamletFatal:Link not found"
+        detail="Link not found"
     /]
     [#return {} ]
 [/#function]
@@ -367,8 +390,40 @@
     [/#switch]
 [/#function]
 
-[#-- Get the occurrences of versions/instances of a component           --]
-[#function internalGetOccurrences component tier={} parentOccurrence={} parentContexts=[] componentType="" ]
+[#-- Track nesting of calls to internalGetOccurrences to --]
+[#-- detect loops which can occur via Locations          --]
+[#assign internalGetOccurrencesInvocations = [] ]
+
+[#--
+Get the occurrences of versions/instances of a component
+
+Occurrences are the core structure used by the hamlet
+engine.
+
+The presence of the tier parameter indicates whether
+Component or SubComponent processing is required.
+
+The function calls itself to process any
+SubOccurrences. The function also indirectly call itself
+when processing Locations so loop detection is
+implemented to avoid stack overflows.
+
+If a link is provided, the function will ignore any occurrence
+that doesn't match the link.
+--]
+
+[#function internalGetOccurrences component tier={} link={} parentOccurrence={} parentContexts=[] componentType="" ]
+
+[@fatal
+    message="InternalGetOccurrences"
+    context=
+    {
+        "Component" : component,
+        "Link" : link
+    }
+    detail=internalGetOccurrencesInvocations
+    enabled=false
+/]
 
     [#if !(component?has_content) ]
         [#return [] ]
@@ -508,13 +563,106 @@
                         }
                     ]
 
-                    [#-- check we don't already have this occurrence cached --]
-                    [#-- if cached return it from cache and skip processing this occurrence --]
-                    [#if isOccurrenceCached( occurrence, parentOccurrence ) ]
+
+                    [#local useCache = true]
+                    [#if link?has_content]
+                        [#-- If a link is provided, ignore everyone except ourselves to avoid     --]
+                        [#-- circular references in the case where the link is to an occurrence   --]
+                        [#-- or suboccurrence of our component.                                   --]
+
+                        [#-- The link also needs to provide a SubComponent attribute if linking   --]
+                        [#-- to suboccurrences                                                    --]
+
+                        [#if tier?has_content]
+                            [#if link.SubComponent?has_content ]
+                                [#-- Only use cached suboccurrences to ensure we only return matches    --]
+                                [#-- The cached version of a Occurrence includes all its SubOCcurrences --]
+                                [#local useCache = false]
+                            [#else]
+                                [#-- Occurrence targetted --]
+
+                                [#-- Ignore everyone except ourselves --]
+                                [#if
+                                    (link.Tier != occurrence.Core.Tier.Id) ||
+                                    (link.Component != occurrence.Core.Component.RawId) ||
+                                    (link.Instance != occurrence.Core.Instance.Id) ||
+                                    (link.Version != occurrence.Core.Version.Id) ||
+                                    (
+                                        link.Type?has_content &&
+                                        (link.Type != occurrence.Core.Type)
+                                    )
+                                ]
+                                    [#continue]
+                                [/#if]
+                            [/#if]
+                        [#else]
+                            [#if link.SubComponent?has_content ]
+                                [#-- SubOccurrence targetted --]
+
+                                [#-- Ignore ourselves --]
+                                [#if
+                                    (link.Tier != occurrence.Core.Tier.Id) ||
+                                    (link.Component != occurrence.Core.Component.RawId) ||
+                                    (link.SubComponent != occurrence.Core.SubComponent.RawId) ||
+                                    (link.Instance != occurrence.Core.Instance.Id) ||
+                                    (link.Version != occurrence.Core.Version.Id) ||
+                                    (
+                                        link.Type?has_content &&
+                                        (link.Type != occurrence.Core.Type)
+                                    )
+                                ]
+                                    [#continue]
+                                [/#if]
+                            [/#if]
+                        [/#if]
+                    [/#if]
+
+                    [#-- Check we don't already have this occurrence cached                   --]
+                    [#-- If cached, return it from cache and skip processing this occurrence  --]
+                    [#-- Note this is done AFTER link processing so only matches are returned --]
+                    [#-- even if coming from the cache                                        --]
+                    [#if useCache && isOccurrenceCached( occurrence, parentOccurrence ) ]
                         [#local occurrences += [
                             getOccurrenceFromCache( occurrence, parentOccurrence ) ]]
                         [#continue]
                     [/#if]
+
+                    [#-- loop detection --]
+
+                    [#-- The Occurrence currently being visited --]
+                    [#local currentInvocation =
+                        {
+                            "Tier" : occurrence.Core.Tier.Id,
+                            "Component" : occurrence.Core.Component.RawId,
+                            "SubComponent" : (occurrence.Core.SubComponent.RawId)!"",
+                            "Instance" : occurrence.Core.Instance.Id,
+                            "Version" : occurrence.Core.Version.Id
+                        }
+                    ]
+
+                    [#-- Check for a loop --]
+                    [#list internalGetOccurrencesInvocations as occurrenceInvocation]
+                        [#if
+                            (occurrenceInvocation.Tier == currentInvocation.Tier) &&
+                            (occurrenceInvocation.Component == currentInvocation.Component) &&
+                            (occurrenceInvocation.SubComponent == currentInvocation.SubComponent) &&
+                            (occurrenceInvocation.Instance == currentInvocation.Instance) &&
+                            (occurrenceInvocation.Version == currentInvocation.Version)
+                        ]
+                            [@fatal
+                                message="Loop of components created via links"
+                                context=internalGetOccurrencesInvocations
+                                detail=currentInvocation
+                            /]
+                            [#return [] ]
+                        [/#if]
+                    [/#list]
+
+                    [#-- Remember visiting this (sub)occurrence --]
+                    [#assign internalGetOccurrencesInvocations =
+                        [ currentInvocation ] +
+                        internalGetOccurrencesInvocations
+                    ]
 
                     [#-- Determine the occurrence deployment and placement profiles based on normal cmdb hierarchy --]
                     [#local profiles =
@@ -522,37 +670,12 @@
                             coreProfileChildConfiguration,
                             occurrenceContexts).Profiles ]
 
-                    [#-- Determine placement profile --]
-                    [#local placementProfile = getPlacementProfile(profiles.Placement) ]
-
-                    [#-- Add resource group placements to the occurrence --]
-                    [#list getComponentResourceGroups(type)?keys as key]
-                        [#local occurrence =
-                            mergeObjects(
-                                occurrence,
-                                {
-                                    "State" : {
-                                        "ResourceGroups" : {
-                                            key : {
-                                                "Placement" : getResourceGroupPlacement(key, placementProfile)
-                                            }
-                                        }
-                                    }
-                                }
-                            ) ]
-                    [/#list]
-
-                    [#-- Ensure we have loaded the component configuration --]
-                    [@includeComponentConfiguration
-                        component=type
-                        placements=occurrence.State.ResourceGroups /]
-
-                    [#-- Determine the required attributes now the provider specific configuration is in place --]
-                    [#local attributes = constructOccurrenceAttributes(occurrence) ]
-
-                    [#-- Apply deployment and policy profile overrides                  --]
+                    [#-- Apply deployment and policy profile overrides --]
                     [#local deploymentProfile = getDeploymentProfile(profiles.Deployment, getCLODeploymentMode()) ]
                     [#local policyProfile = getPolicyProfile(profiles.Policy, getCLODeploymentMode()) ]
+
+                    [#-- Determine placement profile --]
+                    [#local placementProfile = getPlacementProfile(profiles.Placement) ]
 
                     [#-- Assemble the profile objects allowing for legacy types --]
                     [#local deploymentProfileObjects = [(deploymentProfile["*"])!{}] ]
@@ -570,27 +693,208 @@
                         [/#list]
                     [/#list]
 
+                    [#-- Determine any provided location information permitting profiles to contribute content --]
+                    [#local locations =
+                        getCompositeObject(
+                            [
+                                {
+                                    "Names" : ["deployment:Locations"],
+                                    "Description" : "Locations required by the component",
+                                    "SubObjects" : true,
+                                    "Children" : [
+                                        {
+                                            "Names" : "Link",
+                                            "AttributeSet" : LINK_ATTRIBUTESET_TYPE,
+                                            "Mandatory" : true
 
-                    [#-- To allow deployment profiles to be overriden by the occurrence --]
-                    [#-- configuration, use reordered occurrence contexts now that the  --]
-                    [#-- deployment profiles are known                                  --]
+                                        }
+                                    ]
+                                }
+                            ],
+                            deploymentProfileObjects,
+                            occurrenceContexts,
+                            policyProfileObjects
+                        )["deployment:Locations"] ]
+
+                    [#-- Location targets for the occurrence --]
+                    [#local locationTargets = {} ]
+
+                    [#-- Add placement to each resource group          --]
+                    [#-- Precedence is given to location information   --]
+                    [#-- when determining placement but placement      --]
+                    [#-- profiles are left for backwards compatability --]
+                    [#-- until the switch to Locations is complete     --]
+                    [#list getComponentResourceGroups(type)?keys as key]
+
+                        [#local locationConfig = locations[key]!{} ]
+                        [#local locationTarget = {} ]
+                        [#if (locationConfig.Link)?has_content]
+                            [#local locationTarget =
+                                getLinkTarget(
+                                    occurrence,
+                                    locationConfig.Link,
+                                    true,
+                                    true
+                                )
+                            ]
+                            [#if locationTarget?has_content]
+                                [#local locationTargets +=
+                                    {
+                                        key : {
+                                            "Link" : locationConfig.Link,
+                                            "Type" : getOccurrenceType(locationTarget),
+                                            "Attributes" : getOccurrenceAttributes(locationTarget)
+                                        }
+                                    }
+                                ]
+                            [/#if]
+                        [/#if]
+
+                        [#-- Use location attributes in preference to profile    --]
+                        [#-- to permit a transition to location based placements --]
+                        [#local profileAttributes = getResourceGroupPlacement(key, placementProfile) ]
+                        [#local locationAttributes = getOccurrenceAttributes(locationTarget) ]
+
+                        [#-- Normalise case of placement attribute names --]
+                        [#local placement = {} ]
+                        [#list contentIfContent(locationAttributes, profileAttributes) as attribute,value ]
+                            [#switch attribute]
+                                [#case "DEPLOYMENT_FRAMEWORK"]
+                                [#case "DeploymentFramework"]
+                                    [#local placement += { "DeploymentFramework" : value} ]
+                                    [#break]
+                                [#default]
+                                    [#local placement += { attribute?capitalize : value } ]
+                                    [#break]
+                            [/#switch]
+                        [/#list]
+
+                        [#-- Ensure the minimal set of attributes required are present --]
+                        [#if placement.Provider?has_content && placement.DeploymentFramework?has_content]
+                            [#local occurrence =
+                                mergeObjects(
+                                    occurrence,
+                                    {
+                                        "State" : {
+                                            "ResourceGroups" : {
+                                                key : {
+                                                    "Placement" : placement
+                                                }
+                                            }
+                                        }
+                                    }
+                                ) ]
+                        [#else]
+                            [@fatal
+                                message="Insufficient information to place resource group. Provider and DeploymentFramework are required"
+                                context=occurrence
+                                detail=placement
+                            /]
+                            [#if ! internalGetOccurrencesInvocations?has_content]
+                                [@fatal
+                                    message="Internal inconsistency - expecting occurrence invocation but none found (1)"
+                                /]
+                            [#else]
+                                [#assign internalGetOccurrencesInvocations = internalGetOccurrencesInvocations[1..] ]
+                            [/#if]
+                            [#return [] ]
+                        [/#if]
+                    [/#list]
+
+                    [#-- Now the provider of each resource group is known, --]
+                    [#-- validate the locations according to the provider  --]
+                    [#-- location requirements.                            --]
+                    [#list getComponentResourceGroups(type) as key,value]
+
+                        [#-- Determine the provider --]
+                        [#local provider = occurrence.State.ResourceGroups[key].Placement.Provider!""]
+
+                        [#-- Validate location information for provider --]
+                        [#local locationsValid = true]
+                        [#list getComponentResourceGroupLocations(value, provider) as location,componentLocation]
+
+                            [#-- Determine the location target if not already found --]
+                            [#local locationTarget = locationTargets[location]!{} ]
+                            [#if (!locationTarget?has_content) && (location != key) ]
+                                [#local locationConfig = locations[location]!{} ]
+                                [#if (locationConfig.Link)?has_content]
+                                    [#local locationTarget =
+                                        getLinkTarget(
+                                            occurrence,
+                                            locationConfig.Link,
+                                            true,
+                                            true
+                                        )
+                                    ]
+                                    [#if locationTarget?has_content]
+                                        [#local locationTargets +=
+                                            {
+                                                key : {
+                                                    "Link" : locationConfig.Link,
+                                                    "Type" : getOccurrenceType(locationTarget),
+                                                    "Attributes" : getOccurrenceAttributes(locationTarget)
+                                                }
+                                            }
+                                        ]
+                                    [/#if]
+                                [/#if]
+                            [/#if]
+
+                            [#local targetType = (locationTargets[location].Type)!"" ]
+                            [#if targetType?has_content]
+                                [#-- Check the target type is what is expected --]
+                                [#if ! asArray(componentLocation.TargetComponentTypes![])?seq_contains(targetType) ]
+                                    [@fatal
+                                        message='Target of location "${location}" does not match any of the expected types'
+                                        context={
+                                            "Link" : locationConfig.Link,
+                                            "Expected" : componentLocation.TargetComponentTypes![],
+                                            "Found" : targetType
+                                        }
+                                    /]
+                                    [#local locationsValid = false]
+                                [/#if]
+                            [#else]
+                                [#if componentLocation.Mandatory!true]
+                                    [@fatal
+                                        message='The "${key}" resource group of the "${type}" component requires a location of "${location}"'
+                                    /]
+                                    [#local locationsValid = false ]
+                                [/#if]
+                            [/#if]
+                        [/#list]
+                        [#if ! locationsValid ]
+                            [#if ! internalGetOccurrencesInvocations?has_content]
+                                [@fatal
+                                    message="Internal inconsistency - expecting occurrence invocation but none found (2)"
+                                /]
+                            [#else]
+                                [#assign internalGetOccurrencesInvocations = internalGetOccurrencesInvocations[1..] ]
+                            [/#if]
+                            [#return [] ]
+                        [/#if]
+                    [/#list]
+
+                    [#-- Ensure we have loaded the component configuration --]
+                    [@includeComponentConfiguration
+                        component=type
+                        placements=occurrence.State.ResourceGroups /]
+
+                    [#-- Determine the required attributes now the provider specific configuration is in place --]
+                    [#local attributes = constructOccurrenceAttributes(occurrence) ]
+
+                    [#-- Determine the solution --]
                     [#local occurrence +=
                         {
                             "Configuration" : {
                                 "Solution" :
                                     getCompositeObject(
                                         attributes,
-                                        parentContexts,
                                         deploymentProfileObjects,
-                                        valueIfTrue(
-                                            [component, typeObject],
-                                            tier?has_content,
-                                            typeObject
-                                        ),
-                                        instance,
-                                        version,
+                                        occurrenceContexts,
                                         policyProfileObjects
-                                    )
+                                    ),
+                                "Locations" : locationTargets
                             }
                         }
                     ]
@@ -676,6 +980,7 @@
                                             } +
                                                 subComponentInstance,
                                             {},
+                                            link,
                                             occurrence,
                                             subOccurrenceContexts,
                                             subComponent.Type
@@ -687,17 +992,25 @@
 
                     [#local occurrence = occurrence + attributeIfContent("Occurrences", subOccurrences) ]
 
-                    [@addOccurrenceToCache
-                        occurrence=occurrence
-                        parentOccurrence=parentOccurrence
-                    /]
+                    [#-- Don't cache occurrences during link processing as they may be incomplete --]
+                    [#-- due to skipped suboccurrences. It is ok to cache suboccurrences          --]
+                    [#if (!link?has_content) || (!tier?has_content) ]
+                        [@addOccurrenceToCache
+                            occurrence=occurrence
+                            parentOccurrence=parentOccurrence
+                        /]
+                    [/#if]
 
-                    [#local occurrences +=
-                        [
-                            occurrence
-                        ]
-                    ]
+                    [#local occurrences += [ occurrence ] ]
 
+                    [#-- Processing for this occurrence is complete --]
+                    [#if ! internalGetOccurrencesInvocations?has_content]
+                        [@fatal
+                            message="Internal inconsistency - expecting occurrence invocation but none found (3)"
+                        /]
+                    [#else]
+                        [#assign internalGetOccurrencesInvocations = internalGetOccurrencesInvocations[1..] ]
+                    [/#if]
                 [/#if]
             [/#list]
         [/#if]
