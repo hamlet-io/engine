@@ -786,7 +786,7 @@ that doesn't match the link.
                                 ) ]
                         [#else]
                             [@fatal
-                                message="Insufficient information to place resource group. Provider and DeploymentFramework are required"
+                                message='Insufficient information to place resource group "${key}". Provider and DeploymentFramework are required'
                                 context=occurrence
                                 detail=placement
                             /]
