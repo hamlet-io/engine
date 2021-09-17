@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=EXTERNALNETWORK_COMPONENT_TYPE
-    defaultGroup="segment"
-/]
-
 [@addComponent
     type=EXTERNALNETWORK_COMPONENT_TYPE
     properties=
@@ -43,6 +38,11 @@
                 ]
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=EXTERNALNETWORK_COMPONENT_TYPE
+    defaultGroup="segment"
 /]
 
 [@addChildComponent

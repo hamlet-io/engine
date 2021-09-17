@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=COMPUTECLUSTER_COMPONENT_TYPE
-    defaultGroup="application"
-/]
-
 [@addComponent
     type=COMPUTECLUSTER_COMPONENT_TYPE
     properties=
@@ -192,4 +187,9 @@
                 ]
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=COMPUTECLUSTER_COMPONENT_TYPE
+    defaultGroup="application"
 /]

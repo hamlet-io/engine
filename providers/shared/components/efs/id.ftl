@@ -1,11 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=EFS_COMPONENT_TYPE
-    defaultGroup="solution"
-    defaultPriority=50
-/]
-
 [@addComponent
     type=EFS_COMPONENT_TYPE
     properties=
@@ -43,6 +37,12 @@
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=EFS_COMPONENT_TYPE
+    defaultGroup="solution"
+    defaultPriority=50
 /]
 
 [@addChildComponent

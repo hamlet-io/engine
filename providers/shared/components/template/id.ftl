@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=TEMPLATE_COMPONENT_TYPE
-    defaultGroup="application"
-/]
-
 [@addComponent
     type=TEMPLATE_COMPONENT_TYPE
     properties=
@@ -122,3 +117,9 @@
             }
         ]
 /]
+
+[@addComponentDeployment
+    type=TEMPLATE_COMPONENT_TYPE
+    defaultGroup="application"
+/]
+

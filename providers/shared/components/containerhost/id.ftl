@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=CONTAINERHOST_COMPONENT_TYPE
-    defaultGroup="solution"
-/]
-
 [@addComponent
     type=CONTAINERHOST_COMPONENT_TYPE
     properties=
@@ -21,4 +16,9 @@
         }
     ] +
     containerHostAttributes
+/]
+
+[@addComponentDeployment
+    type=CONTAINERHOST_COMPONENT_TYPE
+    defaultGroup="solution"
 /]

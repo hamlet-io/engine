@@ -3,11 +3,6 @@
 [#-- Engines --]
 [#assign MOBILENOTIFIER_SMS_ENGINE = "SMS" ]
 
-[@addComponentDeployment
-    type=MOBILENOTIFIER_COMPONENT_TYPE
-    defaultGroup="solution"
-/]
-
 [@addComponent
     type=MOBILENOTIFIER_COMPONENT_TYPE
     properties=
@@ -51,6 +46,11 @@
                 ]
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=MOBILENOTIFIER_COMPONENT_TYPE
+    defaultGroup="solution"
 /]
 
 [@addChildComponent

@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=CDN_COMPONENT_TYPE
-    defaultGroup="solution"
-/]
-
 [@addComponent
     type=CDN_COMPONENT_TYPE
     properties=
@@ -106,8 +101,13 @@
                 ]
             }
         ]
+        additionalResourceGroups=[DNS_RESOURCE_GROUP]
 /]
 
+[@addComponentDeployment
+    type=CDN_COMPONENT_TYPE
+    defaultGroup="solution"
+/]
 
 [@addChildComponent
     type=CDN_ROUTE_COMPONENT_TYPE

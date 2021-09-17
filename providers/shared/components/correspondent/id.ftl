@@ -1,11 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=CORRESPONDENT_COMPONENT_TYPE
-    defaultGroup="solution"
-    defaultPriority=70
-/]
-
 [@addComponent
     type=CORRESPONDENT_COMPONENT_TYPE
     properties=
@@ -23,4 +17,10 @@
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=CORRESPONDENT_COMPONENT_TYPE
+    defaultGroup="solution"
+    defaultPriority=70
 /]

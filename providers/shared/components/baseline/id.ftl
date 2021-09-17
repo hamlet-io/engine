@@ -99,14 +99,6 @@
     [#return baselineLinkTargets ]
 [/#function]
 
-[@addComponentDeployment
-    type=BASELINE_COMPONENT_TYPE
-    lockAttributes=true
-    defaultUnit="baseline"
-    defaultPriority=1
-    defaultGroup="segment"
-/]
-
 [@addComponent
     type=BASELINE_COMPONENT_TYPE
     properties=
@@ -134,6 +126,14 @@
                 ]
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=BASELINE_COMPONENT_TYPE
+    lockAttributes=true
+    defaultUnit="baseline"
+    defaultPriority=1
+    defaultGroup="segment"
 /]
 
 [@addChildComponent

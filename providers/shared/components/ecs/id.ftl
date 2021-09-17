@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=ECS_COMPONENT_TYPE
-    defaultGroup="solution"
-/]
-
 [@addComponent
     type=ECS_COMPONENT_TYPE
     properties=
@@ -18,8 +13,8 @@
 /]
 
 [@addComponentDeployment
-    type=ECS_SERVICE_COMPONENT_TYPE
-    defaultGroup="application"
+    type=ECS_COMPONENT_TYPE
+    defaultGroup="solution"
 /]
 
 [@addChildComponent
@@ -38,7 +33,7 @@
 /]
 
 [@addComponentDeployment
-    type=ECS_TASK_COMPONENT_TYPE
+    type=ECS_SERVICE_COMPONENT_TYPE
     defaultGroup="application"
 /]
 
@@ -55,4 +50,9 @@
             }
         ]
     attributes=containerTaskAttributes
+/]
+
+[@addComponentDeployment
+    type=ECS_TASK_COMPONENT_TYPE
+    defaultGroup="application"
 /]

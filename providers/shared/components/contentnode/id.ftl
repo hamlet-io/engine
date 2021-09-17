@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=CONTENTHUB_NODE_COMPONENT_TYPE
-    defaultGroup="application"
-/]
-
 [@addComponent
     type=CONTENTHUB_NODE_COMPONENT_TYPE
     properties=
@@ -57,4 +52,9 @@
                 ]
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=CONTENTHUB_NODE_COMPONENT_TYPE
+    defaultGroup="application"
 /]

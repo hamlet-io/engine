@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=DATAVOLUME_COMPONENT_TYPE
-    defaultGroup="solution"
-/]
-
 [@addComponent
     type=DATAVOLUME_COMPONENT_TYPE
     properties=
@@ -73,4 +68,9 @@
                 ]
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=DATAVOLUME_COMPONENT_TYPE
+    defaultGroup="solution"
 /]

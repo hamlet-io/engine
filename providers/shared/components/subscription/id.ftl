@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=SUBSCRIPTION_COMPONENT_TYPE
-    defaultGroup="solution"
-/]
-
 [@addComponent
     type=SUBSCRIPTION_COMPONENT_TYPE
     properties=
@@ -15,6 +10,11 @@
             }
         ]
     attributes=[]
+/]
+
+[@addComponentDeployment
+    type=SUBSCRIPTION_COMPONENT_TYPE
+    defaultGroup="solution"
 /]
 
 [@addResourceGroupInformation

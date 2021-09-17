@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=CONTAINERSERVICE_COMPONENT_TYPE
-    defaultGroup="application"
-/]
-
 [@addComponent
     type=CONTAINERSERVICE_COMPONENT_TYPE
     properties=
@@ -15,4 +10,9 @@
             }
         ]
     attributes=containerServiceAttributes
+/]
+
+[@addComponentDeployment
+    type=CONTAINERSERVICE_COMPONENT_TYPE
+    defaultGroup="application"
 /]

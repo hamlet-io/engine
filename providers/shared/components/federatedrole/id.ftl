@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=FEDERATEDROLE_COMPONENT_TYPE
-    defaultGroup="solution"
-/]
-
 [@addComponent
     type=FEDERATEDROLE_COMPONENT_TYPE
     properties=
@@ -43,6 +38,10 @@
         ]
 /]
 
+[@addComponentDeployment
+    type=FEDERATEDROLE_COMPONENT_TYPE
+    defaultGroup="solution"
+/]
 
 [@addChildComponent
     type=FEDERATEDROLE_ASSIGNMENT_COMPONENT_TYPE

@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=SECRETSTORE_COMPONENT_TYPE
-    defaultGroup="segment"
-/]
-
 [@addComponent
     type=SECRETSTORE_COMPONENT_TYPE
     properties=[
@@ -22,6 +17,11 @@
             "Mandatory" : true
         }
     ]
+/]
+
+[@addComponentDeployment
+    type=SECRETSTORE_COMPONENT_TYPE
+    defaultGroup="segment"
 /]
 
 [@addChildComponent

@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=BASTION_COMPONENT_TYPE
-    defaultGroup="segment"
-/]
-
 [@addComponent
     type=BASTION_COMPONENT_TYPE
     properties=
@@ -158,4 +153,9 @@
                 ]
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=BASTION_COMPONENT_TYPE
+    defaultGroup="segment"
 /]

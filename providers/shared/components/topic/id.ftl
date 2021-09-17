@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=TOPIC_COMPONENT_TYPE
-    defaultGroup="solution"
-/]
-
 [@addComponent
     type=TOPIC_COMPONENT_TYPE
     properties=
@@ -35,6 +30,10 @@
         ]
 /]
 
+[@addComponentDeployment
+    type=TOPIC_COMPONENT_TYPE
+    defaultGroup="solution"
+/]
 
 [@addChildComponent
     type=TOPIC_SUBSCRIPTION_COMPONENT_TYPE

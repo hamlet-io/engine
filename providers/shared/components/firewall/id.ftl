@@ -1,11 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=FIREWALL_COMPONENT_TYPE
-    defaultGroup="segment"
-    defaultPriority=60
-/]
-
 [@addComponent
     type=FIREWALL_COMPONENT_TYPE
     properties=
@@ -82,6 +76,12 @@
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=FIREWALL_COMPONENT_TYPE
+    defaultGroup="segment"
+    defaultPriority=60
 /]
 
 [@addChildComponent

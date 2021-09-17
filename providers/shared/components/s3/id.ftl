@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=S3_COMPONENT_TYPE
-    defaultGroup="solution"
-/]
-
 [@addComponent
     type=S3_COMPONENT_TYPE
     properties=
@@ -191,4 +186,9 @@
                 ]
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=S3_COMPONENT_TYPE
+    defaultGroup="solution"
 /]

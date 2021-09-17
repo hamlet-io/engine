@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=ES_COMPONENT_TYPE
-    defaultGroup="solution"
-/]
-
 [@addComponent
     type=ES_COMPONENT_TYPE
     properties=
@@ -124,4 +119,9 @@
                 "Default" : false
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=ES_COMPONENT_TYPE
+    defaultGroup="solution"
 /]

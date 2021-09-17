@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=MTA_COMPONENT_TYPE
-    defaultGroup="solution"
-/]
-
 [@addComponent
     type=MTA_COMPONENT_TYPE
     properties=
@@ -37,6 +32,10 @@
         ]
 /]
 
+[@addComponentDeployment
+    type=MTA_COMPONENT_TYPE
+    defaultGroup="solution"
+/]
 
 [@addChildComponent
     type=MTA_RULE_COMPONENT_TYPE

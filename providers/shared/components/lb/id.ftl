@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=LB_COMPONENT_TYPE
-    defaultGroup="solution"
-/]
-
 [@addComponent
     type=LB_COMPONENT_TYPE
     properties=
@@ -73,6 +68,11 @@
                 "Children" : wafChildConfiguration
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=LB_COMPONENT_TYPE
+    defaultGroup="solution"
 /]
 
 [@addChildComponent

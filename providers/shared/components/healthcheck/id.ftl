@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=HEALTHCHECK_COMPONENT_TYPE
-    defaultGroup="application"
-/]
-
 [@addComponent
     type=HEALTHCHECK_COMPONENT_TYPE
     properties=
@@ -227,4 +222,9 @@
             "Default" : [ "_all" ]
         }
     ]
+/]
+
+[@addComponentDeployment
+    type=HEALTHCHECK_COMPONENT_TYPE
+    defaultGroup="application"
 /]

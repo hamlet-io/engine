@@ -45,12 +45,6 @@ object.
 "documentation, the others redirect to the primary."
 ] ]
 
-[@addComponentDeployment
-    type=APIGATEWAY_COMPONENT_TYPE
-    defaultGroup="application"
-    defaultPriority=50
-/]
-
 [@addComponent
     type=APIGATEWAY_COMPONENT_TYPE
     properties=
@@ -329,4 +323,10 @@ object.
                 ]
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=APIGATEWAY_COMPONENT_TYPE
+    defaultGroup="application"
+    defaultPriority=50
 /]

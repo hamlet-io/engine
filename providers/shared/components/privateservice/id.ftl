@@ -1,11 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=PRIVATE_SERVICE_COMPONENT_TYPE
-    defaultGroup="solution"
-/]
-
-
 [@addComponent
     type=PRIVATE_SERVICE_COMPONENT_TYPE
     properties=
@@ -62,4 +56,9 @@
                 ]
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=PRIVATE_SERVICE_COMPONENT_TYPE
+    defaultGroup="solution"
 /]

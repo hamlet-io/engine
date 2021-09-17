@@ -1,10 +1,5 @@
 [#ftl]
 
-[@addComponentDeployment
-    type=HOSTING_PLATFORM_COMPONENT_TYPE
-    defaultGroup="solution"
-/]
-
 [@addComponent
     type=HOSTING_PLATFORM_COMPONENT_TYPE
     properties=
@@ -36,4 +31,9 @@
                 ]
             }
         ]
+/]
+
+[@addComponentDeployment
+    type=HOSTING_PLATFORM_COMPONENT_TYPE
+    defaultGroup="solution"
 /]
