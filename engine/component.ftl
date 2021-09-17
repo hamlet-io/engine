@@ -36,8 +36,9 @@
 [#assign DEFAULT_PLACEMENT_PROFILE = "default"]
 
 [#-- Macros to assemble the component configuration --]
-[#macro addComponent type properties attributes dependencies=[] ]
+[#macro addComponent type properties attributes dependencies=[] additionalResourceGroups=[] ]
 
+    [#-- Basic configuration --]
     [@internalMergeComponentConfiguration
         type=type
         configuration=
@@ -46,6 +47,17 @@
             } +
             attributeIfContent("Dependencies", dependencies, asArray(dependencies))
     /]
+
+    [#-- Resource groups --]
+    [#list [DEFAULT_RESOURCE_GROUP] + asArray(additionalResourceGroups) as resourceGroup]
+        [@addResourceGroupInformation
+            type=type
+            attributes=[]
+            provider=""
+            resourceGroup=resourceGroup
+        /]
+    [/#list]
+
     [#-- Default resource group --]
     [@addResourceGroupInformation
         type=type
@@ -206,6 +218,15 @@
 [/#macro]
 
 [#macro addResourceGroupInformation type attributes provider resourceGroup services=[] prefixed=true locations={} ]
+
+    [#-- Ensure resource group is known - it should have been registered when the component was registered --]
+    [#if !(componentConfiguration[type].ResourceGroups[resourceGroup])?? ]
+        [@fatal
+            message='Internal error - attempt to provide information for unkwown ResourceGroup "${resourceGroup}" on component type "${type}"'
+        /]
+        [#return]
+    [/#if]
+
     [#if provider == SHARED_ATTRIBUTES ]
         [#-- Special processing for profiles --]
         [#if resourceGroup == DEFAULT_RESOURCE_GROUP ]
