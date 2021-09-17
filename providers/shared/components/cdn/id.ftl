@@ -101,7 +101,6 @@
                 ]
             }
         ]
-        additionalResourceGroups=[DNS_RESOURCE_GROUP]
 /]
 
 [@addComponentDeployment
