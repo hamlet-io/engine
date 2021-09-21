@@ -27,18 +27,20 @@
                 "Children" : [
                     {
                         "Names" : "Formats",
+                        "Description" : "The type of credentials to generate - system provides api level access, console is user level access",
                         "Types" : ARRAY_OF_STRING_TYPE,
                         "Values" : ["system", "console"],
                         "Default"  : [ "system" ]
                     }
                     {
                         "Names" : "EncryptionScheme",
+                        "Description" : "A prefix added to the start of the encrypted value to show that it is encrypted",
                         "Types" : STRING_TYPE,
-                        "Values" : ["base64"],
                         "Default" : ""
                     },
                     {
                         "Names" : "CharacterLength",
+                        "Description" : "When generating a console credential the length of the password",
                         "Types" : NUMBER_TYPE,
                         "Default" : 20
                     }
