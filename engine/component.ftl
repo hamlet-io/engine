@@ -286,7 +286,7 @@
                     },
                     {
                         "Names" : "TargetComponentTypes",
-                        "Description" : "Enable at rest encryption",
+                        "Description" : "Supported types for targetted components",
                         "Types" : ARRAY_OF_STRING_TYPE,
                         "Mandatory" : true
                     }
