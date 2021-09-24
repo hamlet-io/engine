@@ -228,6 +228,32 @@
         )]
 [/#function]
 
+[#-- Summary occurrence information to provide useful information --]
+[#-- when debugging errors without swamping the output            --]
+[#function getOccurrenceSummary occurrences]
+    [#local result = [] ]
+    [#list asArray(occurrences) as occurrence]
+        [#local result +=
+            [
+                {
+                    "Type" : occurrence.Core.Type,
+                    "Core" : {
+                        "Tier" : occurrence.Core.Tier.Id,
+                        "Component" : occurrence.Core.Component.Id,
+                        "Instance" : occurrence.Core.Instance.Id,
+                        "Version" : occurrence.Core.Version.Id
+                    } +
+                    attributeIfContent("SubComponent", (occurrence.SubComponent.Id)!"")
+                }
+            ]
+        ]
+    [/#list]
+    [#if result?size > 1]
+        [#return result]
+    [/#if]
+    [#return result[0]!{} ]
+[/#function]
+
 [#function constructOccurrenceSettings baseOccurrence type]
 
     [#local occurrence = baseOccurrence]

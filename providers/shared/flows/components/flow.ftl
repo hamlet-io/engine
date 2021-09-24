@@ -93,11 +93,11 @@
         }
     ]
 
-    [@fatal
+    [@debug
         message="Getting link Target"
         context=
             {
-                "Occurrence" : occurrence,
+                "Occurrence" : getOccurrenceSummary(occurrence),
                 "Link" : link,
                 "EffectiveLink" : effectiveLink,
                 "ActiveOnly" : activeOnly,
@@ -239,7 +239,7 @@
     [#if targetOccurrences?size > 1]
         [@fatal
             message='Internal error - multiple component matches returned for component "${effectiveLink.Component}"'
-            context=targetOccurrences
+            context=getOccurrenceSummary(targetOccurrences)
             detail=effectiveLink
         /]
         [#return {} ]
@@ -274,7 +274,7 @@
                 [#if subOccurrences?size > 1 ]
                     [@fatal
                         message='Multiple matching subcomponents with id "${effectiveLink.SubComponent}". Use a Type attribute to differentiate them.'
-                        context=subOccurrences
+                        context=getOccurrenceSummary(subOccurrences)
                         detail=effectiveLink
                     /]
                     [#return {} ]
@@ -340,8 +340,8 @@
                     function="getLinkTarget"
                     context=
                         {
-                            "Occurrence" : occurrence,
-                            "TargetOccurrence" : matchedOccurrence,
+                            "Occurrence" : getOccurrenceSummary(occurrence),
+                            "TargetOccurrence" : getOccurrenceSummary(matchedOccurrence),
                             "Link" : link,
                             "EffectiveLink" : effectiveLink
                         }
@@ -372,7 +372,7 @@
         function="getLinkTarget"
         context=
             {
-                "Occurrence" : occurrence,
+                "Occurrence" : getOccurrenceSummary(occurrence),
                 "Link" : link,
                 "EffectiveLink" : effectiveLink
             }
@@ -418,17 +418,6 @@ that doesn't match the link.
 --]
 
 [#function internalGetOccurrences component tier={} link={} parentOccurrence={} parentContexts=[] componentType="" ]
-
-[@fatal
-    message="InternalGetOccurrences"
-    context=
-    {
-        "Component" : component,
-        "Link" : link
-    }
-    detail=internalGetOccurrencesInvocations
-    enabled=false
-/]
 
     [#if !(component?has_content) ]
         [#return [] ]
@@ -804,7 +793,7 @@ that doesn't match the link.
                         [#else]
                             [@fatal
                                 message='Insufficient information to place resource group "${key}". Provider and DeploymentFramework are required'
-                                context=occurrence
+                                context=getOccurrenceSummary(occurrence)
                                 detail=placement
                             /]
                             [#if ! internalGetOccurrencesInvocations?has_content]
