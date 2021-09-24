@@ -108,6 +108,11 @@
 
     [#-- Ignore disabled links --]
     [#if ! (link.Enabled)!true ]
+        [@debug
+            message="Disabled Link"
+            context=link!{}
+            enabled=false
+        /]
         [#return {} ]
     [/#if]
 
@@ -693,7 +698,8 @@ that doesn't match the link.
                         [/#list]
                     [/#list]
 
-                    [#-- Determine any provided location information permitting profiles to contribute content --]
+                    [#-- Determine any provided location information --]
+                    [#-- Permit profiles to contribute content       --]
                     [#local locations =
                         getCompositeObject(
                             [
@@ -717,7 +723,7 @@ that doesn't match the link.
                         )["deployment:Locations"] ]
 
                     [#-- Location targets for the occurrence --]
-                    [#local locationTargets = {} ]
+                    [#local locationTargets = { "_config" : locations } ]
 
                     [#-- Add placement to each resource group          --]
                     [#-- Precedence is given to location information   --]
@@ -733,11 +739,12 @@ that doesn't match the link.
                                 getLinkTarget(
                                     occurrence,
                                     locationConfig.Link,
-                                    true,
-                                    true
+                                    false,
+                                    false
                                 )
                             ]
-                            [#if locationTarget?has_content]
+
+                            [#if locationTarget?has_content && isOccurrenceDeployed(locationTarget)]
                                 [#local locationTargets +=
                                     {
                                         key : {
@@ -746,6 +753,16 @@ that doesn't match the link.
                                             "Attributes" : getOccurrenceAttributes(locationTarget)
                                         }
                                     }
+                                ]
+                            [#else]
+                                [#local locationTargets =
+                                    combineEntities(
+                                        locationTargets,
+                                        {
+                                            locationTarget?has_content?then("_notdeployed", "_missing") : [key]
+                                        },
+                                        APPEND_COMBINE_BEHAVIOUR
+                                    )
                                 ]
                             [/#if]
                         [/#if]
@@ -801,6 +818,11 @@ that doesn't match the link.
                         [/#if]
                     [/#list]
 
+                    [#-- Ensure we have loaded the component configuration --]
+                    [@includeComponentConfiguration
+                        component=type
+                        placements=occurrence.State.ResourceGroups /]
+
                     [#-- Now the provider of each resource group is known, --]
                     [#-- validate the locations according to the provider  --]
                     [#-- location requirements.                            --]
@@ -822,11 +844,12 @@ that doesn't match the link.
                                         getLinkTarget(
                                             occurrence,
                                             locationConfig.Link,
-                                            true,
-                                            true
+                                            false,
+                                            false
                                         )
                                     ]
-                                    [#if locationTarget?has_content]
+
+                                    [#if locationTarget?has_content && isOccurrenceDeployed(locationTarget)]
                                         [#local locationTargets +=
                                             {
                                                 key : {
@@ -835,6 +858,16 @@ that doesn't match the link.
                                                     "Attributes" : getOccurrenceAttributes(locationTarget)
                                                 }
                                             }
+                                        ]
+                                    [#else]
+                                        [#local locationTargets =
+                                            combineEntities(
+                                                locationTargets,
+                                                {
+                                                    locationTarget?has_content?then("_notdeployed", "_missing") : [key]
+                                                },
+                                                APPEND_COMBINE_BEHAVIOUR
+                                            )
                                         ]
                                     [/#if]
                                 [/#if]
@@ -874,11 +907,6 @@ that doesn't match the link.
                             [#return [] ]
                         [/#if]
                     [/#list]
-
-                    [#-- Ensure we have loaded the component configuration --]
-                    [@includeComponentConfiguration
-                        component=type
-                        placements=occurrence.State.ResourceGroups /]
 
                     [#-- Determine the required attributes now the provider specific configuration is in place --]
                     [#local attributes = constructOccurrenceAttributes(occurrence) ]
