@@ -1,40 +1,259 @@
 [#ftl]
+[#-------------------------------------
+-- Internal error handling functions --
+---------------------------------------]
+
+[#--
+This relies on the Freemarker behaviour where if a null value is
+provided for parameter, it will receive whatever has been
+configured as the default.
+
+For any argument where a value is expected, set the default to
+"Hamlet:Null".
+--]
+
+
+[#-- Detect null values --]
+[#function hasNullContent entity="Hamlet:Null"]
+
+    [#-- Passed a null --]
+    [#if entity?is_string && (entity == "Hamlet:Null") ]
+        [#return true]
+    [/#if]
+
+    [#if entity?is_hash]
+        [#list entity as key, value]
+            [#if hasNullContent(value) ]
+                [#return true]
+            [/#if]
+        [/#list]
+    [/#if]
+
+    [#if entity?is_sequence]
+        [#list entity as element]
+            [#if hasNullContent(element) ]
+                [#return true]
+            [/#if]
+        [/#list]
+    [/#if]
+
+    [#return false]
+[/#function]
+
+[#-- Remove null values --]
+[#function makeEntityNullSafe entity="Hamlet:Null"]
+
+    [#if entity?is_hash]
+        [#local result = {} ]
+        [#list entity as key, value]
+            [#local result += { key : makeEntityNullSafe(value) } ]
+        [/#list]
+        [#return result]
+    [/#if]
+
+    [#if entity?is_sequence]
+        [#local result = [] ]
+        [#list entity as element]
+            [#local result += [ makeEntityNullSafe(element) ] ]
+        [/#list]
+        [#return result]
+    [/#if]
+
+    [#-- If a null is passed, "Hamlet:Null" will be returned --]
+    [#-- as the default argument value logic will kick in    --]
+    [#return entity]
+[/#function]
+
+[#-- Helper routines to simplify reporting of bad arguments --]
+[#function isNullDetectionEnabled]
+    [#-- TODO(mfl): Add a cli flag to control null detection --]
+    [#-- It is very cpu intensive                            --]
+    [#return false]
+[/#function]
+
+[#function findNullArguments fn args caller]
+    [#local result = {} ]
+
+    [#list args as key, value]
+        [#if hasNullContent(value) ]
+            [#local result += { key : makeEntityNullSafe(value) } ]
+        [/#if]
+    [/#list]
+
+    [#if result?has_content ]
+        [@fatalstop
+            message='Internal error - invalid argument(s) to ${fn}()'
+            context={ "Caller" : caller } + result
+        /]
+    [/#if]
+
+    [#-- Only get here if no problems --]
+    [#return {}]
+[/#function]
+
 [#-------------------
 -- Logic functions --
 ---------------------]
 
-[#function valueIfTrue value condition otherwise={} ]
+[#function valueIfTrue value="Hamlet:Null" condition="Hamlet:Null" otherwise={} ]
+
+    [#-- Internal error detection --]
+    [#if isNullDetectionEnabled() ]
+        [#local nullArguments =
+            findNullArguments(
+                "valueIfTrue",
+                {
+                    "value" : value,
+                    "condition" : condition,
+                    "otherwise" : otherwise
+                },
+                .caller_template_name
+            )
+        ]
+    [/#if]
+
     [#return condition?then(value, otherwise) ]
 [/#function]
 
-[#function valueIfContent value content otherwise={} ]
+[#function valueIfContent value="Hamlet:Null" content="Hamlet:Null" otherwise={} ]
+
+    [#-- Internal error detection --]
+    [#if isNullDetectionEnabled() ]
+        [#local nullArguments =
+            findNullArguments(
+                "valueIfContent",
+                {
+                    "value" : value,
+                    "content" : content,
+                    "otherwise" : otherwise
+                },
+                .caller_template_name
+            )
+        ]
+    [/#if]
+
     [#return valueIfTrue(value, content?has_content, otherwise) ]
 [/#function]
 
-[#function arrayIfTrue value condition otherwise=[] ]
+[#function arrayIfTrue value="Hamlet:Null" condition="Hamlet:Null" otherwise=[] ]
+
+    [#-- Internal error detection --]
+    [#if isNullDetectionEnabled() ]
+        [#local nullArguments =
+            findNullArguments(
+                "arrayIfTrue",
+                {
+                    "value" : value,
+                    "condition" : condition,
+                    "otherwise" : otherwise
+                },
+                .caller_template_name
+            )
+        ]
+    [/#if]
+
     [#return condition?then(asArray(value), otherwise) ]
 [/#function]
 
-[#function arrayIfContent value content otherwise=[] ]
+[#function arrayIfContent value="Hamlet:Null" content="Hamlet:Null" otherwise=[] ]
+
+    [#-- Internal error detection --]
+    [#if isNullDetectionEnabled() ]
+        [#local nullArguments =
+            findNullArguments(
+                "arrayIfContent",
+                {
+                    "value" : value,
+                    "content" : content,
+                    "otherwise" : otherwise
+                },
+                .caller_template_name
+            )
+        ]
+    [/#if]
+
     [#return valueIfContent(asArray(value), content, otherwise) ]
 [/#function]
 
-[#function contentIfContent value otherwise={} ]
+[#function contentIfContent value="Hamlet:Null" otherwise={} ]
+
+    [#-- Internal error detection --]
+    [#if isNullDetectionEnabled() ]
+        [#local nullArguments =
+            findNullArguments(
+                "contentIfContent",
+                {
+                    "value" : value,
+                    "otherwise" : otherwise
+                },
+                .caller_template_name
+            )
+        ]
+    [/#if]
+
     [#return valueIfTrue(value, value?has_content, otherwise) ]
 [/#function]
 
-[#function attributeIfTrue attribute condition value ]
+[#function attributeIfTrue attribute="Hamlet:Null" condition="Hamlet:Null" value="Hamlet:Null" ]
+
+    [#-- Internal error detection --]
+    [#if isNullDetectionEnabled() ]
+        [#local nullArguments =
+            findNullArguments(
+                "attributeIfTrue",
+                {
+                    "attribute" : attribute,
+                    "condition" : condition,
+                    "value" : value
+                },
+                .caller_template_name
+            )
+        ]
+    [/#if]
+
     [#return valueIfTrue({attribute : value}, condition) ]
 [/#function]
 
-[#function attributeIfContent attribute content value={} ]
+[#function attributeIfContent attribute="Hamlet:Null" content="Hamlet:Null" value={} ]
+
+    [#-- Internal error detection --]
+    [#if isNullDetectionEnabled() ]
+        [#local nullArguments =
+            findNullArguments(
+                "attributeIfContent",
+                {
+                    "attribute" : attribute,
+                    "content" : content,
+                    "value" : value
+                },
+                .caller_template_name
+            )
+        ]
+    [/#if]
+
     [#return attributeIfTrue(
         attribute,
         content?has_content,
         value?has_content?then(value, content)) ]
 [/#function]
 
-[#function numberAttributeIfContent attribute content value={}]
+[#function numberAttributeIfContent attribute="Hamlet:Null" content="Hamlet:Null" value={}]
+
+    [#-- Internal error detection --]
+    [#if isNullDetectionEnabled() ]
+        [#local nullArguments =
+            findNullArguments(
+                "numberAttributeIfContent",
+                {
+                    "attribute" : attribute,
+                    "content" : content,
+                    "value" : value
+                },
+                .caller_template_name
+            )
+        ]
+    [/#if]
+
     [#return attributeIfTrue(
         attribute,
         content?has_content,
@@ -130,17 +349,35 @@
 --------------------]
 
 [#-- Recursively concatenate sequence of non-empty strings with a separator --]
-[#function concatenate args separator]
+[#function concatenate args="Hamlet:Null" separator="Hamlet:Null" callToSelf=false]
+
+    [#if ! callToSelf]
+        [#-- Internal error detection --]
+        [#if isNullDetectionEnabled() ]
+            [#local nullArguments =
+                findNullArguments(
+                    "concatenate",
+                    {
+                        "args" : args,
+                        "separator" : separator
+                    },
+                    .caller_template_name
+                )
+            ]
+        [/#if]
+    [/#if]
+
     [#local content = []]
     [#list asFlattenedArray(args) as arg]
-        [#local argValue = arg!"Hamlet:ERROR_INVALID_ARG_TO_CONCATENATE"]
+        [#local argValue = arg]
         [#if argValue?is_hash]
             [#switch separator]
                 [#case "X"]
                     [#if (argValue.Core.Internal.IdExtensions)??]
                         [#local argValue = concatenate(
                                             argValue.Core.Internal.IdExtensions,
-                                            separator)]
+                                            separator,
+                                            true)]
                     [#else]
                         [#local argValue = argValue.Id!""]
                     [/#if]
@@ -152,7 +389,8 @@
                     [#if (argValue.Core.Internal.NameExtensions)??]
                         [#local argValue = concatenate(
                                             argValue.Core.Internal.NameExtensions,
-                                            separator)]
+                                            separator,
+                                            true)]
                     [#else]
                         [#local argValue = argValue.Name!""]
                     [/#if]
@@ -176,17 +414,35 @@
     [#return content?join(separator)]
 [/#function]
 
-[#function asArray arg flatten=false ignoreEmpty=false]
+[#function asArray arg="Hamlet:Null" flatten=false ignoreEmpty=false callToSelf=false]
+
+    [#if !callToSelf]
+        [#-- Internal error detection --]
+        [#if isNullDetectionEnabled() ]
+            [#local nullArguments =
+                findNullArguments(
+                    "asArray",
+                    {
+                        "arg" : arg,
+                        "flatten" : flatten,
+                        "ignoreEmpty" : ignoreEmpty
+                    },
+                    .caller_template_name
+                )
+            ]
+        [/#if]
+    [/#if]
+
     [#local result = [] ]
     [#if arg?is_sequence]
         [#if flatten]
             [#list arg as element]
-                [#local result += asArray(element, flatten, ignoreEmpty) ]
+                [#local result += asArray(element, flatten, ignoreEmpty, true) ]
             [/#list]
         [#else]
             [#if ignoreEmpty]
                 [#list arg as element]
-                    [#local elementResult = asArray(element, flatten, ignoreEmpty) ]
+                   [#local elementResult = asArray(element, flatten, ignoreEmpty, true) ]
                     [#if elementResult?has_content]
                         [#local result += valueIfTrue([elementResult], element?is_sequence, elementResult) ]
                     [/#if]
@@ -202,7 +458,22 @@
     [#return result ]
 [/#function]
 
-[#function asFlattenedArray arg ignoreEmpty=false]
+[#function asFlattenedArray arg="Hamlet:Null" ignoreEmpty=false]
+
+    [#-- Internal error detection --]
+    [#if isNullDetectionEnabled() ]
+        [#local nullArguments =
+            findNullArguments(
+                "asFlattenedArray",
+                {
+                    "arg" : arg,
+                    "ignoreEmpty" : ignoreEmpty
+                },
+                .caller_template_name
+            )
+        ]
+    [/#if]
+
     [#return asArray(arg, true, ignoreEmpty) ]
 [/#function]
 
@@ -218,7 +489,23 @@
     [#return result ]
 [/#function]
 
-[#function getArrayIntersection array1 array2 regexSupport=false]
+[#function getArrayIntersection array1="Hamlet:Null" array2="Hamlet:Null" regexSupport=false]
+
+    [#-- Internal error detection --]
+    [#if isNullDetectionEnabled() ]
+        [#local nullArguments =
+            findNullArguments(
+                "getArrayIntersection",
+                {
+                    "array1" : array1,
+                    "array2" : array2,
+                    "regexSupport" : regexSupport
+                },
+                .caller_template_name
+            )
+        ]
+    [/#if]
+
     [#local result = []]
     [#local array2AsArray = asArray(array2)]
     [#list asArray(array1) as element]
@@ -237,7 +524,22 @@
     [#return result]
 [/#function]
 
-[#function firstContent alternatives=[] otherwise={}]
+[#function firstContent alternatives="Hamlet:Null" otherwise={}]
+
+    [#-- Internal error detection --]
+    [#if isNullDetectionEnabled() ]
+        [#local nullArguments =
+            findNullArguments(
+                "firstContent",
+                {
+                    "alternatives" : alternatives,
+                    "otherwise" : otherwise
+                },
+                .caller_template_name
+            )
+        ]
+    [/#if]
+
     [#list asArray(alternatives) as alternative]
         [#if alternative?has_content]
             [#return alternative]
@@ -246,7 +548,22 @@
     [#return otherwise ]
 [/#function]
 
-[#function removeValueFromArray array string ]
+[#function removeValueFromArray array="Hamlet:Null" string="Hamlet:Null" ]
+
+    [#-- Internal error detection --]
+    [#if isNullDetectionEnabled() ]
+        [#local nullArguments =
+            findNullArguments(
+                "removeValueFromArray",
+                {
+                    "array" : array,
+                    "string" : string
+                },
+                .caller_template_name
+            )
+        ]
+    [/#if]
+
     [#local result = [] ]
     [#list array as item ]
         [#if item != string ]
@@ -256,7 +573,22 @@
     [#return result]
 [/#function]
 
-[#function splitArray array index]
+[#function splitArray array="Hamlet:Null" index="Hamlet:Null"]
+
+    [#-- Internal error detection --]
+    [#if isNullDetectionEnabled() ]
+        [#local nullArguments =
+            findNullArguments(
+                "splitArray",
+                {
+                    "array" : array,
+                    "index" : index
+                },
+                .caller_template_name
+            )
+        ]
+    [/#if]
+
     [#if array?has_content && (index < array?size)]
         [#return array[index..]]
     [/#if]
@@ -300,7 +632,23 @@
 [#macro toJSON obj escaped=false]
     ${getJSON(obj, escaped)}[/#macro]
 
-[#function filterObjectAttributes obj attributes removeAttributes=false]
+[#function filterObjectAttributes obj="Hamlet:Null" attributes="Hamlet:Null" removeAttributes=false]
+
+    [#-- Internal error detection --]
+    [#if isNullDetectionEnabled() ]
+        [#local nullArguments =
+            findNullArguments(
+                "splitArray",
+                {
+                    "obj" : obj,
+                    "attributes" : attributes,
+                    "removeAttributes" : removeAttributes
+                },
+                .caller_template_name
+            )
+        ]
+    [/#if]
+
     [#local result = {}]
     [#local atts = asFlattenedArray(attributes)]
     [#list obj as key,value]
@@ -314,21 +662,45 @@
     [#return result]
 [/#function]
 
-[#function getObjectAttributes obj attributes]
+[#function getObjectAttributes obj attributes ]
+    [#-- Rely on filterObjectAttributes for internal error detection --]
     [#return filterObjectAttributes(obj, attributes, false)]
 [/#function]
 
 [#function removeObjectAttributes obj attributes]
+    [#-- Rely on filterObjectAttributes for internal error detection --]
     [#return filterObjectAttributes(obj, attributes, true)]
 [/#function]
 
-[#function findAttributeInObject obj keyPath  ]
+[#function findAttributeInObject obj="Hamlet:Null" keyPath="Hamlet:Null" callToSelf=false]
+
+    [#if ! callToSelf]
+        [#-- Internal error detection --]
+        [#if isNullDetectionEnabled() ]
+            [#local nullArguments =
+                findNullArguments(
+                    "findAttributeInObject",
+                    {
+                        "obj" : obj,
+                        "keyPath" : keyPath
+                    },
+                    .caller_template_name
+                )
+            ]
+        [/#if]
+    [/#if]
+
     [#list keyPath as key ]
         [#if obj[key]?? ]
             [#if key?is_last ]
                 [#return obj[key]]
             [#else]
-                [#return findAttributeInObject(obj[key], keyPath[ (key?index +1) ..])]
+                [#return
+                    findAttributeInObject(
+                        obj[key],
+                        keyPath[ (key?index +1) ..],
+                        true
+                    ) ]
             [/#if]
         [/#if]
         [#return ""]
@@ -357,7 +729,24 @@ are added.
 [#assign APPEND_COMBINE_BEHAVIOUR = "append"]
 [#assign UNIQUE_COMBINE_BEHAVIOUR = "unique"]
 
-[#function combineEntities left right behaviour=MERGE_COMBINE_BEHAVIOUR]
+[#function combineEntities left="Hamlet:Null" right="Hamlet:Null" behaviour=MERGE_COMBINE_BEHAVIOUR callToSelf=false]
+
+    [#if ! callToSelf]
+        [#-- Internal error detection --]
+        [#if isNullDetectionEnabled() ]
+            [#local nullArguments =
+                findNullArguments(
+                    "combineEntities",
+                    {
+                        "left" : left,
+                        "right" : right,
+                        "behaviour" : behaviour
+                    },
+                    .caller_template_name
+                )
+            ]
+        [/#if]
+    [/#if]
 
     [#-- Handle replace first --]
     [#if behaviour == REPLACE_COMBINE_BEHAVIOUR]
@@ -394,7 +783,7 @@ are added.
                     [#list right as key,value]
                         [#local newValue = value]
                         [#if left[key]??]
-                            [#local newValue = combineEntities(left[key], value, behaviour) ]
+                            [#local newValue = combineEntities(left[key], value, behaviour, true) ]
                         [/#if]
                         [#local result += { key : newValue } ]
                     [/#list]
@@ -406,6 +795,20 @@ are added.
 [/#function]
 
 [#function mergeObjects objects...]
+
+    [#-- Internal error detection --]
+    [#if isNullDetectionEnabled() ]
+        [#local nullArguments =
+            findNullArguments(
+                "mergeObjects",
+                {
+                    "objects" : objects
+                },
+                .caller_template_name
+            )
+        ]
+    [/#if]
+
     [#local result = {} ]
     [#list asFlattenedArray(objects) as object]
         [#if object?index == 0]
@@ -455,19 +858,63 @@ are added.
     [#return UNKNOWN_TYPE]
 [/#function]
 
-[#function isOneOfTypes arg types]
+[#function isOneOfTypes arg="Hamlet:Null" types="Hamlet:Null"]
+
+    [#-- Internal error detection --]
+    [#if isNullDetectionEnabled() ]
+        [#local nullArguments =
+            findNullArguments(
+                "isOneOfTypes",
+                {
+                    "arg" : arg,
+                    "types" : types
+                },
+                .caller_template_name
+            )
+        ]
+    [/#if]
+
     [#local typesArray = asArray(types) ]
     [#return
         typesArray?seq_contains(getBaseType(arg)) ||
         typesArray?seq_contains(ANY_TYPE) ]
 [/#function]
 
-[#function isArrayOfType types]
+[#function isArrayOfType types="Hamlet:Null"]
+
+    [#-- Internal error detection --]
+    [#if isNullDetectionEnabled() ]
+        [#local nullArguments =
+            findNullArguments(
+                "isArrayOfType",
+                {
+                    "types" : types
+                },
+                .caller_template_name
+            )
+        ]
+    [/#if]
+
     [#local typesArray = asArray(types) ]
     [#return (typesArray?size > 1) && typesArray?seq_contains(ARRAY_TYPE) ]
 [/#function]
 
-[#function asType arg types]
+[#function asType arg="Hamlet:Null" types="Hamlet:Null" ]
+
+    [#-- Internal error detection --]
+    [#if isNullDetectionEnabled() ]
+        [#local nullArguments =
+            findNullArguments(
+                "asType",
+                {
+                    "arg" : arg,
+                    "types" : types
+                },
+                .caller_template_name
+            )
+        ]
+    [/#if]
+
     [#return valueIfTrue(asFlattenedArray(arg), isArrayOfType(types), arg) ]
 [/#function]
 
@@ -573,6 +1020,20 @@ are added.
 ----------------------------------]
 
 [#function getFirstDefinedDirective directives=[] ]
+
+    [#-- Internal error detection --]
+    [#if isNullDetectionEnabled() ]
+        [#local nullArguments =
+            findNullArguments(
+                "getFirstDefinedDirective",
+                {
+                    "directives" : directives
+                },
+                .caller_template_name
+            )
+        ]
+    [/#if]
+
     [#list asArray(directives) as directive]
         [#if directive?is_sequence]
             [#local name = concatenate(directive, "_") ]
@@ -1528,15 +1989,61 @@ are added.
     [#return initialiseCache() ]
 [/#function]
 
-[#function addDictionaryEntry dictionary key=[] entry={} ]
+[#function addDictionaryEntry dictionary="Hamlet:Null" key="Hamlet:Null" entry={} ]
+
+    [#-- Internal error detection --]
+    [#if isNullDetectionEnabled() ]
+        [#local nullArguments =
+            findNullArguments(
+                "addDictionaryEntry",
+                {
+                    "dictionary" : dictionary,
+                    "key" : key,
+                    "entry" : entry
+                },
+                .caller_template_name
+            )
+        ]
+    [/#if]
+
     [#return addToCacheSection(dictionary, asArray(key) + ["Content"], entry) ]
 [/#function]
 
-[#function removeDictionaryEntry dictionary key=[] ]
+[#function removeDictionaryEntry dictionary="Hamlet:Null" key="Hamlet:Null" ]
+
+    [#-- Internal error detection --]
+    [#if isNullDetectionEnabled() ]
+        [#local nullArguments =
+            findNullArguments(
+                "removeDictionaryEntry",
+                {
+                    "dictionary" : dictionary,
+                    "key" : key
+                },
+                .caller_template_name
+            )
+        ]
+    [/#if]
+
     [#return clearCacheSection(dictionary, asArray(key) + ["Content"]) ]
 [/#function]
 
-[#function getDictionaryEntry dictionary key=[] ]
+[#function getDictionaryEntry dictionary="Hamlet:Null" key="Hamlet:Null" ]
+
+    [#-- Internal error detection --]
+    [#if isNullDetectionEnabled() ]
+        [#local nullArguments =
+            findNullArguments(
+                "getDictionaryEntry",
+                {
+                    "dictionary" : dictionary,
+                    "key" : key
+                },
+                .caller_template_name
+            )
+        ]
+    [/#if]
+
     [#return getCacheSection(dictionary, asArray(key) + ["Content"]) ]
 [/#function]
 
@@ -1576,22 +2083,204 @@ are added.
     [#return {} ]
 [/#function]
 
-[#---------
--- Paths --
------------]
+[#---------------------
+-- Ids, Names, Paths --
+-----------------------]
 
-[#function formatPath absolute parts...]
+[#--
+Ids are intended for consumption by automated processes and so are
+kept short (typically around 3 to 5 characters) and limited to
+alphanumeric characters. Ids are concatenated using the "X" character
+to form unique ids.
+--]
+
+[#function formatId ids...]
+
+    [#-- Internal error detection --]
+    [#if isNullDetectionEnabled() ]
+        [#local nullArguments =
+            findNullArguments(
+                "formatId",
+                {
+                    "ids" : ids
+                },
+                .caller_template_name
+            )
+        ]
+    [/#if]
+
+    [#return concatenate(ids, "X")?replace("[-_/]", "X", "r")?replace(",", "")]
+[/#function]
+
+[#--
+Names are intended for human consumption, such as those that appear in UIs
+or directory layouts, and typically are used for sorting. They are thus still
+limited to alphanumeric characters but will typically use full words rather
+than abbreviations. Names are concatenated with the "-" character" to form
+unique names.
+
+Environments occasionally constrain the length of unique names. In this case,
+the "short" name can be used, which is formed by using object Ids rather than
+names.
+--]
+
+[#function formatName names...]
+
+    [#-- Internal error detection --]
+    [#if isNullDetectionEnabled() ]
+        [#local nullArguments =
+            findNullArguments(
+                "formatName",
+                {
+                    "names" : names
+                },
+                .caller_template_name
+            )
+        ]
+    [/#if]
+
+    [#return concatenate(names, "-")]
+[/#function]
+
+[#--
+Paths are commonly used for storage
+--]
+[#function formatPath absolute="Hamlet:Null" parts...]
+
+    [#-- Internal error detection --]
+    [#if isNullDetectionEnabled() ]
+        [#local nullArguments =
+            findNullArguments(
+                "formatPath",
+                {
+                    "absolute" : absolute,
+                    "parts" : parts
+                },
+                .caller_template_name
+            )
+        ]
+    [/#if]
+
     [#return
         absolute?then("/","") +
         concatenate(parts, "/")]
 [/#function]
 
 [#function formatAbsolutePath parts...]
+    [#-- Rely on formatPath for internal error detection --]
     [#return formatPath(true, parts)]
 [/#function]
 
 [#function formatRelativePath parts...]
+    [#-- Rely on formatPath for internal error detection --]
     [#return formatPath(false, parts)]
+[/#function]
+
+[#---------------------
+-- Namespace support --
+-----------------------]
+
+[#function getMatchingNamespaces namespaces="Hamlet:Null" prefixes="Hamlet:Null" alternatives="Hamlet:Null" endingsToRemove=[] ]
+
+    [#-- Internal error detection --]
+    [#if isNullDetectionEnabled() ]
+        [#local nullArguments =
+            findNullArguments(
+                "getMatchingNamespaces",
+                {
+                    "namespaces" : namespaces,
+                    "prefixes" : prefixes,
+                    "alternatives" : alternatives,
+                    "endingsToRemove" : endingsToRemove
+                },
+                .caller_template_name
+            )
+        ]
+    [/#if]
+
+    [#local matches = [] ]
+    [#local candidates = [] ]
+
+    [#-- ## Matching namespace rules ## --]
+    [#-- Last Prefix is preferred over the first Prefix --]
+    [#-- Exact match within a prefix is preferred over a Partial match --]
+    [#local matchPreference = [ "partial", "exact" ]]
+
+    [#-- Preprocess the namespaces to permit sorting --]
+    [#list asArray(namespaces) as namespace]
+        [#local key = namespace?lower_case]
+
+        [#-- Remove namespace endings if required --]
+        [#list asArray(endingsToRemove) as endingToRemove]
+            [#local key = key?remove_ending(endingToRemove)]
+        [/#list]
+
+        [#local candidates += [ {"Namespace" : namespace, "Key" : key} ] ]
+    [/#list]
+
+    [#-- Longer matches are ordered later in the match list --]
+    [#local candidates = candidates?sort_by("Key") ]
+
+    [@debug message=
+        {
+            "Method" : "getMatchingNamespaces",
+            "Namespaces" : namespaces,
+            "Prefixes" : prefixes,
+            "Alternatives" : alternatives,
+            "EndingsToRemove" :  endingsToRemove,
+            "Candidates" : candidates
+        }
+        enabled=false
+    /]
+
+    [#-- Prefixes listed in increasing priority --]
+    [#list prefixes as prefix]
+        [#list matchPreference as match ]
+            [#list candidates as candidate]
+
+                [#local key = candidate.Key]
+
+                [#-- Alternatives listed in increasing priority --]
+                [#list alternatives as alternative]
+                    [#local alternativeKey = formatName(prefix, alternative.Key) ]
+                    [@debug
+                        message=alternative.Match + " comparison of " + key + " to " + alternativeKey
+                        enabled=false
+                    /]
+                    [#local alternativeMatched = false]
+
+                    [#if alternative.Match == match ]
+                        [#switch match ]
+                            [#case "exact" ]
+                                [#if alternativeKey == key ]
+                                    [#local alternativeMatched = true]
+                                [/#if]
+                                [#break]
+
+                            [#case "partial" ]
+                                [#if alternativeKey?starts_with(key) ]
+                                    [#local alternativeMatched = true]
+                                [/#if]
+                                [#break]
+                        [/#switch]
+
+                        [#if alternativeMatched ]
+                            [#local matches += [candidate.Namespace] ]
+                            [#break]
+                        [/#if]
+                    [/#if]
+                [/#list]
+            [/#list]
+        [/#list]
+    [/#list]
+    [@debug message=
+        {
+            "Method" : "getMatchingNamespaces",
+            "Matches" : matches
+        }
+        enabled=false /]
+
+    [#return matches]
 [/#function]
 
 [#------------------
@@ -1880,7 +2569,22 @@ are not included in the Match Filter
     [#return filter[attribute]??]
 [/#function]
 
-[#function getFilterAttribute filter attribute]
+[#function getFilterAttribute filter="Hamlet:Null" attribute="Hamlet:Null"]
+
+    [#-- Internal error detection --]
+    [#if isNullDetectionEnabled() ]
+        [#local nullArguments =
+            findNullArguments(
+                "getFilterAttribute",
+                {
+                    "filter" : filter,
+                    "attribute" : attribute
+                },
+                .caller_template_name
+            )
+        ]
+    [/#if]
+
     [#return asArray(filter[attribute]![]) ]
 [/#function]
 
