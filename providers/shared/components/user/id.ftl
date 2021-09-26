@@ -36,7 +36,7 @@
                         "Names" : "EncryptionScheme",
                         "Description" : "A prefix added to the start of the encrypted value to show that it is encrypted",
                         "Types" : STRING_TYPE,
-                        "Default" : ""
+                        "Default" : "base64"
                     },
                     {
                         "Names" : "CharacterLength",
