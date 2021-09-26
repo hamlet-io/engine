@@ -693,7 +693,7 @@ that doesn't match the link.
                         getCompositeObject(
                             [
                                 {
-                                    "Names" : ["deployment:Locations"],
+                                    "Names" : ["placement:Locations"],
                                     "Description" : "Locations required by the component",
                                     "SubObjects" : true,
                                     "Children" : [
@@ -709,7 +709,7 @@ that doesn't match the link.
                             deploymentProfileObjects,
                             occurrenceContexts,
                             policyProfileObjects
-                        )["deployment:Locations"] ]
+                        )["placement:Locations"] ]
 
                     [#-- Location targets for the occurrence --]
                     [#local locationTargets = { "_config" : locations } ]
