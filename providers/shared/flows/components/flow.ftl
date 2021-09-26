@@ -254,8 +254,8 @@
         [#-- Default to the first suboccurrence returned                  --]
         [#-- TODO(mfl): Review legacy support with view to removal        --]
         [#if subOccurrences?has_content &&
-                effectiveLink.SubComponent == "" &&
-                (getOccurrenceType(targetOccurrence) == LAMBDA_COMPONENT_TYPE) ]
+                (getOccurrenceType(targetOccurrence) == LAMBDA_COMPONENT_TYPE) &&
+                ((effectiveLink.SubComponent!"") == "") ]
             [#local effectiveLink +=
                 {
                     "Type" : LAMBDA_FUNCTION_COMPONENT_TYPE,
