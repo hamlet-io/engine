@@ -2,7 +2,6 @@
 
 [#-- Core helper routines --]
 [#include "base.ftl" ]
-[#include "engine.ftl"]
 [#include "common.ftl"]
 
 [#-- logging --]
