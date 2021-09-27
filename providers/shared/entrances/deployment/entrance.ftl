@@ -27,7 +27,7 @@
     [#local deploymentGroupDetails = getDeploymentGroupDetails(getDeploymentGroup())]
 
     [#-- ResourceSets  --]
-    [#-- Seperates resources from their component templates in to their own deployment --]
+    [#-- Separates resources from their component templates in to their own deployment --]
     [#list ((deploymentGroupDetails.ResourceSets)!{})?values?filter(s -> s.Enabled ) as resourceSet ]
         [#if getCLODeploymentUnit() == resourceSet["deployment:Unit"] ]
 

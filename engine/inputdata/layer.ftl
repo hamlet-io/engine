@@ -74,6 +74,12 @@
     [/#if]
 [/#function]
 
+[#-- Return the layer input filter attributes --]
+[#function getLayerInputFilterAttributes type ]
+    [#local attributeValue = (getLayerConfiguration(type).InputFilterAttributes[0].Id)!"" ]
+    [#return arrayIfContent(attributeValue, attributeValue) ]
+[/#function]
+
 [#-- Check if layer is active based on its presence in the current input state --]
 [#function isLayerActive type]
     [#return getActiveLayers()[type]?? ]
@@ -188,9 +194,9 @@
     [#return result]
 [/#function]
 
-[#-------------------------------------------------------
--- Internal support functions for component processing --
----------------------------------------------------------]
+[#---------------------------------------------------
+-- Internal support functions for layer processing --
+-----------------------------------------------------]
 
 [#-- Determine if the layer is active based on the provided input filter --]
 [#function internalIsActiveLayer configuration filter ]
