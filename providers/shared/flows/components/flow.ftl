@@ -567,6 +567,11 @@ that doesn't match the link.
                         [#-- The link also needs to provide a SubComponent attribute if linking   --]
                         [#-- to suboccurrences                                                    --]
 
+                        [#-- Note that as instance and version can be defined on either the       --]
+                        [#-- component OR the subcomponent, it is necessary to perform some       --]
+                        [#-- checking here and some checking once subcomponent processing         --]
+                        [#-- (if any) is complete.                                                --]
+
                         [#if tier?has_content]
                             [#if link.SubComponent?has_content ]
                                 [#-- Only use cached suboccurrences to ensure we only return matches    --]
@@ -593,7 +598,7 @@ that doesn't match the link.
                             [#if link.SubComponent?has_content ]
                                 [#-- SubOccurrence targetted --]
 
-                                [#-- Ignore ourselves --]
+                                [#-- Ignore everyone except ourselves --]
                                 [#if
                                     (link.Tier != occurrence.Core.Tier.Id) ||
                                     (link.Component != occurrence.Core.Component.RawId) ||
@@ -1009,6 +1014,18 @@ that doesn't match the link.
 
                     [#local occurrence = occurrence + attributeIfContent("Occurrences", subOccurrences) ]
 
+                    [#if link?has_content && tier?has_content && link.SubComponent?has_content ]
+                        [#-- Link processing of an occurrence following suboccurrence assessment --]
+                        [#if subOccurrences?has_content]
+                            [#-- The link matched a suboccurrence so return the occurrence --]
+                            [#-- If no suboccurrence match, skip the occurrence altogether --]
+                            [#local occurrences += [ occurrence ] ]
+                        [/#if]
+                    [#else]
+                        [#-- Return the occurrence and any suboccurrences --]
+                        [#local occurrences += [ occurrence ] ]
+                    [/#if]
+
                     [#-- Don't cache occurrences during link processing as they may be incomplete --]
                     [#-- due to skipped suboccurrences. It is ok to cache suboccurrences          --]
                     [#if (!link?has_content) || (!tier?has_content) ]
@@ -1017,8 +1034,6 @@ that doesn't match the link.
                             parentOccurrence=parentOccurrence
                         /]
                     [/#if]
-
-                    [#local occurrences += [ occurrence ] ]
 
                     [#-- Processing for this occurrence is complete --]
                     [#if ! internalGetOccurrencesInvocations?has_content]
