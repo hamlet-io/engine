@@ -82,7 +82,8 @@
                     "Component" : "baseline",
                     "SubComponent" : value,
                     "Instance" : "",
-                    "Version" : ""
+                    "Version" : "",
+                    "District" : SELF_DISTRICT_TYPE
                 }
             ]
             [#local baselineLinkTarget = getLinkTarget(occurrence, baselineLink, activeOnly, activeRequired )]

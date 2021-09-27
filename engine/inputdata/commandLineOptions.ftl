@@ -19,7 +19,7 @@
 [/#function]
 
 [#function getCLOInputFilter ]
-    [#return (getCommandLineOptions().Input.Filter)!"" ]
+    [#return (getCommandLineOptions().Input.Filter)!{} ]
 [/#function]
 
 [#function getCLOEntranceType ]
