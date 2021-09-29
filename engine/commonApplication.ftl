@@ -435,7 +435,7 @@
                 "awslogs",
                 {
                     "awslogs-group" : getReference(logGroupId),
-                    "awslogs-region" : regionId,
+                    "awslogs-region" : getRegion(),
                     "awslogs-stream-prefix" : core.Name
                 },
                 {}
@@ -474,8 +474,8 @@
                 "Environment" :
                     {
                         "APP_RUN_MODE" : getContainerMode(container),
-                        "AWS_REGION" : regionId,
-                        "AWS_DEFAULT_REGION" : regionId
+                        "AWS_REGION" : getRegion(),
+                        "AWS_DEFAULT_REGION" : getRegion()
                     },
                 "Links" : contextLinks,
                 "BaselineLinks" : baselineLinks,

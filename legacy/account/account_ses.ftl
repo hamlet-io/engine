@@ -16,7 +16,7 @@
                         "  create|update)",
                         "   info \"Setting active rule set to " + accountObject["aws:SES"].RuleSet.Name + "\"",
                         "   setActiveSESRuleSet" + " " +
-                            regionId + " " +
+                            getRegion() + " " +
                             accountObject["aws:SES"].RuleSet.Name + " || return $?"
                         "   ;;",
                         " esac"

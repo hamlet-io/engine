@@ -110,7 +110,7 @@
                         r'  create|update)',
                         r'      info "Cleaning documents which might not have been created by CFN"',
                         r'      cleanup_ssm_document' +
-                        r'      "' + regionId + r'" ' +
+                        r'      "' + getRegion() + r'" ' +
                         r'      "' + consoleSSMDocumentName + r'" ',
                         r'      ;;',
                         r'esac'

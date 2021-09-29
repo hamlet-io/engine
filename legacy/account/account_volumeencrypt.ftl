@@ -36,7 +36,7 @@
                         r'  create|update)',
                         r'      info "Managing EBS Volume Encryption state..."',
                         r'      manage_ec2_volume_encryption' +
-                        r'      "' + regionId + r'" ' +
+                        r'      "' + getRegion() + r'" ' +
                         r'      "true"' +
                         r'      "' + volumeEncryptKmsKeyArn + r'"'
                     ] +
@@ -51,7 +51,7 @@
                         r' delete)',
                         r'      info "Managing EBS Volume Encryption state..."',
                         r'      manage_ec2_volume_encryption' +
-                        r'      "' + regionId + r'" ' +
+                        r'      "' + getRegion() + r'" ' +
                         r'      "false"' +
                         r'      "alias/aws/ebs"'
                         r'      ;;',

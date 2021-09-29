@@ -62,7 +62,7 @@
 
 [#function getTierBlueprint ]
     [#local result=[] ]
-    [#list tiers as tier]
+    [#list getTiers() as tier]
         [#local result += [
             {
                 "Id" : tier.Id,

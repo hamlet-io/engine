@@ -31,7 +31,7 @@
     [@Variables
         {
             "LOGS" : logsBucket,
-            "REGION" : regionId,
+            "REGION" : getRegion(),
             "PRODUCT" : productId,
             "CONTAINER" : fragmentId,
             "ES" : esFQDN + ":" + esPort
