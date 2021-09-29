@@ -291,7 +291,7 @@
     [#elseif processorProfile.MaxPerZone?has_content ]
         [#local maxCount = processorProfile.MaxPerZone ]
         [#if multiAZ]
-            [#local maxCount = maxCount * zones?size]
+            [#local maxCount = maxCount * getZones()?size]
         [/#if]
     [#else]
         [@fatal
@@ -305,7 +305,7 @@
     [#elseif processorProfile.MinPerZone?has_content ]
         [#local minCount = (processorProfile.MinPerZone)!1]
         [#if multiAZ]
-            [#local minCount = minCount * zones?size]
+            [#local minCount = minCount * getZones()?size]
         [/#if]
     [#else]
         [@fatal
@@ -319,7 +319,7 @@
     [#elseif processorProfile.DesiredPerZone?has_content ]
         [#local desiredCount = (processorProfile.DesiredPerZone)!1 ]
         [#if multiAZ]
-            [#local desiredCount = desiredCount * zones?size]
+            [#local desiredCount = desiredCount * getZones()?size]
         [/#if]
     [#else]
         [@fatal
@@ -371,7 +371,7 @@
     [#local services = []]
     [#local networkEndpoints = {}]
 
-    [#local regionObject = regions[region]]
+    [#local regionObject = getRegions()[region]]
     [#local zoneNetworkEndpoints = (regionObject.Zones[zone].NetworkEndpoints)![] ]
 
     [#list endpointGroups as endpointGroup ]
@@ -1069,7 +1069,7 @@
 [#function pseudoStackOutputScript description outputs filesuffix="" ]
     [#local outputString = ""]
 
-    [#list getCFTemplateCoreOutputs(regionId, accountObject.ProviderId) as  key,value ]
+    [#list getCFTemplateCoreOutputs(getRegion(), accountObject.ProviderId) as  key,value ]
         [#if value?is_hash ]
             [#local outputs += { key, value.Value } ]
         [#else ]

@@ -501,7 +501,6 @@
 [#-- Tiers --]
 
 [#-- Get a tier --]
-[#assign tiers = [] ]
 [#function getTier tier]
     [#if tier?is_hash]
         [#local tierId = (tier.Id)!"" ]
@@ -518,7 +517,7 @@
           } ]
     [/#if]
 
-    [#list tiers as knownTier]
+    [#list getTiers() as knownTier]
         [#if knownTier.Id == tierId]
             [#return knownTier]
         [/#if]

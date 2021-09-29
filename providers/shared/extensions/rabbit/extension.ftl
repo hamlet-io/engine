@@ -34,7 +34,7 @@
             "AUTOCLUSTER_LOG_LEVEL" : logLevel,
             "CLEANUP_WARN_ONLY" : "false",
             "AWS_AUTOSCALING" : "true",
-            "AWS_DEFAULT_REGION" : regionId
+            "AWS_DEFAULT_REGION" : getRegion()
         }
     /]
 

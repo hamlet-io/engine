@@ -24,7 +24,7 @@
                                 s3ReplicationConfigurationPermission(bucketId) ]
 
                 [#if encryption ]
-                   [#local replicaionPolicies +=  s3EncryptionReadPermission(kmsKeyId, bucketName, "*", regionId)]
+                   [#local replicaionPolicies +=  s3EncryptionReadPermission(kmsKeyId, bucketName, "*", getRegion())]
                 [/#if]
 
                 [#local rolePolicies =
@@ -207,16 +207,16 @@
     /]
 
     [#if deploymentSubsetRequired("epilogue", false)]
-        [#assign existingName = getExistingReference(formatAccountS3Id("code"))]
-        [#assign codeBucket = valueIfContent(
-                    existingName,
-                    existingName,
-                    formatName("account", "code", accountObject.Seed))]
-        [#assign existingName = getExistingReference(formatAccountS3Id("registry"))]
-        [#assign registryBucket = valueIfContent(
-                    existingName,
-                    existingName,
-                    formatName("account", "registry", accountObject.Seed))]
+        [#assign currentCodeBucket =
+            contentIfContent(
+                codeBucket(),
+                formatName("account", "code", accountObject.Seed)
+            ) ]
+        [#assign currentRegistryBucket =
+            contentIfContent(
+                registryBucket(),
+                formatName("account", "registry", accountObject.Seed)
+            ) ]
 
         [#assign scriptSyncContent = [] ]
         [#list scriptStores as key,scriptStore ]
@@ -232,7 +232,7 @@
                         [#assign scriptSyncContent += [
                             "if [[ -d \"" + scriptsDir + "\" ]]; then",
                             "       aws --region \"$\{ACCOUNT_REGION}\" s3 sync --delete --exclude=\".git*\" \"" + scriptsDir + "\" \"s3://" +
-                                    codeBucket + "/" + storePrefix + "/\" ||",
+                                    currentCodeBucket + "/" + storePrefix + "/\" ||",
                             "       { exit_status=$?; fatal \"Can't sync to the code bucket\"; return \"$\{exit_status}\"; }",
                             "else",
                                 "fatal \"Local Script store not found - no sync performed\"; return 1",
@@ -247,7 +247,7 @@
                             r'# Clone the Repo',
                             r'git_url="$( format_git_url "github" "github.com" "' + scriptStore.Source.Repository + r'" )"',
                             r'clone_git_repo "${git_url}" "' + scriptStore.Source.Branch + r'" "${stage_dir}" || { exit_status=$?; fatal "Cant clone the script store"; return "${exit_status}"; }',
-                            r'       aws --region "${ACCOUNT_REGION}" s3 sync --delete --exclude=".git*" "${stage_dir}" "s3://' + codeBucket + r'/' + storePrefix + r'/" ||',
+                            r'       aws --region "${ACCOUNT_REGION}" s3 sync --delete --exclude=".git*" "${stage_dir}" "s3://' + currentCodeBucket + r'/' + storePrefix + r'/" ||',
                             r'       { exit_status=$?; fatal "Cant sync to the code bucket"; return "${exit_status}"; }'
                         ]]
                         [#break]
@@ -283,7 +283,7 @@
                         "  touch \"$\{registry_marker}\"",
                         "  for registry in \"$@\"; do",
                         "    aws --region \"$\{ACCOUNT_REGION}\" s3 cp \"$\{registry_marker}\" \"s3://" +
-                                registryBucket + "/$\{registry}/.registry\" ||",
+                                currentRegistryBucket + "/$\{registry}/.registry\" ||",
                         "      { exit_status=$?; fatal \"Can't initialise the $\{registry} registry\"; return \"$\{exit_status}\"; }",
                         "  done",
                         "  return 0",

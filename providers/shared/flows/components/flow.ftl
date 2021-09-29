@@ -8,7 +8,7 @@
 
     [#local start = .now]
     [@timing message="Starting component processing ..." /]
-    [#list tiers as tier]
+    [#list getTiers() as tier]
         [#list (tier.Components!{}) as key, value]
             [#local component =
                 {

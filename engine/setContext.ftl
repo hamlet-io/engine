@@ -16,6 +16,169 @@
     [@includeProviderComponentConfiguration provider="aws" component="ec2" services=["ec2", "vpc"] /]
 [/#if]
 
+[#-- Account level buckets --]
+[#function credentialsBucket]
+    [#return getExistingReference(formatAccountS3Id("credentials")) ]
+[/#function]
+
+[#function credentialsBucketRegion]
+    [#return getExistingReference(formatAccountS3Id("credentials"), REGION_ATTRIBUTE_TYPE) ]
+[/#function]
+
+[#function codeBucket]
+    [#return getExistingReference(formatAccountS3Id("code")) ]
+[/#function]
+
+[#function codeBucketRegion]
+    [#return getExistingReference(formatAccountS3Id("code"), REGION_ATTRIBUTE_TYPE)]
+[/#function]
+
+[#function registryBucket]
+    [#return getExistingReference(formatAccountS3Id("registry")) ]
+[/#function]
+
+[#function registryBucketRegion]
+    [#return getExistingReference(formatAccountS3Id("registry"), REGION_ATTRIBUTE_TYPE)]
+[/#function]
+
+[#-- Network --]
+[#function vpc]
+    [#return getExistingReference(formatVPCId()) ]
+[/#function]
+
+[#function legacyVpc]
+    [#return vpc()?has_content ]
+[/#function]
+
+[#-- Segment Seed --]
+[#function segmentSeed]
+    [#local seed = getExistingReference(formatSegmentSeedId()) ]
+
+        [#if legacyVpc() && (!seed?has_content)]
+            [#-- Make sure the baseline component has been added to existing deployments --]
+            [#local seed = "HamletFatal: baseline component not deployed - Please run a deployment of the baseline component" ]
+        [/#if]
+    [#return seed]
+[/#function]
+
+[#-- SSH --]
+[#function sshFromProxySecurityGroup]
+    [#return getExistingReference(formatSSHFromProxySecurityGroupId()) ]
+[/#function]
+
+[#-- Regions --]
+[#function getRegions]
+    [#return getReferenceData(REGION_REFERENCE_TYPE) ]
+[/#function]
+
+[#function getRegion]
+    [#local result = ""]
+
+    [#if getCLOSegmentRegion()?has_content || getProductLayerRegion()?has_content]
+        [#local result = getCLOSegmentRegion()]
+        [#if ! result?has_content]
+            [#local result = getProductLayerRegion() ]
+        [/#if]
+    [/#if]
+
+    [#return result]
+[/#function]
+
+[#function getRegionObject region="" ]
+    [#return (getRegions()[contentIfContent( region, getRegion() ) ])!{} ]
+[/#function]
+
+[#function getAccountRegion]
+    [#local result = ""]
+
+    [#if getCLOAccountRegion()?has_content || getAccountLayerRegion()?has_content ]
+        [#local result = getCLOAccountRegion()]
+        [#if ! result?has_content]
+            [#local result = getAccountLayerRegion() ]
+        [/#if]
+    [/#if]
+
+    [#return result]
+[/#function]
+
+[#--function getAccountRegionObject region="" ]
+    [#return (getRegions()[contentIfContent( region, getAccountRegion() ) ])!{} ]
+[/#function--]
+
+[#-- Active tiers --]
+[#function getTiers]
+    [#local result = [] ]
+
+    [#if isLayerActive(SEGMENT_LAYER_TYPE) ]
+        [#local blueprintTiers = getBlueprint().Tiers!{} ]
+        [#local segmentObject = getActiveLayer(SEGMENT_LAYER_TYPE) ]
+
+        [#list segmentObject.Tiers.Order as tierId]
+            [#local blueprintTier = (blueprintTiers[tierId])!{} ]
+            [#if ! (blueprintTier?has_content) ]
+                [#continue]
+            [/#if]
+            [#local tierNetwork =
+                {
+                    "Enabled" : false
+                } ]
+
+            [#if blueprintTier.Components?has_content || ((blueprintTier.Required)!false)]
+                [#if (blueprintTier.Network.Enabled)!false ]
+                    [#list segmentObject.Network.Tiers.Order![] as networkTier]
+                        [#if networkTier == tierId]
+                            [#local tierNetwork =
+                                blueprintTier.Network +
+                                {
+                                    "Index" : networkTier?index,
+                                    "Link" : addIdNameToObject(blueprintTier.Network.Link, "network")
+                                } ]
+                            [#break]
+                        [/#if]
+                    [/#list]
+                [/#if]
+                [#local result +=
+                    [
+                        addIdNameToObject(blueprintTier, tierId) +
+                        { "Network" : tierNetwork }
+                    ] ]
+            [/#if]
+        [/#list]
+    [/#if]
+
+    [#return result]
+[/#function]
+
+[#-- Active zones --]
+[#function getZones]
+    [#local result = [] ]
+
+    [#local regions = getRegions() ]
+    [#local regionId = getRegion() ]
+
+    [#if isLayerActive(SEGMENT_LAYER_TYPE) ]
+        [#local segmentObject = getActiveLayer(SEGMENT_LAYER_TYPE) ]
+
+        [#if regionId?has_content]
+            [#list segmentObject.Network.Zones.Order as zoneId]
+                [#if ((regions[regionId].Zones[zoneId])!"")?has_content]
+                    [#local zone = regions[regionId].Zones[zoneId] ]
+                    [#local result +=
+                        [
+                            addIdNameToObject(zone, zoneId) +
+                            {
+                                "Index" : zoneId?index
+                            }
+                        ]
+                    ]
+                [/#if]
+            [/#list]
+        [/#if]
+    [/#if]
+
+    [#return result]
+[/#function]
+
 [#macro setContext]
 
     [#assign blueprintObject = getBlueprint() ]
@@ -78,22 +241,6 @@
     [#assign wafConditions = getReferenceData(WAFCONDITION_REFERENCE_TYPE) ]
     [#assign wafValueSets = getReferenceData(WAFVALUESET_REFERENCE_TYPE) ]
 
-    [#-- Regions --]
-    [#if getCLOSegmentRegion()?has_content || getProductLayerRegion()?has_content]
-        [#assign regionId = getCLOSegmentRegion()]
-        [#if ! regionId?has_content]
-            [#assign regionId = getProductLayerRegion() ]
-        [/#if]
-        [#assign regionObject = (regions[regionId])!{} ]
-    [/#if]
-    [#if getCLOAccountRegion()?has_content || getAccountLayerRegion()?has_content ]
-        [#assign accountRegionId = getCLOAccountRegion()]
-        [#if ! accountRegionId?has_content]
-            [#assign accountRegionId = getAccountLayerRegion() ]
-        [/#if]
-        [#assign accountRegionObject = (regions[accountRegionId])!{} ]
-    [/#if]
-
     [#-- Domains --]
     [#assign domains =
         addIdNameToObjectAttributes(blueprintObject.Domains!{}) ]
@@ -122,17 +269,6 @@
         [#-- Cludge for now until access to reference data is reworked --]
         [#-- TODO(mfl): revisit with a view to remove --]
         [#assign accounts = {accountId : accountObject} ]
-
-        [#if getLoaderProviders()?seq_contains("aws")]
-            [#assign credentialsBucket = getExistingReference(formatAccountS3Id("credentials"))]
-            [#assign credentialsBucketRegion = getExistingReference(formatAccountS3Id("credentials"), REGION_ATTRIBUTE_TYPE)]
-
-            [#assign codeBucket = getExistingReference(formatAccountS3Id("code")) ]
-            [#assign codeBucketRegion = getExistingReference(formatAccountS3Id("code"), REGION_ATTRIBUTE_TYPE)]
-
-            [#assign registryBucket = getExistingReference(formatAccountS3Id("registry")) ]
-            [#assign registryBucketRegion = getExistingReference(formatAccountS3Id("registry"), REGION_ATTRIBUTE_TYPE)]
-        [/#if]
 
         [#assign categoryName = "account"]
 
@@ -193,17 +329,6 @@
             [/#if]
         [/#if]
 
-        [#if getLoaderProviders()?seq_contains("aws")]
-            [#assign segmentSeed = getExistingReference(formatSegmentSeedId()) ]
-
-            [#assign legacyVpc = getExistingReference(formatVPCId())?has_content ]
-            [#if legacyVpc ]
-                [#assign vpc = getExistingReference(formatVPCId())]
-                [#-- Make sure the baseline component has been added to existing deployments --]
-                [#assign segmentSeed = segmentSeed!"HamletFatal: baseline component not deployed - Please run a deployment of the baseline component" ]
-            [/#if]
-        [/#if]
-
         [#assign rotateKeys = segmentObject.RotateKeys ]
 
         [#assign network = segmentObject.Network ]
@@ -214,10 +339,6 @@
 
         [#assign sshEnabled = segmentObject.Bastion.Enabled ]
         [#assign sshActive = sshEnabled && segmentObject.Bastion.Active ]
-
-        [#if getLoaderProviders()?seq_contains("aws")]
-            [#assign sshFromProxySecurityGroup = getExistingReference(formatSSHFromProxySecurityGroupId())]
-        [/#if]
 
         [#assign operationsExpiration =
                         getActiveLayerAttributes( ["Operations", "Expiration"], [ SEGMENT_LAYER_TYPE, ENVIRONMENT_LAYER_TYPE ], "" )[0] ]
@@ -301,59 +422,6 @@
             (productObject.PlacementProfiles)!{},
             (tenantObject.PlacementProfiles)!{}
         ) ]
-
-    [#-- Required tiers --]
-    [#if isLayerActive(SEGMENT_LAYER_TYPE) ]
-        [#list segmentObject.Tiers.Order as tierId]
-            [#assign blueprintTier = (blueprintObject.Tiers[tierId])!{}]
-            [#if ! (blueprintTier?has_content) ]
-                [#continue]
-            [/#if]
-            [#assign tierNetwork =
-                {
-                    "Enabled" : false
-                } ]
-
-            [#if blueprintTier.Components?has_content || ((blueprintTier.Required)!false)]
-                [#if (blueprintTier.Network.Enabled)!false ]
-                    [#list segmentObject.Network.Tiers.Order![] as networkTier]
-                        [#if networkTier == tierId]
-                            [#assign tierNetwork =
-                                blueprintTier.Network +
-                                {
-                                    "Index" : networkTier?index,
-                                    "Link" : addIdNameToObject(blueprintTier.Network.Link, "network")
-                                } ]
-                            [#break]
-                        [/#if]
-                    [/#list]
-                [/#if]
-                [#assign tiers +=
-                    [
-                        addIdNameToObject(blueprintTier, tierId) +
-                        { "Network" : tierNetwork }
-                    ] ]
-            [/#if]
-        [/#list]
-
-        [#-- Required zones --]
-        [#assign zones = [] ]
-        [#if regionId?has_content]
-            [#list segmentObject.Network.Zones.Order as zoneId]
-                [#if ((regions[regionId].Zones[zoneId])!"")?has_content]
-                    [#assign zone = regions[regionId].Zones[zoneId] ]
-                    [#assign zones +=
-                        [
-                            addIdNameToObject(zone, zoneId) +
-                            {
-                                "Index" : zoneId?index
-                            }
-                        ]
-                    ]
-                [/#if]
-            [/#list]
-        [/#if]
-    [/#if]
 
     [#-- Country Groups --]
     [#assign countryGroups = getReferenceData(COUNTRYGROUP_REFERENCE_TYPE, true) ]
@@ -546,7 +614,7 @@
         [#case "_segment_"]
         [#case "__segment__"]
             [#local segmentCIDR = [] ]
-            [#list zones as zone]
+            [#list getZones() as zone]
                 [#local zoneIP =
                     getExistingReference(
                         formatComponentEIPId("mgmt", "nat", zone),

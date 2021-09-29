@@ -19,7 +19,7 @@
                     [#if accountObject.Provider == "aws" ]
                         [#local environemnt_vars += {
                             ("${accountId}_${id}_DNS")?upper_case : getExistingReference(formatAccountS3Id("registry")),
-                            ("${accountId}_${id}_REGION")?upper_case : regionId
+                            ("${accountId}_${id}_REGION")?upper_case : getRegion()
                         }]
                     [/#if]
                     [#break]
@@ -28,7 +28,7 @@
                     [#if accountObject.Provider == "aws" ]
                         [#local environemnt_vars += {
                             ("${accountId}_${id}_PREFIX")?upper_case : "registry",
-                            ("${accountId}_${id}_REGION")?upper_case : regionId
+                            ("${accountId}_${id}_REGION")?upper_case : getRegion()
                         }]
                     [/#if]
                     [#break]
@@ -36,7 +36,7 @@
                 [#case "providerregistry"]
                     [#if accountObject.Provider == "aws" ]
                         [#local environemnt_vars += {
-                            ("${accountId}_${id}_DNS")?upper_case : "${accountObject.ProviderId}.dkr.ecr.${regionId}.amazonaws.com"
+                            ("${accountId}_${id}_DNS")?upper_case : "${accountObject.ProviderId}.dkr.ecr.${getRegion()}.amazonaws.com"
                         }]
                     [/#if]
                     [#break]
