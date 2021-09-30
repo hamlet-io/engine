@@ -25,7 +25,7 @@
             {
                 "Names" : "IPAddressGroups",
                 "Types" : ARRAY_OF_STRING_TYPE,
-                "Default" : []
+                "Default" : [ "_localnet" ]
             },
             {
                 "Names" : "ShortName",
