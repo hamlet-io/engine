@@ -24,8 +24,7 @@ jobs:
 
       - name: Install
         run: |
-          pip install hamlet-cli
-          sudo apt-get install -y jq dos2unix
+          pip install hamlet
 
       - name: Run Tests
         env:
@@ -67,7 +66,7 @@ jobs:
 
       - name: add build details
         run: |
-          pip install hamlet-cli
+          pip install hamlet
           hamlet engine add-engine-source-build
 
       - name: docker meta details

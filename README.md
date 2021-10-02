@@ -6,7 +6,7 @@ See https://docs.hamlet.io for more info on Hamlet Deploy
 
 ## Installation
 
-The engine is included as part of the official [hamlet base engine](https://github.com/hamlet-io/hamlet-engine-base/) so it will be included as part of your hamlet installation if you are using the [hamlet cli](https://pypi.org/project/hamlet-cli/)
+The Hamlet core engine is included as part of the standard hamlet installation. For details on installing hamlet see the [install guide](https://docs.hamlet.io/docs/getting-started/install) on our docs site.
 
 ### Alternative Methods
 
@@ -52,7 +52,7 @@ To run the test suite locally install the hamlet cli and use the provider testin
 ```bash
 
 # install cli
-pip install hamlet-cli
+pip install hamlet
 
 # run the tests
 hamlet -p shared -p sharedtest -f default deploy run-deployments
