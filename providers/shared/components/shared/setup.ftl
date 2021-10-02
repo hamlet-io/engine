@@ -125,16 +125,37 @@
 
                     [#local outputFileName = formatName(filePrefix, outputMapping["OutputSuffix"]) ]
 
-                    [#local tests = mergeObjects(
-                        tests,
-                        {
-                            testCaseFullName  : {
-                                "filename" : outputFileName,
-                                "cfn_lint" : testCase.Tools.CFNLint,
-                                "cfn_nag"  : testCase.Tools.CFNNag
+                    [#if isPresent(testCase.Tools["cfn-lint"])]
+                        [#local tests = mergeObjects(
+                            tests,
+                            {
+                                testCaseFullName : {
+                                    "cfn_lint" : {} +
+                                    attributeIfContent(
+                                        "ignore_checks",
+                                        testCase.Tools["cfn-lint"].IgnoreChecks
+                                    )
+                                }
                             }
-                        }
-                    )]
+                        )]
+                    [/#if]
+
+                    [#if isPresent(testCase.Tools["checkov"])]
+                        [#local tests = mergeObjects(
+                            tests,
+                            {
+                                testCaseFullName : {
+                                    "checkov" : {
+                                        "framework" : testCase.Tools["checkov"].Framework
+                                    } +
+                                    attributeIfContent(
+                                        "skip_checks",
+                                        testCase.Tools["checkov"].SkipChecks
+                                    )
+                                }
+                            }
+                        )]
+                    [/#if]
 
                     [#list (testCase.Structural.JSON.Match)!{} as id,matchTest ]
                         [#local tests = combineEntities(tests,
@@ -254,6 +275,25 @@
                                 }
                             }
                         )]
+                    [/#if]
+
+                    [#if tests?has_content ]
+                        [#local tests = mergeObjects(
+                            tests,
+                            {
+                                testCaseFullName  : {
+                                    "filename" : outputFileName
+                                }
+                            }
+                        )]
+                    [#else]
+                        [@fatal
+                            message="No tests found for test case"
+                            context={
+                                "TestCaseFullName" : testCaseFullName,
+                                "FileName" : outputFileName
+                            }
+                        /]
                     [/#if]
                 [/#if]
             [/#list]

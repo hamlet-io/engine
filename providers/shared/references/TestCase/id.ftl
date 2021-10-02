@@ -106,14 +106,34 @@
             "Description" : "Tool based tests - linters etc",
             "Children" : [
                 {
-                    "Names" : "CFNLint",
-                    "Types" : BOOLEAN_TYPE,
-                    "Default" : false
+                    "Names" : "cfn-lint",
+                    "Description" : "Run cfn-lint on the file - https://github.com/aws-cloudformation/cfn-lint",
+                    "Children" : [
+                        {
+                            "Names" : "IgnoreChecks",
+                            "Description" : "A list of checks to ignore in cfn-lint",
+                            "Type" : ARRAY_OF_STRING_TYPE,
+                            "Default" : []
+                        }
+                    ]
                 },
                 {
-                    "Names" : "CFNNag",
-                    "Types" : BOOLEAN_TYPE,
-                    "Default" : false
+                    "Names" : "checkov",
+                    "Description" : "Run checkov on the file - https://github.com/bridgecrewio/checkov",
+                    "Children" : [
+                        {
+                            "Names" : "Framework",
+                            "Description" : "The framework of the file to run testing against",
+                            "Values": ["cloudformation", "arm"],
+                            "Default" : "cloudformation"
+                        },
+                        {
+                            "Names" : "SkipChecks",
+                            "Description" : "A list of checks to skip in checkov",
+                            "Type" : ARRAY_OF_STRING_TYPE,
+                            "Default" : []
+                        }
+                    ]
                 }
             ]
         }
