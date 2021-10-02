@@ -115,6 +115,80 @@
                 "Default" : "default"
             },
             {
+                "Names" : "Conditions",
+                "Description" : "Inbound conditions that apply to match the port mapping",
+                "SubObjects" : true,
+                "Children" : [
+                    {
+                        "Names" : "Type",
+                        "Description" : "The type of the condition that will be applied",
+                        "Mandatory" : true,
+                        "Values" : [
+                            "httpHeader",
+                            "httpRequestMethod",
+                            "httpQueryString",
+                            "SourceIP"
+                        ]
+                    },
+                    {
+                        "Names" : "type:httpHeader",
+                        "Children" : [
+                            {
+                                "Names" : "HeaderName",
+                                "Type" : STRING_TYPE,
+                                "Description" : "The name of the header to filter on"
+                            },
+                            {
+                                "Names" : "HeaderValues",
+                                "Description" : "Then values accepted in the header",
+                                "Type" : ARRAY_OF_STRING_TYPE,
+                                "Default" : []
+                            }
+                        ]
+                    },
+                    {
+                        "Names" : "type:httpRequestMethod",
+                        "Children" : [
+                            {
+                                "Names" : "Methods",
+                                "Description" : "The HTTP methodss that are accepted",
+                                "Values" : [ "GET", "HEAD", "POST", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE", "PATCH" ],
+                                "Type" : ARRAY_OF_STRING_TYPE,
+                                "Default" : []
+                            }
+                        ]
+                    },
+                    {
+                        "Names" : "type:httpQueryString",
+                        "SubObjects" : true,
+                        "Children" : [
+                            {
+                                "Names" : "Key",
+                                "Description" : "The key of the query string",
+                                "Type" : STRING_TYPE
+
+                            },
+                            {
+                                "Names" : "Value",
+                                "Description" : "The value of the query string",
+                                "Type" : STRING_TYPE
+                            }
+                        ]
+                    },
+                    {
+                        "Names" : "type:SourceIP",
+                        "Children" : [
+                            {
+                                "Names" : "IPAddressGroups",
+                                "Description" : "A list of IPAddress Groups that will match the condition",
+                                "Type" : ARRAY_OF_STRING_TYPE,
+                                "Default" : []
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
                 "Names" : "Priority",
                 "Description" : "The priority order for the rule - highest wins. Can also set _default to set the final rule",
                 "Types" : [ NUMBER_TYPE, STRING_TYPE ],
