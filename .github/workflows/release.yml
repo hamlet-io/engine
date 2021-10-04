@@ -11,6 +11,9 @@ on:
 jobs:
   deploy_tests:
     runs-on: ubuntu-latest
+    env:
+      HAMLET_ENGINE: unicycle
+
     steps:
 
       - name: Checkout
@@ -31,7 +34,7 @@ jobs:
           GENERATION_ENGINE_DIR: ${{github.workspace }}
           GENERATION_PLUGIN_DIRS: ${{ github.workspace }}
         run: |
-          hamlet engine set-engine unicycle
+          hamlet engine get-engine
           hamlet -i mock -p shared -p sharedtest -f default deploy test-deployments -p '--junitxml=junit.xml' -o 'hamlet_tests/'
 
       - name: Test Results
