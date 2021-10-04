@@ -209,12 +209,12 @@
     [#if deploymentSubsetRequired("epilogue", false)]
         [#assign currentCodeBucket =
             contentIfContent(
-                codeBucket(),
+                getCodeBucket(),
                 formatName("account", "code", accountObject.Seed)
             ) ]
         [#assign currentRegistryBucket =
             contentIfContent(
-                registryBucket(),
+                getRegistryBucket(),
                 formatName("account", "registry", accountObject.Seed)
             ) ]
 
