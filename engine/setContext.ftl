@@ -16,45 +16,83 @@
     [@includeProviderComponentConfiguration provider="aws" component="ec2" services=["ec2", "vpc"] /]
 [/#if]
 
+[#-- Temporary function to permit a transition away from global variables --]
+[#-- The only use of this should be in invokeExtensions to support        --]
+[#-- a period where all extensions and fragments are switched to the      --]
+[#-- accessor functions. All other uses should be converted to accessors. --]
+
+[#macro populateSetContextGlobalVariables enabled]
+
+    [#if enabled]
+        [#assign credentialsBucket = getCredentialsBucket() ]
+        [#assign credentialsBucketRegion = getCredentialsBucketRegion() ]
+
+        [#assign codeBucket = getCodeBucket() ]
+        [#assign codeBucketRegion = getCodeBucketRegion() ]
+
+        [#assign registryBucket = getRegistryBucket() ]
+        [#assign registryBucketRegion = getRegistryBucketRegion() ]
+
+        [#assign vpc = getVpc() ]
+        [#assign legacyVpc = getLegacyVpc() ]
+
+        [#assign segmentSeed = getSegmentSeed() ]
+
+        [#assign sshFromProxySecurityGroup = getSshFromProxySecurityGroup() ]
+
+        [#assign regions = getRegions() ]
+
+        [#assign regionId = getRegion() ]
+        [#assign regionObject = getRegionObject() ]
+
+        [#assign accountRegionId = getAccountRegion() ]
+        [#assign accountRegionObject = getAccountRegionObject() ]
+
+        [#assign tiers = getTiers() ]
+        [#assign zones = getZones() ]
+    [/#if]
+
+[/#macro]
+
 [#-- Account level buckets --]
-[#function credentialsBucket]
+[#function getCredentialsBucket]
     [#return getExistingReference(formatAccountS3Id("credentials")) ]
 [/#function]
 
-[#function credentialsBucketRegion]
+[#function getCredentialsBucketRegion]
     [#return getExistingReference(formatAccountS3Id("credentials"), REGION_ATTRIBUTE_TYPE) ]
 [/#function]
 
-[#function codeBucket]
+[#function getCodeBucket]
     [#return getExistingReference(formatAccountS3Id("code")) ]
 [/#function]
 
-[#function codeBucketRegion]
+[#function getCodeBucketRegion]
     [#return getExistingReference(formatAccountS3Id("code"), REGION_ATTRIBUTE_TYPE)]
 [/#function]
 
-[#function registryBucket]
+[#function getRegistryBucket]
     [#return getExistingReference(formatAccountS3Id("registry")) ]
 [/#function]
 
-[#function registryBucketRegion]
+[#function getRegistryBucketRegion]
     [#return getExistingReference(formatAccountS3Id("registry"), REGION_ATTRIBUTE_TYPE)]
 [/#function]
 
 [#-- Network --]
-[#function vpc]
+[#function getVpc]
     [#return getExistingReference(formatVPCId()) ]
 [/#function]
 
-[#function legacyVpc]
-    [#return vpc()?has_content ]
+[#function getLegacyVpc]
+    [#return getVpc()?has_content ]
 [/#function]
 
 [#-- Segment Seed --]
-[#function segmentSeed]
+[#function getSegmentSeed]
     [#local seed = getExistingReference(formatSegmentSeedId()) ]
 
-        [#if legacyVpc() && (!seed?has_content)]
+        [#if getLegacyVpc() && (!seed?has_content)]
             [#-- Make sure the baseline component has been added to existing deployments --]
             [#local seed = "HamletFatal: baseline component not deployed - Please run a deployment of the baseline component" ]
         [/#if]
@@ -62,7 +100,7 @@
 [/#function]
 
 [#-- SSH --]
-[#function sshFromProxySecurityGroup]
+[#function getSshFromProxySecurityGroup]
     [#return getExistingReference(formatSSHFromProxySecurityGroupId()) ]
 [/#function]
 
@@ -101,9 +139,9 @@
     [#return result]
 [/#function]
 
-[#--function getAccountRegionObject region="" ]
+[#function getAccountRegionObject region="" ]
     [#return (getRegions()[contentIfContent( region, getAccountRegion() ) ])!{} ]
-[/#function--]
+[/#function]
 
 [#-- Active tiers --]
 [#function getTiers]

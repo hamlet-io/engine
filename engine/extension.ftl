@@ -142,6 +142,9 @@
     [#-- Replace the global context with the components context --]
     [#assign _context = context ]
 
+    [#-- Temporarily define expected global variables from setContext. --]
+    [@populateSetContextGlobalVariables enabled=true /]
+
     [#local occurrenceContext = {
         "Instance" : occurrence.Core.Instance.Id,
         "Version" : occurrence.Core.Version.Id
