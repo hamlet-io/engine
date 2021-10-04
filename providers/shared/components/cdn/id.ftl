@@ -128,6 +128,11 @@
             "Mandatory" : true
         },
         {
+            "Names" : "Links",
+            "SubObjects" : true,
+            "AttributeSet" : LINK_ATTRIBUTESET_TYPE
+        },
+        {
             "Names" : "Origin",
             "Children" : [
                 {
