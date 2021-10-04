@@ -23,7 +23,9 @@
 
 [#macro populateSetContextGlobalVariables enabled]
 
-    [#if enabled]
+    [#local providerIsKnown = (.vars["getExistingReference"]!"")?is_directive ]
+
+    [#if providerIsKnown && enabled]
         [#assign credentialsBucket = getCredentialsBucket() ]
         [#assign credentialsBucketRegion = getCredentialsBucketRegion() ]
 
