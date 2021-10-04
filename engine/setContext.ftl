@@ -23,24 +23,24 @@
 
 [#macro populateSetContextGlobalVariables enabled]
 
-    [#local providerIsKnown = (.vars["getExistingReference"]!"")?is_directive ]
+    [#if enabled]
+        [#if getLoaderProviders()?seq_contains("aws")]
+            [#assign credentialsBucket = getCredentialsBucket() ]
+            [#assign credentialsBucketRegion = getCredentialsBucketRegion() ]
 
-    [#if providerIsKnown && enabled]
-        [#assign credentialsBucket = getCredentialsBucket() ]
-        [#assign credentialsBucketRegion = getCredentialsBucketRegion() ]
+            [#assign codeBucket = getCodeBucket() ]
+            [#assign codeBucketRegion = getCodeBucketRegion() ]
 
-        [#assign codeBucket = getCodeBucket() ]
-        [#assign codeBucketRegion = getCodeBucketRegion() ]
+            [#assign registryBucket = getRegistryBucket() ]
+            [#assign registryBucketRegion = getRegistryBucketRegion() ]
 
-        [#assign registryBucket = getRegistryBucket() ]
-        [#assign registryBucketRegion = getRegistryBucketRegion() ]
+            [#assign vpc = getVpc() ]
+            [#assign legacyVpc = getLegacyVpc() ]
 
-        [#assign vpc = getVpc() ]
-        [#assign legacyVpc = getLegacyVpc() ]
+            [#assign segmentSeed = getSegmentSeed() ]
 
-        [#assign segmentSeed = getSegmentSeed() ]
-
-        [#assign sshFromProxySecurityGroup = getSshFromProxySecurityGroup() ]
+            [#assign sshFromProxySecurityGroup = getSshFromProxySecurityGroup() ]
+        [/#if]
 
         [#assign regions = getRegions() ]
 
@@ -52,6 +52,7 @@
 
         [#assign tiers = getTiers() ]
         [#assign zones = getZones() ]
+
     [/#if]
 
 [/#macro]
