@@ -8,6 +8,14 @@
 [#assign referenceConfiguration = {} ]
 [#assign referenceData = {}]
 
+[#function getReferenceConfiguration type="" ]
+    [#if type?has_content]
+        [#return (referenceConfiguration[type])!{}]
+    [#else]
+        [#return referenceConfiguration]
+    [/#if]
+[/#function]
+
 [#-- Macros to assemble the component configuration --]
 [#macro addReference type pluralType properties attributes ]
     [#local configuration = {
@@ -37,6 +45,16 @@
         /]
     [/#if]
 [/#macro]
+
+[#function getAllReferenceData ]
+    [#local result = {}]
+    [#list getReferenceConfiguration()?keys as type ]
+        [#local result += {
+            type: getReferenceData(type)
+        }]
+    [/#list]
+    [#return result]
+[/#function]
 
 [#function getReferenceData type ignoreMissing=false]
     [#local referenceConfig = referenceConfiguration[type]!{}]

@@ -74,6 +74,10 @@
     [/#if]
 [/#function]
 
+[#function getAllLayerConfiguration ]
+    [#return layerConfiguration ]
+[/#function]
+
 [#-- Return the layer input filter attributes --]
 [#function getLayerInputFilterAttributes type ]
     [#local attributeValue = (getLayerConfiguration(type).InputFilterAttributes[0].Id)!"" ]
@@ -309,4 +313,3 @@
 
     [#return results + asArray(default) ]
 [/#function]
-

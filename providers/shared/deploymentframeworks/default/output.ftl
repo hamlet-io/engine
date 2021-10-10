@@ -175,6 +175,10 @@
 
     [@initialiseJsonOutput name="providers" /]
     [@initialiseJsonOutput name="entrances" /]
+    [@initialiseJsonOutput name="referencetypes" /]
+    [@initialiseJsonOutput name="referencedata" /]
+    [@initialiseJsonOutput name="layertypes" /]
+    [@initialiseJsonOutput name="layerdata" /]
 
     [@processFlows
         level=level
@@ -192,25 +196,20 @@
                 "ConfigurationReference" : getCLOConfigurationReference()
             },
             "Providers" : getOutputContent("providers")?values,
-            "Entrances" : getOutputContent("entrances")?values
+            "Entrances" : getOutputContent("entrances")?values,
+            "ReferenceTypes" : getOutputContent("referencetypes")?values,
+            "ReferenceData" : asFlattenedArray(getOutputContent("referencedata")?values),
+            "LayerTypes" : getOutputContent("layertypes")?values,
+            "LayerData" : getOutputContent("layerdata")?values
         }
     ]
 [/#function]
 
-[#macro infoProvider id details ]
+[#macro infoContent type id details ]
     [@mergeWithJsonOutput
-        name="providers"
+        name=type
         content={
             id : details
-        }
-    /]
-[/#macro]
-
-[#macro infoEntrance id details ]
-    [@mergeWithJsonOutput
-        name="entrances"
-        content={
-            id :  details
         }
     /]
 [/#macro]
