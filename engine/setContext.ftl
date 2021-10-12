@@ -578,7 +578,7 @@
             [#if value?is_hash && value.Enabled!true]
                 [#local isOpen = (value.IsOpen)!false ]
                 [#list asFlattenedArray(value.CIDR![]) as cidrEntry ]
-                    [#if cidrEntry?contains("0.0.0.0")]
+                    [#if cidrEntry == "0.0.0.0" || cidrEntry == "0.0.0.0/0" ]
                         [#local isOpen = true]
                     [#else]
                         [#local cidrs += [cidrEntry] ]
