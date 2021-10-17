@@ -438,6 +438,12 @@
                     "Default" : []
                 }
             ]
+        },
+        {
+            "Names" : "TagSet",
+            "Description" : "The TagSet to apply",
+            "Type" : STRING_TYPE,
+            "Default" : "default"
         }
     ]
 /]

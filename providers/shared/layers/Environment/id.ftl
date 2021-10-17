@@ -168,6 +168,12 @@
         {
             "Names" : "OSPatching",
             "AttributeSet" : OSPATCHING_ATTRIBUTESET_TYPE
+        },
+        {
+            "Names" : "TagSet",
+            "Description" : "The TagSet to apply",
+            "Type" : STRING_TYPE,
+            "Default" : "default"
         }
     ]
 /]
