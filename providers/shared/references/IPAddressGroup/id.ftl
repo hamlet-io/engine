@@ -1,6 +1,6 @@
 [#ftl]
 
-[@addReference 
+[@addReference
     type=IPADDRESSGROUP_REFERENCE_TYPE
     pluralType="IPAddressGroups"
     properties=[
