@@ -69,6 +69,21 @@
                         "Names" : "PublicIP",
                         "Description" : "The public IP address of the VPN tunnel",
                         "Types" : STRING_TYPE
+                    },
+                    {
+                        "Names" : "SharedKey",
+                        "Description" : "The shared key to use to establish the VPN",
+                        "Types" : STRING_TYPE
+                    },
+                    {
+                        "Names" : "BGP",
+                        "Children" : [
+                            {
+                                "Names" : "PeerIPAddress",
+                                "Description" : "The BGP Peer address for this connection",
+                                "Types" : STRING_TYPE
+                            }
+                        ]
                     }
                 ]
             },
