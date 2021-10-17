@@ -616,6 +616,28 @@
 [#function getIPAddressGroup group occurrence={}]
     [#local groupId = group?is_hash?then(group.Id, group) ]
 
+    [#if groupId?starts_with("_named") || groupId?starts_with("__named") ]
+        [#local lookupName = groupId?split(":")[1]]
+        [#if ! lookupName?has_content]
+            [@fatal
+                message="Invalid named IP address group"
+                detail="Provide named groups as _named: name of group"
+                context=groupId
+            /]
+
+            [#return
+                {
+                    "Id" : groupId,
+                    "IsOpen" : false,
+                    "IsLocal" : true,
+                    "CIDR" : []
+                }
+            /]
+        [/#if]
+        [#local groupDetailId = groupId ]
+        [#local groupId = "_named" ]
+    [/#if]
+
     [#if groupId?starts_with("_tier") || groupId?starts_with("__tier") ]
         [#local lookupTier = groupId?split(":")[1] ]
         [#local lookupZone = (groupId?split(":")[2])!"" ]
@@ -629,8 +651,8 @@
             [#return
                 {
                     "Id" : groupId,
-                    "IsOpen" : true,
-                    "IsLocal" : false,
+                    "IsOpen" : false,
+                    "IsLocal" : true,
                     "CIDR" : []
                 }]
         [/#if]
@@ -770,6 +792,19 @@
                 } ]
             [#break]
 
+        [#case "_named"]
+        [#case "__named"]
+            [#return
+                {
+                    "Id": groupDetailId,
+                    "Name" : groupDetailId,
+                    "IsOpen" : false,
+                    "IsLocal" : true,
+                    "CIDR" : [ ],
+                    "NamedPrefix" : [lookupName]
+                }
+            ]
+
         [#default]
             [#if (ipAddressGroups[groupId]!{})?has_content ]
                 [#return ipAddressGroups[groupId] ]
@@ -790,7 +825,7 @@
     [/#switch]
 [/#function]
 
-[#function getGroupCIDRs groups checkIsOpen=true occurrence={} asBoolean=false]
+[#function getGroupCIDRs groups checkIsOpen=true occurrence={} asBoolean=false includeNamedPrefixes=true ]
     [#local cidrs = [] ]
     [#list asFlattenedArray(groups) as group]
         [#local nextGroup = getIPAddressGroup(group, occurrence) ]
@@ -798,6 +833,9 @@
             [#return valueIfTrue(false, asBoolean, ["0.0.0.0/0"]) ]
         [/#if]
         [#local cidrs += nextGroup.CIDR ]
+        [#if includeNamedPrefixes && nextGroup.NamedPrefix?? ]
+            [#local cidrs += nextGroup.NamedPrefix ]
+        [/#if]
     [/#list]
     [#return valueIfTrue(cidrs?has_content, asBoolean, cidrs) ]
 [/#function]
