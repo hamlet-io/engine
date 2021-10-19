@@ -173,6 +173,23 @@
                         "Default" : "default"
                     }
                 ]
+            },
+            {
+                "Names" : "SiteToSite",
+                "Children" : [
+                    {
+                        "Names" : "InsideTunnelIPVersion",
+                        "Description" : "The IP Version of the internal network",
+                        "Types" : STRING_TYPE,
+                        "Values" : [ "Ipv4", "Ipv6" ],
+                        "Default" : "Ipv4"
+                    },
+                    {
+                        "Names" : "InsideTunnelCIDRs",
+                        "Description" : "An array of IP CIDR Ranges used within the tunnel",
+                        "Types" : ARRAY_OF_STRING_TYPE
+                    }
+                ]
             }
         ]
     parent=NETWORK_GATEWAY_COMPONENT_TYPE
