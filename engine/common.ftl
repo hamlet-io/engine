@@ -1109,22 +1109,26 @@
 
     [#return
         [
-            r'get_url_image_to_registry ' +
-            r'   "' + sourceURL + r'" ' +
-            r'   "' + expectedImageHash + r'" ' +
-            r'   "' + imageFormat + r'" ' +
-            r'   "' + region + r'" ' +
-            r'   "' + registryBucket + r'" ' +
-            r'   "' + registryPrefix + r'" ' +
-            r'   "' + registryFile + r'" ' +
-            r'   "' + product + r'" ' +
-            r'   "' + environment + r'" ' +
-            r'   "' + segment + r'" ' +
-            r'   "' + buildUnit + r'" ' +
-            r'   "' + createZip?c + r'" || exit $?',
-            r'# refresh settings to include new build file',
+            r'if [[ "${HAMLET_SKIP_IMAGE_PULL}" != "true" ]]; then',
+            r'   get_url_image_to_registry ' +
+            r'     "' + sourceURL + r'" ' +
+            r'     "' + expectedImageHash + r'" ' +
+            r'     "' + imageFormat + r'" ' +
+            r'     "' + region + r'" ' +
+            r'     "' + registryBucket + r'" ' +
+            r'     "' + registryPrefix + r'" ' +
+            r'     "' + registryFile + r'" ' +
+            r'     "' + product + r'" ' +
+            r'     "' + environment + r'" ' +
+            r'     "' + segment + r'" ' +
+            r'     "' + buildUnit + r'" ' +
+            r'     "' + createZip?c + r'" || exit $?',
+            r'   # refresh settings to include new build file',
             r'',
-            r'assemble_settings "${GENERATION_DATA_DIR}" "${COMPOSITE_SETTINGS}"'
+            r'   assemble_settings "${GENERATION_DATA_DIR}" "${COMPOSITE_SETTINGS}"'
+            r'else',
+            r'   info "Skipping image pull as HAMLET_SKIP_IMAGE_PULL is set"',
+            r'fi'
         ]
     ]
 [/#function]
@@ -1145,7 +1149,8 @@
 
     [#return
         [
-            r'get_image_from_container_registry' +
+            r'if [[ "${HAMLET_SKIP_IMAGE_PULL}" != "true" ]]; then',
+            r'  get_image_from_container_registry' +
             r'   "' + sourceImage + r'" ' +
             r'   "' + imageFormat + r'" ' +
             r'   "' + product + r'" ' +
@@ -1155,9 +1160,12 @@
             r'   "' + registryHost + r'" ' +
             r'   "' + registryProvider + r'" ' +
             r'   "' + region + r'" || exit $? ',
-            r'# refresh settings to include new build file',
+            r'   # refresh settings to include new build file',
             r'',
-            r'assemble_settings "${GENERATION_DATA_DIR}" "${COMPOSITE_SETTINGS}"'
+            r'   assemble_settings "${GENERATION_DATA_DIR}" "${COMPOSITE_SETTINGS}"',
+            r'else',
+            r'   info "Skipping image pull as HAMLET_SKIP_IMAGE_PULL is set"',
+            r'fi'
         ]
     ]
 [/#function]
