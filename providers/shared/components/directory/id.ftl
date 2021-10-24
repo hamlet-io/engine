@@ -96,7 +96,7 @@
                     },
                     {
                         "Names" : [ "Link", "SecretStore" ],
-                        "Description" : "A link to a secret or store store that willkeep the secret",
+                        "Description" : "A link to a secret or store that will keep the secret",
                         "AttributeSet" : LINK_ATTRIBUTESET_TYPE
                     }
                 ]
