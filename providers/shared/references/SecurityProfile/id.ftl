@@ -124,6 +124,12 @@
                     "Types" : ARRAY_OF_STRING_TYPE
                 },
                 {
+                    "Names" : "StartupAction",
+                    "Description" : "Initiation behaviour for vpn",
+                    "Types" : STRING_TYPE,
+                    "Values" : [ "add", "start" ]
+                },
+                {
                     "Names" : "Rekey",
                     "Children" : [
                         {

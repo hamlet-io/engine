@@ -1814,6 +1814,7 @@
           "MarginTime": 540,
           "FuzzPercentage": 100
         },
+        "StartupAction" : "add",
         "ReplayWindowSize": 1024,
         "DeadPeerDetectionTimeout": 30,
         "DeadPeerDetectionAction": "clear",
