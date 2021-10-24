@@ -77,12 +77,12 @@
             },
             {
                 "Names" : "RootCredentials",
-                "Description" : "Secret store configuration for the root credentials",
+                "Description" : "Secret store configuration for the administrator credentials",
                 "Children" : [
                     {
                         "Names" : "Username",
                         "Types" : STRING_TYPE,
-                        "Default" : "root"
+                        "Default" : "Admin"
                     },
                     {
                         "Names" : "EncryptionScheme",
@@ -95,8 +95,8 @@
                         "Children" : secretConfiguration
                     },
                     {
-                        "Names" : "SecretStore",
-                        "Description" : "A link to the certificate store which will keep the secret",
+                        "Names" : [ "Link", "SecretStore" ],
+                        "Description" : "A link to a secret or store store that willkeep the secret",
                         "AttributeSet" : LINK_ATTRIBUTESET_TYPE
                     }
                 ]
