@@ -11,7 +11,7 @@
         ]
     attributes=[
         {
-            "Names" : "Type",
+            "Names" : ["Engine", "Type" ],
             "Description" : "The type of healthcheck to perform",
             "Type" : STRING_TYPE,
             "Values" : [ "Simple", "Complex" ],
@@ -41,7 +41,7 @@
             ]
         }
         {
-            "Names" : "Type:Complex",
+            "Names" : [ "Engine:Complex", "Type:Complex" ]
             "Description" : "Complex specific configuration",
             "Children" : [
                 {
@@ -110,7 +110,7 @@
             ]
         },
         {
-            "Names" : "Type:Simple",
+            "Names" : [ "Engine:Simple", "Type:Simple" ],
             "Description" : "Simple healthcheck configuration",
             "Children" : [
                 {
