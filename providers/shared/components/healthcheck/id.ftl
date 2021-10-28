@@ -41,7 +41,7 @@
             ]
         }
         {
-            "Names" : [ "Engine:Complex", "Type:Complex" ]
+            "Names" : [ "Engine:Complex", "Type:Complex" ],
             "Description" : "Complex specific configuration",
             "Children" : [
                 {
