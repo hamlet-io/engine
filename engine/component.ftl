@@ -31,12 +31,13 @@
 [#-- Attributes are shared across providers, or provider specific --]
 [#assign SHARED_ATTRIBUTES = "shared"]
 [#assign DEPLOYMENT_ATTRIBUTES = "deployment"]
+[#assign BASE_ATTRIBUTES = "base"]
 
 [#-- Placement profiles --]
 [#assign DEFAULT_PLACEMENT_PROFILE = "default"]
 
 [#-- Macros to assemble the component configuration --]
-[#macro addComponent type properties attributes dependencies=[] additionalResourceGroups=[] ]
+[#macro addComponent type properties attributes dependencies=[] additionalResourceGroups=[] includeTypeAttr=true ]
 
     [#-- Basic configuration --]
     [@internalMergeComponentConfiguration
@@ -68,6 +69,11 @@
         provider=SHARED_ATTRIBUTES
         resourceGroup=DEFAULT_RESOURCE_GROUP
     /]
+
+    [@addComponentBase
+        type=type
+        includeTypeAttr=includeTypeAttr
+    /]
 [/#macro]
 
 [#macro addChildComponent type properties attributes parent childAttribute linkAttributes dependencies=[] ]
@@ -76,6 +82,7 @@
         properties=properties
         attributes=attributes
         dependencies=dependencies
+        includeTypeAttr=false
     /]
 
     [#local children =
@@ -100,6 +107,10 @@
 [#-- Enables Deployment support for the component --]
 [#macro addComponentDeployment type defaultGroup defaultPriority=100 defaultUnit="" lockAttributes=false   ]
     [#local deploymentAttributes = [
+        {
+            "Names" : "shared:DeploymentUnits",
+            "Types" : ARRAY_OF_STRING_TYPE
+        },
         {
             "Names" : "Unit",
             "Types" : STRING_TYPE,
@@ -165,27 +176,16 @@
     [#return deploymentState?keys ]
 [/#function]
 
-[#-- Not for general use - framework only --]
-[#assign coreComponentDeploymentUnitConfiguration =
-    [
-        {
-            "Names" : ["DeploymentUnits", "deployment:Unit"],
-            "Description" : "An singleton instance of the component, Instance & Version configuration.",
-            "Types" : ARRAY_OF_STRING_TYPE,
-            "Default" : []
-        }
-    ]
-]
+[#macro addComponentBase type includeTypeAttr=true ]
 
-[#assign coreComponentChildConfiguration =
-    [
+    [#local attributes = [
         {
-            "Names" : ["Export"],
-            "Types" : ARRAY_OF_STRING_TYPE,
-            "Default" : []
+            "Names" : "Export",
+            "Types" : BOOLEAN_TYPE,
+            "Default" : false
         },
         {
-            "Names" : [ "Instances" ],
+            "Names" : "Instances",
             "Description" : "Instances of a component configuration",
             "SubObjects" : true,
             "Children" : [
@@ -193,14 +193,30 @@
                     "Names" : "Versions",
                     "Description" : "Versions of the components instance.",
                     "SubObjects" : true,
-                    "Children" : coreComponentDeploymentUnitConfiguration
+                    "Children" : []
                 }
-            ] +
-            coreComponentDeploymentUnitConfiguration
+            ]
         }
     ] +
-    coreComponentDeploymentUnitConfiguration
-]
+    includeTypeAttr?then(
+        [
+            {
+                "Names" : "Type",
+                "Types" : STRING_TYPE,
+                "Description" : "The components type"
+            }
+        ],
+        []
+    )]
+
+    [@addResourceGroupInformation
+        type=type
+        attributes=attributes
+        provider=BASE_ATTRIBUTES
+        resourceGroup=DEFAULT_RESOURCE_GROUP
+        prefixed=false
+    /]
+[/#macro]
 
 [#macro addResourceGroupAttributeValues type extensions provider resourceGroup=DEFAULT_RESOURCE_GROUP]
 
@@ -261,7 +277,6 @@
             [#local providerAttributes = attributes ]
         [/#if]
 
-        [#local providerAttributes += coreComponentChildConfiguration ]
     [#else]
         [#if prefixed]
             [#-- Handle prefixing of provider specific attributes --]
