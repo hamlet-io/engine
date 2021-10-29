@@ -565,6 +565,7 @@ already prefixed attribute.
 
         [#local attributes +=
             extendedSharedAttributes +
+            ((value.Attributes[BASE_ATTRIBUTES])![]) +
             ((value.Attributes[DEPLOYMENT_ATTRIBUTES])![]) +
             ((value.Attributes[provider])![])
         ]

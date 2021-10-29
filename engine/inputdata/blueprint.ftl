@@ -59,7 +59,7 @@
 
         [#-- Skip any subComponents --]
         [#if !(subComponentNames?seq_contains(component))]
-            [#local attrs = coreComponentChildConfiguration]
+            [#local attrs = []]
             [#list config["ResourceGroups"]?values as resourceGroupConfig]
                 [#local attrs += asFlattenedArray(resourceGroupConfig.Attributes?values)]
             [/#list]
@@ -71,7 +71,7 @@
                     [#local components += [{
                         "Names" : child.Component,
                         "SubObjects" : true,
-                        "Children" : asFlattenedArray(componentConfiguration[child.Type]["ResourceGroups"]["default"].Attributes?values) + coreComponentChildConfiguration
+                        "Children" : asFlattenedArray(componentConfiguration[child.Type]["ResourceGroups"]["default"].Attributes?values)
                     }] ]
                 [/#list]
             [/#if]
@@ -148,7 +148,7 @@
                         {
                             "Names" : "Components",
                             "SubObjects" : true,
-                            "Children" : componentChildren + coreComponentChildConfiguration
+                            "Children" : componentChildren
                         },
                         {
                             "Names" : "Network",
