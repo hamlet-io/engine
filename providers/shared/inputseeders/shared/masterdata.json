@@ -906,6 +906,28 @@
         "Timeout": "5"
       }
     },
+    "winrm" : {
+      "Port": 5985,
+      "Protocol": "TCP",
+      "IPProtocol": "tcp",
+      "HealthCheck": {
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
+    "winrm-tls" : {
+      "Port": 5986,
+      "Protocol": "TCP",
+      "IPProtocol": "tcp",
+      "HealthCheck": {
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
     "ws": {
       "Port": 80,
       "Protocol": "TCP",
