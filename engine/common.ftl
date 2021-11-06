@@ -5,6 +5,10 @@
     [#if obj["deployment:Unit"]?has_content ]
         [#return obj["deployment:Unit"]]
     [#else]
+        [#if ! obj.DeploymentUnits?? || ! obj.DeploymentUnits?has_content ]
+            [#return ""]
+        [/#if]
+
         [#return (((obj.DeploymentUnits)![])[0])!"" ]
     [/#if]
 [/#function]
