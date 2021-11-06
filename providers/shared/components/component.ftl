@@ -60,8 +60,14 @@
 [#assign ECS_SERVICE_COMPONENT_TYPE = "service" ]
 [#assign ECS_TASK_COMPONENT_TYPE = "task" ]
 
-[#assign EFS_COMPONENT_TYPE = "efs" ]
-[#assign EFS_MOUNT_COMPONENT_TYPE = "efsmount"]
+[#assign FILESHARE_COMPONENT_TYPE = "fileshare" ]
+[#assign FILESHARE_MOUNT_COMPONENT_TYPE = "filesharemount"]
+
+[#assign FILESHARE_LEGACY_COMPONENT_TYPE = "efs" ]
+[#assign legacyTypeMapping += { FILESHARE_LEGACY_COMPONENT_TYPE : FILESHARE_COMPONENT_TYPE } ]
+
+[#assign FILESHARE_MOUNT_LEGACY_COMPONENT_TYPE = "efsmount" ]
+[#assign legacyTypeMapping += { FILESHARE_MOUNT_LEGACY_COMPONENT_TYPE : FILESHARE_MOUNT_COMPONENT_TYPE } ]
 
 [#assign ES_COMPONENT_TYPE = "es"]
 [#assign ES_LEGACY_COMPONENT_TYPE = "elasticsearch"]
