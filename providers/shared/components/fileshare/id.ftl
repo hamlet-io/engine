@@ -1,7 +1,7 @@
 [#ftl]
 
 [@addComponent
-    type=EFS_COMPONENT_TYPE
+    type=FILESHARE_COMPONENT_TYPE
     properties=
         [
             {
@@ -17,12 +17,29 @@
                 "Default" : true
             },
             {
+                "Names" : "Engine",
+                "Types" : STRING_TYPE,
+                "Description" : "The type of file share that the component will offer",
+                "Values" : [ "NFS", "SMB" ],
+                "Default" : "NFS"
+            },
+            {
+                "Names": "Size",
+                "Description" : "The size in Gb of the file share",
+                "Types": NUMBER_TYPE
+            },
+            {
                 "Names" : "Profiles",
                 "Children" : [
                     {
                         "Names" : "Network",
                         "Types" : STRING_TYPE,
                         "Default" : "default"
+                    },
+                    {
+                        "Names" : "Logging",
+                        "Types" : STRING_TYPE,
+                        "Default": "default"
                     }
                 ]
             },
@@ -35,18 +52,34 @@
                 "Names" : "Links",
                 "SubObjects" : true,
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
+            },
+            {
+                "Names" : "MaintenanceWindow",
+                "Description" : "When to apply maintenance on the share",
+                "AttributeSet" : MAINTENANCEWINDOW_ATTRIBUTESET_TYPE
+            },
+            {
+                "Names" : "Backup",
+                "Children" : [
+                    {
+                        "Names" : "RetentionPeriod",
+                        "Description" : "The time in days to keep backups",
+                        "Types" : NUMBER_TYPE,
+                        "Default" : 31
+                    }
+                ]
             }
         ]
 /]
 
 [@addComponentDeployment
-    type=EFS_COMPONENT_TYPE
+    type=FILESHARE_COMPONENT_TYPE
     defaultGroup="solution"
     defaultPriority=50
 /]
 
 [@addChildComponent
-    type=EFS_MOUNT_COMPONENT_TYPE
+    type=FILESHARE_MOUNT_COMPONENT_TYPE
     properties=
         [
             {
@@ -104,7 +137,7 @@
                 ]
             }
         ]
-    parent=EFS_COMPONENT_TYPE
+    parent=FILESHARE_COMPONENT_TYPE
     childAttribute="Mounts"
     linkAttributes="Mount"
 /]
