@@ -20,15 +20,18 @@
                 "Thursday",
                 "Friday",
                 "Saturday"
-            ]
+            ],
+            "Default" : "Sunday"
         },
         {
             "Names" : "TimeOfDay",
-            "Types" : STRING_TYPE
+            "Types" : STRING_TYPE,
+            "Default" : "01:00"
         },
         {
             "Names" : "TimeZone",
-            "Types" : STRING_TYPE
+            "Types" : STRING_TYPE,
+            "Default" : "UTC"
         }
      ]
 /]
