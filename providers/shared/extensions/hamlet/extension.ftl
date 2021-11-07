@@ -95,7 +95,7 @@
     [/#if]
 
     [#if (settings["AWS_AUTOMATION_ACCOUNTS"]!"")?has_content ]
-        [#local automationAccounts = asArray( (settings["AWS_AUTOMATION_ACCOUNTS"]!"")?eval ) ]
+        [#local automationAccounts = asArray( (settings["AWS_AUTOMATION_ACCOUNTS"]!"")?eval_json ) ]
 
         [#local automationAccountRoles = []]
         [#list automationAccounts as automationAccount ]
