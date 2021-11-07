@@ -1950,6 +1950,14 @@
     }
   },
   "DeploymentModes": {
+    "_orphan" : {
+      "Operations": [ "delete" ],
+      "Membership": "priority",
+      "Priority": {
+        "GroupFilter": ".*",
+        "Order": "HighestFirst"
+      }
+    },
     "update": {
       "Operations": [ "update" ],
       "Membership": "priority",
