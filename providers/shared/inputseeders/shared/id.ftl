@@ -120,7 +120,7 @@
                 [#-- load the plugin state from setup --]
                 "Plugins" : {
                     "State" : (pluginState!"")?has_content?then(
-                                    pluginState?eval,
+                                    pluginState?eval_json,
                                     {}
                     ),
                     "RefreshRequired" :  ((pluginRefreshRequired!"") == "true")
@@ -348,7 +348,7 @@
     [#-- Handle any composites --]
     [#local result = state]
 
-    [#local compositeBlueprint = (blueprint!"")?has_content?then(blueprint?eval, {}) ]
+    [#local compositeBlueprint = (blueprint!"")?has_content?then(blueprint?eval_json, {}) ]
 
     [#if compositeBlueprint?has_content]
         [#-- Blueprint needed for plugin/module determination --]
@@ -362,7 +362,7 @@
         ]
     [/#if]
 
-    [#local compositeSettings = (settings!"")?has_content?then(settings?eval, {}) ]
+    [#local compositeSettings = (settings!"")?has_content?then(settings?eval_json, {}) ]
 
     [#if compositeSettings?has_content]
         [#-- Cache settings ready for normalisation --]
@@ -378,7 +378,7 @@
 
     [#local compositeDefinitions =
         ((definitions!"")?has_content && (!definitions?contains("null")))?then(
-            definitions?eval,
+            definitions?eval_json,
             {}
         )
     ]
@@ -394,7 +394,7 @@
         ]
     [/#if]
 
-    [#local compositeStackOutputs = (stackOutputs!"")?has_content?then(stackOutputs?eval, []) ]
+    [#local compositeStackOutputs = (stackOutputs!"")?has_content?then(stackOutputs?eval_json, []) ]
 
     [#if compositeStackOutputs?has_content]
         [#-- Cache stack outputs ready for normalisation --]
@@ -403,7 +403,7 @@
                 result,
                 STATE_CONFIG_INPUT_CLASS,
                 (stackOutputs!"")?has_content?then(
-                    stackOutputs?eval,
+                    stackOutputs?eval_json,
                     []
                 ),
                 CMDB_SHARED_INPUT_STAGE
