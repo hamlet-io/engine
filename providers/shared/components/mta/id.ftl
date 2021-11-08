@@ -72,6 +72,12 @@
                         "Description" : "Expected To addresses",
                         "Types" : ARRAY_OF_STRING_TYPE,
                         "Default" : []
+                    },
+                    {
+                        "Names" : "EventTypes",
+                        "Description" : "Expected events to action (send only)",
+                        "Types" : ARRAY_OF_STRING_TYPE,
+                        "Default" : []
                     }
                 ]
             },
