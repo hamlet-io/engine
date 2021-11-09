@@ -77,7 +77,17 @@
                         "Names" : "EventTypes",
                         "Description" : "Expected events to action (send only)",
                         "Types" : ARRAY_OF_STRING_TYPE,
-                        "Default" : []
+                        "Default" : [],
+                        "Values" : [ 
+                            "click", 
+                            "bounce", 
+                            "send", 
+                            "open", 
+                            "complaint", 
+                            "delivery", 
+                            "renderingFailure", 
+                            "reject" 
+                        ]
                     }
                 ]
             },
