@@ -649,7 +649,7 @@
     },
     {
         "Names" : "aws:TopicPermissionMigration",
-        "Description" : "Deprecation alert: set to true once policy updated for queue",
+        "Description" : "Deprecation alert: set to true once policy updated for topic",
         "Types" : BOOLEAN_TYPE,
         "Default" : false
     }
