@@ -103,6 +103,27 @@
                 ]
             },
             {
+                "Names" : "Filters",
+                "SubObjects" : true,
+                "Children" : [
+                    {
+                        "Names" : "Attribute",
+                        "Description" : "Name of the filter",
+                        "Types" : STRING_TYPE
+                    },
+                    {
+                        "Names" : "Values",
+                        "Description" : "Valid values for the filter",
+                        "Types" : ARRAY_OF_STRING_TYPE
+                    },
+                    {
+                        "Names" : "Links",
+                        "SubObjects" : true,
+                        "AttributeSet" : LINK_ATTRIBUTESET_TYPE
+                    }
+                ]
+            },
+            {
                 "Names" : "RawMessageDelivery",
                 "Description" : "Deliver message as received not with JSON payload strucutre",
                 "Types" : BOOLEAN_TYPE,
