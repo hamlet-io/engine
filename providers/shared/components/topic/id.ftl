@@ -107,12 +107,12 @@
                 "SubObjects" : true,
                 "Children" : [
                     {
-                        "Names" : "MsgKey",
+                        "Names" : "Attribute",
                         "Description" : "Name of the filter",
                         "Types" : STRING_TYPE
                     },
                     {
-                        "Names" : "MsgValues",
+                        "Names" : "Values",
                         "Description" : "Valid values for the filter",
                         "Types" : ARRAY_OF_STRING_TYPE
                     },
