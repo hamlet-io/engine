@@ -26,6 +26,11 @@
                 "Names" : "Alerts",
                 "SubObjects" : true,
                 "AttributeSet" : ALERT_ATTRIBUTESET_TYPE
+            },
+            {
+                "Names" : "Links",
+                "SubObjects" : true,
+                "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             }
         ]
 /]

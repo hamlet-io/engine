@@ -646,6 +646,12 @@
         "Description" : "Deprecation alert: set to true once policy updated for queue",
         "Types" : BOOLEAN_TYPE,
         "Default" : false
+    },
+    {
+        "Names" : "aws:TopicPermissionMigration",
+        "Description" : "Deprecation alert: set to true once policy updated for topic",
+        "Types" : BOOLEAN_TYPE,
+        "Default" : false
     }
 ]]
 
