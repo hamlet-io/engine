@@ -53,16 +53,23 @@
 
 [#-- TODO(mfl) Make this work for IPv6 as well --]
 [#-- For now always assume IPv4                --]
-[#function formatWAFIPMatchTuples filter={} valueSet={} ]
+[#function formatWAFIPMatchTuples filter={} valueSet={} version="V1" ]
     [#local result= [] ]
     [#list getWAFValueList(filter.Targets, valueSet) as target]
-        [#local result += [
-                {
-                    "Type" : "IPV4",
-                    "Value" : target
-                }
-            ]
-        ]
+        [#switch version]
+            [#case "V1"]
+                [#local result += [
+                        {
+                            "Type" : "IPV4",
+                            "Value" : target
+                        }
+                    ]
+                ]
+            [#break]
+            [#case "V2"]
+                [#local result += [ target ] ]
+            [#break]
+        [/#switch]
     [/#list]
     [#return result]
 [/#function]

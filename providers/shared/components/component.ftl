@@ -368,6 +368,13 @@
 
 [#assign wafChildConfiguration = [
         {
+            "Names" : "Version",
+            "Description" : "Version of WAF to use",
+            "Types"  : STRING_TYPE,
+            "Values" : [ "V1","V2"],
+            "Default" : "V1"
+        },
+        {
             "Names" : "IPAddressGroups",
             "Types" : ARRAY_OF_STRING_TYPE,
             "Default" : []
