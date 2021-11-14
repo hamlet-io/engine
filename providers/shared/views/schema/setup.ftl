@@ -58,64 +58,46 @@
                 SHARED_PROVIDER
                 getLoaderProviders()
             /]
-            [#local configuration = componentConfiguration[schema] ]
 
             [#local schemaComponentAttributes = []]
 
             [#-- Construct Component Attributes --]
-            [#list configuration.ResourceGroups as id, resourceGroup ]
-                [#list (resourceGroup.Attributes)!{} as provider, attributes ]
-                    [#if attributes?has_content ]
-                        [#local schemaComponentAttributes = combineEntities(
-                            schemaComponentAttributes,
-                            attributes,
-                            ADD_COMBINE_BEHAVIOUR
-                        )]
-                    [/#if]
-                [/#list]
-            [/#list]
+            [#list getComponentResourceGroups(schema) as id, resourceGroup ]
 
-            [#-- Extend the attributes based on loaded providers --]
-            [#list configuration.ResourceGroups as id, resourceGroup ]
-                [#list (resourceGroup.Extensions)!{} as provider, extensions ]
-                    [#if extensions?has_content ]
-                        [#local schemaComponentAttributes =
-                                        extendAttributes(
-                                            schemaComponentAttributes,
-                                            extensions,
-                                            provider
-                                        )]
-                    [/#if]
+                [#list getLoaderProviders() as provider ]
+
+                    [#local schemaComponentAttributes = combineEntities(
+                            schemaComponentAttributes,
+                            getComponentResourceGroupAttributes(resourceGroup, provider),
+                            ADD_COMBINE_BEHAVIOUR)]
                 [/#list]
             [/#list]
 
             [#-- Construct SubComponent References as Attributes--]
-            [#if (configuration.Components![])?has_content]
-                [#list configuration.Components as subComponent]
-                    [#assign schemaComponentAttributes = combineEntities(
-                        schemaComponentAttributes,
-                        [{
-                            "Names" : subComponent.Component,
-                            "Component" : subComponent.Type
-                        }],
-                        ADD_COMBINE_BEHAVIOUR)]
+            [#list (getComponentChildren(schema))![] as subComponent]
+                [#local schemaComponentAttributes = combineEntities(
+                    schemaComponentAttributes,
+                    [{
+                        "Names" : subComponent.Component,
+                        "Component" : subComponent.Type
+                    }],
+                    ADD_COMBINE_BEHAVIOUR)]
 
-                [/#list]
-            [/#if]
+            [/#list]
 
             [@addSchema
                 section="component"
                 schema=schema
                 configuration=
-                formatJsonSchemaFromComposite(
-                    {
-                        "Names" : schema,
-                        "Type" : OBJECT_TYPE,
-                        "SubObjects" : true,
-                        "Children" : schemaComponentAttributes
-                    },
-                    attributeSetConfiguration?keys
-                )
+                    formatJsonSchemaFromComposite(
+                        {
+                            "Names" : schema,
+                            "Type" : OBJECT_TYPE,
+                            "SubObjects" : true,
+                            "Children" : schemaComponentAttributes
+                        },
+                        attributeSetConfiguration?keys
+                    )
             /]
 
             [#break]
