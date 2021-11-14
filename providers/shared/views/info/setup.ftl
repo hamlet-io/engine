@@ -130,4 +130,36 @@
         [/#list]
     [/#list]
 
+    [#-- Components --]
+    [#list getAllComponentConfiguration() as type,componentConfig ]
+
+        [#local componentConfigDescription = asFlattenedArray(
+                componentConfig.Properties?filter( prop -> prop.Type == "Description")?map( prop -> prop.Value )
+            )?join(' ') ]
+
+        [#local componentAttributes = []]
+
+        [#list getComponentResourceGroups(type) as id, resourceGroup ]
+
+            [#list combineEntities([ SHARED_PROVIDER ], getLoaderProviders(), UNIQUE_COMBINE_BEHAVIOUR) as provider ]
+
+                [#local componentAttributes = combineEntities(
+                        componentAttributes,
+                        getComponentResourceGroupAttributes(resourceGroup, provider),
+                        MERGE_COMBINE_BEHAVIOUR)]
+            [/#list]
+        [/#list]
+
+        [#local componentTypeDetails = {
+            "Type" : type,
+            "Description" : componentConfigDescription,
+            "Attributes" : componentAttributes
+        }]
+
+        [@infoContent
+            type="componenttypes"
+            id=type
+            details=componentTypeDetails
+        /]
+    [/#list]
 [/#macro]

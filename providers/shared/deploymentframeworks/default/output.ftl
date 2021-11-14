@@ -200,7 +200,8 @@
             "ReferenceTypes" : getOutputContent("referencetypes")?values,
             "ReferenceData" : asFlattenedArray(getOutputContent("referencedata")?values),
             "LayerTypes" : getOutputContent("layertypes")?values,
-            "LayerData" : getOutputContent("layerdata")?values
+            "LayerData" : getOutputContent("layerdata")?values,
+            "ComponentTypes" : getOutputContent("componenttypes")?values
         }
     ]
 [/#function]
