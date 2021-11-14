@@ -553,22 +553,7 @@ already prefixed attribute.
         [#local placement = (occurrence.State.ResourceGroups[key].Placement)!{}]
         [#local provider = placement.Provider!"" ]
 
-        [#if (value.Extensions![])?has_content]
-            [#local extendedSharedAttributes =
-                extendAttributes(
-                    (value.Attributes[SHARED_ATTRIBUTES])![],
-                    (value.Extensions[provider])![],
-                    provider)]
-        [#else]
-            [#local extendedSharedAttributes = (value.Attributes[SHARED_ATTRIBUTES])![] ]
-        [/#if]
-
-        [#local attributes +=
-            extendedSharedAttributes +
-            ((value.Attributes[BASE_ATTRIBUTES])![]) +
-            ((value.Attributes[DEPLOYMENT_ATTRIBUTES])![]) +
-            ((value.Attributes[provider])![])
-        ]
+        [#local attributes += getComponentResourceGroupAttributes(value, provider)]
 
     [/#list]
     [#return attributes]
