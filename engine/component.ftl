@@ -366,6 +366,10 @@
     /]
 [/#macro]
 
+[#function getAllComponentConfiguration ]
+    [#return componentConfiguration ]
+[/#function]
+
 [#function getComponentDependencies type]
     [#return (componentConfiguration[type].Dependencies)![] ]
 [/#function]
@@ -420,6 +424,25 @@
     [#return result]
 [/#function]
 
+[#function getComponentResourceGroupAttributes componentResourceGroup provider]
+    [#if (componentResourceGroup.Extensions![])?has_content]
+
+        [#local extendedSharedAttributes =
+            extendAttributes(
+                (componentResourceGroup.Attributes[SHARED_ATTRIBUTES])![],
+                (componentResourceGroup.Extensions[provider])![],
+                provider)]
+    [#else]
+        [#local extendedSharedAttributes = (componentResourceGroup.Attributes[SHARED_ATTRIBUTES])![] ]
+    [/#if]
+
+    [#return
+        extendedSharedAttributes +
+        ((componentResourceGroup.Attributes[BASE_ATTRIBUTES])![]) +
+        ((componentResourceGroup.Attributes[DEPLOYMENT_ATTRIBUTES])![]) +
+        ((componentResourceGroup.Attributes[provider])![])
+    ]
+[/#function]
 
 [#function getResourceGroupPlacement key profile]
     [#return profile[key]!{} ]
