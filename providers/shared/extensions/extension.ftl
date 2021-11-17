@@ -324,6 +324,47 @@
 
 [/#macro]
 
+
+[#macro SecretEnvironment envName secretLinkId secretJsonKey="" version="" ]
+
+    [#local secretRef = ""]
+
+    [#local secret = (_context.Secrets[secretLinkId])!{}]
+    [#if secret?has_content ]
+
+        [#switch secret.Provider]
+            [#case "aws:secretsmanager"]
+                [#local secretRef = {
+                    "Fn::Join" : [
+                        ":",
+                        [
+                            getArn(secret.Ref),
+                            secretJsonKey,
+                            version,
+                            ""
+                        ]
+                    ]
+                }]
+                [#break]
+        [/#switch]
+
+        [#assign _context = mergeObjects(
+            _context,
+            {
+                "SecretEnv" : {
+                    envName : {
+                        "EnvName" : envName,
+                        "SecretRef" : secretRef
+                    }
+                }
+            }
+        )]
+
+    [/#if]
+[/#macro]
+
+[#-- IAM Specific configuration --]
+
 [#macro Policy statements...]
     [#assign _context +=
         {
