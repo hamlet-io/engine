@@ -580,6 +580,19 @@
 
                     ]
                     [#break]
+                [#case SECRETSTORE_SECRET_COMPONENT_TYPE ]
+                    [#local _context = mergeObjects(
+                        _context,
+                        {
+                            "Secrets" : {
+                                linkId : {
+                                    "Provider" : linkTargetAttributes["ENGINE"],
+                                    "Ref" : linkTargetResources["secret"].Id,
+                                    "EncryptionKeyId" : linkTargetResources["secret"].cmkKeyId
+                                }
+                            }
+                        })]
+                    [#break]
             [/#switch]
         [/#list]
 
