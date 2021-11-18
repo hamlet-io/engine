@@ -18,6 +18,13 @@
         },
         {
             "Names" : "Cpu",
+            "Description" : "The CPU share to assign to the container",
+            "Types" : NUMBER_TYPE,
+            "Default" : ""
+        },
+        {
+            "Names" : "Gpu",
+            "Description" : "The number of physical GPUs to assign to the container",
             "Types" : NUMBER_TYPE,
             "Default" : ""
         },

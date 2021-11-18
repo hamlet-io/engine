@@ -491,6 +491,7 @@
             attributeIfContent("LogGroup", containerLogGroup) +
             attributeIfContent("ImageVersion", container.Version) +
             attributeIfContent("Cpu", container.Cpu) +
+            attributeIfContent("Gpu", container.Gpu) +
             attributeIfTrue(
                 "MaximumMemory",
                 container.MaximumMemory?has_content &&
