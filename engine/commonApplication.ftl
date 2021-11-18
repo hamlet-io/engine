@@ -593,6 +593,23 @@
                             }
                         })]
                     [#break]
+
+                [#case DB_COMPONENT_TYPE]
+                    [#if ((linkTargetAttributes["SECRET_ARN"])!"")?has_content ]
+                        [#local _context = mergeObjects(
+                            _context,
+                            {
+                                "Secrets" : {
+                                    linkId : {
+                                        "Provider" : linkTargetResources["rootCredentials"]["secret"].Provider,
+                                        "Ref" : linkTargetResources["rootCredentials"]["secret"].Id,
+                                        "EncryptionKeyId" : linkTargetResources["rootCredentials"]["secret"].cmkKeyId
+                                    }
+                                }
+                            }
+                        )]
+                    [/#if]
+                    [#break]
             [/#switch]
         [/#list]
 
