@@ -50,7 +50,15 @@
                 "Default" : false
             },
             {
-                "Names" : "GenerateCredentials",
+                "Names" : "rootCredential:Source",
+                "Description" : "The source of the root credentials used in the database",
+                "Types" : STRING_TYPE,
+                "Values" : [ "Generated", "SecretStore", "Settings" ],
+                "Default" : "Settings"
+            },
+            {
+                "Names" : [ "rootCredential:Generated", "GenerateCredentials" ],
+                "Description" : "Generate credentials and store them as an encrypted string",
                 "Children" : [
                     {
                         "Names" : "Enabled",
@@ -58,7 +66,7 @@
                         "Default" : false
                     },
                     {
-                        "Names" : "MasterUserName",
+                        "Names" : [ "Username", "MasterUserName" ],
                         "Types" : STRING_TYPE,
                         "Default" : "root"
                     },
@@ -72,6 +80,57 @@
                         "Types" : STRING_TYPE,
                         "Description" : "A prefix appended to link attributes to show encryption status",
                         "Default" : ""
+                    }
+                ]
+            },
+            {
+                "Names" : "rootCredential:SecretStore",
+                "Description" : "Use a secret store to manage the root credentials",
+                "Children" : [
+                    {
+                        "Names" : "Username",
+                        "Types" : STRING_TYPE,
+                        "Default" : "root"
+                    },
+                    {
+                        "Names" : "UsernameAttribute",
+                        "Description" : "The attribute of the username to store in the secret",
+                        "Types" : STRING_TYPE,
+                        "Default" : "username"
+                    },
+                    {
+                        "Names" : "PasswordAttribute",
+                        "Description" : "The attribute of the password to store in the secret",
+                        "Types" : STRING_TYPE,
+                        "Default" : "password"
+                    },
+                    {
+                        "Names" : "GenerationRequirements",
+                        "Description" : "When creating the secret using secretstore the policy for generating the secret",
+                        "AttributeSet" : SECRETSTRING_ATTRIBUTESET_TYPE
+                    }
+                    {
+                        "Names" : "Link",
+                        "Description" : "A link to a secret or store that will keep the secret",
+                        "AttributeSet" : LINK_ATTRIBUTESET_TYPE
+                    }
+                ]
+            },
+            {
+                "Names" : "rootCredential:Settings",
+                "Description" : "Store the credentials as settings of the database occurrence",
+                "Children" : [
+                    {
+                        "Names" : "UsernameAttribute",
+                        "Description" : "The setting attribute that contains the username",
+                        "Types" : STRING_TYPE,
+                        "Default" : "MASTER_USERNAME"
+                    },
+                    {
+                        "Names" : "PasswordAttribute",
+                        "Description" : "The setting attribute that contains the password",
+                        "Types" : STRING_TYPE,
+                        "Default" : "MASTER_PASSWORD"
                     }
                 ]
             },
