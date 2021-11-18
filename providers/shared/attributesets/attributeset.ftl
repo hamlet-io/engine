@@ -18,6 +18,8 @@
 
 [#assign OSPATCHING_ATTRIBUTESET_TYPE = "ospatching"]
 
+[#assign SECRETSTRING_ATTRIBUTESET_TYPE = "secretstring" ]
+
 [#assign PLUGIN_ATTRIBUTESET_TYPE = "plugin"]
 
 [#assign VOLUME_ATTRIBUTESET_TYPE = "volume"]
