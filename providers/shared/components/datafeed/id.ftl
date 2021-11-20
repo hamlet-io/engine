@@ -60,7 +60,7 @@
                                 "Names" : "Order",
                                 "Description" : "The order of the included prefixes",
                                 "Types" : ARRAY_OF_STRING_TYPE,
-                                "Default" : [ "AccountId", "ComponentPath" ]
+                                "Default" : [ "AccountId", "ComponentPath", "TimePath" ]
                             }
                             {
                                 "Names" : "AccountId",
@@ -71,6 +71,12 @@
                             {
                                 "Names" : "ComponentPath",
                                 "Description" : "The full component path defaults",
+                                "Types": BOOLEAN_TYPE,
+                                "Default" : false
+                            },
+                            {
+                                "Names" : "TimePath",
+                                "Description" : "The time path defaults",
                                 "Types": BOOLEAN_TYPE,
                                 "Default" : false
                             }
