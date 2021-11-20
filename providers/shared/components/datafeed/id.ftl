@@ -60,7 +60,7 @@
                                 "Names" : "Order",
                                 "Description" : "The order of the included prefixes",
                                 "Types" : ARRAY_OF_STRING_TYPE,
-                                "Default" : [ "AccountId", "ComponentPath", "TimePath" ]
+                                "Default" : [ "AccountId", "ComponentPath", "TimePath", "ErrorType" ]
                             }
                             {
                                 "Names" : "AccountId",
@@ -77,6 +77,12 @@
                             {
                                 "Names" : "TimePath",
                                 "Description" : "The time path defaults",
+                                "Types": BOOLEAN_TYPE,
+                                "Default" : false
+                            },
+                            {
+                                "Names" : "ErrorType",
+                                "Description" : "The type of error",
                                 "Types": BOOLEAN_TYPE,
                                 "Default" : false
                             }
