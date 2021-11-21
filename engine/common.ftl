@@ -1073,15 +1073,17 @@
 [#function pseudoStackOutputScript description outputs filesuffix="" ]
     [#local outputString = ""]
 
+    [#local baseOutputs = {} ]
     [#list getCFTemplateCoreOutputs(getRegion(), accountObject.ProviderId) as  key,value ]
         [#if value?is_hash ]
-            [#local outputs += { key, value.Value } ]
+            [#local baseOutputs += { key, value.Value } ]
         [#else ]
-            [#local outputs += { key, value } ]
+            [#local baseOutputs += { key, value } ]
         [/#if]
     [/#list]
 
-    [#list outputs as key,value ]
+    [#-- Permit the base outputs to be overridden - mainly for the deployment unit --]
+    [#list baseOutputs + outputs as key,value ]
         [#local outputString +=
           "\"" + key + "\" \"" + value + "\" "
         ]
