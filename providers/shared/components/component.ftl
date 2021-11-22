@@ -371,8 +371,8 @@
             "Names" : "Version",
             "Description" : "Version of WAF to use",
             "Types"  : STRING_TYPE,
-            "Values" : [ "V1","V2"],
-            "Default" : "V2"
+            "Values" : [ "v1","v2"],
+            "Default" : "v2"
         },
         {
             "Names" : "IPAddressGroups",
