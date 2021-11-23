@@ -372,7 +372,7 @@
             "Description" : "Version of WAF to use",
             "Types"  : STRING_TYPE,
             "Values" : [ "v1","v2"],
-            "Default" : "v2"
+            "Default" : "v1"
         },
         {
             "Names" : "IPAddressGroups",
