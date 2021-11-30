@@ -58,6 +58,7 @@
                         "Names" : "AttributeType",
                         "Description" : "The output type to map the attribute with ",
                         "Values" : [
+                            REFERENCE_ATTRIBUTE_TYPE,
                             DNS_ATTRIBUTE_TYPE,
                             ARN_ATTRIBUTE_TYPE,
                             URL_ATTRIBUTE_TYPE,
@@ -122,4 +123,3 @@
     type=TEMPLATE_COMPONENT_TYPE
     defaultGroup="application"
 /]
-
