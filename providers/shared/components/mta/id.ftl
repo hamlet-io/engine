@@ -19,7 +19,7 @@
                 "Mandatory" : true
             },
             {
-                "Names" : [ "Certificate", "Hostname" ],
+                "Names" : [ "Hostname", "Certificate" ],
                 "Description" : "Configure the domain(s) associated with this MTA",
                 "Children" : certificateChildConfiguration
             },
@@ -27,7 +27,7 @@
                 "Names" : "IPAddressGroups",
                 "Description" : "Allowed IP addresses. If any group is provided, all unmatching traffic will be blocked",
                 "Types" : ARRAY_OF_STRING_TYPE,
-                "Default" : []
+                "Default" : [ "_global" ]
             }
         ]
 /]
@@ -69,33 +69,43 @@
                 "Children" : [
                     {
                         "Names" : "Recipients",
-                        "Description" : "Expected To addresses",
+                        "Description" : "The recipient of the email to match on",
                         "Types" : ARRAY_OF_STRING_TYPE,
                         "Default" : []
                     },
                     {
-                        "Names" : "EventTypes",
-                        "Description" : "Expected events to action (send only)",
+                        "Names" : "Senders",
+                        "Description" : "The sneders of the email to match on",
                         "Types" : ARRAY_OF_STRING_TYPE,
-                        "Default" : [],
-                        "Values" : [ 
-                            "click", 
-                            "bounce", 
-                            "send", 
-                            "open", 
-                            "complaint", 
-                            "delivery", 
-                            "renderingFailure", 
-                            "reject" 
-                        ]
+                        "Default" : []
                     }
                 ]
             },
             {
                 "Names" : "Action",
                 "Types" : STRING_TYPE,
-                "Values" : ["forward", "drop"],
+                "Values" : ["forward", "drop", "log"],
                 "Mandatory" : true
+            },
+            {
+                "Names" : "EventTypes",
+                "Description" : "Expected events to log  (send only)",
+                "Types" : ARRAY_OF_STRING_TYPE,
+                "Default" : [
+                    "reject",
+                    "bounce",
+                    "complaint"
+                ],
+                "Values" : [
+                    "click",
+                    "bounce",
+                    "send",
+                    "open",
+                    "complaint",
+                    "delivery",
+                    "renderingFailure",
+                    "reject"
+                ]
             },
             {
                 "Names" : "Links",
