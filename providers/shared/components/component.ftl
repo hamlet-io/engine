@@ -630,6 +630,11 @@
 
 [#assign s3NotificationChildConfiguration = [
     {
+        "Names" : "Enabled",
+        "Types" : BOOLEAN_TYPE,
+        "Default" : true
+    },
+    {
         "Names" : "Links",
         "SubObjects": true,
         "AttributeSet" : LINK_ATTRIBUTESET_TYPE
