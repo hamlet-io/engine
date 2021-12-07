@@ -75,7 +75,7 @@
                     },
                     {
                         "Names" : "Senders",
-                        "Description" : "The sneders of the email to match on",
+                        "Description" : "The senders of the email to match on",
                         "Types" : ARRAY_OF_STRING_TYPE,
                         "Default" : []
                     }
