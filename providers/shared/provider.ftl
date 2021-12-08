@@ -32,7 +32,7 @@
 
         [#if deploymentGroupDetails?has_content ]
 
-            [#local stageId = deploymentGroupDetails.Id ]
+            [#local stageId = "${deploymentGroupDetails.Id}_${deploymentModeDetails.Id}" ]
             [#local stagePriority = 0 ]
             [#local stageEnabled = false ]
 
@@ -54,6 +54,13 @@
                                                     (deploymentModeDetails.Priority.Order == "LowestFirst"),
                                                     1000 - deploymentGroupDetails.Priority
                                                 )]
+                    [/#if]
+                    [#break]
+
+                [#case "orphaned"]
+                    [#if deploymentGroupDetails.Name?matches( deploymentModeDetails.Priority.GroupFilter ) ]
+                        [#local stageEnabled = true]
+                        [#local stagePriority = deploymentGroupDetails.Priority * 0.1 ]
                     [/#if]
                     [#break]
 

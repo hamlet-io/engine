@@ -39,7 +39,7 @@
                         deploymentGroup=deploymentGroup
                         deploymentUnit=deploymentUnit
                         currentState="orphaned"
-                        priority=999
+                        priority=0
                         deploymentMode="_orphan"
                     /]
 
@@ -62,7 +62,7 @@
                 [#if ! deployState?has_content ]
                     [@createManagementContractStage
                         deploymentUnit=deploymentUnit
-                        deploymentPriority=999
+                        deploymentPriority=0
                         deploymentGroup=deploymentGroup
                         deploymentProvider=(getLoaderProviders()[0])!SHARED_PROVIDER
                         currentState="orphaned"
