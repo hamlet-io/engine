@@ -1974,7 +1974,7 @@
   "DeploymentModes": {
     "_orphan" : {
       "Operations": [ "delete" ],
-      "Membership": "priority",
+      "Membership": "orphaned",
       "Priority": {
         "GroupFilter": ".*",
         "Order": "HighestFirst"

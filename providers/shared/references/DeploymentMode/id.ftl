@@ -33,7 +33,7 @@
             "Names" : "Membership",
             "Description" : "How deployment groups are included in the mode and their ordering",
             "Types" : STRING_TYPE,
-            "Values" : [ "explicit", "priority" ],
+            "Values" : [ "explicit", "priority", "orphaned" ],
             "Mandatory" : true
         },
         {
