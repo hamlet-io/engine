@@ -4,86 +4,6 @@
 -- Public functions for layer processing --
 -------------------------------------------]
 
-[#-- Layer Data is extended dynamically by each layer type --]
-[#assign layerConfiguration = {} ]
-
-[#-- Macro to assemble the layer configuration --]
-[#-- The reference type is an object where each child attribute  --]
-[#-- contains common or reference attribute values for the layer --]
-[#macro addLayer type referenceLookupType properties attributes inputFilterAttributes=[] ]
-    [#local configuration =
-        {
-            "Type" : type,
-            "ReferenceLookupType" : referenceLookupType,
-            "Properties" : asArray(properties),
-            "Attributes" : asArray( [ "InhibitEnabled" ] + attributes),
-            "InputFilterAttributes" : asArray(inputFilterAttributes)
-        }
-    ]
-
-    [#assign layerConfiguration =
-        mergeObjects(
-            layerConfiguration,
-            {
-                type : configuration
-            }
-        )
-    ]
-
-    [#-- Register input filter attributes for layer        --]
-    [#-- For now only one attribute per layer is supported --]
-    [#-- pending identification of a use case              --]
-    [#if configuration.InputFilterAttributes?size != 1]
-        [@fatal
-            message="A layer must be configured with one input filter attribute"
-            detail=configuration
-        /]
-    [#else]
-        [#local inputFilterAttribute = configuration.InputFilterAttributes[0] ]
-        [#if inputFilterAttribute.Id??]
-            [@registerLayerInputFilterAttribute
-                id=inputFilterAttribute.Id
-                description=inputFilterAttribute.Description
-            /]
-        [#else]
-            [@fatal
-                message="Layer input filter attribute must have an Id"
-                context=configuration
-            /]
-        [/#if]
-     [/#if]
-[/#macro]
-
-[#-- Check if layer is configured/known --]
-[#function isLayerConfigured type ]
-    [#return layerConfiguration[type]?? ]
-[/#function]
-
-[#-- Fetch configuration of a layer             --]
-[#-- Assumes layer is expected to be configured --]
-[#function getLayerConfiguration type ]
-    [#local layerConfig = layerConfiguration[type]]
-    [#if layerConfig?has_content ]
-        [#return layerConfig ]
-    [#else]
-        [@fatal
-            message="Could not find layer configuration"
-            detail=type
-        /]
-        [#return {} ]
-    [/#if]
-[/#function]
-
-[#function getAllLayerConfiguration ]
-    [#return layerConfiguration ]
-[/#function]
-
-[#-- Return the layer input filter attributes --]
-[#function getLayerInputFilterAttributes type ]
-    [#local attributeValue = (getLayerConfiguration(type).InputFilterAttributes[0].Id)!"" ]
-    [#return arrayIfContent(attributeValue, attributeValue) ]
-[/#function]
-
 [#-- Check if layer is active based on its presence in the current input state --]
 [#function isLayerActive type]
     [#return getActiveLayers()[type]?? ]
@@ -130,11 +50,11 @@
 [#function friendGetActiveLayersState filter blueprint]
     [#local result = {} ]
 
-    [#list layerConfiguration as id, configuration ]
+    [#list getLayerConfiguration() as id, configuration ]
         [#if internalIsActiveLayer(configuration, filter) ]
             [#local result +=
                 {
-                    configuration.Type :
+                    configuration.Configuration.Type :
                         internalGetLayerState(
                             configuration,
                             filter,
@@ -153,7 +73,7 @@
 [#function friendGetActiveLayersFilter filter blueprint]
     [#local result = {} ]
 
-    [#list layerConfiguration as id, configuration ]
+    [#list getLayerConfiguration() as id, configuration ]
         [#if internalIsActiveLayer(configuration, filter) ]
             [#local result +=
                 internalGetFilterAttributeForLayer(
@@ -211,7 +131,7 @@
     [#-- TODO(mfl): Remove once solution is no longer a layer      --]
     [#return true]
 
-    [#if getFilterAttribute(filter, configuration.InputFilterAttributes[0].Id)?has_content]
+    [#if getFilterAttribute(filter, configuration.Configuration.InputFilterAttributes[0].Id)?has_content]
         [#-- Assume only one attribute per filter --]
         [#return true]
     [/#if]
@@ -231,7 +151,7 @@
     ]
     [#return
         attributeIfContent(
-            configuration.InputFilterAttributes[0].Id,
+            configuration.Configuration.InputFilterAttributes[0].Id,
             values
         )
     ]
@@ -273,7 +193,7 @@
 [#-- Get layer data from the input filter --]
 [#function internalGetLayerFilterData configuration filter ]
     [#-- If more than one value, then filter already has id and name --]
-    [#local filterAttributeValues = getFilterAttribute(filter, configuration.InputFilterAttributes[0].Id) ]
+    [#local filterAttributeValues = getFilterAttribute(filter, configuration.Configuration.InputFilterAttributes[0].Id) ]
     [#if filterAttributeValues?size == 1]
         [#return
             {
@@ -286,12 +206,12 @@
 
 [#-- Get layer data from the reference data --]
 [#function internalGetLayerReferenceData configuration blueprint id ]
-    [#return (blueprint[configuration.ReferenceLookupType][id])!{} ]
+    [#return (blueprint[configuration.Configuration.ReferenceLookupType][id])!{} ]
 [/#function]
 
 [#-- Get layer data from the type based layer object --]
 [#function internalGetLayerData configuration blueprint ]
-    [#return (blueprint[configuration.Type])!{} ]
+    [#return (blueprint[configuration.Configuration.Type])!{} ]
 [/#function]
 
 [#-- Searches provided layer data for a given attribute - attribute provided as array of keys --]

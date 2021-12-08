@@ -11,26 +11,42 @@
 [#-- Extension Scopes --]
 [#-- Compute tasks work through the extensions mechanism --]
 [#assign COMPUTETASK_EXTENSION_SCOPE = "computetask"]
+[#assign COMPUTETASK_CONFIGURATION_SCOPE = "ComputeTask" ]
 
-[#assign computeTaskConfiguration = {}]
+[@addConfigurationScope
+    id=COMPUTETASK_CONFIGURATION_SCOPE
+    description="Tasks definiitions to perform configuration of compute instances"
+/]
 
 [#-- Macros to assemble the component configuration --]
 [#macro addComputeTask type properties  ]
-    [@internalMergeComputeTaskConfiguration
-        type=type
-        configuration=
-            {
-                "Properties" : asArray(properties)
-            }
+    [@addConfigurationSet
+        scopeId=COMPUTETASK_CONFIGURATION_SCOPE
+        id=type
+        attributes=[]
+        properties=properties
     /]
 [/#macro]
 
 [#function getComputeTaskTypes ]
-    [#return computeTaskConfiguration?keys]
+    [#return getConfigurationSetIds(COMPUTETASK_CONFIGURATION_SCOPE) ]
 [/#function]
 
 [#function getComputeTasks ]
-    [#return computeTaskConfiguration]
+    [#local result = {}]
+
+    [#list getConfigurationSets(COMPUTETASK_CONFIGURATION_SCOPE) as configurationSet]
+        [#local result = mergeObjects(
+            result, {
+                configurationSet.Id : {
+                    "Properties" : configurationSet.Properties,
+                    "Attributes" : configurationSet.Attributes
+                }
+            }
+        )]
+    [/#list]
+
+    [#return result]
 [/#function]
 
 [#function getOccurrenceComputeTaskConfig occurrence computeResourceId context compteTaskExtensions componentComputeTasks userComputeTasks ]
@@ -80,18 +96,4 @@
             }
         /]
     [/#if]
-[/#macro]
-[#-------------------------------------------------------
--- Internal support functions for task processing      --
----------------------------------------------------------]
-
-[#-- Helper macro - not for general use --]
-[#macro internalMergeComputeTaskConfiguration type configuration]
-    [#assign computeTaskConfiguration =
-        mergeObjects(
-            computeTaskConfiguration,
-            {
-                type : configuration
-            }
-        )]
 [/#macro]

@@ -1600,7 +1600,7 @@ are added.
             [#if attribute?is_hash ]
                 [#if attribute.AttributeSet?has_content && !(attribute.Children?has_content)]
                     [#-- AttributeSet provides the child attributes --]
-                    [#local children = (attributeSetConfiguration[attribute.AttributeSet].Attributes)![] ]
+                    [#local children = (getAttributeSet(attribute.AttributeSet).Attributes)![] ]
 
                     [#if !children?has_content ]
                         [@fatal
