@@ -59,8 +59,8 @@
         [#local referenceConfigDescription = referenceConfig.Properties?filter( prop -> prop.Type == "Description")?map( prop -> prop.Value )?join(' ') ]
 
         [#local referenceTypeDetails = {
-            "Type" : referenceConfig.Type.Singular,
-            "PluralType" : referenceConfig.Type.Plural,
+            "Type" : type,
+            "PluralType" : getReferenceBlueprintKey(type),
             "Description" : referenceConfigDescription,
             "Attributes" : referenceConfig.Attributes
         }]
@@ -98,12 +98,12 @@
     [/#list]
 
     [#-- Layers --]
-    [#list getAllLayerConfiguration() as type,layerConfig ]
+    [#list getLayerConfiguration() as type,layerConfig ]
         [#local layerConfigDescription = layerConfig.Properties?filter( prop -> prop.Type == "Description")?map( prop -> prop.Value )?join(' ') ]
 
         [#local layerTypeDetails = {
-            "Type" : layerConfig.Type,
-            "ReferenceLookupType" : (layerConfig.ReferenceLookupType)!"",
+            "Type" : type,
+            "ReferenceLookupType" : (layerConfig.Configuration.ReferenceLookupType)!"",
             "Description" : layerConfigDescription,
             "Attributes" : layerConfig.Attributes
         }]
@@ -114,11 +114,13 @@
             details=layerTypeDetails
         /]
 
-        [#list (getBlueprint()[layerConfig.ReferenceLookupType])!{} as layerId,layerData ]
+        [#list (getBlueprint()[layerConfig.Configuration.ReferenceLookupType])!{} as layerId,layerData ]
 
             [#local layerDataDetails = {
                 "Type" : type,
                 "Id" : layerId,
+                "Name" : (layerData.Name)!layerId,
+                "Active" : false,
                 "Properties" : layerData
             }]
 
@@ -128,6 +130,24 @@
                 details=layerDataDetails
             /]
         [/#list]
+    [/#list]
+
+    [#list getActiveLayers() as type,layerData ]
+
+        [#local layerDataDetails = {
+            "Type" : type,
+            "Id" : layerData.Id,
+            "Name" : (layerData.Name)!layerData.Id,
+            "Active" : true,
+            "Properties" : layerData
+        }]
+
+        [@infoContent
+            type="layerdata"
+            id=layerData.Id
+            details=layerDataDetails
+        /]
+
     [/#list]
 
     [#-- Components --]
