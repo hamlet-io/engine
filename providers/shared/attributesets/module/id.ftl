@@ -2,7 +2,6 @@
 
 [@addAttributeSet
     type=MODULE_ATTRIBUTESET_TYPE
-    pluralType="Modules"
     properties=[
         {
                 "Type"  : "Description",

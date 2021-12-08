@@ -3,7 +3,6 @@
 [@addExtendedAttributeSet
     type=ECS_COMPUTEIMAGE_ATTRIBUTESET_TYPE
     baseType=COMPUTEIMAGE_ATTRIBUTESET_TYPE
-    pluralType="ECSComputeImages"
     provider=SHARED_PROVIDER
     properties=[
         {

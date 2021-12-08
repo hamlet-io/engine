@@ -2,7 +2,6 @@
 
 [@addAttributeSet
     type=OSPATCHING_ATTRIBUTESET_TYPE
-    pluralType="OSPatches"
     properties=[
         {
                 "Type"  : "Description",

@@ -2,7 +2,6 @@
 
 [@addAttributeSet
     type=COMPUTEIMAGE_ATTRIBUTESET_TYPE
-    pluralType="ComputeImages"
     properties=[
         {
                 "Type"  : "Description",

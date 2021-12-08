@@ -2,7 +2,6 @@
 
 [@addAttributeSet
     type=CONTTAINERTASK_ATTRIBUTESET_TYPE
-    pluralType="ContainerTasks"
     properties=[
         {
                 "Type"  : "Description",
