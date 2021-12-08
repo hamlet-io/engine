@@ -6,7 +6,7 @@
 
 [#macro shared_view_default_schemaset_schemacontract ]
 
-    [#local sections = [ 
+    [#local sections = [
         "layer",
         "component",
         "reference",
@@ -26,7 +26,7 @@
 
         [#switch section]
             [#case "layer" ]
-                [#local schemas = layerConfiguration?keys ]
+                [#local schemas = getLayerConfiguration()?keys ]
                 [#break]
             [#case "component" ]
                 [@includeAllComponentDefinitionConfiguration
@@ -36,13 +36,13 @@
                 [#local schemas = componentConfiguration?keys ]
                 [#break]
             [#case "reference" ]
-                [#local schemas = referenceConfiguration?keys ]
+                [#local schemas = getReferenceConfiguration()?keys ]
                 [#break]
             [#case "attributeset" ]
-                [#local schemas = attributeSetConfiguration?keys ]
+                [#local schemas = getAttributeSetIds() ]
                 [#break]
             [#case "module" ]
-                [#local schemas = moduleConfiguration?keys ]
+                [#local schemas = getModuleConfiguration?keys ]
                 [#break]
         [/#switch]
 

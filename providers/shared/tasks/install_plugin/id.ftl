@@ -8,5 +8,5 @@
                 "Value" : "Install a hamlet plugin from the source provided"
             }
         ]
-    attributes=getAttributeSet(PLUGIN_ATTRIBUTESET_TYPE).Attributes
+    attributes=(getAttributeSet(PLUGIN_ATTRIBUTESET_TYPE).Attributes)![]
 /]
