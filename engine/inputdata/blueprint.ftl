@@ -26,10 +26,10 @@
 
     [#-- Layers --]
     [#local layerChildren = []]
-    [#list layerConfiguration as layer,layerConfig]
+    [#list getLayerConfiguration() as layer,layerConfig]
         [#local layerChildren += [
             {
-                "Names" : layerConfig.ReferenceLookupType,
+                "Names" : layerConfig.Configuration.ReferenceLookupType,
                 "SubObjects" : true,
                 "Children" : layerConfig.Attributes
             },
@@ -88,12 +88,12 @@
 
     [#-- Reference Data --]
     [#local referenceChildren = []]
-    [#list referenceConfiguration as type,referenceConfig]
+    [#list getReferenceConfiguration() as type,referenceConfig]
 
-        [#if referenceConfig.Type.Plural == "CertificateBehaviours"]
+        [#if getReferenceBlueprintKey(type) == "CertificateBehaviours"]
             [#local referenceChildren += [
                 {
-                    "Names" : referenceConfig.Type.Plural,
+                    "Names" : getReferenceBlueprintKey(type),
                     "SubObjects" : false,
                     "Children" : referenceConfig.Attributes
                 }
@@ -101,7 +101,7 @@
         [#else]
             [#local referenceChildren += [
                 {
-                    "Names" : referenceConfig.Type.Plural,
+                    "Names" : getReferenceBlueprintKey(type),
                     "SubObjects" : true,
                     "Children" : referenceConfig.Attributes
                 }

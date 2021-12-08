@@ -3,6 +3,7 @@
 [#-- Core helper routines --]
 [#include "base.ftl" ]
 [#include "common.ftl"]
+[#include "configuration.ftl"]
 
 [#-- logging --]
 [#include "logging.ftl" ]
@@ -10,8 +11,16 @@
 [#-- flow --]
 [#include "flow.ftl" ]
 
-[#-- AttributeSets --]
-[#include "attributeset.ftl"]
+[#-- Dynamic Configuration entry points --]
+[#include "configuration/attributeset.ftl"]
+[#include "configuration/blueprint.ftl"]
+[#include "configuration/component.ftl" ]
+[#include "configuration/computetask.ftl" ]
+[#include "configuration/entrance.ftl" ]
+[#include "configuration/layer.ftl"]
+[#include "configuration/module.ftl" ]
+[#include "configuration/reference.ftl" ]
+[#include "configuration/task.ftl" ]
 
 [#-- Input data handling --]
 [#include "inputdata/inputsource.ftl" ]
@@ -22,29 +31,10 @@
 [#include "inputdata/setting.ftl" ]
 [#include "inputdata/seed.ftl" ]
 
-[#-- entrances --]
-[#include "entrance.ftl" ]
-
-[#-- Task loading --]
-[#include "task.ftl" ]
-
-[#-- Resource Labels --]
-[#include "resourceLabel.ftl" ]
-
-[#-- Module Loading --]
-[#include "module.ftl" ]
-
-[#-- Extension loading --]
+[#-- Plugin data loading --]
 [#include "extension.ftl" ]
-
-[#-- Component handling --]
-[#include "component.ftl" ]
-
-[#-- Compute tasks --]
-[#include "computetask.ftl" ]
-
-[#-- Service Handling --]
 [#include "services.ftl" ]
+[#include "resourceLabel.ftl" ]
 
 [#-- View handling --]
 [#include "view.ftl" ]
@@ -59,9 +49,6 @@
 
 [#-- openapi handling --]
 [#include "openapi.ftl"]
-
-[#-- Schema handling --]
-[#include "schema.ftl"]
 
 [#-- Provider handling --]
 [#include "provider.ftl" ]

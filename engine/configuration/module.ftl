@@ -1,45 +1,55 @@
 [#ftl]
 
 [#-- modules allow loading input data using the engine itself --]
-[#assign moduleConfiguration = {}]
+[#assign MODULE_CONFIGURATION_SCOPE = "Module" ]
 
-[#function getActiveModulesFromLayers layersState ]
-
-    [#local modules = [] ]
-
-    [#local possibleModules = asFlattenedArray(getActiveLayerAttributes( [ "Modules" ], ["*"], [], layersState )) ]
-
-    [#list possibleModules as moduleInstance ]
-        [#list moduleInstance?values as module ]
-            [#if (module.Enabled)!false]
-                [#local modules += [ module ] ]
-            [/#if]
-        [/#list]
-    [/#list]
-    [#return modules ]
-[/#function]
+[@addConfigurationScope
+    id=MODULE_CONFIGURATION_SCOPE
+    description="Modules extend input data using a code based approach"
+/]
 
 [#-- Adds module configuration definition which we use to validate modules loaded via blueprint --]
 [#macro addModule name description provider properties=[] ]
-    [@internalMergeModuleConfiguration
-        name=name
-        provider=provider
-        configuration=
+
+    [@addConfigurationSet
+        scopeId=MODULE_CONFIGURATION_SCOPE
+        id=name
+        properties=[
             {
-                "Description" : description,
-                "Properties" : asArray( [ "InhibitEnabled" ] + properties)
+                "Type" : "Description",
+                "Value" : description
             }
+        ]
+        configuration={
+            "Provider" : provider
+        }
+        attributes=properties?seq_contains("InhibitEnabled")?then(
+            properties,
+            combineEntities(asArray(properties), [ "InhibitEnabled"], APPEND_COMBINE_BEHAVIOUR)
+        )
     /]
 [/#macro]
 
+[#function getModuleConfiguration name="" ]
+    [#if name?has_content ]
+        [#return getConfigurationSet(MODULE_CONFIGURATION_SCOPE, name)]
+    [#else]
+        [#local result = {}]
+            [#list getConfigurationSets(MODULE_CONFIGURATION_SCOPE) as set]
+                [#local result = mergeObjects(result, { set.Id : { "Attributes" : set.Attributes, "Properties" : set.Properties, "Configuration" : set.Configuration }} )]
+            [/#list]
+        [#return result]
+    [/#if]
+[/#function]
+
 [#function getModuleDetails name provider parameters ]
-    [#local moduleConfig = (moduleConfiguration[name][provider])!{} ]
+    [#local moduleConfig = getModuleConfiguration(name) ]
 
     [#if ! moduleConfig?has_content ]
         [#return {}]
     [/#if]
 
-    [#local validatedParameters = getCompositeObject(moduleConfig.Properties, parameters)]
+    [#local validatedParameters = getCompositeObject(moduleConfig.Attributes, parameters)]
     [#return
         {
             "Name" : name,
@@ -47,6 +57,19 @@
             "Parameters" : validatedParameters
         }
     ]
+[/#function]
+
+[#function getActiveModulesFromLayers layersState ]
+
+    [#local modules = [] ]
+    [#list asFlattenedArray(getActiveLayerAttributes( [ "Modules" ], ["*"], [], layersState )) as moduleInstance ]
+        [#list moduleInstance?values as module ]
+            [#if (module.Enabled)!false]
+                [#local modules += [ module ] ]
+            [/#if]
+        [/#list]
+    [/#list]
+    [#return modules ]
 [/#function]
 
 [#-- Loads the module data into the input data      --]
@@ -118,17 +141,4 @@
             )
         )
     ]
-[/#macro]
-
-[#-- Helper macro - not for general use --]
-[#macro internalMergeModuleConfiguration name provider configuration]
-    [#assign moduleConfiguration =
-        mergeObjects(
-            moduleConfiguration,
-            {
-                name : {
-                    provider : configuration
-                }
-            }
-        ) ]
 [/#macro]

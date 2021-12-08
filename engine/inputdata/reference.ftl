@@ -5,38 +5,13 @@
 -----------------------------------------------]
 
 [#-- Reference Data is extended dynamically by each reference Data type --]
-[#assign referenceConfiguration = {} ]
 [#assign referenceData = {}]
-
-[#function getReferenceConfiguration type="" ]
-    [#if type?has_content]
-        [#return (referenceConfiguration[type])!{}]
-    [#else]
-        [#return referenceConfiguration]
-    [/#if]
-[/#function]
-
-[#-- Macros to assemble the component configuration --]
-[#macro addReference type pluralType properties attributes ]
-    [#local configuration = {
-        "Type" : {
-            "Singular"  : type,
-            "Plural"    : pluralType
-        },
-        "Properties" : asArray(properties),
-        "Attributes" : asArray(attributes)}]
-
-    [@internalMergeReferenceConfiguration
-        type=type
-        configuration=configuration
-    /]
-[/#macro]
 
 [#macro addReferenceData type base={} data={} ]
     [#if base?has_content]
         [@internalMergeReferenceData
             type=type
-            data=base[(referenceConfiguration[type].Type.Plural)!""]!{}
+            data=base[getReferenceBlueprintKey(type)]!{}
         /]
     [#else]
         [@internalMergeReferenceData
@@ -57,9 +32,8 @@
 [/#function]
 
 [#function getReferenceData type ignoreMissing=false]
-    [#local referenceConfig = referenceConfiguration[type]!{}]
-    [#if referenceConfig?has_content]
-        [#return (referenceData[(referenceConfig.Type.Plural)])!{} ]
+    [#if getReferenceConfiguration(type)?has_content]
+        [#return (referenceData[getReferenceBlueprintKey(type)])!{} ]
     [#else]
         [#if !ignoreMissing]
             [@fatal
@@ -72,31 +46,16 @@
 [/#function]
 
 [#macro includeReferences blueprint]
-    [#list referenceConfiguration as id, reference ]
-        [@addReferenceData type=reference.Type.Singular base=blueprint /]
+    [#list getReferenceConfiguration()?keys as id ]
+        [@addReferenceData type=id base=blueprint /]
     [/#list]
 [/#macro]
 
 [#-------------------------------------------------------
 -- Internal support functions for component processing --
 ---------------------------------------------------------]
-
-[#-- Helper macro - not for general use --]
-[#macro internalMergeReferenceConfiguration type configuration]
-    [#assign referenceConfiguration =
-        mergeObjects(
-            referenceConfiguration,
-            {
-                type : configuration
-            }
-        )]
-    [#if ! (referenceData?keys)?seq_contains(configuration.Type.Plural) ]
-        [#assign referenceData = mergeObjects( { configuration.Type.Plural : {} } ) ]
-    [/#if]
-[/#macro]
-
 [#macro internalMergeReferenceData type data={} ]
-    [#local referenceConfig = (referenceConfiguration[type])!{} ]
+    [#local referenceConfig = (getReferenceConfiguration(type))!{} ]
     [#if referenceConfig?has_content ]
         [#if data?has_content ]
             [#list data as id,content ]
@@ -106,7 +65,7 @@
                     mergeObjects(
                         referenceData,
                         {
-                            referenceConfig.Type.Plural: {
+                            getReferenceBlueprintKey(type): {
                                 id : compositeData
                             }
                         }
