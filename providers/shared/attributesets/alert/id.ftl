@@ -2,7 +2,6 @@
 
 [@addAttributeSet
     type=ALERT_ATTRIBUTESET_TYPE
-    pluralType="Alerts"
     properties=[
         {
                 "Type"  : "Description",

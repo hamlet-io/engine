@@ -2,7 +2,6 @@
 
 [@addAttributeSet
     type=SECRETSTRING_ATTRIBUTESET_TYPE
-    pluralType="SecretStrings"
     properties=[
         {
                 "Type"  : "Description",

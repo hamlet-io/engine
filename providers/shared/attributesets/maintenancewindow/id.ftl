@@ -2,7 +2,6 @@
 
 [@addAttributeSet
     type=MAINTENANCEWINDOW_ATTRIBUTESET_TYPE
-    pluralType="MaintenanceWindows"
     properties=[
         {
             "Type"  : "Description",

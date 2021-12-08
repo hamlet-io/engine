@@ -2,7 +2,6 @@
 
 [@addAttributeSet
     type=PLUGIN_ATTRIBUTESET_TYPE
-    pluralType="Plugins"
     properties=[
         {
                 "Type"  : "Description",

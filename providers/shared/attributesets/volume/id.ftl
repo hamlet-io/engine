@@ -2,7 +2,6 @@
 
 [@addAttributeSet
     type=VOLUME_ATTRIBUTESET_TYPE
-    pluralType="Volumes"
     properties=[
         {
                 "Type"  : "Description",

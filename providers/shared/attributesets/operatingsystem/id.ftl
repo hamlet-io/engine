@@ -2,7 +2,6 @@
 
 [@addAttributeSet
     type=OPERATINGSYSTEM_ATTRIBUTESET_TYPE
-    pluralType="OperatingSystems"
     properties=[
         {
                 "Type"  : "Description",

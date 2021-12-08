@@ -2,7 +2,6 @@
 
 [@addAttributeSet
     type=CONTEXTPATH_ATTRIBUTESET_TYPE
-    pluralType="ContextPaths"
     properties=[
         {
                 "Type"  : "Description",
