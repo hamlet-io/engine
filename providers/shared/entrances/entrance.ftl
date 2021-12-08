@@ -3,6 +3,7 @@
 [#-- Shared Entrances --]
 [#assign BLUEPRINT_ENTRANCE_TYPE         = "blueprint" ]
 [#assign BUILDBLUEPRINT_ENTRANCE_TYPE    = "buildblueprint" ]
+[#assign CONFIGURATION_ENTRANCE_TYPE     = "configuration" ]
 [#assign DEPLOYMENT_ENTRANCE_TYPE        = "deployment" ]
 [#assign DEPLOYMENTTEST_ENTRANCE_TYPE    = "deploymenttest" ]
 [#assign INFO_ENTRANCE_TYPE              = "info" ]
