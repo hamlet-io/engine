@@ -60,6 +60,8 @@
                 [#case "orphaned"]
                     [#if deploymentGroupDetails.Name?matches( deploymentModeDetails.Priority.GroupFilter ) ]
                         [#local stageEnabled = true]
+                        [#-- Make the priority as low as possible while still maintaining the group order --]
+                        [#-- This ensures that orphaned components are cleaned up in order to reduce dependencies --]
                         [#local stagePriority = deploymentGroupDetails.Priority * 0.1 ]
                     [/#if]
                     [#break]
