@@ -276,9 +276,11 @@
                     "ShortName" : formatName(occurrence.Core.Extensions.Id),
                     "ShortRawName" : formatName(occurrence.Core.Extensions.RawName),
                     "ShortTypedName" : formatName(occurrence.Core.Extensions.Id, type),
+                    "ShortTypedRawName" : formatName(occurrence.Core.Extensions.RawId, type),
                     "ShortFullName" : formatSegmentShortName(occurrence.Core.Extensions.Id),
                     "ShortRawFullName" : formatSegmentShortName(occurrence.Core.Extensions.RawId),
                     "ShortTypedFullName" : formatSegmentShortName(occurrence.Core.Extensions.Id, type),
+                    "ShortTypedRawFullName" : formatSegmentShortName(occurrence.Core.Extensions.Raw, type),
                     "RelativePath" : formatRelativePath(occurrence.Core.Extensions.Name),
                     "ReltiveRawPath" : formatRelativePath(occurrence.Core.Extensions.RawName),
                     "FullRelativePath" : formatSegmentRelativePath(occurrence.Core.Extensions.Name),
@@ -726,11 +728,19 @@ already prefixed attribute.
         ) +
         [
             {"Key" : (occurrence.Core.Name)?lower_case, "Match" : "partial"},
+            {"Key" : (occurrence.Core.RawName)?lower_case, "Match" : "partial"},
             {"Key" : (occurrence.Core.TypedName)?lower_case, "Match" : "partial"},
+            {"Key" : (occurrence.Core.TypedRawName)?lower_case, "Match" : "partial"},
             {"Key" : (occurrence.Core.ShortName)?lower_case, "Match" : "partial"},
+            {"Key" : (occurrence.Core.ShortRawName)?lower_case, "Match" : "partial"},
             {"Key" : (occurrence.Core.ShortTypedName)?lower_case, "Match" : "partial"},
-            {"Key" : deploymentUnit?lower_case, "Match" : "exact"}
-        ]
+            {"Key" : (occurrence.Core.ShortTypedRawName)?lower_case, "Match" : "partial"}
+        ] +
+        valueIfContent(
+            [ {"Key": deploymentUnit?lower_case, "Match" : "exact"} ]
+            deploymentUnit,
+            []
+        )
     ]
     [#return namespaces ]
 [/#function]
