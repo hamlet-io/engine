@@ -151,12 +151,7 @@
 
     [#if zipFile?has_content ]
         [#assign _context += {
-            "ZipFile" : {
-                "Fn::Join" : [
-                    "\n",
-                    combineEntities(_context.ZipFile, asArray(zipFile), APPEND_COMBINE_BEHAVIOUR)
-                ]
-            }
+            "ZipFile" : combineEntities((_context.ZipFile)![], asArray(zipFile), APPEND_COMBINE_BEHAVIOUR)
         }]
     [/#if]
 [/#macro]
