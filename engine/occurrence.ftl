@@ -316,7 +316,8 @@
                         "Account" : internalCreateAccountSettings(),
                         "Product" :
                             internalCreateOccurrenceProductSettings(occurrence) +
-                            internalCreateOccurrenceSensitiveSettings(occurrence)
+                            internalCreateOccurrenceSensitiveSettings(occurrence),
+                        "Component" : internalCreateOccurrenceComponentSettings(occurrence)
                     }
                 }
             }
@@ -772,6 +773,7 @@ already prefixed attribute.
         [
             (occurrence.Configuration.Settings.Account)!{},
             (occurrence.Configuration.Settings.Product)!{},
+            (occurrence.Configuration.Settings.Component)!{},
             (occurrence.Configuration.Settings.Core)!{},
             (occurrence.Configuration.Settings.Build)!{}
         ],
@@ -908,6 +910,16 @@ already prefixed attribute.
             )
         )
     ]
+[/#function]
+
+[#function internalCreateOccurrenceComponentSettings occurrence]
+    [#local result = {}]
+    [#list (occurrence.Configuration.Solution.Settings)!{} as id, setting]
+        [#if (setting.Enabled)!true]
+            [#local result = mergeObjects(result, { id : { "Value" : setting.Value }})]
+        [/#if]
+    [/#list]
+    [#return result ]
 [/#function]
 
 [#function internalCreateOccurrenceProductSettings occurrence ]

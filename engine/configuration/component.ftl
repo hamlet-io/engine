@@ -196,6 +196,96 @@
                     "Children" : []
                 }
             ]
+        },
+        {
+            "Names" : [ "SettingNamespaces" ],
+            "Description" : "Additional namespaces to use during settings lookups",
+            "SubObjects" : true,
+            "Children" : [
+                {
+                    "Names" : "Match",
+                    "Description" : "How to match the namespace with available settings",
+                    "Types" : STRING_TYPE,
+                    "Values" : [ "exact", "partial" ],
+                    "Default" : "exact"
+                },
+                {
+                    "Names" : "Order",
+                    "Types" : ARRAY_OF_STRING_TYPE,
+                    "Default" : [
+                        "Tier",
+                        "Component",
+                        "Type",
+                        "SubComponent",
+                        "Instance",
+                        "Version",
+                        "Name"
+                    ]
+                },
+                {
+                    "Names" : "IncludeInNamespace",
+                    "Children" : [
+                        {
+                            "Names" : "Tier",
+                            "Types" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Names" : "Component",
+                            "Types" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Names" : "Type",
+                            "Types"  : BOOLEAN_TYPE,
+                            "Default" : false
+                        }
+                        {
+                            "Names" : "SubComponent",
+                            "Types" : BOOLEAN_TYPE,
+                            "Default" : false
+                        },
+                        {
+                            "Names" : "Instance",
+                            "Types" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Names" : "Version",
+                            "Types" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Names" : "Name",
+                            "Types" : BOOLEAN_TYPE,
+                            "Default" : false
+                        }
+                    ]
+                },
+                {
+                    "Names" : "Name",
+                    "Types" : STRING_TYPE,
+                    "Default" : ""
+                }
+            ]
+        },
+        {
+            "Names" : "Settings",
+            "Description" : "Application settings that can provide configuration for code",
+            "SubObjects" : true,
+            "Children" : [
+                {
+                    "Names" : "Enabled",
+                    "Types" : BOOLEAN_TYPE,
+                    "Default" : true
+                },
+                {
+                    "Names" : "Value",
+                    "Description" : "The value of the setting",
+                    "Types" : ANY_TYPE,
+                    "Mandatory" : true
+                }
+            ]
         }
     ] +
     includeTypeAttr?then(
@@ -258,7 +348,6 @@
         [#if resourceGroup == DEFAULT_RESOURCE_GROUP ]
             [#local providerAttributes = [] ]
             [#local profileAttribute = coreProfileChildConfiguration[0] ]
-            [#local settingsNamespacesAttribute = coreSettingsNamespacesConfiguration[0] ]
             [#list attributes as attribute ]
                 [#if asArray(attribute.Names!attribute.Name![])?seq_contains("Profiles")]
                     [#local profileAttribute +=
@@ -272,7 +361,7 @@
                     [#local providerAttributes += [attribute] ]
                 [/#if]
             [/#list]
-            [#local providerAttributes += [profileAttribute, settingsNamespacesAttribute] ]
+            [#local providerAttributes += [profileAttribute] ]
         [#else]
             [#local providerAttributes = attributes ]
         [/#if]

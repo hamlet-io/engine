@@ -208,6 +208,13 @@
                         ( context.DefaultBaselineVariables && hasBaselineLinks )
                     ) +
                     valueIfTrue(
+                        getSettingsAsEnvironment(
+                            occurrence.Configuration.Settings.Component,
+                            serialisationConfig
+                        ),
+                        context.DefaultComponentVariables
+                    ) +
+                    valueIfTrue(
                         getSettingsAsEnvironment(occurrence.Configuration.Settings.Build) +
                         { "RUN_ID" : runId },
                         context.DefaultCoreVariables
