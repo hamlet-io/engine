@@ -154,7 +154,7 @@
             "ZipFile" : {
                 "Fn::Join" : [
                     "\n",
-                    asArray(zipFile)
+                    combineEntities(_context.ZipFile, asArray(zipFile), APPEND_COMBINE_BEHAVIOUR)
                 ]
             }
         }]
