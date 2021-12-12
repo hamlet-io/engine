@@ -20,9 +20,7 @@
     ]
 
     [#-- Add in extension specifics including override of defaults --]
-    [#if solution.Extensions?has_content ]
-        [#local _context = invokeExtensions( occurrence, _context )]
-    [/#if]
+    [#local _context = invokeExtensions( occurrence, _context, {}, solution.Extensions, true )]
 
     [#local environment = getFinalEnvironment(occurrence, _context ).Environment ]
 
