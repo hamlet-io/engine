@@ -36,6 +36,10 @@
     [#assign _context += { "DefaultCoreVariables" : enabled } ]
 [/#macro]
 
+[#macro DefaultComponentVariables enabled=true ]
+    [#assign _context += { "DefaultComponentVariables" : enabled } ]
+[/#macro]
+
 [#macro DefaultEnvironmentVariables enabled=true ]
     [#assign _context += { "DefaultEnvironmentVariables" : enabled } ]
 [/#macro]

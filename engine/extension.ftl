@@ -147,7 +147,13 @@
 
     [#local occurrenceContext = {
         "Instance" : occurrence.Core.Instance.Id,
-        "Version" : occurrence.Core.Version.Id
+        "Version" : occurrence.Core.Version.Id,
+        "Environment" : {},
+        "DefaultBaselineVariables" : true,
+        "DefaultLinkVariables" : true,
+        "DefaultCoreVariables" : true,
+        "DefaultComponentVariables" : true,
+        "DefaultEnvironmentVariables" : true
     }]
     [#assign _context = mergeObjects(_context, occurrenceContext )]
 
