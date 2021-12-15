@@ -17,6 +17,3 @@
 
 [#assign SEGMENT_LAYER_TYPE = "Segment" ]
 [#assign SEGMENT_LAYER_REFERENCE_TYPE = "Segments" ]
-
-[#assign REGION_LAYER_TYPE = "Region" ]
-[#assign REGION_LAYER_REFERENCE_TYPE = "Regions" ]
