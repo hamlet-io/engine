@@ -37,9 +37,16 @@
                     {
                         "Names" : "Versioning",
                         "Types" : BOOLEAN_TYPE,
+                        "Description" : "Enable versioning - this setting is deprecated - use the same named top level attribute",
                         "Default" : false
                     }
                 ]
+            },
+            [#-- TODO(mfl): default of false should be added when lifecycle Versioning attribute is removed --]
+            {
+                "Names" : "Versioning",
+                "Types" : BOOLEAN_TYPE,
+                "Description" : "Enable versioning"
             },
             {
                 "Names" : "Website",
