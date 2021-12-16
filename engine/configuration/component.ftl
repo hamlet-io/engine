@@ -280,6 +280,18 @@
                     "Default" : true
                 },
                 {
+                    "Names" : "Sensitive",
+                    "Description" : "Hide the value of this setting when using it in output",
+                    "Types" : BOOLEAN_TYPE,
+                    "Default" : false
+                },
+                {
+                    "Names" : "Internal",
+                    "Description" : "Don't inlude this setting as part of environment variable generation",
+                    "Types" : BOOLEAN_TYPE,
+                    "Default" : false
+                },
+                {
                     "Names" : "Value",
                     "Description" : "The value of the setting",
                     "Types" : ANY_TYPE,
