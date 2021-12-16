@@ -916,7 +916,16 @@ already prefixed attribute.
     [#local result = {}]
     [#list (occurrence.Configuration.Solution.Settings)!{} as id, setting]
         [#if (setting.Enabled)!true]
-            [#local result = mergeObjects(result, { id : { "Value" : setting.Value }})]
+            [#local result = mergeObjects(
+                result,
+                {
+                    id : {
+                        "Value" : setting.Value,
+                        "Sensitive" : setting.Sensitive,
+                        "Internal" : setting.Internal
+                    }
+                }
+            )]
         [/#if]
     [/#list]
     [#return result ]
