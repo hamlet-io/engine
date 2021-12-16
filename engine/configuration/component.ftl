@@ -287,7 +287,7 @@
                 },
                 {
                     "Names" : "Internal",
-                    "Description" : "Don't inlude this setting as part of environment variable generation",
+                    "Description" : "Don't include this setting as part of environment variable generation",
                     "Types" : BOOLEAN_TYPE,
                     "Default" : false
                 },
