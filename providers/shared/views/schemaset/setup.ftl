@@ -42,7 +42,7 @@
                 [#local schemas = getAttributeSetIds() ]
                 [#break]
             [#case "module" ]
-                [#local schemas = getModuleConfiguration?keys ]
+                [#local schemas = getModuleConfiguration()?keys ]
                 [#break]
         [/#switch]
 
