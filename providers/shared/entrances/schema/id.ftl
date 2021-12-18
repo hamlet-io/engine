@@ -11,8 +11,10 @@
         ]
     commandlineoptions=[
         {
-            "Names" : "*",
-            "Types" : ANY_TYPE
+            "Names" : "Schema",
+            "Description" : "A regex pattern to match the schema name of an available schema",
+            "Types" : STRING_TYPE,
+            "Default" : ".*"
         }
     ]
 /]
