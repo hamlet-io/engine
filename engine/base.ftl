@@ -1590,6 +1590,43 @@ are added.
 
 [/#function]
 
+[#function compressCompositeConfiguration attributes ]
+    [#-- Collapes the array of composites to reduce duplicates when processing --]
+
+    [#local result = []]
+    [#list attributes as attribute ]
+        [#if attribute?is_hash]
+            [#list asArray(attribute.Names) as name]
+
+                [#if result?has_content ]
+
+                    [#if result?is_sequence && asFlattenedArray(result?map(x -> x.Names ))?seq_contains(name)]
+                        [#local mergedAttribute = result?filter(x -> asArray(x.Names)?seq_contains(name) )?first ]
+
+                        [#local mergedAttribute = mergeObjects(mergedAttribute, attribute)]
+                        [#local mergedAttribute += {
+                            "Names" : combineEntities(mergedAttribute.Names, attribute.Names, UNIQUE_COMBINE_BEHAVIOUR),
+                            "Values" : combineEntities(mergedAttribute.Values, attribute.Values, UNIQUE_COMBINE_BEHAVIOUR),
+                            "Types" : combineEntities(mergedAttribute.Types, attribute.Types, UNIQUE_COMBINE_BEHAVIOUR)
+                        } +
+                        attributeIfContent(
+                            "Children",
+                            attribute.Children,
+                            asFlattenedArray(compressCompositeConfiguration((attribute.Children)![]))
+                        )]
+                        [#local result = combineEntities(result?filter(x -> ! asArray(x.Names)?seq_contains(name)), [ mergedAttribute], APPEND_COMBINE_BEHAVIOUR) ]
+                    [#else]
+                        [#local result = combineEntities(result, [ attribute ], APPEND_COMBINE_BEHAVIOUR)]
+                    [/#if]
+                [#else]
+                    [#local result = combineEntities(result, [ attribute ], APPEND_COMBINE_BEHAVIOUR)]
+                [/#if]
+            [/#list]
+        [/#if]
+    [/#list]
+    [#return result]
+[/#function]
+
 [#function expandCompositeConfiguration attributes ]
 
     [#-- If attribute value is defined as an AttributeSet, evaluate --]
@@ -1644,7 +1681,8 @@ are added.
                     "SubObjects" : false,
                     "PopulateMissingChildren" : true,
                     "AttributeSet" : "",
-                    "Component" : ""
+                    "Component" : "",
+                    "Description" : ""
                 } ]
             [#if normalisedAttribute.Names?seq_contains("InhibitEnabled") ]
                 [#local inhibitEnabled = true ]
@@ -1666,11 +1704,14 @@ are added.
                         "DefaultProvided" : attribute.Default??,
                         "Default" : attribute.Default!"",
                         "Values" : asArray(attribute.Values![]),
-                        "Children" : asArray(attribute.Children![]),
+                        "Children" : normaliseCompositeConfiguration(
+                            asArray(attribute.Children![])
+                        ),
                         "SubObjects" : attribute.SubObjects!attribute.Subobjects!false,
                         "PopulateMissingChildren" : attribute.PopulateMissingChildren!true,
                         "AttributeSet" : attribute.AttributeSet!"",
-                        "Component" : attribute.Component!""
+                        "Component" : attribute.Component!"",
+                        "Description" : attribute.Description!""
                     } ]
             [/#if]
             [#local normalisedAttributes += [normalisedAttribute] ]
@@ -1692,7 +1733,8 @@ are added.
                         "SubObjects" : false,
                         "PopulateMissingChildren" : true,
                         "AttributeSet" : "",
-                        "Component" : ""
+                        "Component" : "",
+                        "Description" : ""
                     }
                 ] +
                 normalisedAttributes ]
