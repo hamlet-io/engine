@@ -223,6 +223,7 @@
     /]
 
     [@initialiseJsonOutput name="schema" /]
+    [@initialiseJsonOutput name="definitions" /]
 
     [@processFlows
         level=level
@@ -230,22 +231,52 @@
         flows=getCLOFlows()
     /]
 
-    [#local schemaType = getCLODeploymentUnit()]
-    [#return getOutputContent("schema",  schemaType)!{} ]
+    [#local schemaProperties = getOutputContent("schema")]
+
+    [#return
+        jsonSchemaDocument(
+            (schemaProperties.id)!"",
+            (schemaProperties.schema)!"",
+            (schemaProperties.properties)!{},
+            (getOutputContent("definitions")),
+            (schemaProperties.type)!"",
+            (schemaProperties.additionalProperties)!false
+        )]
 [/#function]
 
-[#macro addSchemaToDefaultJsonOutput section config schemaId=""]
+[#macro jsonSchema id="" schema="" properties={} type="" additionalProperties="" ]
     [@mergeWithJsonOutput
         name="schema"
-        section=section
         content=
-            mergeObjects(
-                { "$schema" : HamletSchemas.Root },
-                formatJsonSchemaBaseType(config + { "Types" : OBJECT_TYPE }, schemaId),
-                { "definitions" : config }
-            )
+            {} +
+                attributeIfContent("id", id) +
+                attributeIfContent("schema", schema) +
+                attributeIfContent("properties", properties) +
+                attributeIfContent("type", type) +
+                attributeIfContent("additionalProperties", additionalProperties)
     /]
 [/#macro]
+
+[#macro jsonSchemaDefinition id schema]
+    [@mergeWithJsonOutput
+        name="definitions"
+        content={ id : schema }
+    /]
+[/#macro]
+
+[#function jsonSchemaDocument id="" schema="" properties={} definitions={} type="" additionalProperties=false ]
+    [#return
+        {
+            "additionalProperties" : additionalProperties
+        } +
+        properties +
+        attributeIfContent("$id", id) +
+        attributeIfContent("$schema", schema) +
+        attributeIfContent("definitions", definitions) +
+        [#-- Required for base schema properties --]
+        attributeIfContent("type", type)
+    /]
+[/#function]
 
 [#-- Contract --]
 [#assign CONTRACT_EXECUTION_MODE_SERIAL = "serial" ]
