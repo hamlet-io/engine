@@ -1,451 +1,223 @@
 [#ftl]
 
 [#macro shared_view_default_schema_generationcontract  ]
-    [@addDefaultGenerationContract subsets=["schema"] /]
+
+    [#local schemaPattern = (getCommandLineOptions().Schema)!""]
+
+    [@addDefaultGenerationContract
+        subsets=["schema"]
+        alternatives=getConfigurationScopeIds()?filter( x -> x?matches(schemaPattern, "is"))
+        contractCleanup=false
+    /]
 [/#macro]
 
 [#macro shared_view_default_schema ]
 
-    [#local section = getCLODeploymentGroup() ]
-    [#local schema = getCLODeploymentUnit() ]
+    [#local configurationScope = getCLODeploymentUnitAlternative()]
 
-    [#if ["module"]?seq_contains(section)]
-        [#-- Do not assign a schema $Id attribute on non-official schemas --]
-        [#local schemaId = ""]
-    [#else]
-        [#local schemaId = formatSchemaId(section, schema)]
-    [/#if]
+    [@jsonSchema
+        id=formatSchemaId(configurationScope)
+        schema="http://json-schema.org/draft-07/schema#"
+    /]
 
-    [#switch section]
-        [#case "layer" ]
+    [#local schemaDefinitions = {}]
 
-            [#-- Validate layers - we validate them here for a more helpful error --]
-            [#if !(getLayerConfiguration()?keys?seq_contains(schema?capitalize))]
-                [@fatal
-                    message="Invalid layer provided."
-                    context={"Layers" : getLayerConfiguration()?keys}
-                /]
-                [#break]
-            [#else]
+    [#switch configurationScope]
+        [#case COMPONENT_CONFIGURATION_SCOPE]
+            [#list getAllComponentConfiguration()?keys as componentType ]
 
-                [#local schemaLayerConfig = getLayerConfiguration(schema?capitalize)]
-                [#local schemaLayerAttributes = schemaLayerConfig.Attributes![]]
+                [#local schemaComponentAttributes = []]
 
-                [@addSchema
-                    section="layer"
-                    schema=schema
-                    configuration=
-                    formatJsonSchemaFromComposite(
-                        {
-                            "Names" : schema,
-                            "Type" : OBJECT_TYPE,
-                            "SubObjects" : true,
-                            "Children" : schemaLayerAttributes
-                        },
-                        getAttributeSetIds()
-                    )
-                /]
+                [#-- Construct Component Attributes --]
+                [#list getComponentResourceGroups(componentType) as id, resourceGroup ]
 
-            [/#if]
+                    [#list getLoaderProviders() as provider ]
 
-            [#break]
-
-        [#case "component"]
-
-            [@includeAllComponentDefinitionConfiguration
-                SHARED_PROVIDER
-                getLoaderProviders()
-            /]
-
-            [#local schemaComponentAttributes = []]
-
-            [#-- Construct Component Attributes --]
-            [#list getComponentResourceGroups(schema) as id, resourceGroup ]
-
-                [#list getLoaderProviders() as provider ]
-
-                    [#local schemaComponentAttributes = combineEntities(
-                            schemaComponentAttributes,
-                            getComponentResourceGroupAttributes(resourceGroup, provider),
-                            ADD_COMBINE_BEHAVIOUR)]
-                [/#list]
-            [/#list]
-
-            [#-- Construct SubComponent References as Attributes--]
-            [#list (getComponentChildren(schema))![] as subComponent]
-                [#local schemaComponentAttributes = combineEntities(
-                    schemaComponentAttributes,
-                    [{
-                        "Names" : subComponent.Component,
-                        "Component" : subComponent.Type
-                    }],
-                    ADD_COMBINE_BEHAVIOUR)]
-
-            [/#list]
-
-            [@addSchema
-                section="component"
-                schema=schema
-                configuration=
-                    formatJsonSchemaFromComposite(
-                        {
-                            "Names" : schema,
-                            "Type" : OBJECT_TYPE,
-                            "SubObjects" : true,
-                            "Children" : schemaComponentAttributes
-                        },
-                        getAttributeSetIds()
-                    )
-            /]
-
-            [#break]
-
-        [#case "reference"]
-
-            [#-- The CommandLineOption for Schema expects the singular name. --]
-            [#-- But the compositeObject structure uses pluralised names as  --]
-            [#-- the object ID's. So we check the singular name matches first--]
-            [#-- then re-set schema name value to the pluralisation.         --]
-            [#list getReferenceConfiguration() as id, configuration]
-                [#if id == schema]
-
-                    [@addSchema
-                        section="reference"
-                        schema=configuration.Type.Singular
-                        configuration=
-                            formatJsonSchemaFromComposite(
-                                {
-                                    "Names" : configuration.Type.Plural,
-                                    "Types" : OBJECT_TYPE,
-                                    "SubObjects" : true,
-                                    "Children" : configuration.Attributes
-                                },
-                                getAttributeSetIds()
-                            )
-                    /]
-                [/#if]
-            [/#list]
-            [#break]
-
-        [#case "module"]
-            [#list getModuleConfiguration() as moduleId, providersConfig]
-                [#if moduleId == schema]
-                    [#list providersConfig as id, configuration]
-                        [@addSchema
-                            section="module"
-                            schema=moduleId
-                            configuration=
-                                formatJsonSchemaFromComposite(
-                                    {
-                                        "Names" : moduleId,
-                                        "Types" : OBJECT_TYPE,
-                                        "SubObjects" : true,
-                                        "Children" : configuration.Attributes
-                                    },
-                                    getAttributeSetIds()
-                                )
-                        /]
+                        [#local schemaComponentAttributes = combineEntities(
+                                    schemaComponentAttributes,
+                                    getComponentResourceGroupAttributes(resourceGroup, provider),
+                                    ADD_COMBINE_BEHAVIOUR
+                                )]
                     [/#list]
-                [/#if]
-            [/#list]
-            [#break]
+                [/#list]
 
-        [#case "attributeset"]
+                [#-- Construct SubComponent References as Attributes--]
+                [#list (getComponentChildren(componentType))![] as subComponent]
+                    [#local schemaComponentAttributes = combineEntities(
+                        schemaComponentAttributes,
+                        [{
+                            "Names" : [ subComponent.Component ],
+                            "Component" : subComponent.Type
+                        }],
+                        ADD_COMBINE_BEHAVIOUR)]
 
-            [#-- Key Value Pairs of AttributeSet Name : Configuration --]
-            [#list getAttributeSets() as id,configuration]
-                [#if id == schema]
-                    [@addSchema
-                        section="attributeset"
-                        schema=id
-                        configuration=
-                        formatJsonSchemaFromComposite(
-                            {
-                                "Names" : id,
-                                "Type" : OBJECT_TYPE,
-                                "SubObjects" : true,
-                                "Children" : configuration.Attributes
-                            }
-                        )
-                    /]
-                [/#if]
+                [/#list]
+
+                [#local schemaDefinitions = mergeObjects(schemaDefinitions, { componentType, schemaComponentAttributes})]
+
             [/#list]
             [#break]
 
         [#default]
+            [#list getConfigurationSets(configurationScope) as configurationSet ]
+                [#if ((configurationSet.Attributes)![])?has_content ]
+                    [#local schemaDefinitions = mergeObjects(schemaDefinitions, { configurationSet.Id, configurationSet.Attributes})]
+                [/#if]
+            [/#list]
             [#break]
-
     [/#switch]
 
-    [#local schemaOutputConfiguration = getSchema(section)!{}]
-
-    [#if schemaOutputConfiguration?has_content]
-        [@addSchemaToDefaultJsonOutput
-            section=schema
-            config=schemaOutputConfiguration
-            schemaId=schemaId
+    [#list schemaDefinitions as id, attributes ]
+        [@jsonSchemaDefinition
+            id=id
+            schema=
+                jsonSchemaDocument(
+                    "",
+                    "",
+                    convertAttributesToJsonSchemaProperties(
+                        compressCompositeConfiguration(
+                            normaliseCompositeConfiguration(
+                                attributes
+                            )
+                        )
+                    ),
+                    {},
+                    "object"
+                )
         /]
-    [#else]
-        [@fatal
-            message="Schema instance type not found. Did you mean to try the Singular Name?"
-            context={
-                "SchemaType" : section,
-                "SchemaInstance" : schema
-            }
-        /]
-    [/#if]
-
+    [/#list]
 [/#macro]
 
 
 [#-- Suppport Macros --]
-[#assign HamletSchemas = {
-    "Root" : "http://json-schema.org/draft-07/schema#"
-}]
 [#assign schemaHostSite = "https://docs.hamlet.io"]
 [#assign rootSchemaPath = formatPath(false, schemaHostSite, "schema")]
 
-[#assign patternPropertiesRegex = r'^[A-Za-z_][A-Za-z0-9_]*$']
-[#assign schemaConfiguration = {}]
+[#assign patternPropertiesRegex = r'^[A-Za-z_][A-Za-z0-9_-]*$']
 
-[#macro addSchema section schema configuration]
-    [@internalMergeSchemaConfiguration
-        section=section
-        schema=schema
-        configuration=configuration
-    /]
-[/#macro]
-
-[#function getSchema section=""]
-    [#if section??]
-        [#return schemaConfiguration[section]]
-    [/#if]
-    [#return schemaConfiguration]
+[#-- Document formatting --]
+[#function formatSchemaId schema definition="" version="latest"]
+    [#return formatPath(false, rootSchemaPath, version, "${schema}-schema.json" + definition?has_content?then("#/definitions/${definition}", "")) ]
 [/#function]
 
-[#function formatJsonSchemaAdditionalProperties composite]
-    [#if hasSubObjects(composite)
-        || ! composite.Children??]
-        [#return {}]
-    [#else]
-        [#return false]
-    [/#if]
-[/#function]
-
-[#-- support for multiple types through "anyOf" --]
-[#function formatJsonSchemaBaseType composite id=""]
-    [#local optionSets = []]
+[#function convertAttributesToJsonSchemaProperties attributes ]
     [#local result = {}]
-    [#if composite.Types?has_content]
-        [#if composite.Types?is_sequence]
-            [#if composite.Types?first == ARRAY_TYPE]
-                [#-- Define an "array" of X type --]
-                [#switch composite.Types?last]
-                    [#case ANY_TYPE]
-                        [#local result += {
-                            "type" : ARRAY_TYPE }]
-                        [#break]
-                    [#default]
-                        [#local result += {
-                            "type" : ARRAY_TYPE,
-                            "contains" : {
-                                "type" : composite.Types?last }}]
-                        [#break]
-                [/#switch]
-            [#else]
-                [#local optionSets += composite.Types?map(t -> { "type" : t })]
-            [/#if]
-        [#else]
-            [#local result += { "type" : composite.Types }]
-        [/#if]
-    [#elseif composite.Component?? || composite.AttributeSet??]
-        [#local result += formatJsonSchemaReference(composite)]
-    [#else]
-        [#local result += { "type" : OBJECT_TYPE }]
-    [/#if]
-    [#return result +
-        attributeIfContent("$id", id) +
-        attributeIfContent("additionalProperties", formatJsonSchemaAdditionalProperties(composite)) +
-        attributeIfContent("anyOf", optionSets)]
-[/#function]
-
-[#function hasSubObjects composite]
-    [#-- Subobjects is inconsistently capitalised making it a difficult object key --]
-    [#local subObjectsIndex = composite
-        ?keys?map(k -> k?lower_case)?seq_index_of("subobjects")]
-    [#return (subObjectsIndex >= 0)
-        ?then(composite?values[subObjectsIndex], false)]
-[/#function]
-
-[#function formatJsonSchemaBaseName composite]
-    [#return asArray(composite.Names)[0]]
-[/#function]
-
-[#function formatSchemaId section unit version="latest"]
-    [#switch section]
-        [#default]
-            [#return formatPath(false, rootSchemaPath, version, "blueprint", "schema-" + section + "-" + unit + "-schema.json")]
-            [#break]
-    [/#switch]
-[/#function]
-
-[#function formatJsonSchemaFromComposite composite references=[] schemaId=""]
-    [#local jsonSchema = {}]
     [#local required = []]
-    [#local childrenConfiguration = {}]
 
-    [#if composite?is_hash]
-        [#local schemaName = formatJsonSchemaBaseName(composite)]
-        [#if !references?seq_contains(schemaName)]
-            [#if schemaId?has_content]
-                [#local section = getCLODeploymentUnit()]
-                [#local schemaId = formatPath(false, schemaId?remove_ending(".json"), section + ".json")]
-            [/#if]
+    [#list asFlattenedArray(attributes) as attribute]
 
-            [#local subObjects = hasSubObjects(composite)]
+        [#local properties = {}]
 
-            [#local jsonSchema = mergeObjects(
-                jsonSchema,
-                formatJsonSchemaBaseType(composite),
-                attributeIfContent("description", composite.Description!""),
-                attributeIfTrue("default", composite.Default?has_content, composite.Default!false),
-                attributeIfContent("enum", composite.Values![]))]
+        [#-- Required Properties --]
+        [#if attribute.Mandatory ]
+            [#local required = combineEntities(required, attribute.Names?first, UNIQUE_COMBINE_BEHAVIOUR) ]
+        [/#if]
 
-            [#if composite.Children?has_content]
+        [#-- Description --]
+        [#if attribute.Description?has_content ]
+            [#local properties += { "description" : attribute.Description }]
+        [/#if]
 
-                [#-- required --]
-                [#local required = composite.Children
-                    ?filter(c -> c?is_hash && c.Mandatory!false)
-                    ?map(c -> formatJsonSchemaBaseName(c))]
+        [#-- Default --]
+        [#if attribute.Default?has_content ]
+            [#local properties += { "default" : attribute.Default }]
+        [/#if]
 
-                [#list composite.Children as child]
+        [#-- Determine Properties --]
+        [#local typeResult = []]
+        [#if attribute.Children?has_content ]
+            [#local typeResult = [ "object" ]]
+            [#local properties += { "additionalProperties" : false }]
 
-                    [#if child?is_hash]
+        [#elseif attribute.AttributeSet?has_content || attribute.Component?has_content ]
+            [#-- Don't include type details on refs --]
 
-                        [#local childSchemaName = formatJsonSchemaBaseName(child)]
-                        [#if !references?seq_contains(childSchemaName)]
-                            [#local childrenConfiguration = mergeObjects(
-                                childrenConfiguration,
-                                subObjects?then(
-                                    {
-                                        "patternProperties" : {
-                                            patternPropertiesRegex : {
-                                                "properties" : {
-                                                    childSchemaName : formatJsonSchemaFromComposite(child, references)
-                                                },
-                                                "additionalProperties" : false
-                                            } +
-                                            attributeIfContent("required", required)
-                                        }
-                                    },
-                                    {
-                                        "properties" : {
-                                            childSchemaName : formatJsonSchemaFromComposite(child, references)
-                                        },
-                                        "additionalProperties" : false
-                                    } +
-                                    attributeIfContent("required", required)
-                                )
-                            )]
-                        [#else]
-                            [#-- Create a Reference to schema --]
-                            [#local childrenConfiguration = mergeObjects(
-                                childrenConfiguration,
-                                subObjects?then(
-                                    {
-                                        "patternProperties" : {
-                                            patternPropertiesRegex : {
-                                                "properties" : {
-                                                    childSchemaName : formatJsonSchemaFromComposite(
-                                                        {
-                                                            "Names" : childSchemaName,
-                                                            "AttributeSet" : childSchemaName
-                                                        }
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "properties" : {
-                                            childSchemaName : formatJsonSchemaFromComposite(
-                                                {
-                                                    "Names" : childSchemaName,
-                                                    "AttributeSet" : childSchemaName
-                                                }
-                                            )
-                                        }
-                                    }
-                                )
-                            )]
-                        [/#if]
-                    [#else]
-                        [@debug
-                            message="Found child composite of unknown structure: "
-                            context={ "Child" : child, "Parent" : composite }
-                            enabled=false
-                        /]
-                    [/#if]
+        [#elseif attribute.Types?seq_contains(ANY_TYPE)]
+            [#local typeResult = [ "array", "boolean", "number", "object", "string" ]]
+
+        [#else]
+            [#if (attribute.Types)?size == 2 && attribute.Types?first == ARRAY_TYPE ]
+                [#local properties += {
+                    "type" : "array",
+                    "contains" : {
+                        "type" : attribute.Types?last
+                    }
+                }]
+
+            [#else]
+                [#list attribute.Types as type ]
+                    [#switch type]
+                        [#case NUMBER_TYPE]
+                        [#case STRING_TYPE]
+                        [#case BOOLEAN_TYPE]
+                        [#case OBJECT_TYPE]
+                        [#case ARRAY_TYPE]
+                            [#local typeResult += [ type ]]
+                            [#break]
+                        [#default]
+                            [#local typeResult += [ "string"]]
+                    [/#switch]
                 [/#list]
             [/#if]
-
-            [#if childrenConfiguration?has_content]
-                [#local jsonSchema =
-                    mergeObjects(
-                        jsonSchema,
-                        childrenConfiguration
-                    )]
-            [/#if]
-        [#else]
-            [#local jsonSchema =
-                mergeObjects(
-                    jsonSchema,
-                    {
-                        schemaName :
-                            formatJsonSchemaFromComposite(
-                                {
-                                    "Names" : schemaName,
-                                    "AttributeSet" : schemaName
-                                }
-                            )
-                    }
-                )]
         [/#if]
-    [#else]
-        [@debug
-            message="Found composite of unknown structure: "
-            context={ "Composite" : composite }
-            enabled=false
-        /]
-    [/#if]
-    [#return jsonSchema ]
-[/#function]
 
-[#function formatJsonSchemaReference composite]
-    [#if composite.AttributeSet??]
-        [#local section = "attributeset"]
-        [#local unit = composite.AttributeSet]
-    [#elseif composite.Component??]
-        [#local section = "component"]
-        [#local unit = composite.Component]
-    [/#if]
-    [#if section?has_content && unit?has_content]
-        [#return { "$ref" : formatSchemaId(section, unit) }]
-    [/#if]
-    [@fatal message="Invalid Reference" context={"comp" : composite, "conf" : configuration} /]
-[/#function]
+        [#if typeResult?size == 1 ]
+            [#local properties += { "type" : typeResult?first }]
+        [#elseif typeResult?size > 1 ]
+            [#local properties += { "type" : typeResult }]
+        [/#if]
 
-[#-------------------------------------------------------
--- Internal support functions for schema processing    --
----------------------------------------------------------]
+        [#-- Allowed Values --]
+        [#if attribute.Values?has_content ]
+            [#if asArray(attribute.Values)?size == 1 ]
+                [#local properties += { "const" : attribute.Values?first }]
+            [#else]
+                [#local properties += { "enum" : attribute.Values }]
+            [/#if]
+        [/#if]
 
-[#macro internalMergeSchemaConfiguration section schema configuration]
-    [#assign schemaConfiguration =
-        mergeObjects(
-            schemaConfiguration,
+        [#-- Children Handling --]
+        [#if attribute.Children?has_content ]
+            [#local childDetails = convertAttributesToJsonSchemaProperties(attribute.Children) ]
+
+            [#if attribute.SubObjects ]
+                [#local properties +=
+                    {
+                        "patternProperties" : {
+                            patternPropertiesRegex : childDetails
+                        }
+                    }]
+            [#else]
+                [#local properties +=  childDetails]
+            [/#if]
+        [/#if]
+
+        [#-- External Schema references --]
+        [#if attribute.AttributeSet?has_content ]
+            [#local properties += {
+                "$ref" : formatSchemaId("AttributeSet", attribute.AttributeSet)
+            }]
+        [/#if]
+
+        [#if attribute.Component?has_content ]
+            [#local properties += {
+                "$ref" : formatSchemaId("Component", attribute.Component)
+            }]
+        [/#if]
+
+        [#local result = mergeObjects(
+            result,
             {
-                section : {
-                    schema : configuration
+                "properties" : {
+                    (attribute.Names)?first : properties
                 }
             })]
-[/#macro]
+
+    [/#list]
+
+    [#if required?has_content ]
+        [#local result += { "required" : required }]
+    [/#if]
+
+    [#return result]
+[/#function]
