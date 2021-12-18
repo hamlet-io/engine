@@ -9,7 +9,7 @@
 [#assign INFO_ENTRANCE_TYPE              = "info" ]
 [#assign LOADER_ENTRANCE_TYPE            = "loader" ]
 [#assign SCHEMA_ENTRANCE_TYPE            = "schema" ]
-[#assign SCHEMASET_ENTRANCE_TYPE         = "schemaset" ]
+[#assign SCHEMALIST_ENTRANCE_TYPE        = "schemalist" ]
 [#assign OCCURRENCES_ENTRANCE_TYPE       = "occurrences" ]
 [#assign RELEASEINFO_ENTRANCE_TYPE       = "releaseinfo" ]
 [#assign UNITLIST_ENTRANCE_TYPE          = "unitlist" ]

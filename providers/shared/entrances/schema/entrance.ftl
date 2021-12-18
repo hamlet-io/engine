@@ -3,11 +3,16 @@
 [#-- Entrance logic --]
 [#macro shared_entrance_schema ]
 
-  [@generateOutput
-    deploymentFramework=getCLODeploymentFramework()
-    type=getCLODeploymentOutputType()
-    format=getCLODeploymentOutputFormat()
-  /]
+    [@includeAllComponentDefinitionConfiguration
+        SHARED_PROVIDER
+        getLoaderProviders()
+    /]
+
+    [@generateOutput
+        deploymentFramework=getCLODeploymentFramework()
+        type=getCLODeploymentOutputType()
+        format=getCLODeploymentOutputFormat()
+    /]
 
 [/#macro]
 
@@ -44,7 +49,8 @@
                 },
                 "View" : {
                     "Name" : SCHEMA_VIEW_TYPE
-                }
+                },
+                "Schema" : (Schema)!".*"
             }
         )
     ]

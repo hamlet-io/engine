@@ -1,7 +1,7 @@
 [#ftl]
 
 [#-- Entrance logic --]
-[#macro shared_entrance_schemaset ]
+[#macro shared_entrance_schemalist ]
 
     [@generateOutput
       deploymentFramework=getCLODeploymentFramework()
@@ -12,22 +12,22 @@
 [/#macro]
 
 [#-- Add seeder for command line options --]
-[#macro shared_entrance_schemaset_inputsteps ]
+[#macro shared_entrance_schemalist_inputsteps ]
 
     [@registerInputSeeder
-        id=SCHEMASET_ENTRANCE_TYPE
+        id=SCHEMALIST_ENTRANCE_TYPE
         description="Entrance"
     /]
 
     [@addSeederToConfigPipeline
         stage=COMMANDLINEOPTIONS_SHARED_INPUT_STAGE
-        seeder=SCHEMASET_ENTRANCE_TYPE
+        seeder=SCHEMALIST_ENTRANCE_TYPE
     /]
 
 [/#macro]
 
 [#-- Set the required flow/view --]
-[#function schemaset_configseeder_commandlineoptions filter state]
+[#function schemalist_configseeder_commandlineoptions filter state]
 
     [#return
         addToConfigPipelineClass(
@@ -43,7 +43,7 @@
                     "Names" : [ "views" ]
                 },
                 "View" : {
-                    "Name" : SCHEMASET_VIEW_TYPE
+                    "Name" : SCHEMALIST_VIEW_TYPE
                 }
             }
         )
