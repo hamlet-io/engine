@@ -57,6 +57,10 @@
     [#return configurationScopes]
 [/#function]
 
+[#function getConfigurationScopeIds ]
+    [#return getConfigurationScopes()?keys]
+[/#function]
+
 [#function getConfigurationSet scopeId setId]
     [#local configurationScope = getConfigurationScope(scopeId)]
     [#return configurationScope?has_content?then(
