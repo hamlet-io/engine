@@ -688,6 +688,20 @@
                 )]
             [#break]
 
+        [#case "schema" ]
+            [#local filename_parts =
+                mergeObjects(
+                    filename_parts,
+                    {
+                        "deployment_group_prefix" : "",
+                        "deployment_unit_prefix" : "",
+                        "account_prefix" : "",
+                        "region_prefix" :  "",
+                        "entrance_prefix" : ""
+                    }
+                )]
+            [#break]
+
         [#default]
             [#local filename_parts =
                 mergeObjects(
