@@ -4,6 +4,16 @@
 -- Public functions for component processing --
 -----------------------------------------------]
 
+[#-- Configuration Sets not yet implemented --]
+[#-- Placeholder for schema generation --]
+[#assign COMPONENT_CONFIGURATION_SCOPE = "Component" ]
+
+[@addConfigurationScope
+    id=BLUEPRINT_CONFIGURATION_SCOPE
+    description="Defines the functionality required in your solution"
+/]
+
+
 [#-- Component configuration is extended dynamically by each component type --]
 [#assign componentConfiguration = {} ]
 [#assign deploymentState = {} ]
