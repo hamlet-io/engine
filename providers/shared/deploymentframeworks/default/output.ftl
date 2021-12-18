@@ -439,7 +439,7 @@
 [#-- GenerationContract --]
 
 [#-- Generation Contracts create a contract document which outlines what documents need to be generated --]
-[#macro addDefaultGenerationContract subsets=[] alternatives=["primary"] converters=[] templateSubset="" ]
+[#macro addDefaultGenerationContract subsets=[] alternatives=["primary"] converters=[] templateSubset="" contractCleanup=true ]
 
     [#local subsets = asArray( subsets ) ]
     [#local alternatives = asArray(alternatives) ]
@@ -579,24 +579,26 @@
         [/#if]
     [/#list]
 
-    [#-- Cleanup stages --]
-    [#local cleanUpStageId="cleanup" ]
-    [@contractStage
-        id=cleanUpStageId
-        executionMode=CONTRACT_EXECUTION_MODE_SERIAL
-        priority=100
-    /]
+    [#if contractCleanup]
 
-    [@contractStep
-        id=formatId(cleanUpStageId, "generationcontract")
-        stageId=cleanUpStageId
-        taskType=RENAME_FILE_TASK_TYPE
-        parameters={
-            "currentFileName" : getCommandLineOptions().Output.FileName,
-            "newFileName" : getOutputFileName("generationcontract", "primary", "")
-        }
-    /]
+        [#-- Cleanup stages --]
+        [#local cleanUpStageId="cleanup" ]
+        [@contractStage
+            id=cleanUpStageId
+            executionMode=CONTRACT_EXECUTION_MODE_SERIAL
+            priority=100
+        /]
 
+        [@contractStep
+            id=formatId(cleanUpStageId, "generationcontract")
+            stageId=cleanUpStageId
+            taskType=RENAME_FILE_TASK_TYPE
+            parameters={
+                "currentFileName" : getCommandLineOptions().Output.FileName,
+                "newFileName" : getOutputFileName("generationcontract", "primary", "")
+            }
+        /]
+    [/#if]
 [/#macro]
 
 [#-- Occurrence State --]
