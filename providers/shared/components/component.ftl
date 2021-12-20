@@ -305,14 +305,16 @@
 
 [#assign lbChildConfiguration = [
         {
+            "Names" : "LinkRef",
+            "Types" : STRING_TYPE
+        },
+        {
             "Names" : "Tier",
-            "Types" : STRING_TYPE,
-            "Mandatory" : true
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "Component",
-            "Types" : STRING_TYPE,
-            "Mandatory" : true
+            "Types" : STRING_TYPE
         },
         {
             "Names" : "LinkName",

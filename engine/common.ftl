@@ -859,11 +859,12 @@
 
 [#function getLBLink occurrence port ]
 
-    [#assign core = occurrence.Core]
-    [#assign targetTierId = (port.LB.Tier) ]
-    [#assign targetComponentId = (port.LB.Component) ]
-    [#assign targetLinkName = formatName(port.LB.LinkName) ]
-    [#assign portMapping = contentIfContent(port.LB.PortMapping, port.Name)]
+    [#local core = occurrence.Core]
+    [#local lb = port.LB]
+    [#local targetTierId = (lb.Tier)!"" ]
+    [#local targetComponentId = (lb.Component)!"" ]
+    [#local targetLinkName = formatName(lb.LinkName) ]
+    [#local portMapping = contentIfContent(lb.PortMapping, port.Name)]
 
     [#-- Need to be careful to allow an empty value for --]
     [#-- Instance/Version to be explicitly provided and --]
@@ -879,12 +880,42 @@
             "Name" : targetLinkName,
             "Tier" : targetTierId,
             "Component" : targetComponentId,
-            "Enabled" : (port.LB.Enabled)!true
+            "Enabled" : (lb.Enabled)!true
         } +
-        attributeIfTrue("Instance", port.LB.Instance??, port.LB.Instance!"") +
-        attributeIfTrue("Version",  port.LB.Version??, port.LB.Version!"") +
+        attributeIfTrue("Instance", lb.Instance??, lb.Instance!"") +
+        attributeIfTrue("Version",  lb.Version??, lb.Version!"") +
         attributeIfContent("SubComponent",  portMapping)
     ]
+
+    [#local resolvedLink = {} ]
+    [#if lb.LinkRef?has_content]
+        [#local resolvedLink =
+            mergeObjects(
+                (getBlueprint().LinkRefs[lb.LinkRef])!{},
+                getActiveLayerAttributes( ["LinkRefs", lb.LinkRef], [ SOLUTION_LAYER_TYPE, PRODUCT_LAYER_TYPE, TENANT_LAYER_TYPE ] )
+            )
+        ]
+        [#if ! resolvedLink?has_content]
+            [@warning
+                message="Unable to resolve linkRef " + lb.LinkRef
+                context=
+                    mergeObjects(
+                        (getBlueprint().LinkRefs)!{},
+                        getActiveLayerAttributes( ["LinkRefs"], [ SOLUTION_LAYER_TYPE, PRODUCT_LAYER_TYPE, TENANT_LAYER_TYPE ] )
+                    )
+                detail=link
+            /]
+        [/#if]
+    [/#if]
+
+    [#local
+        targetLink =
+            mergeObjects(
+            targetLink,
+            resolvedLink
+        )
+    ]
+
     [@debug message=targetLinkName context=targetLink enabled=false /]
 
     [#return { targetLinkName : targetLink } ]
