@@ -155,7 +155,7 @@
         "DefaultComponentVariables" : true,
         "DefaultEnvironmentVariables" : true
     }]
-    [#assign _context = mergeObjects(_context, occurrenceContext )]
+    [#assign _context = mergeObjects(occurrenceContext, _context )]
 
     [#-- Sets the occurrence we use to determine the extension id base --]
     [#local baseOccurrence = valueIfContent(
