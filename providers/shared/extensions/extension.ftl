@@ -126,7 +126,8 @@
         zipFile=""
         codeHash=""
         versionDependencies=[]
-        createVersionInExtension=false ]
+        createVersionInExtension=false
+        layers=[] ]
 
     [#assign _context += {
         "CreateVersionInExtension" : createVersionInExtension
@@ -156,6 +157,12 @@
     [#if zipFile?has_content ]
         [#assign _context += {
             "ZipFile" : combineEntities((_context.ZipFile)![], asArray(zipFile), APPEND_COMBINE_BEHAVIOUR)
+        }]
+    [/#if]
+
+    [#if layers?has_content ]
+        [#assign _context += {
+            "Layers" : combineEntities((_context.Layers)![], asArray(layers), APPEND_COMBINE_BEHAVIOUR)
         }]
     [/#if]
 [/#macro]
