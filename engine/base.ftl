@@ -1258,6 +1258,11 @@ are added.
     [#if normalisedAttributes?has_content]
         [#list normalisedAttributes as attribute]
 
+            [#-- Ignore any inhibit enabled marker --]
+            [#if ! attribute?is_hash]
+                [#continue]
+            [/#if]
+
             [#local populateMissingChildren = attribute.PopulateMissingChildren ]
 
             [#-- TODO(mfl) Should all name alternatives be processed? Doing so would represent a change in behaviour --]
@@ -1668,25 +1673,32 @@ are added.
     [#local explicitEnabled = false]
     [#if attributes?has_content]
         [#list asFlattenedArray(attributes) as attribute]
-            [#local normalisedAttribute =
-                {
-                    "Names" : asArray(attribute),
-                    "Types" : [ANY_TYPE],
-                    "Mandatory" : false,
-                    "DefaultBehaviour" : "ignore",
-                    "DefaultProvided" : false,
-                    "Default" : "",
-                    "Values" : [],
-                    "Children" : [],
-                    "SubObjects" : false,
-                    "PopulateMissingChildren" : true,
-                    "AttributeSet" : "",
-                    "Component" : "",
-                    "Description" : ""
-                } ]
-            [#if normalisedAttribute.Names?seq_contains("InhibitEnabled") ]
-                [#local inhibitEnabled = true ]
+            [#local names = [] ]
+            [#if attribute?is_string]
+                [#if attribute == "InhibitEnabled" ]
+                    [#local inhibitEnabled = true ]
+                    [#continue]
+                [/#if]
+
+                [#-- Defaults if only the attribute name is provided --]
+                [#local normalisedAttribute =
+                    {
+                        "Names" : [attribute],
+                        "Types" : [ANY_TYPE],
+                        "Mandatory" : false,
+                        "DefaultBehaviour" : "ignore",
+                        "DefaultProvided" : false,
+                        "Values" : [],
+                        "Children" : [],
+                        "SubObjects" : false,
+                        "PopulateMissingChildren" : true,
+                        "AttributeSet" : "",
+                        "Component" : "",
+                        "Description" : ""
+                    }
+                ]
             [/#if]
+
             [#if attribute?is_hash ]
                 [#local names = attribute.Names!"Hamlet:Missing" ]
                 [#if (names?is_string) && (names == "Hamlet:Missing") ]
@@ -1702,7 +1714,6 @@ are added.
                         "Mandatory" : attribute.Mandatory!false,
                         "DefaultBehaviour" : attribute.DefaultBehaviour!"ignore",
                         "DefaultProvided" : attribute.Default??,
-                        "Default" : attribute.Default!"",
                         "Values" : asArray(attribute.Values![]),
                         "Children" : normaliseCompositeConfiguration(
                             asArray(attribute.Children![])
@@ -1712,7 +1723,13 @@ are added.
                         "AttributeSet" : attribute.AttributeSet!"",
                         "Component" : attribute.Component!"",
                         "Description" : attribute.Description!""
-                    } ]
+                    } +
+                    attributeIfTrue(
+                        "Default",
+                        attribute.Default??,
+                        attribute.Default!""
+                    )
+                ]
             [/#if]
             [#local normalisedAttributes += [normalisedAttribute] ]
             [#local explicitEnabled = explicitEnabled || normalisedAttribute.Names?seq_contains("Enabled") ]
@@ -1741,7 +1758,7 @@ are added.
         [/#if]
     [/#if]
 
-    [#return normalisedAttributes ]
+    [#return normalisedAttributes + arrayIfTrue("InhibitEnabled", inhibitEnabled) ]
 [/#function]
 
 [#macro validateCompositeObject attributes=[] objects=[] ]
