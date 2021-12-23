@@ -106,6 +106,10 @@
 
     [#list asFlattenedArray(attributes) as attribute]
 
+        [#if ! attribute?is_hash ]
+            [#continue]
+        [/#if]
+
         [#local properties = {}]
 
         [#-- Required Properties --]
