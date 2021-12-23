@@ -291,6 +291,22 @@
                             ]
                         },
                         {
+                            "Names" : "lambda_jar",
+                            "Children" : [
+                                {
+                                    "Names" : "Enabled",
+                                    "Type" : BOOLEAN_TYPE,
+                                    "Default" : true
+                                },
+                                {
+                                    "Names" : "Storage",
+                                    "Description" : "How the images are stored",
+                                    "Values" : [ "objectstore" ],
+                                    "Default" : "objectstore"
+                                }
+                            ]
+                        },
+                        {
                             "Names" : "pipeline",
                             "Children" : [
                                 {
