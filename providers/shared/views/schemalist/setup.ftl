@@ -6,13 +6,7 @@
 
 [#macro shared_view_default_schemalist_schemacontract ]
 
-    [#local sections = [
-        "layer",
-        "component",
-        "reference",
-        "attributeset",
-        "module"
-    ]]
+    [#local sections = getConfigurationScopeIds()]
 
     [#local stageId = "SchemaList"]
 
