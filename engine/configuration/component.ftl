@@ -9,7 +9,7 @@
 [#assign COMPONENT_CONFIGURATION_SCOPE = "Component" ]
 
 [@addConfigurationScope
-    id=BLUEPRINT_CONFIGURATION_SCOPE
+    id=COMPONENT_CONFIGURATION_SCOPE
     description="Defines the functionality required in your solution"
 /]
 
