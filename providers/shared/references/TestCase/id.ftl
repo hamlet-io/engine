@@ -110,6 +110,11 @@
                     "Description" : "Run cfn-lint on the file - https://github.com/aws-cloudformation/cfn-lint",
                     "Children" : [
                         {
+                            "Names": "Enabled",
+                            "Type": BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
                             "Names" : "IgnoreChecks",
                             "Description" : "A list of checks to ignore in cfn-lint",
                             "Type" : ARRAY_OF_STRING_TYPE,
@@ -121,6 +126,11 @@
                     "Names" : "checkov",
                     "Description" : "Run checkov on the file - https://github.com/bridgecrewio/checkov",
                     "Children" : [
+                        {
+                            "Names": "Enabled",
+                            "Type": BOOLEAN_TYPE,
+                            "Default" : true
+                        },
                         {
                             "Names" : "Framework",
                             "Description" : "The framework of the file to run testing against",

@@ -55,7 +55,7 @@ To run the test suite locally install the hamlet cli and use the provider testin
 pip install hamlet
 
 # run the tests
-hamlet -i mock -p shared -p sharedtest -f default deploy run-deployments -o /tmp/results_dir
+hamlet -i mock -p shared -p sharedtest -f default deploy test-deployments -o /tmp/results_dir
 ```
 
 This will run all of the tests and provide you the results. We also run this on all Pull requests made to the repository
