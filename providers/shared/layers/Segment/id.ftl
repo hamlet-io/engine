@@ -155,6 +155,11 @@
                     "Names" : "CIDR",
                     "Children" : [
                         {
+                            "Names" : "Enabled",
+                            "Types" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
                             "Names" : "Address",
                             "Types" : STRING_TYPE,
                             "Default" : ""

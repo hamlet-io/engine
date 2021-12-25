@@ -111,6 +111,11 @@ object.
                 "Names" : "CloudFront",
                 "Children" : [
                     {
+                        "Names" : "Enabled",
+                        "Types" : BOOLEAN_TYPE,
+                        "Default" : true
+                    },
+                    {
                         "Names" : "AssumeSNI",
                         "Types" : BOOLEAN_TYPE,
                         "Default" : true
@@ -203,6 +208,11 @@ object.
                 "Description" : "Deprecated - Please switch to the publishers configuration",
                 "Children" : [
                     {
+                        "Names" : "Enabled",
+                        "Types" : BOOLEAN_TYPE,
+                        "Default" : true
+                    },
+                    {
                         "Names" : "DnsNamePrefix",
                         "Types" : STRING_TYPE,
                         "Default" : "docs"
@@ -243,6 +253,11 @@ object.
             {
                 "Names" : "Mapping",
                 "Children" : [
+                    {
+                        "Names" : "Enabled",
+                        "Types" : BOOLEAN_TYPE,
+                        "Default" : true
+                    }
                     {
                         "Names" : "IncludeStage",
                         "Types" : BOOLEAN_TYPE,

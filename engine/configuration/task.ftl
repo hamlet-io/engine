@@ -16,10 +16,7 @@
         scopeId=TASK_CONFIGURATION_SCOPE
         id=type
         properties=properties
-        attributes=attributes?seq_contains("InhibitEnabled")?then(
-            attributes,
-            combineEntities(asArray(attributes), [ "InhibitEnabled"], APPEND_COMBINE_BEHAVIOUR)
-        )
+        attributes=attributes
     /]
 [/#macro]
 

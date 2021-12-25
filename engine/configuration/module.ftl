@@ -23,10 +23,7 @@
         configuration={
             "Provider" : provider
         }
-        attributes=properties?seq_contains("InhibitEnabled")?then(
-            properties,
-            combineEntities(asArray(properties), [ "InhibitEnabled"], APPEND_COMBINE_BEHAVIOUR)
-        )
+        attributes=properties
     /]
 [/#macro]
 

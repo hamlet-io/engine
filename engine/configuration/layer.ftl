@@ -13,11 +13,6 @@
 [#-- contains common or reference attribute values for the layer --]
 [#macro addLayer type referenceLookupType properties attributes inputFilterAttributes=[] ]
 
-    [#local attributes = attributes?seq_contains("InhibitEnabled")?then(
-            attributes,
-            combineEntities(asArray(attributes), [ "InhibitEnabled"], APPEND_COMBINE_BEHAVIOUR)
-        )]
-
     [#local configuration =
         {
             "Type" : type,

@@ -190,6 +190,11 @@
 
     [#local attributes = [
         {
+            "Names" : "Enabled",
+            "Types" : BOOLEAN_TYPE,
+            "Default" : true
+        },
+        {
             "Names" : "Export",
             "Types" : BOOLEAN_TYPE,
             "Default" : false

@@ -765,7 +765,7 @@ already prefixed attribute.
         [/#if]
     [/#list]
 
-    [#return asFlattenedSettings(getCompositeObject(["InhibitEnabled", { "Names" : "*" }], contexts)) ]
+    [#return asFlattenedSettings(getCompositeObject([{ "Names" : "*" }], contexts)) ]
 [/#function]
 
 [#function internalGetOccurrenceSetting occurrence names emptyIfNotProvided=false]

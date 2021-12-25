@@ -1258,11 +1258,6 @@ are added.
     [#if normalisedAttributes?has_content]
         [#list normalisedAttributes as attribute]
 
-            [#-- Ignore any inhibit enabled marker --]
-            [#if ! attribute?is_hash]
-                [#continue]
-            [/#if]
-
             [#local populateMissingChildren = attribute.PopulateMissingChildren ]
 
             [#-- TODO(mfl) Should all name alternatives be processed? Doing so would represent a change in behaviour --]
@@ -1669,96 +1664,56 @@ are added.
 [#function normaliseCompositeConfiguration attributes ]
     [#-- Normalise attributes --]
     [#local normalisedAttributes = [] ]
-    [#local inhibitEnabled = false]
-    [#local explicitEnabled = false]
+
     [#if attributes?has_content]
         [#list asFlattenedArray(attributes) as attribute]
             [#local names = [] ]
-            [#if attribute?is_string]
-                [#if attribute == "InhibitEnabled" ]
-                    [#local inhibitEnabled = true ]
-                    [#continue]
-                [/#if]
 
-                [#-- Defaults if only the attribute name is provided --]
-                [#local normalisedAttribute =
-                    {
-                        "Names" : [attribute],
-                        "Types" : [ANY_TYPE],
-                        "Mandatory" : false,
-                        "DefaultBehaviour" : "ignore",
-                        "DefaultProvided" : false,
-                        "Values" : [],
-                        "Children" : [],
-                        "SubObjects" : false,
-                        "PopulateMissingChildren" : true,
-                        "AttributeSet" : "",
-                        "Component" : "",
-                        "Description" : ""
-                    }
-                ]
+            [#if ! attribute?is_hash]
+                [@warn
+                    message="Only object based attribute configurations are supported. Attribute will be ignored."
+                    context=attributes
+                    detail=attribute
+                /]
+                [#continue]
             [/#if]
 
-            [#if attribute?is_hash ]
-                [#local names = attribute.Names!"Hamlet:Missing" ]
-                [#if (names?is_string) && (names == "Hamlet:Missing") ]
-                    [@fatal
-                        message="Attribute must have a \"Names\" attribute"
-                        context=attribute
-                    /]
-                [/#if]
-                [#local normalisedAttribute =
-                    {
-                        "Names" : asArray(names),
-                        "Types" : asArray(attribute.Types!attribute.Type!ANY_TYPE),
-                        "Mandatory" : attribute.Mandatory!false,
-                        "DefaultBehaviour" : attribute.DefaultBehaviour!"ignore",
-                        "DefaultProvided" : attribute.Default??,
-                        "Values" : asArray(attribute.Values![]),
-                        "Children" : normaliseCompositeConfiguration(
-                            asArray(attribute.Children![])
-                        ),
-                        "SubObjects" : attribute.SubObjects!attribute.Subobjects!false,
-                        "PopulateMissingChildren" : attribute.PopulateMissingChildren!true,
-                        "AttributeSet" : attribute.AttributeSet!"",
-                        "Component" : attribute.Component!"",
-                        "Description" : attribute.Description!""
-                    } +
-                    attributeIfTrue(
-                        "Default",
-                        attribute.Default??,
-                        attribute.Default!""
-                    )
-                ]
+            [#local names = attribute.Names!"Hamlet:Missing" ]
+            [#if (names?is_string) && (names == "Hamlet:Missing") ]
+                [@fatal
+                    message="Attribute must have a \"Names\" attribute"
+                    context=attribute
+                /]
             [/#if]
+            [#local normalisedAttribute =
+                {
+                    "Names" : asArray(names),
+                    "Types" : asArray(attribute.Types!attribute.Type!ANY_TYPE),
+                    "Mandatory" : attribute.Mandatory!false,
+                    "DefaultBehaviour" : attribute.DefaultBehaviour!"ignore",
+                    "DefaultProvided" : attribute.Default??,
+                    "Values" : asArray(attribute.Values![]),
+                    "Children" : normaliseCompositeConfiguration(
+                        asArray(attribute.Children![])
+                    ),
+                    "SubObjects" : attribute.SubObjects!attribute.Subobjects!false,
+                    "PopulateMissingChildren" : attribute.PopulateMissingChildren!true,
+                    "AttributeSet" : attribute.AttributeSet!"",
+                    "Component" : attribute.Component!"",
+                    "Description" : attribute.Description!""
+                } +
+                attributeIfTrue(
+                    "Default",
+                    attribute.Default??,
+                    attribute.Default!""
+                )
+            ]
+
             [#local normalisedAttributes += [normalisedAttribute] ]
-            [#local explicitEnabled = explicitEnabled || normalisedAttribute.Names?seq_contains("Enabled") ]
         [/#list]
-        [#if (!explicitEnabled) && (!inhibitEnabled) ]
-            [#-- Put "Enabled" first to ensure it is processed in case a name of "*" is used --]
-            [#local normalisedAttributes =
-                [
-                    {
-                        "Names" : ["Enabled"],
-                        "Types" : [BOOLEAN_TYPE],
-                        "Mandatory" : false,
-                        "DefaultBehaviour" : "ignore",
-                        "DefaultProvided" : true,
-                        "Default" : true,
-                        "Values" : [],
-                        "Children" : [],
-                        "SubObjects" : false,
-                        "PopulateMissingChildren" : true,
-                        "AttributeSet" : "",
-                        "Component" : "",
-                        "Description" : ""
-                    }
-                ] +
-                normalisedAttributes ]
-        [/#if]
     [/#if]
 
-    [#return normalisedAttributes + arrayIfTrue("InhibitEnabled", inhibitEnabled) ]
+    [#return normalisedAttributes ]
 [/#function]
 
 [#macro validateCompositeObject attributes=[] objects=[] ]
@@ -1909,9 +1864,23 @@ are added.
     [#return combineEntities(frameworkObjectAttributes, result, ADD_COMBINE_BEHAVIOUR)]
 [/#function]
 
-[#-- Check if a configuration item with children is present --]
+[#-- Check if a configuration item with children is present        --]
 [#function isPresent configuration={} ]
-    [#return (configuration.Configured!false) && (configuration.Enabled!false) ]
+    [#if ! configuration.Configured?? ]
+        [@fatal
+            message="internal error - isPresent() should only be called where child population has been configured"
+            context=.caller_template_name
+        /]
+        [#return false]
+    [/#if]
+    [#if ! configuration.Enabled?? ]
+        [@fatal
+            message="internal error - isPresent() should only be called where an Enabled attribute has been configured"
+            context=.caller_template_name
+        /]
+        [#return false]
+    [/#if]
+    [#return (configuration.Configured) && (configuration.Enabled) ]
 [/#function]
 
 [#function getObjectLineage collection end ]
@@ -2856,7 +2825,7 @@ expression format provided by the long form.
 --]
 
 [#function getQualifierChildren filterAttributes=[] ]
-    [#local filterChildren = ["InhibitEnabled"] ]
+    [#local filterChildren = [] ]
     [#list filterAttributes as filterAttribute]
         [#local filterChildren +=
             [

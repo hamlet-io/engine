@@ -241,6 +241,11 @@
                 "Description" : "When the rule matches send a redirect response to the client",
                 "Children" : [
                     {
+                        "Names" : "Enabled",
+                        "Types" : BOOLEAN_TYPE,
+                        "Default" : true
+                    },
+                    {
                         "Names" : "Protocol",
                         "Types" : STRING_TYPE,
                         "Values" : ["HTTPS", "#\{protocol}" ],
@@ -277,6 +282,11 @@
                 "Names" : "Fixed",
                 "Description" : "When the rule is matched send a fixed http response to the client",
                 "Children" : [
+                    {
+                        "Names" : "Enabled",
+                        "Types" : BOOLEAN_TYPE,
+                        "Default" : true
+                    },
                     {
                         "Names" : "Message",
                         "Types" : STRING_TYPE,
