@@ -821,8 +821,11 @@ already prefixed attribute.
             alternatives) ]
 [/#function]
 
-[#function internalCreateOccurrenceBuildSettings occurrence]
-    [#local namespaces = occurrence.Configuration.SettingNamespaces ]
+[#function internalCreateOccurrenceBuildSettings occurrence namespaces={} ]
+    [#if ! namespaces?has_content ]
+        [#local namespaces = occurrence.Configuration.SettingNamespaces ]
+    [/#if]
+
     [#local deploymentUnit = getOccurrenceDeploymentUnit(occurrence) ]
 
     [#local occurrenceBuild =
