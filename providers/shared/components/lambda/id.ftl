@@ -105,6 +105,11 @@
                 "SubObjects" : true,
                 "Children" : [
                     {
+                        "Names" : "Enabled",
+                        "Type" : BOOLEAN_TYPE,
+                        "Default" : true
+                    },
+                    {
                         "Names" : "Expression",
                         "Types" : STRING_TYPE,
                         "Default" : "rate(6 minutes)"
@@ -173,6 +178,11 @@
             {
                 "Names" : "FixedCodeVersion",
                 "Children" : [
+                    {
+                        "Names" : "Enabled",
+                        "Types" : BOOLEAN_TYPE,
+                        "Default" : true
+                    },
                     {
                         "Names" : "NewVersionOnDeploy",
                         "Types" : BOOLEAN_TYPE,

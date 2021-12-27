@@ -67,7 +67,6 @@
 [#macro addExtension id description supportedTypes aliases=[] entrances=["deployment"] scopes=[ SETUP_EXTENSION_SCOPE ] provider=SHARED_PROVIDER ]
 
     [#local extensionConfiguration = [
-        "InhibitEnabled",
         {
             "Names" : "Id",
             "Type" : STRING_TYPE

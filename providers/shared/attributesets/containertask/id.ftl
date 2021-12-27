@@ -82,7 +82,10 @@
             "Names" : "Ports",
             "SubObjects" : true,
             "Children" : [
-                "Container",
+                {
+                    "Names": "Container",
+                    "Types": STRING_TYPE
+                },
                 {
                     "Names" : "DynamicHostPort",
                     "Types" : BOOLEAN_TYPE,

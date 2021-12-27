@@ -223,6 +223,11 @@
             "Names" : "Stepped",
             "Children" : [
                 {
+                    "Names" : "Enabled",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : true
+                },
+                {
                     "Names" : "MetricAggregation",
                     "Description" : "The method used to agregate the cloudwatch metric",
                     "Types" : STRING_TYPE,
@@ -271,6 +276,11 @@
             "Names" : "Tracked",
             "Children" : [
                 {
+                    "Names" : "Enabled",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : true
+                },
+                {
                     "Names" : "TargetValue",
                     "Types" : NUMBER_TYPE
                 },
@@ -289,6 +299,11 @@
         {
             "Names" : "Scheduled",
             "Children" : [
+                {
+                    "Names" : "Enabled",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : true
+                },
                 {
                     "Names" : "ProcessorProfile",
                     "Types" : STRING_TYPE,
@@ -369,6 +384,11 @@
 ]
 
 [#assign wafChildConfiguration = [
+        {
+            "Names" : "Enabled",
+            "Types" : BOOLEAN_TYPE,
+            "Default" : true
+        },
         {
             "Names" : "Version",
             "Description" : "Version of WAF to use",
@@ -513,6 +533,7 @@
     }
 ]]
 
+[#-- SHOULDN'T have Enabled attribute --]
 [#assign domainChildConfiguration = [
     {
         "Names" : "Name",
@@ -538,8 +559,7 @@
         "Names" : "Role",
         "Types" : STRING_TYPE,
         "Values" : [DOMAIN_ROLE_PRIMARY, DOMAIN_ROLE_SECONDARY]
-    },
-    "InhibitEnabled"
+    }
 ]]
 
 [#assign domainNameChildConfiguration = [
@@ -616,6 +636,13 @@
 ]]
 
 [#assign certificateChildConfiguration =
+    [
+        {
+            "Names" : "Enabled",
+            "Types" : BOOLEAN_TYPE,
+            "Default" : true
+        }
+    ] +
     domainNameChildConfiguration +
     hostNameChildConfiguration +
     [
@@ -1337,6 +1364,11 @@
         "SubObjects" : true,
         "Children" : [
             {
+                "Names" : "Enabled",
+                "Types" : BOOLEAN_TYPE,
+                "Default" : true
+            },
+            {
                 "Names" : "Expression",
                 "Types" : STRING_TYPE,
                 "Default" : "rate(1 hours)"
@@ -1416,6 +1448,11 @@
 
 [#assign tracingChildConfiguration =
     [
+        {
+            "Names" : "Enabled",
+            "Type" : BOOLEAN_TYPE,
+            "Default" : true
+        },
         {
             "Names" : "Mode",
             "Types" : STRING_TYPE,

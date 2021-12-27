@@ -83,7 +83,6 @@
                         filter,
                         blueprint,
                         [
-                            "InhibitEnabled",
                             {
                                 "Names" : "Id",
                                 "Types" : STRING_TYPE

@@ -36,6 +36,11 @@
                 "Description" : "Enables a dead letter queue for messages which reach a specified retry count",
                 "Children" : [
                     {
+                        "Names" : "Enabled",
+                        "Types" : BOOLEAN_TYPE,
+                        "Default" : true
+                    },
+                    {
                         "Names" : "MaxReceives",
                         "Description" : "The maximum number of times a single message can be put back on the queue",
                         "Types" : NUMBER_TYPE,

@@ -85,6 +85,11 @@
             "Names" : "PortRange",
             "Children" : [
                 {
+                    "Names" : "Enabled",
+                    "Types" : BOOLEAN_TYPE,
+                    "Default" : true
+                },
+                {
                     "Names" : "From",
                     "Types" : NUMBER_TYPE
                 },

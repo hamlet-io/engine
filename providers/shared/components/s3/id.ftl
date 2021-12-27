@@ -25,6 +25,11 @@
                 "Names" : "Lifecycle",
                 "Children" : [
                     {
+                        "Names" : "Enabled",
+                        "Types" : BOOLEAN_TYPE,
+                        "Default" : true
+                    },
+                    {
                         "Names" : "Expiration",
                         "Types" : [STRING_TYPE, NUMBER_TYPE],
                         "Description" : "Provide either a date or a number of days"
@@ -51,6 +56,11 @@
             {
                 "Names" : "Website",
                 "Children" : [
+                    {
+                        "Names" : "Enabled",
+                        "Types" : BOOLEAN_TYPE,
+                        "Default" : true
+                    },
                     {
                         "Names": "Index",
                         "Types" : STRING_TYPE,
