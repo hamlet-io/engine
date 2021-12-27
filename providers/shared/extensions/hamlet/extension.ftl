@@ -33,7 +33,9 @@
 
     [#local dockerStageDir = settings["DOCKER_STAGE_DIR"]!"/tmp/docker-build" ]
 
-    [@Attributes image=jenkinsAgentImage /]
+    [#if ((_context.Container.Image.Source)!"") != "containerregistry" ]
+        [@Attributes image=jenkinsAgentImage /]
+    [/#if]
 
     [@DefaultLinkVariables          enabled=false /]
     [@DefaultCoreVariables          enabled=false /]

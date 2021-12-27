@@ -35,10 +35,12 @@
     [#local dockerLibSize = defaultEnv["DOCKER_LIB_VOLUME_SIZE"]!"20"         ]
     [#local dindTLSVerify = defaultEnv["DIND_DOCKER_TLS_VERIFY"]!"true"      ]
 
-    [@Attributes
-        image="docker"
-        version="dind"
-    /]
+    [#if ((_context.Container.Image.Source)!"") != "containerregistry" ]
+        [@Attributes
+            image="docker"
+            version="dind"
+        /]
+    [/#if]
 
     [#if dindTLSVerify?boolean ]
         [@Settings
@@ -52,6 +54,8 @@
             containerPath="/docker/certs/client"
         /]
     [/#if]
+
+    [@Settings ["BUILD_REFERENCE"] /]
 
     [@Volume
         name="dockerStage"
