@@ -690,6 +690,16 @@ already prefixed attribute.
     [#return namespaces]
 [/#function]
 
+[#function getAdditionalBuildSettings namespaces ]
+    [#return internalCreateOccurrenceBuildSettings(
+        {
+            "Configuration" : {
+                "SettingNamespaces" : asFlattenedArray(namespaces)
+            }
+        }
+    )]
+[/#function]
+
 [#--------------------------------------------------------
 -- Internal support functions for occurrence processing --
 ----------------------------------------------------------]
@@ -821,11 +831,8 @@ already prefixed attribute.
             alternatives) ]
 [/#function]
 
-[#function internalCreateOccurrenceBuildSettings occurrence namespaces={} ]
-    [#if ! namespaces?has_content ]
-        [#local namespaces = occurrence.Configuration.SettingNamespaces ]
-    [/#if]
-
+[#function internalCreateOccurrenceBuildSettings occurrence ]
+    [#local namespaces = occurrence.Configuration.SettingNamespaces ]
     [#local deploymentUnit = getOccurrenceDeploymentUnit(occurrence) ]
 
     [#local occurrenceBuild =
