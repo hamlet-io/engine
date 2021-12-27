@@ -1175,6 +1175,7 @@
         environment
         segment
         occurrence
+        containerId
         sourceImage
         imageFormat
         registryHost
@@ -1182,7 +1183,7 @@
         region=""
     ]
 
-    [#local buildUnit = getOccurrenceBuildUnit(occurrence) ]
+    [#local settingNamespace = formatName(occurrence.Core.RawName, containerId)]
 
     [#return
         [
@@ -1193,7 +1194,7 @@
             r'   "' + product + r'" ' +
             r'   "' + environment + r'" ' +
             r'   "' + segment + r'" ' +
-            r'   "' + buildUnit + r'" ' +
+            r'   "' + settingNamespace + r'" ' +
             r'   "' + registryHost + r'" ' +
             r'   "' + registryProvider + r'" ' +
             r'   "' + region + r'" || exit $? ',

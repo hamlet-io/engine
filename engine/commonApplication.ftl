@@ -279,7 +279,7 @@
 
     [#local containers = [] ]
 
-    [#list solution.Containers?values as container]
+    [#list solution.Containers as containerId, container]
         [#local containerPortMappings = [] ]
         [#local containerLinks = mergeObjects( solution.Links, container.Links) ]
         [#local inboundPorts = []]
@@ -458,6 +458,45 @@
             "Name" : getContainerName(container)
         }]
 
+        [#-- Add in extension specifics including override of defaults --]
+        [#-- Extensions are based on occurrences so we need to create a fake occurrence --]
+
+        [#-- add an extra setting namespace which is used to find the container build refernces when images --]
+        [#-- are manged by a container registry --]
+        [#local containerSettingNamespaces = combineEntities(
+            task.Configuration.SettingNamespaces,
+            [
+                {
+                    "Key" : formatName(task.Core.RawName, containerId)?lower_case,
+                    "Match" : "partial"
+                }
+            ],
+            APPEND_COMBINE_BEHAVIOUR
+        )]
+        [#local containerBuildSettings = getAdditionalBuildSettings(containerSettingNamespaces)]
+
+        [#local containerOccurrence = mergeObjects(
+            task,
+            {
+                "Configuration" : {
+                    "SettingNamespaces" : containerSettingNamespaces
+                }
+            }
+        )]
+        [#local containerOccurrence = mergeObjects(
+            containerOccurrence,
+            {
+                "Configuration" : {
+                    "Settings" : {
+                        "Build" : containerBuildSettings
+                    },
+                    "Environment" : {
+                        "Build" : getSettingsAsEnvironment(containerBuildSettings)
+                    }
+                }
+            }
+        )]
+
         [#local _context =
             containerDetails +
             {
@@ -477,7 +516,7 @@
                 "Mode" : getContainerMode(container),
                 "LogDriver" : logDriver,
                 "LogOptions" : logOptions,
-                "DefaultEnvironment" : defaultEnvironment(task, contextLinks, baselineLinks),
+                "DefaultEnvironment" : defaultEnvironment(containerOccurrence, contextLinks, baselineLinks),
                 "Environment" :
                     {
                         "APP_RUN_MODE" : getContainerMode(container),
@@ -493,7 +532,8 @@
                 "Policy" : standardPolicies(task, baselineComponentIds),
                 "Privileged" : container.Privileged,
                 "LogMetrics" : container.LogMetrics,
-                "Alerts" : container.Alerts
+                "Alerts" : container.Alerts,
+                "Container" : container
             } +
             attributeIfContent("LogGroup", containerLogGroup) +
             attributeIfContent("ImageVersion", container.Version) +
@@ -627,15 +667,18 @@
 
         [#-- Add in extension specifics including override of defaults --]
         [#-- Extensions are based on occurrences so we need to create a fake occurrence --]
-        [#local containerOccurrence = mergeObjects( task, {
-            "Core" : {
-                "Component" : containerDetails
-            },
-            "Configuration" : {
-                "Solution" : container
+        [#local containerOccurrence = mergeObjects(
+            containerOccurrence,
+            {
+                "Core" : {
+                    "Component" : containerDetails
+                },
+                "Configuration" : {
+                    "Solution" : container
+                }
             }
-        })]
-        [#local _context = invokeExtensions( task, _context, containerOccurrence, [ container.Extensions ] )]
+        )]
+        [#local _context = invokeExtensions(task, _context, containerOccurrence, [ container.Extensions ] )]
         [#local _context += containerDetails ]
         [#local _context += getFinalEnvironment(task, _context) ]
 
