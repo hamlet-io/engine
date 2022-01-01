@@ -689,6 +689,8 @@
             [#break]
 
         [#case "schema" ]
+        [#case "runbook"]
+        [#case "runbookinfo"]
             [#local filename_parts =
                 mergeObjects(
                     filename_parts,
