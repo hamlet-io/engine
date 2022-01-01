@@ -8,6 +8,8 @@
 [#assign DEPLOYMENTTEST_ENTRANCE_TYPE    = "deploymenttest" ]
 [#assign INFO_ENTRANCE_TYPE              = "info" ]
 [#assign LOADER_ENTRANCE_TYPE            = "loader" ]
+[#assign RUNBOOK_ENTRANCE_TYPE           = "runbook" ]
+[#assign RUNBOOKINFO_ENTRANCE_TYPE       = "runbookinfo" ]
 [#assign SCHEMA_ENTRANCE_TYPE            = "schema" ]
 [#assign SCHEMALIST_ENTRANCE_TYPE        = "schemalist" ]
 [#assign OCCURRENCES_ENTRANCE_TYPE       = "occurrences" ]

@@ -669,6 +669,14 @@
 [#-- Add Output Step mappings for each output --]
 [@addGenerationContractStepOutputMapping
     provider=SHARED_PROVIDER
+    subset="contract"
+    outputType=CONTRACT_DEFAULT_OUTPUT_TYPE
+    outputFormat=""
+    outputSuffix="contract.json"
+/]
+
+[@addGenerationContractStepOutputMapping
+    provider=SHARED_PROVIDER
     subset="generationcontract"
     outputType=JSON_DEFAULT_OUTPUT_TYPE
     outputFormat=""
