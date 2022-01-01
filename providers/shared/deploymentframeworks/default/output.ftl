@@ -414,7 +414,7 @@
 
 [#function formatContractStep id taskType parameters priority=100 mandatory=true status="available" ]
 
-    [#local supportedStatuses = [ "available", "completed", "failed" ]]
+    [#local supportedStatuses = [ "available", "completed", "failed", "skip_stage_if_failure" ]]
     [#if ! (supportedStatuses?seq_contains(status)) ]
         [@fatal
             message="Invalid contract step status"
