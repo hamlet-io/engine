@@ -18,6 +18,8 @@
 
 [#assign OSPATCHING_ATTRIBUTESET_TYPE = "ospatching"]
 
+[#assign RUNBOOK_VALUE_ATTRIBUTESET_TYPE = "runbook_value"]
+
 [#assign SECRETSTRING_ATTRIBUTESET_TYPE = "secretstring" ]
 
 [#assign PLUGIN_ATTRIBUTESET_TYPE = "plugin"]
