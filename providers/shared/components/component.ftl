@@ -129,6 +129,9 @@
 
 [#assign QUEUEHOST_COMPONENT_TYPE = "queuehost" ]
 
+[#assign RUNBOOK_COMPONENT_TYPE = "runbook" ]
+[#assign RUNBOOK_STEP_COMPONENT_TYPE = "runbookstep"]
+
 [#assign S3_COMPONENT_TYPE = "s3" ]
 
 [#assign SECRETSTORE_COMPONENT_TYPE = "secretstore" ]
