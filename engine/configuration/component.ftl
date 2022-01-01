@@ -195,6 +195,18 @@
             "Default" : true
         },
         {
+            "Names" : "Description",
+            "Types" : STRING_TYPE,
+            "Description" : "A description of the component",
+            "Default" : ""
+        },
+        {
+            "Names" : "Title",
+            "Types" : STRING_TYPE,
+            "Description" : "A longer form tilte of the component",
+            "Default" : ""
+        },
+        {
             "Names" : "Export",
             "Types" : BOOLEAN_TYPE,
             "Default" : false

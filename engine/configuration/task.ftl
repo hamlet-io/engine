@@ -20,23 +20,29 @@
     /]
 [/#macro]
 
-[#function getTask type parameters ]
+[#function getTaskConfig type ]
     [#local taskConfig = getConfigurationSet(TASK_CONFIGURATION_SCOPE, type)]
 
-    [#if taskConfig?has_content ]
-        [#return
-            {
-                "Type" : type,
-                "Parameters" : getCompositeObject(
-                                    taskConfig.Attributes,
-                                    parameters
-                                )
-            }
-        ]
-    [#else]
+    [#if ! taskConfig?has_content ]
         [@fatal
-            message="Attempt to add data for unknown task type"
+            message="Task could not be found"
             detail=type
         /]
     [/#if]
+
+    [#return taskConfig]
+[/#function]
+
+[#function getTask type parameters ]
+    [#local taskConfig = getTaskConfig(type)]
+
+    [#return
+        {
+            "Type" : type,
+            "Parameters" : getCompositeObject(
+                                (taskConfig.Attributes)![],
+                                parameters
+                            )
+        }
+    ]
 [/#function]
