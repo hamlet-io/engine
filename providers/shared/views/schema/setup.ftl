@@ -135,21 +135,11 @@
 
         [#elseif attribute.AttributeSet?has_content || attribute.Component?has_content ]
             [#-- Don't include type details on refs --]
-
         [#elseif attribute.Types?seq_contains(ANY_TYPE)]
             [#local typeResult = [ "array", "boolean", "number", "object", "string" ]]
-
         [#else]
-            [#if (attribute.Types)?size == 2 && attribute.Types?first == ARRAY_TYPE ]
-                [#local properties += {
-                    "type" : "array",
-                    "contains" : {
-                        "type" : attribute.Types?last
-                    }
-                }]
-
-            [#else]
-                [#list attribute.Types as type ]
+            [#list attribute.Types as type ]
+                [#if type?is_string]
                     [#switch type]
                         [#case NUMBER_TYPE]
                         [#case STRING_TYPE]
@@ -161,8 +151,30 @@
                         [#default]
                             [#local typeResult += [ "string"]]
                     [/#switch]
-                [/#list]
-            [/#if]
+
+                [#elseif type?is_sequence && type?size == 2 && type?first == ARRAY_TYPE ]
+                    [#local typeResult = combineEntities(typeResult, [ "array" ], UNIQUE_COMBINE_BEHAVIOUR)]
+                    [#local properties = mergeObjects(
+                        properties,
+                        {
+                            "contains" : {
+                                "type" : combineEntities((properties["contains"]["type"])![], [ type?last ], UNIQUE_COMBINE_BEHAVIOUR )
+                            }
+                        }
+                    )]
+                [/#if]
+            [/#list]
+        [/#if]
+
+        [#if ((properties["contains"]["type"])![])?size == 1 ]
+            [#local properties = mergeObjects(
+                properties,
+                {
+                    "contains" : {
+                        "type" : (properties["contains"]["type"])?first
+                    }
+                }
+            )]
         [/#if]
 
         [#if typeResult?size == 1 ]
