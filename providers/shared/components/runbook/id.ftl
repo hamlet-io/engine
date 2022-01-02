@@ -22,15 +22,6 @@
                 "Default" : "hamlet"
             },
             {
-                "Names" : "Profiles",
-                "Children" : [
-                    {
-                        "Names" : "Placement",
-                        "Default" : "shared"
-                    }
-                ]
-            },
-            {
                 "Names" : "Inputs",
                 "Description" : "Inputs can be provided by users to start the runbook with different options",
                 "SubObjects" : true,
