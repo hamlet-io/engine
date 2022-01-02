@@ -275,6 +275,17 @@
                 "Description" : "Extensions to invoke as part of component processing",
                 "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : []
+            },
+            {
+                "Names" : "engine:ssh",
+                "Children" : [
+                    {
+                        "Names" : "EncryptionScheme",
+                        "Description" : "When providing the key as a string the scheme to include",
+                        "Types" : STRING_TYPE,
+                        "Default" : ""
+                    }
+                ]
             }
         ]
     parent=BASELINE_COMPONENT_TYPE
