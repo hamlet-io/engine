@@ -1946,6 +1946,13 @@
         "Region": "external",
         "DeploymentFramework": "default"
       }
+    },
+    "shared" : {
+      "default" : {
+        "Provider" : "shared",
+        "Region" : "shared",
+        "DeploymentFramework" : "default"
+      }
     }
   },
   "DeploymentGroups": {
