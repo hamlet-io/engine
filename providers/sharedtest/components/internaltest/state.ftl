@@ -4,7 +4,6 @@
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
-    [#local attributes = {}]
     [#local contextLinks = getLinkTargets(occurrence) ]
     [#local _context =
         {
@@ -15,33 +14,35 @@
             "DefaultCoreVariables" : false,
             "DefaultEnvironmentVariables" : true,
             "DefaultBaselineVariables" : false,
-            "DefaultLinkVariables" : false
-        }
-    ]
-
-    [#-- Add in extension specifics including override of defaults --]
-    [#local _context = invokeExtensions( occurrence, _context, {}, solution.Extensions, true )]
-
-    [#local environment = getFinalEnvironment(occurrence, _context ).Environment ]
-
-    [#list environment as name,value]
-        [#local attributes += { name : value } ]
-    [/#list]
-
-    [#assign componentState =
-        {
+            "DefaultLinkVariables" : false,
+            "Attributes" : {},
+            "Roles" : {
+                "Inbound" : {},
+                "Outbound" : {}
+            },
             "Resources" : {
                 "external" : {
                     "Id" : formatResourceId("internaltest", core.Id),
                     "Type" : "internaltest",
                     "Deployed" : true
                 }
-            },
-            "Attributes" : attributes,
-            "Roles" : {
-                "Inbound" : {},
-                "Outbound" : {}
             }
+        }
+    ]
+
+    [#-- Add in extension specifics including override of defaults --]
+    [#local _context = invokeExtensions( occurrence, _context, {}, solution.Extensions, true )]
+    [#local environment = getFinalEnvironment(occurrence, _context ).Environment ]
+
+    [#list environment as name,value]
+        [#local _context = mergeObjects(_context, { "Attributes" : { name : value }} ) ]
+    [/#list]
+
+    [#assign componentState =
+        {
+            "Resources" : _context.Resources,
+            "Attributes" : _context.Attributes,
+            "Roles" : _context.Roles
         }
     ]
 [/#macro]
