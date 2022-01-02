@@ -37,14 +37,6 @@ jobs:
           hamlet engine get-engine
           hamlet -i mock -p shared -p sharedtest -f default deploy test-deployments -p '--junitxml=junit.xml' -o 'hamlet_tests/'
 
-      - name: Test Results
-        uses: mikepenz/action-junit-report@v2
-        with:
-          report_paths: 'hamlet_tests/junit.xml'
-          fail_on_failure: true
-          require_tests: true
-          check_name: deploy_tests results
-
 
   package:
     needs:
