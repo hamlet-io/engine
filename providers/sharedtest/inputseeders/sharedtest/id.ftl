@@ -50,6 +50,10 @@
                         "internaltest" : {
                             "Provider" : "sharedtest",
                             "Name" : "internaltest"
+                        },
+                        "runbook" : {
+                            "Provider" : "sharedtest",
+                            "Name" : "runbook"
                         }
                     }
                 },
