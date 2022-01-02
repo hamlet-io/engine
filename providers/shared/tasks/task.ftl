@@ -8,3 +8,5 @@
 [#assign RENAME_FILE_TASK_TYPE              = "rename_file" ]
 [#assign RUN_BASH_SCRIPT_TASK_TYPE          = "run_bash_script" ]
 [#assign CONDITIONAL_STAGE_SKIP_TASK_TYPE   = "conditional_stage_skip" ]
+[#assign START_SSH_SHELL_TASK_TYPE          = "start_ssh_shell" ]
+[#assign SET_PROVIDER_CREDENTIALS_TASK_TYPE = "set_provider_credentials" ]
