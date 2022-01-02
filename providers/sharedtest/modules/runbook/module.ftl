@@ -29,9 +29,6 @@
                             "Steps" : {
                                 "step1" : {
                                     "Priority" : 10,
-                                    "Host" : {
-                                        "Engine" : "Local"
-                                    },
                                     "Conditions" : {
                                         "linkTest" : {
                                             "Test" : "linkAttr1",
@@ -46,8 +43,8 @@
                                         }
                                     },
                                     "Task" : {
-                                        "Name" : "rename_file",
-                                        "Properties" : {
+                                        "Type" : "rename_file",
+                                        "Parameters" : {
                                             "currentFileName" : {
                                                 "Source" : "Input",
                                                 "source:Input" : {
@@ -72,8 +69,8 @@
                                 "step2" : {
                                     "Priority" : 20,
                                     "Task" : {
-                                        "Name" : "run_ssh_shell_command",
-                                        "Properties" : {
+                                        "Type" : "run_ssh_shell_command",
+                                        "Parameters" : {
                                             "Username" : {
                                                 "Source" : "Fixed",
                                                 "source:Fixed" : {
@@ -106,7 +103,7 @@
                                 }
                             },
                             "Profiles" : {
-                                "Placement" : "external"
+                                "Placement" : "shared"
                             }
                         }
                     }
