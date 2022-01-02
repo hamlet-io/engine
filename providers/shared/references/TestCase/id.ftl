@@ -14,6 +14,7 @@
             "Names" : "OutputSuffix",
             "Types" : STRING_TYPE,
             "Values" : [
+                "contract.json",
                 "template.json",
                 "config.json",
                 "cli.json",
