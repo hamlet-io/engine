@@ -203,7 +203,7 @@
         {
             "Names" : "Title",
             "Types" : STRING_TYPE,
-            "Description" : "A longer form tilte of the component",
+            "Description" : "A longer form title of the component",
             "Default" : ""
         },
         {
