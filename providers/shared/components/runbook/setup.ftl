@@ -26,7 +26,10 @@
         )]
     [/#list]
 
-    [#local runBookInputs = getCompositeObject(runBookInputAttributes, getCommandLineOptions()["RunBookInputs"] )]
+    [#local runBookInputs = {}]
+    [#list getCompositeObject(runBookInputAttributes, getCommandLineOptions()["RunBookInputs"]) as k,v ]
+        [#local runBookInputs = mergeObjects(runBookInputs, {k?ensure_starts_with("input:") : v })]
+    [/#list]
 
     [@contractProperties
         properties=runBookInputs
@@ -73,16 +76,13 @@
             /]
         [/#list]
 
-        [#-- Add Task run Step --]
         [#local taskParameters = {}]
-        [#list solution.Task.Parameters as id, parameter ]
+        [#list mergeObjects(solution.Task.Parameters, _context.TaskParameters) as id, parameter ]
             [#local taskParameters = mergeObjects(
                 taskParameters,
                 { id : getRunBookValue(parameter, runBookInputs, subOccurrence, occurrence)}
             )]
         [/#list]
-
-        [#local taskParameters = mergeObjects(taskParameters, _context.TaskParameters )]
 
         [@contractStep
             id=core.SubComponent.RawId
@@ -98,82 +98,104 @@
 
 [#-- Resolves the different inputs to contract values that engines can process --]
 [#function getRunBookValue value inputs occurrence parentOccurrence ]
-    [#local result = ""]
-    [#switch value.Source ]
-        [#case "Setting" ]
-            [#local settingName = (value["source:Setting"].Name)!"" ]
-            [#local collectedSettings = {}]
+    [#if value?is_hash ]
+        [#local value = value.Value]
+    [/#if]
 
-            [#list (occurrence.Configuration.Settings)?values?filter(x -> x?has_content) as settingGroup ]
-                [#list settingGroup as key, value]
-                    [#local collectedSettings = mergeObjects(collectedSettings, { key : value } )]
-                [/#list]
-            [/#list]
-            [#local result = (collectedSettings[settingName].Value)!"" ]
-            [#break]
+    [#if ( value?is_string && ! value?contains("__") ) || ! value?is_string ]
+        [#return value ]
+    [/#if]
+
+    [#local substitutions = value?split("__")]
+    [#local replacements = {}]
+
+    [#list substitutions as substitution ]
+        [#if substitution?matches('^([a-zA-Z0-9_-]*:){1,2}.*')]
+            [#local lookups = substitution?split(":") ]
+            [#local source = lookups[0] ]
+
+            [#switch source?lower_case ]
+                [#case "setting" ]
+                    [#local settingName = lookups[1] ]
+
+                    [#local collectedSettings = {}]
+                    [#list (occurrence.Configuration.Settings)?values?filter(x -> x?has_content) as settingGroup ]
+                        [#list settingGroup as key, value]
+                            [#local collectedSettings = mergeObjects(collectedSettings, { key : value } )]
+                        [/#list]
+                    [/#list]
+                    [#local replacements = mergeObjects(replacements, { "__${substitution}__" : (collectedSettings[settingName].Value)!"HamletFatal: substituion failed __${substitution}__" }) ]
+                    [#break]
 
 
-        [#case "Attribute"]
-            [#local linkId = (value["source:Attribute"].LinkId)!"" ]
-            [#local attributeName = (value["source:Attribute"].Name)!"" ]
+                [#case "attribute"]
+                    [#local linkId = lookups[1] ]
+                    [#local attributeName = lookups[2] ]
 
-            [#local link = (occurrence.Configuration.Solution.Links[linkId])!{}]
-            [#local linkTarget = getLinkTarget(occurrence, link)]
+                    [#local link = (occurrence.Configuration.Solution.Links[linkId])!{}]
+                    [#local linkTarget = getLinkTarget(occurrence, link)]
 
-            [#if ! linkTarget?has_content ]
-                [@fatal
-                    message="Link could not be found for attribute"
-                    context={
-                        "Step"  : occurrence.Core.Component.RawId,
-                        "LinkId" : linkId,
-                        "Links" : occurrence.Configuration.Solution.Links
-                    }
-                /]
-            [/#if]
+                    [#if ! linkTarget?has_content ]
+                        [@fatal
+                            message="Link could not be found for attribute"
+                            context={
+                                "Step"  : occurrence.Core.Component.RawId,
+                                "LinkId" : linkId,
+                                "Links" : occurrence.Configuration.Solution.Links
+                            }
+                        /]
+                    [/#if]
 
-            [#local result = (linkTarget.State.Attributes[attributeName?upper_case])!"" ]
-            [#break]
+                    [#local replacements = mergeObjects(replacements, { "__${substitution}__" : (linkTarget.State.Attributes[attributeName])!"HamletFatal: substituion failed __${substitution}__" }) ]
+                    [#break]
 
-        [#case "Input"]
-            [#local inputId = (value["source:Input"].Id)!"" ]
+                [#case "input"]
+                    [#if inputs?has_content]
+                        [#local inputId = lookups[1] ]
 
-            [#if ! inputs?keys?seq_contains(inputId)?has_content ]
-                [@fatal
-                    message="Input Id could not be found"
-                    context={
-                        "Step" : occurrence.Core.Component.RawId,
-                        "Input" : inputId
-                    }
-                /]
-            [/#if]
-            [#local result = ":property:${inputId}" ]
-            [#break]
+                        [#if ! inputs?keys?seq_contains(inputId)?has_content ]
+                            [@fatal
+                                message="Input Id could not be found"
+                                context={
+                                    "Step" : occurrence.Core.Component.RawId,
+                                    "Input" : inputId
+                                }
+                            /]
+                        [/#if]
+                        [#local replacements = mergeObjects(replacements, { "__${substitution}__" : "__Properties:${substitution}__" }) ]
+                    [/#if]
+                    [#break]
 
-        [#case "Output"]
-            [#local stepId = (value["source:Output"].StepId)!""]
-            [#local outputName = (value["source:Output"].Name)!"" ]
+                [#case "output"]
+                    [#if parentOccurrence?has_content ]
+                        [#local stepId = lookups[1]]
+                        [#local output = lookups[2]]
 
-            [#if ! ((parentOccurrence.Occurrences)![])?map( x -> x.Core.SubComponent.RawId)?seq_contains(stepId) ]
-                [@fatal
-                    message="Step could not be found for output condition"
-                    context={
-                        "Step" : occurrence.Core.Component.RawId,
-                        "Output" :{
-                            "StepId" : stepId,
-                            "Output" : outputName
-                        }
-                    }
-                /]
-            [/#if]
+                        [#if ! ((parentOccurrence.Occurrences)![])?map( x -> x.Core.SubComponent.RawId)?seq_contains(stepId) ]
+                            [@fatal
+                                message="Step could not be found for output condition"
+                                context={
+                                    "Step" : occurrence.Core.Component.RawId,
+                                    "Output" :{
+                                        "StepId" : stepId,
+                                        "Output" : output
+                                    }
+                                }
+                            /]
+                        [/#if]
 
-            [#local result = ":output:${stepId}:${outputName}" ]
-            [#break]
+                        [#local replacements = mergeObjects(replacements, { "__${substitution}__" : "__Properties:${substitution}__" }) ]
+                    [/#if]
+                    [#break]
+            [/#switch]
+        [/#if]
+    [/#list]
 
-        [#case "Fixed"]
-            [#local result = (value["source:Fixed"].Value)!"" ]
-            [#break]
-    [/#switch]
-    [#return result]
+    [#list replacements as original, new ]
+        [#local value = value?replace(original, new)]
+    [/#list]
+
+    [#return value]
 [/#function]
 
 [#-- Provides information on the format of the runbook and what it does --]
@@ -221,8 +243,8 @@
                     "Links" : solution.Links,
                     "Task" : {
                         "Type" : solution.Task.Type,
-                        "Details" : taskConfig.Properties,
-                        "Attributes" : taskConfig.Attributes
+                        "Details" : (taskConfig.Properties)!{},
+                        "Attributes" : (taskConfig.Attributes)!{}
                     }
                 }
             ],
