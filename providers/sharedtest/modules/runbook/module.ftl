@@ -33,29 +33,17 @@
                                         "linkTest" : {
                                             "Test" : "linkAttr1",
                                             "Match" : "Equals",
-                                            "Value" : {
-                                                "Source" : "Attribute",
-                                                "source:Attribute" : {
-                                                    "LinkId" : "linktest",
-                                                    "Name" : "attr1"
-                                                }
-                                            }
+                                            "Value" : "__attribute:linktest:ATTR1__"
                                         }
                                     },
                                     "Task" : {
                                         "Type" : "rename_file",
                                         "Parameters" : {
                                             "currentFileName" : {
-                                                "Source" : "Input",
-                                                "source:Input" : {
-                                                    "Id" : "input1"
-                                                }
+                                                "Value" : "__input:input1__"
                                             },
                                             "newFileName" : {
-                                                "Source" : "Setting",
-                                                "source:Setting" : {
-                                                    "Name" : "ENVIRONMENT"
-                                                }
+                                                "Value" : "__setting:ENVIRONMENT__"
                                             }
                                         }
                                     },
@@ -69,25 +57,16 @@
                                 "step2" : {
                                     "Priority" : 20,
                                     "Task" : {
-                                        "Type" : "run_ssh_shell_command",
+                                        "Type" : "start_ssh_shell",
                                         "Parameters" : {
                                             "Username" : {
-                                                "Source" : "Fixed",
-                                                "source:Fixed" : {
-                                                    "Value" : "admin"
-                                                }
+                                                "Value" : "admin"
                                             },
                                             "Host" : {
-                                                "Source" : "Fixed",
-                                                "source:Fixed" : {
-                                                    "Value" : "host.local"
-                                                }
+                                                "Value" : "host.local"
                                             },
                                             "Command" : {
-                                                "Source" : "Fixed",
-                                                "source:Fixed" : {
-                                                    "Value" : "/bin/bash"
-                                                }
+                                                "Value" : "/bin/bash"
                                             }
                                         }
                                     }
@@ -98,7 +77,7 @@
                             "Type" : "externalservice",
                             "Properties" : {
                                 "attr1" : {
-                                    "Key" : "attr1",
+                                    "Key" : "ATTR1",
                                     "Value" : "linkAttr1"
                                 }
                             },
