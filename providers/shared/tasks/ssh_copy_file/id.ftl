@@ -1,11 +1,11 @@
 [#ftl]
 
 [@addTask
-    type=START_SSH_SHELL_TASK_TYPE
+    type=SSH_COPY_FILE_TASK_TYPE
     properties=[
             {
                 "Type"  : "Description",
-                "Value" : "Start an ssh shell on a remote host"
+                "Value" : "Copy a file between the local host and a remote ssh host"
             }
         ]
     attributes=[
@@ -38,10 +38,22 @@
             "Types" : STRING_TYPE
         },
         {
-            "Names" : "Shell",
-            "Description" : "The command to execute to start the shell",
+            "Names" : "Direction",
+            "Description" : "The direction to copy the file",
+            "Values" : [ "RemoteToLocal", "LocalToRemote" ],
+            "Mandatory" : true
+        },
+        {
+            "Names" : "LocalPath",
+            "Description" : "The path to the local file",
             "Types" : STRING_TYPE,
-            "Default" : "/bin/bash"
+            "Mandatory" : true
+        },
+        {
+            "Names" : "RemotePath",
+            "Description" : "The path to the remote file",
+            "Types" : STRING_TYPE,
+            "Mandatory" : true
         }
     ]
 /]
