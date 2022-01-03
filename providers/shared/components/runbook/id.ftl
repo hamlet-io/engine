@@ -17,7 +17,7 @@
         [
             {
                 "Names" : "Engine",
-                "Description" : "The implemntation that will run the runbook",
+                "Description" : "The engine that will execute the runbook",
                 "Values" : [ "hamlet" ],
                 "Default" : "hamlet"
             },
@@ -78,7 +78,12 @@
             "Children" : [
                 {
                     "Names" : "Value",
-                    "AttributeSet" : RUNBOOK_VALUE_ATTRIBUTESET_TYPE
+                    "Description" : "The value to compare the test to",
+                    "Types" : [
+                        STRING_TYPE,
+                        BOOLEAN_TYPE
+                    ],
+                    "Mandatory" : true
                 },
                 {
                     "Names" : "Match",
@@ -117,7 +122,14 @@
                     "Names" : "Parameters",
                     "Description" : "The parameters required to run the task type",
                     "SubObjects" : true,
-                    "AttributeSet" : RUNBOOK_VALUE_ATTRIBUTESET_TYPE
+                    "Children" : [
+                        {
+                            "Names": "Value",
+                            "Description" : "The value of the parameter (supports substitution syntax)",
+                            "Mandatory" : true,
+                            "Types" : [ STRING_TYPE, NUMBER_TYPE, BOOLEAN_TYPE ]
+                        }
+                    ]
                 }
             ]
         },
