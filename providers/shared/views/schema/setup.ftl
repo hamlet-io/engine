@@ -134,9 +134,23 @@
             [#local properties += { "additionalProperties" : false }]
 
         [#elseif attribute.AttributeSet?has_content || attribute.Component?has_content ]
-            [#-- Don't include type details on refs --]
+
+        [#-- Don't include type details on refs --]
         [#elseif attribute.Types?seq_contains(ANY_TYPE)]
             [#local typeResult = [ "array", "boolean", "number", "object", "string" ]]
+
+        [#-- Handle a standalone ARRAY_OF_TYPE type --]
+        [#elseif attribute.Types?is_sequence && attribute.Types?size == 2 && attribute.Types?first == ARRAY_TYPE ]
+            [#local typeResult = combineEntities(typeResult, [ "array" ], UNIQUE_COMBINE_BEHAVIOUR)]
+            [#local properties = mergeObjects(
+                properties,
+                {
+                    "contains" : {
+                        "type" : combineEntities((properties["contains"]["type"])![], [ attribute.Types?last ], UNIQUE_COMBINE_BEHAVIOUR )
+                    }
+                }
+            )]
+
         [#else]
             [#list attribute.Types as type ]
                 [#if type?is_string]
@@ -152,6 +166,7 @@
                             [#local typeResult += [ "string"]]
                     [/#switch]
 
+                [#-- Handle an ARRAY_OF_TYPE as part of a collection of types --]
                 [#elseif type?is_sequence && type?size == 2 && type?first == ARRAY_TYPE ]
                     [#local typeResult = combineEntities(typeResult, [ "array" ], UNIQUE_COMBINE_BEHAVIOUR)]
                     [#local properties = mergeObjects(
