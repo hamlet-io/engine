@@ -24,7 +24,7 @@
 
     [#switch configurationScope]
         [#case COMPONENT_CONFIGURATION_SCOPE]
-            [#list getAllComponentConfiguration()?keys as componentType ]
+            [#list getAllComponentConfiguration() as componentType, componentDefinition ]
 
                 [#local schemaComponentAttributes = []]
 
@@ -53,7 +53,15 @@
 
                 [/#list]
 
-                [#local schemaDefinitions = mergeObjects(schemaDefinitions, { componentType, schemaComponentAttributes})]
+                [#local schemaDefinitions = mergeObjects(
+                    schemaDefinitions,
+                    {
+                        componentType : {
+                            "Attributes" : schemaComponentAttributes,
+                            "Description" : (((componentDefinition.Properties)![])?filter( x -> x.Type == "Description")[0].Value)!""
+                        }
+                    }
+                )]
 
             [/#list]
             [#break]
@@ -61,23 +69,35 @@
         [#default]
             [#list getConfigurationSets(configurationScope) as configurationSet ]
                 [#if ((configurationSet.Attributes)![])?has_content ]
-                    [#local schemaDefinitions = mergeObjects(schemaDefinitions, { configurationSet.Id, configurationSet.Attributes})]
+                    [#local schemaDefinitions = mergeObjects(
+                        schemaDefinitions,
+                        {
+                            configurationSet.Id : {
+                                "Attributes" : configurationSet.Attributes,
+                                "Description" : (((configurationSet.Properties)![])?filter( x -> x.Type == "Description")[0].Value)!""
+                            }
+                        })]
                 [/#if]
             [/#list]
             [#break]
     [/#switch]
 
-    [#list schemaDefinitions as id, attributes ]
+    [#list schemaDefinitions as id, definition ]
         [@jsonSchemaDefinition
             id=id
             schema=
                 jsonSchemaDocument(
                     "",
                     "",
-                    convertAttributesToJsonSchemaProperties(
-                        compressCompositeConfiguration(
-                            normaliseCompositeConfiguration(
-                                attributes
+                    mergeObjects(
+                        {
+                            "description" : definition.Description
+                        },
+                        convertAttributesToJsonSchemaProperties(
+                            compressCompositeConfiguration(
+                                normaliseCompositeConfiguration(
+                                    definition.Attributes
+                                )
                             )
                         )
                     ),
