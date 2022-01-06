@@ -1,6 +1,151 @@
 # Changelog
 
-## Unreleased (2021-09-17)
+## Unreleased (2022-01-06)
+
+#### New Features
+
+* (schema): add base level description
+* add ssh copy file and rename ssh run
+* add provider details runbook extension
+* runbook extension for region
+* (baseline): add encryption scheme for ssh key
+* add tasks for an ssh bastion connection
+* add conditional stage task
+* add contract as output suffix for testing
+* add shared placement profile
+* add testing for runbook generation
+* internaltest state control
+* add runbook entrances
+* (contract): add contract status for skip
+* runbook value attribute set
+* add runbook component
+* configuration updates
+* (ecs): add settings for containers
+* custom build script lookup
+* (lambda): add and layer jar image support ([#1891](https://github.com/hamlet-io/engine/issues/1891))
+* add support for hiding the generation contract
+* add component configuration scope
+* composite configuration compression
+* LinkRef support for container LB references ([#1889](https://github.com/hamlet-io/engine/issues/1889))
+* add additional setting properties
+* add support for component level config settings
+* configuration details entrance
+* add a standard configuration store
+* add support for new lambda versions on inline
+* add raw setting namepsaces
+* (s3): add enable on notifications
+* set waf default to v1
+* add ref attribute to template
+* wafv2
+* wafv2
+* (kinesis): ErrorType in prefix ([#1868](https://github.com/hamlet-io/engine/issues/1868))
+* (kinesis): Prefix time path control ([#1867](https://github.com/hamlet-io/engine/issues/1867))
+* add gpu support for containers
+* add support for referencing db secrets
+* add rootCredential source configuration
+* (ecs): add support for secrets in containers
+* add support for components in info output
+* (topic): add link support and policy migration ([#1859](https://github.com/hamlet-io/engine/issues/1859))
+* add filter policies to topic subscriptions ([#1850](https://github.com/hamlet-io/engine/issues/1850))
+* outbound mta
+* (lb): add alert configurations for lb ports
+* (externalnetwork): set startup action for vpn
+* skip image pull during generation
+* add inside tunnel config support
+* add named ip address groups
+* (externalnetwork): SharedKey and BGP Peer
+* client vpn component
+* include layer and reference in info
+* extend testing tooling
+* (lb): condition support for lb ports
+* (locations): location support
+* (base): null detection in base routines
+* subscription, hostingplatform, dnszone components
+* (av): separate av computer task
+#### Fixes
+
+* (schema): handle array of type in schemas
+* (schema): handle multiple types for attribute
+* description typo
+* placements and test properties
+* use configuration scopes for schemasets
+* scope name for component configuration
+* (schema): attributes which are not hashes ([#1893](https://github.com/hamlet-io/engine/issues/1893))
+* composite object default attribute processing ([#1892](https://github.com/hamlet-io/engine/issues/1892))
+* duplicate field in schema file names
+* Extension defaults handling ([#1890](https://github.com/hamlet-io/engine/issues/1890))
+* s3 versioning without lifecycle management ([#1884](https://github.com/hamlet-io/engine/issues/1884))
+* function call for moudle configuraiton
+* reverse orphaned priority order
+* remove aws fn from extension config
+* ensure orphaned deployments are always first
+* description
+* incorporate feedback
+* incorporate feedback
+* orphan deployment detection
+* remove missing var check
+* handle missing deployment unit
+* set maintenance window defaults
+* (healthcheck): attribute typo
+* (healthcheck): rename type attribute
+* wording typo
+* hanlding of 0/0 cidr in ip addr groups
+* condition on setting global variables
+* (cdn): include links in route config
+* link matching to suboccurrences
+* set default to standard schema
+* (user): remove scheme restriction
+* flow legacy lambda handling
+* remove dns resource group on cdn
+* ResourceGroup existence checking
+#### Refactorings
+
+* align testing with new format
+* (runbook): value handling with substitution
+* check image source before overriding image
+* remove implicit Enabled attribute ([#1898](https://github.com/hamlet-io/engine/issues/1898))
+* JSON Schema generation process
+* update entrance and tasks
+* format json schema document on output
+* ensure the extensions are invoked all the time
+* update setup routines to use new configuration
+* remove plurals from attribute sets
+* migrate configuration sources to shared config
+* remove the region layer
+* mta rules for send process
+* pseudo stack outputs ([#1869](https://github.com/hamlet-io/engine/issues/1869))
+* use secret string attribute
+* create secretstring attributeset
+* update schema to standard config
+* create standard resource group attrs
+* use eval_json for json loading
+* (efs): rename to fileshare
+* base and deployment attributes
+* remove the id based typing of components
+* (directory): rename default username
+* (cd): use env for hamlet engine ([#1831](https://github.com/hamlet-io/engine/issues/1831))
+* ensure provider known
+* permit transition for fragments
+* setContext wrapper functions (1)
+* remove use of dos2unix
+* (directory): set default ip access policy
+* district support
+* unique namespace for locations
+* occurrence logging
+* location data in occurrence
+* enforce resource group registration
+#### Others
+
+* fix attribute description spelling
+* add comment on priority setup
+* add winrm ports to masterdata
+* improve error reporting
+* correct attribute description
+* changelog bump ([#1731](https://github.com/hamlet-io/engine/issues/1731))
+
+Full set of changes: [`8.3.0...451ae3c`](https://github.com/hamlet-io/engine/compare/8.3.0...451ae3c)
+
+## 8.3.0 (2021-09-17)
 
 #### New Features
 
@@ -56,7 +201,7 @@
 * handle non segment districts in flows
 * clo/layer access during input processing ([#1735](https://github.com/hamlet-io/engine/issues/1735))
 
-Full set of changes: [`8.2.1...3af8ebd`](https://github.com/hamlet-io/engine/compare/8.2.1...3af8ebd)
+Full set of changes: [`8.2.1...8.3.0`](https://github.com/hamlet-io/engine/compare/8.2.1...8.3.0)
 
 ## 8.2.1 (2021-07-09)
 
