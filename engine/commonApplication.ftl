@@ -533,7 +533,8 @@
                 "Privileged" : container.Privileged,
                 "LogMetrics" : container.LogMetrics,
                 "Alerts" : container.Alerts,
-                "Container" : container
+                "Container" : container,
+                "InitProcess" : container.InitProcess
             } +
             attributeIfContent("LogGroup", containerLogGroup) +
             attributeIfContent("ImageVersion", container.Version) +
