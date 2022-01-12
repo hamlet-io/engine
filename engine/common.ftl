@@ -582,12 +582,6 @@
     ]
 ]
 
-[#-- Primary is used on component attributes --]
-[#assign DOMAIN_ROLE_PRIMARY="primary" ]
-
-[#-- Secondaries allow a smooth transition from one domain to another --]
-[#assign DOMAIN_ROLE_SECONDARY="secondary" ]
-
 [#-- Names --]
 [#function formatHostDomainName host parts style=""]
     [#local result =
@@ -606,146 +600,6 @@
 [/#function]
 
 [#-- Resources --]
-[#function isPrimaryDomain domainObject]
-    [#return domainObject.Role == DOMAIN_ROLE_PRIMARY ]
-[/#function]
-
-[#function isSecondaryDomain domainObject]
-    [#return domainObject.Role == DOMAIN_ROLE_SECONDARY ]
-[/#function]
-
-[#function getDomainObjects certificateObject ]
-    [#local result = [] ]
-    [#local primaryNotSeen = true]
-    [#local lines = getObjectLineage(domains, (certificateObject.Domain)!"") ]
-    [#list lines as line]
-        [#local name = "" ]
-        [#local role = DOMAIN_ROLE_PRIMARY ]
-        [#list line as domainObject]
-            [#local qualifiedDomainObject =
-                getCompositeObject(
-                    domainChildConfiguration,
-                    domainObject
-                )]
-            [#if !(qualifiedDomainObject.Bare) ]
-                [#local name = formatDomainName(
-                                   contentIfContent(
-                                       qualifiedDomainObject.Stem!"",
-                                       contentIfContent(
-                                           qualifiedDomainObject.Name!"",
-                                           ""
-                                       )
-                                   ),
-                                   name
-                               ) ]
-            [/#if]
-            [#if qualifiedDomainObject.Role?has_content]
-                [#local role = qualifiedDomainObject.Role]
-            [/#if]
-        [/#list]
-        [#local result +=
-            [
-                getCompositeObject( domainChildConfiguration, line + [{
-                    "Name" : name,
-                    "Role" : valueIfTrue(role, primaryNotSeen, DOMAIN_ROLE_SECONDARY)
-                }] )
-            ] ]
-        [#local primaryNotSeen = primaryNotSeen && (role != DOMAIN_ROLE_PRIMARY) ]
-    [/#list]
-
-    [#-- Force first entry to primary if no primary seen --]
-    [#if primaryNotSeen && (result?size > 0) ]
-        [#local forcedResult = [ result[0] + { "Role" : DOMAIN_ROLE_PRIMARY } ] ]
-        [#if (result?size > 1) ]
-            [#local forcedResult += result[1..] ]
-        [/#if]
-        [#local result = forcedResult]
-    [/#if]
-
-    [#-- Add any domain inclusions --]
-    [#local includes = certificateObject.IncludeInDomain!{} ]
-    [#if includes?has_content]
-        [#local hostParts = certificateObject.HostParts ]
-        [#local parts = [] ]
-
-        [#list hostParts as part]
-            [#if includes[part]!false]
-                [#switch part]
-                    [#case "Segment"]
-                        [#local parts += [segmentName!""] ]
-                        [#break]
-                    [#case "Environment"]
-                        [#local parts += [environmentName!""] ]
-                        [#break]
-                    [#case "Product"]
-                        [#local parts += [productName!""] ]
-                        [#break]
-                [/#switch]
-            [/#if]
-        [/#list]
-
-        [#local extendedResult = [] ]
-        [#list result as entry]
-            [#local extendedResult += [
-                    entry +
-                    {
-                        "Name" : formatDomainName(parts, entry.Name)
-                    }
-                ] ]
-        [/#list]
-        [#local result = extendedResult]
-    [/#if]
-
-    [#return result]
-[/#function]
-
-[#function getCertificateObject start ]
-
-    [#local certificateObject =
-        getCompositeObject(
-            certificateChildConfiguration,
-            asFlattenedArray(
-                arrayIfContent((blueprintObject.CertificateBehaviours)!{}, (blueprintObject.CertificateBehaviours)!{}) +
-                arrayIfContent((tenantObject.CertificateBehaviours)!{}, (tenantObject.CertificateBehaviours)!{}) +
-                arrayIfContent((productObject.CertificateBehaviours)!{}, (productObject.CertificateBehaviours)!{}) +
-                ((getObjectLineage(certificates, [productId, productName])[0])![]) +
-                ((getObjectLineage(certificates, start)[0])![])
-            )
-        )
-    ]
-    [#return
-        certificateObject +
-        {
-            "Domains" : getDomainObjects(certificateObject)
-        }
-    ]
-[/#function]
-
-[#function getCertificateDomains certificateObject]
-    [#return certificateObject.Domains![] ]
-[/#function]
-
-[#function getCertificatePrimaryDomain certificateObject]
-    [#list certificateObject.Domains as domain]
-        [#if isPrimaryDomain(domain) ]
-            [#return domain ]
-            [#break]
-        [/#if]
-    [/#list]
-    [#return {} ]
-[/#function]
-
-[#function getCertificateSecondaryDomains certificateObject]
-    [#local result = [] ]
-    [#list certificateObject.Domains as domain]
-        [#if isSecondaryDomain(domain) ]
-            [#local result += [domain] ]
-            [#break]
-        [/#if]
-    [/#list]
-    [#return result ]
-[/#function]
-
 [#function getHostName certificateObject occurrence]
 
     [#local core = occurrence.Core ]
@@ -790,7 +644,6 @@
             formatName(parts)
         )
     ]
-]
 [/#function]
 
 [#-- Build out a Name or File Path based on different layers or parts of the component id--]

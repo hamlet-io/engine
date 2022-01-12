@@ -282,14 +282,6 @@
     [#assign wafConditions = getReferenceData(WAFCONDITION_REFERENCE_TYPE) ]
     [#assign wafValueSets = getReferenceData(WAFVALUESET_REFERENCE_TYPE) ]
 
-    [#-- Domains --]
-    [#assign domains =
-        addIdNameToObjectAttributes(blueprintObject.Domains!{}) ]
-
-    [#-- Certificates --]
-    [#assign certificates =
-        addIdNameToObjectAttributes(blueprintObject.Certificates!{}) ]
-
     [#-- Tenants --]
     [#if isLayerActive(TENANT_LAYER_TYPE) ]
         [#-- assign tenants = getLayer(TENANT_LAYER_TYPE) --]

@@ -53,3 +53,7 @@
 
 [#assign TESTCASE_REFERENCE_TYPE = "TestCase" ]
 [#assign TESTPROFILE_REFERENCE_TYPE = "TestProfile" ]
+
+[#-- Domain management --]
+[#assign DOMAIN_REFERENCE_TYPE = "Domain"]
+[#assign CERTIFICATE_REFERENCE_TYPE = "Certificate"]

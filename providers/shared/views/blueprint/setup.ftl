@@ -14,7 +14,9 @@
                     "Id" : tenantObject.Id,
                     "Name" : (tenantObject.Name)!tenantObject.Id,
                     "Configuration" : tenantObject,
-                    "Domains" : domains,
+                    "Domains" : addIdNameToObjectAttributes(
+                        getReferenceData(DOMAIN_REFERENCE_TYPE)
+                    ),
                     "Products" : getProductBlueprint()
                 }
             ]

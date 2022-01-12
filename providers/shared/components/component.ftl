@@ -536,35 +536,6 @@
     }
 ]]
 
-[#-- SHOULDN'T have Enabled attribute --]
-[#assign domainChildConfiguration = [
-    {
-        "Names" : "Name",
-        "Description" : "The name of the domain",
-        "Types" : STRING_TYPE
-    },
-    {
-        "Names" : "Stem",
-        "Description" : "The root stem domain name that children will be based on",
-        "Types" : STRING_TYPE
-    },
-    {
-        "Names" : "Zone",
-        "Description" : "The zone the endpoint belongs to",
-        "Types" : STRING_TYPE
-    },
-    {
-        "Names" : "Bare",
-        "Types" : BOOLEAN_TYPE,
-        "Default" : false
-    },
-    {
-        "Names" : "Role",
-        "Types" : STRING_TYPE,
-        "Values" : [DOMAIN_ROLE_PRIMARY, DOMAIN_ROLE_SECONDARY]
-    }
-]]
-
 [#assign domainNameChildConfiguration = [
     {
         "Names" : "Domain",
