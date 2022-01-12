@@ -25,15 +25,15 @@
     /]
 
     [#local referenceProperties = combineEntities(
-                                        properties
-                                            ?filter(x -> x.Type != "BlueprintKey" ),
-                                        [
-                                            {
-                                                "Type" : "BlueprintKey",
-                                                "Value" : pluralType
-                                            }
-                                        ]
-                                    )]
+            properties
+                ?filter(x -> x.Type != "BlueprintKey" ),
+            [
+                {
+                    "Type" : "BlueprintKey",
+                    "Value" : pluralType
+                }
+            ]
+        )]
 
     [@addConfigurationSet
         scopeId=REFERENCE_CONFIGURATION_SCOPE
