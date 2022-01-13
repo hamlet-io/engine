@@ -136,6 +136,19 @@
             "Names" : "Origin",
             "Children" : [
                 {
+                    "Names" : "ConnectionTimeout",
+                    "Description" : "How long to wait until a response is received from the origin",
+                    "Types" : NUMBER_TYPE,
+                    "Default" : 30
+                },
+                {
+                    "Names" : "TLSProtocols",
+                    "Description" : "When using a TLS backend the protocols the CDN will use as a client",
+                    "Types" : ARRAY_OF_STRING_TYPE,
+                    "Values" : [ "TLSv1.2", "TLSv1.1", "TLSv1", "SSLv3" ],
+                    "Default" : [ "TLSv1.2" ]
+                },
+                {
                     "Names" : "BasePath",
                     "Description" : "The base path at the origin destination",
                     "Types" : STRING_TYPE,

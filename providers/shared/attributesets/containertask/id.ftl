@@ -183,6 +183,12 @@
                     "Default" : 1024
                 }
             ]
+        },
+        {
+            "Names" : "InitProcess",
+            "Description" : "Enable a docker based init process to manage processes",
+            "Types" : BOOLEAN_TYPE,
+            "Default" : false
         }
     ]
 /]
