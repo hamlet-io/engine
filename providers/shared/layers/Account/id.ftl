@@ -449,6 +449,13 @@
                     ]
                 },
                 {
+                    "Names" : "IPAccessPolicy",
+                    "Description" : "Controls how IPAddressGroups are handled - deny: deny these groups - allow: only allow these groups",
+                    "Types" : STRING_TYPE,
+                    "Values" : [ "allow", "deny"],
+                    "Default" : "allow"
+                },
+                {
                     "Names" : "IPAddressGroups",
                     "Types" : ARRAY_OF_STRING_TYPE,
                     "Default" : []

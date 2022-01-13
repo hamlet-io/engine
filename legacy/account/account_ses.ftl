@@ -43,16 +43,19 @@
                         id=formatSESReceiptFilterId(replaceAlphaNumericOnly(cidr,"X"))
                         name=formatName("account", replaceAlphaNumericOnly(cidr,"-"))
                         cidr=cidr
+                        allow=( accountObject["aws:SES"].IPAccessPolicy == "allow" )
                     /]
                 [/#list]
 
                 [#-- Add a default block all rule --]
-                [@createSESReceiptIPFilter
+                [#if accountObject["aws:SES"].IPAccessPolicy == "allow" ]
+                    [@createSESReceiptIPFilter
                         id=formatSESReceiptFilterId("0X0X0X0X0")
                         name=formatName("account", "0-0-0-0-0")
                         cidr="0.0.0.0/0"
                         allow=false
                     /]
+                [/#if]
             [/#if]
         [/#if]
     [/#if]
