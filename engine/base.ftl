@@ -1901,27 +1901,7 @@ are added.
     [/#list]
 
     [#if endingObject?is_hash]
-        [#local parentId =
-                (getCompositeObject(
-                    [
-                        {
-                            "Names" : "Parent",
-                            "Types" : STRING_TYPE
-                        }
-                    ],
-                    endingObject
-                ).Parent)!"" ]
-        [#local parentIds =
-                (getCompositeObject(
-                    [
-                        {
-                            "Names" : "Parents",
-                            "Types" : ARRAY_OF_STRING_TYPE
-                        }
-                    ],
-                    endingObject
-                ).Parents)!arrayIfContent(parentId, parentId) ]
-
+        [#local parentIds = (endingObject.Parents)![] ]
         [#if parentIds?has_content]
             [#list parentIds as parentId]
                 [#local lines = getObjectLineage(collection, parentId) ]
