@@ -46,9 +46,9 @@
             ]
         },
         {
-            "Names" : "Parent",
-            "Description" : "The parent of this domain",
-            "Types" : [ STRING_TYPE, ARRAY_OF_STRING_TYPE]
+            "Names" : [ "Parents", "Parent" ],
+            "Description" : "The parent of this domain segment",
+            "Types" : ARRAY_OF_STRING_TYPE
         }
     ]
 /]
