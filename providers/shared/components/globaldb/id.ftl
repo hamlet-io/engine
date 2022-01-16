@@ -13,7 +13,7 @@
         [
             {
                 "Names" : "Table",
-                "Children" : dynamoDbTableChildConfiguration
+                "AttributeSet" : TABLE_HOSTING_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "PrimaryKey",

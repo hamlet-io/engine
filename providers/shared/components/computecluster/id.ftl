@@ -88,12 +88,12 @@
             },
             {
                 "Names" : "AutoScaling",
-                "Children" : autoScalingChildConfiguration
+                "AttributeSet" : AUTOSCALEGROUP_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "ScalingPolicies",
                 "SubObjects" : true,
-                "Children" : scalingPolicyChildrenConfiguration
+                "AttributeSet" : SCALINGPOLICY_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "Ports",
@@ -106,7 +106,7 @@
                     },
                     {
                         "Names" : "LB",
-                        "Children" : lbChildConfiguration
+                        "AttributeSet" : LBATTACH_ATTRIBUTESET_TYPE
                     }
                 ]
             },

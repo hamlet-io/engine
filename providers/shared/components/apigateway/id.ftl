@@ -88,7 +88,7 @@ object.
             },
             {
                 "Names" : "WAF",
-                "Children" : wafChildConfiguration
+                "AttributeSet" : WAF_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "EndpointType",
@@ -293,7 +293,7 @@ object.
             {
                 "Names" : "LogMetrics",
                 "SubObjects" : true,
-                "Children" : logMetricChildrenConfiguration
+                "AttributeSet" : LOGMETRIC_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "BasePathBehaviour",
@@ -304,7 +304,7 @@ object.
             },
             {
                 "Names" : "Tracing",
-                "Children" : tracingChildConfiguration
+                "AttributeSet" : TRACING_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "Image",

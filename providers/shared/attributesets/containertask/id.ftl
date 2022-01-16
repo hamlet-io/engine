@@ -46,7 +46,7 @@
         {
             "Names" : "LogMetrics",
             "SubObjects" : true,
-            "Children" : logMetricChildrenConfiguration
+            "AttributeSet" : LOGMETRIC_ATTRIBUTESET_TYPE
         },
         {
             "Names" : "Alerts",
@@ -93,11 +93,11 @@
                 },
                 {
                     "Names" : "LB",
-                    "Children" : lbChildConfiguration
+                    "AttributeSet" : LBATTACH_ATTRIBUTESET_TYPE
                 },
                 {
                     "Names" : "Registry",
-                    "Children" : srvRegChildConfiguration
+                    "AttributeSet" : SRVREGATTACH_ATTRIBUTESET_TYPE
                 },
                 {
                     "Names" : "IPAddressGroups",

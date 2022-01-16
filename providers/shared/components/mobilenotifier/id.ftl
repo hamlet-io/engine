@@ -108,7 +108,7 @@
             {
                 "Names" : "LogMetrics",
                 "SubObjects" : true,
-                "Children" : logMetricChildrenConfiguration
+                "AttributeSet" : LOGMETRIC_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "Alerts",

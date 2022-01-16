@@ -666,7 +666,7 @@ that doesn't match the link.
                     [#-- Determine the occurrence deployment and placement profiles based on normal cmdb hierarchy --]
                     [#local profiles =
                         getCompositeObject(
-                            coreProfileChildConfiguration,
+                            (getAttributeSet(CORE_PROFILE_ATTRIBUTESET_TYPE).Attributes),
                             occurrenceContexts).Profiles ]
 
                     [#-- Apply deployment and policy profile overrides --]
@@ -1090,7 +1090,7 @@ that doesn't match the link.
     [#-- Determine the occurrence deployment and placement profiles based on normal cmdb hierarchy --]
     [#local profiles =
         getCompositeObject(
-            coreProfileChildConfiguration).Profiles ]
+            (getAttributeSet(CORE_PROFILE_ATTRIBUTESET_TYPE).Attributes)).Profiles ]
 
     [#-- Determine placement profile --]
     [#local placementProfile = getPlacementProfile(profiles.Placement) ]

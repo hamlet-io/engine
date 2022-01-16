@@ -32,7 +32,7 @@
                         {
                             "Names" : "NetworkRules",
                             "SubObjects" : true,
-                            "Children" : networkRuleChildConfiguration
+                            "AttributeSet" : NETWORKRULE_ATTRIBUTESET_TYPE
                         }
                     ]
                 }

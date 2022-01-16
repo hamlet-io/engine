@@ -32,7 +32,7 @@
             },
             {
                 "Names" : "Environment",
-                "Children" : settingsChildConfiguration
+                "AttributeSet" : ENVIRONMENTFORMAT_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "Image",
@@ -112,4 +112,3 @@
     type=ADAPTOR_COMPONENT_TYPE
     defaultGroup="application"
 /]
-

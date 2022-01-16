@@ -1,8 +1,5 @@
 [#ftl]
 
-[#-- Legacy type mappings --]
-[#assign legacyTypeMapping = {} ]
-
 [#-- Provides generic component macros --]
 [#assign SHARED_COMPONENT_TYPE = "shared" ]
 
@@ -49,8 +46,10 @@
 [#assign DATAVOLUME_COMPONENT_TYPE = "datavolume" ]
 
 [#assign DB_COMPONENT_TYPE = "db" ]
-[#assign DB_LEGACY_COMPONENT_TYPE = "rds" ]
-[#assign legacyTypeMapping += { DB_LEGACY_COMPONENT_TYPE : DB_COMPONENT_TYPE } ]
+[@addLegacyComponentTypeMapping
+    legacyType="rds"
+    type=DB_COMPONENT_TYPE
+/]
 
 [#assign DIRECTORY_COMPONENT_TYPE = "directory" ]
 
@@ -63,15 +62,22 @@
 [#assign FILESHARE_COMPONENT_TYPE = "fileshare" ]
 [#assign FILESHARE_MOUNT_COMPONENT_TYPE = "filesharemount"]
 
-[#assign FILESHARE_LEGACY_COMPONENT_TYPE = "efs" ]
-[#assign legacyTypeMapping += { FILESHARE_LEGACY_COMPONENT_TYPE : FILESHARE_COMPONENT_TYPE } ]
+[@addLegacyComponentTypeMapping
+    legacyType="efs"
+    type=FILESHARE_COMPONENT_TYPE
+/]
 
-[#assign FILESHARE_MOUNT_LEGACY_COMPONENT_TYPE = "efsmount" ]
-[#assign legacyTypeMapping += { FILESHARE_MOUNT_LEGACY_COMPONENT_TYPE : FILESHARE_MOUNT_COMPONENT_TYPE } ]
+[@addLegacyComponentTypeMapping
+    legacyType="efsmount"
+    type=FILESHARE_MOUNT_COMPONENT_TYPE
+/]
 
 [#assign ES_COMPONENT_TYPE = "es"]
-[#assign ES_LEGACY_COMPONENT_TYPE = "elasticsearch"]
-[#assign legacyTypeMapping += { ES_LEGACY_COMPONENT_TYPE : ES_COMPONENT_TYPE } ]
+
+[@addLegacyComponentTypeMapping
+    legacyType="elasticsearch"
+    type=ES_COMPONENT_TYPE
+/]
 
 [#assign EXTERNALNETWORK_COMPONENT_TYPE = "externalnetwork" ]
 [#assign EXTERNALNETWORK_CONNECTION_COMPONENT_TYPE = "externalnetworkconnection" ]
@@ -101,8 +107,11 @@
 
 [#assign LB_COMPONENT_TYPE = "lb" ]
 [#assign LB_PORT_COMPONENT_TYPE = "lbport" ]
-[#assign LB_LEGACY_COMPONENT_TYPE = "alb" ]
-[#assign legacyTypeMapping += { LB_LEGACY_COMPONENT_TYPE : LB_COMPONENT_TYPE } ]
+
+[@addLegacyComponentTypeMapping
+    legacyType="alb"
+    type=LB_COMPONENT_TYPE
+/]
 
 [#assign MOBILEAPP_COMPONENT_TYPE = "mobileapp"]
 
@@ -159,382 +168,6 @@
 [#assign USERPOOL_RESOURCE_COMPONENT_TYPE = "userpoolresource" ]
 
 [#assign DNS_ZONE_COMPONENT_TYPE = "dnszone"]
-
-[#assign
-    logWatcherChildrenConfiguration = [
-        {
-            "Names" : "LogFilter",
-            "Types" : STRING_TYPE,
-            "Mandatory" : true
-        },
-        {
-            "Names" : "Links",
-            "SubObjects": true,
-            "AttributeSet" : LINK_ATTRIBUTESET_TYPE
-        }
-    ]
-]
-
-[#assign logMetricChildrenConfiguration = [
-        {
-            "Names" : "LogFilter",
-            "Types" : STRING_TYPE,
-            "Mandatory" : true
-        }
-    ]
-]
-
-[#assign scalingPolicyChildrenConfiguration =
-    [
-        {
-            "Names" : "Type",
-            "Types" : STRING_TYPE,
-            "Values" : [ "Stepped", "Tracked", "Scheduled" ],
-            "Default" : "Stepped"
-        },
-        {
-            "Names" : "Cooldown",
-            "Description" : "Cooldown time ( seconds ) after a scaling event has occurred before another event can be triggered",
-            "Children" : [
-                {
-                    "Names" : "ScaleIn",
-                    "Types" : NUMBER_TYPE,
-                    "Default" : 300
-                },
-                {
-                    "Names" : "ScaleOut",
-                    "Types" : NUMBER_TYPE,
-                    "Default" : 600
-                }
-            ]
-        },
-        {
-            "Names" : "TrackingResource",
-            "Description" : "The resource metric used to trigger scaling",
-            "Children" : [
-                {
-                    "Names" : "Link",
-                    "AttributeSet" : LINK_ATTRIBUTESET_TYPE
-                },
-                {
-                    "Names" : "MetricTrigger",
-                    "AttributeSet" : ALERT_ATTRIBUTESET_TYPE
-                }
-            ]
-        },
-        {
-            "Names" : "Stepped",
-            "Children" : [
-                {
-                    "Names" : "Enabled",
-                    "Type" : BOOLEAN_TYPE,
-                    "Default" : true
-                },
-                {
-                    "Names" : "MetricAggregation",
-                    "Description" : "The method used to agregate the cloudwatch metric",
-                    "Types" : STRING_TYPE,
-                    "Values" : [ "Average", "Minimum", "Maximum" ],
-                    "Default" : "Average"
-                },
-                {
-                    "Names" : "CapacityAdjustment",
-                    "Description" : "How to scale when the policy is triggered",
-                    "Types" : STRING_TYPE,
-                    "Values" : [ "Change", "Exact", "Percentage" ],
-                    "Default" : "Change"
-                },
-                {
-                    "Names" : "MinAdjustment",
-                    "Description" : "When minimum scale adjustment value to apply when triggered",
-                    "Types" : NUMBER_TYPE,
-                    "Default" : -1
-                },
-                {
-                    "Names" : "Adjustments",
-                    "Description" : "The adjustments to apply at each step",
-                    "SubObjects" : true,
-                    "Children" : [
-                        {
-                            "Names" : "LowerBound",
-                            "Description" : "The lower bound for the difference between the alarm threshold and the metric",
-                            "Types" : NUMBER_TYPE
-                        },
-                        {
-                            "Names" : "UpperBound",
-                            "Description" : "The upper bound for the difference between the alarm threshold and the metric",
-                            "Types" : NUMBER_TYPE
-                        },
-                        {
-                            "Names" : "AdjustmentValue",
-                            "Description" : "The value to apply when the adjustment step is triggered",
-                            "Types" : NUMBER_TYPE,
-                            "Default" : 1
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "Names" : "Tracked",
-            "Children" : [
-                {
-                    "Names" : "Enabled",
-                    "Type" : BOOLEAN_TYPE,
-                    "Default" : true
-                },
-                {
-                    "Names" : "TargetValue",
-                    "Types" : NUMBER_TYPE
-                },
-                {
-                    "Names" : "ScaleInEnabled",
-                    "Types" : BOOLEAN_TYPE,
-                    "Default" : true
-                },
-                {
-                    "Names" : "RecommendedMetric",
-                    "Description" : "Use a recommended (predefined) metric for scaling",
-                    "Types" : STRING_TYPE
-                }
-            ]
-        },
-        {
-            "Names" : "Scheduled",
-            "Children" : [
-                {
-                    "Names" : "Enabled",
-                    "Type" : BOOLEAN_TYPE,
-                    "Default" : true
-                },
-                {
-                    "Names" : "ProcessorProfile",
-                    "Types" : STRING_TYPE,
-                    "Default" : "default"
-                },
-                {
-                    "Names" : "Schedule",
-                    "Types" : STRING_TYPE
-                }
-            ]
-        }
-    ]
-]
-
-[#assign lbChildConfiguration = [
-        {
-            "Names" : "LinkRef",
-            "Types" : STRING_TYPE
-        },
-        {
-            "Names" : "Tier",
-            "Types" : STRING_TYPE
-        },
-        {
-            "Names" : "Component",
-            "Types" : STRING_TYPE
-        },
-        {
-            "Names" : "LinkName",
-            "Types" : STRING_TYPE,
-            "Default" : "lb"
-        },
-        {
-            "Names" : "Instance",
-            "Types" : STRING_TYPE
-        },
-        {
-            "Names" : "Version",
-            "Types" : STRING_TYPE
-        },
-        {
-            "Names" : ["PortMapping", "Port"],
-            "Types" : STRING_TYPE,
-            "Default" : ""
-        }
-    ]
-]
-
-[#assign srvRegChildConfiguration = [
-        {
-            "Names" : "Tier",
-            "Types" : STRING_TYPE,
-            "Mandatory" : true
-        },
-        {
-            "Names" : "Component",
-            "Types" : STRING_TYPE,
-            "Mandatory" : true
-        },
-        {
-            "Names" : "LinkName",
-            "Types" : STRING_TYPE,
-            "Default" : "srvreg"
-        },
-        {
-            "Names" : "Instance",
-            "Types" : STRING_TYPE
-        },
-        {
-            "Names" : "Version",
-            "Types" : STRING_TYPE
-        },
-        {
-            "Names" : "RegistryService",
-            "Types" : STRING_TYPE
-        }
-    ]
-]
-
-[#assign wafChildConfiguration = [
-        {
-            "Names" : "Enabled",
-            "Types" : BOOLEAN_TYPE,
-            "Default" : true
-        },
-        {
-            "Names" : "Version",
-            "Description" : "Version of WAF to use",
-            "Types"  : STRING_TYPE,
-            "Values" : [ "v1","v2"],
-            "Default" : "v1"
-        },
-        {
-            "Names" : "IPAddressGroups",
-            "Types" : ARRAY_OF_STRING_TYPE,
-            "Default" : []
-        },
-        {
-            "Names" : "CountryGroups",
-            "Types" : ARRAY_OF_STRING_TYPE,
-            "Default" : []
-        },
-        {
-            "Names" : "OWASP",
-            "Types" : BOOLEAN_TYPE,
-            "Default" : false
-        },
-        {
-            "Names" : "Logging",
-            "Children" : [
-                {
-                    "Names" : "Enabled",
-                    "Types" : BOOLEAN_TYPE,
-                    "Default" : true
-                }
-            ]
-        },
-        {
-            "Names" : "Profiles",
-            "Children" : [
-                {
-                    "Names" : "Logging",
-                    "Description" : "Logging profile to process WAF Logs that are stored in the OpsData DataBucket.",
-                    "Types"  : STRING_TYPE,
-                    "Default" : "waf"
-                }
-            ]
-        },
-        {
-            "Names" : "RateLimits",
-            "SubObjects" : true,
-            "Children" : [
-                {
-                    "Names" : "IPAddressGroups",
-                    "Types" : ARRAY_OF_STRING_TYPE,
-                    "Default" : []
-                },
-                {
-                    "Names" : "Limit",
-                    "Types" : NUMBER_TYPE,
-                    "Mandatory" : true
-                }
-            ]
-        }
-    ]
-]
-
-[#assign settingsChildConfiguration = [
-        {
-            "Names" : "AsFile",
-            "Types" : BOOLEAN_TYPE,
-            "Default" : false
-        },
-        {
-            "Names" : "FileFormat",
-            "Types" : STRING_TYPE,
-            "Description" : "The format of the file when using AsFile",
-            "Values" : [ "json", "yaml" ],
-            "Default" : "json"
-        },
-        {
-            "Names" : "Json",
-            "Children" : [
-                {
-                    "Names" : "Escaped",
-                    "Types" : BOOLEAN_TYPE,
-                    "Default" : true
-                },
-                {
-                    "Names" : "Prefix",
-                    "Types" : STRING_TYPE,
-                    "Values" : ["json", ""],
-                    "Default" : "json"
-                }
-            ]
-        }
-    ]
-]
-
-[#assign autoScalingChildConfiguration = [
-    {
-        "Names" : "DetailedMetrics",
-        "Types" : BOOLEAN_TYPE,
-        "Default" : true,
-        "Description" : "Enable the collection of autoscale group detailed metrics"
-    },
-    {
-        "Names" : "MinUpdateInstances",
-        "Types" : NUMBER_TYPE,
-        "Default" : 1,
-        "Description" : "The minimum number of instances which must be available during an update"
-    },
-    {
-        "Names" : "MinSuccessInstances",
-        "Types" : NUMBER_TYPE,
-        "Description" : "The minimum percantage of instances that must sucessfully update",
-        "Default" : 75
-    },
-    {
-        "Names" : "ReplaceCluster",
-        "Types" : BOOLEAN_TYPE,
-        "Default" : false,
-        "Description" : "When set to true a brand new cluster will be built, if false the instances in the current cluster will be replaced"
-    },
-    {
-        "Names" : "UpdatePauseTime",
-        "Types" : STRING_TYPE,
-        "Default" : "10M",
-        "Description" : "How long to pause betweeen updates of instances"
-    },
-    {
-        "Names" : "StartupTimeout",
-        "Types" : STRING_TYPE,
-        "Default" : "15M",
-        "Description" : "How long to wait for a cfn-signal to be received from a host"
-    },
-    {
-        "Names" : "AlwaysReplaceOnUpdate",
-        "Types" : BOOLEAN_TYPE,
-        "Default" : false,
-        "Description" : "Replace instances on every update action"
-    },
-    {
-        "Names" : "ActivityCooldown",
-        "Types" : NUMBER_TYPE,
-        "Default" : 30
-    }
-]]
 
 [#assign domainNameChildConfiguration = [
     {
@@ -631,123 +264,6 @@
     ]
 ]
 
-[#assign s3NotificationChildConfiguration = [
-    {
-        "Names" : "Enabled",
-        "Types" : BOOLEAN_TYPE,
-        "Default" : true
-    },
-    {
-        "Names" : "Links",
-        "SubObjects": true,
-        "AttributeSet" : LINK_ATTRIBUTESET_TYPE
-    },
-    {
-        "Names" : "Prefix",
-        "Types" : STRING_TYPE
-    },
-    {
-        "Names" : "Suffix",
-        "Types" : STRING_TYPE
-    },
-    {
-        "Names" : "Events",
-        "Types" : ARRAY_OF_STRING_TYPE,
-        "Default" : [ "create" ],
-        "Values" : [ "create", "delete", "restore", "reducedredundancy" ]
-    },
-    {
-        "Names" : "aws:QueuePermissionMigration",
-        "Description" : "Deprecation alert: set to true once policy updated for queue",
-        "Types" : BOOLEAN_TYPE,
-        "Default" : false
-    },
-    {
-        "Names" : "aws:TopicPermissionMigration",
-        "Description" : "Deprecation alert: set to true once policy updated for topic",
-        "Types" : BOOLEAN_TYPE,
-        "Default" : false
-    }
-]]
-
-[#assign s3EncryptionChildConfiguration = [
-    {
-        "Names" : "Enabled",
-        "Description" : "Enable at rest encryption",
-        "Types" : BOOLEAN_TYPE,
-        "Default" : false
-    },
-    {
-        "Names" : "EncryptionSource",
-        "Types" : STRING_TYPE,
-        "Description" : "The encryption service to use - LocalService = S3, EncryptionService = native encryption service (kms)",
-        "Values" : [ "EncryptionService", "LocalService" ],
-        "Default" : "EncryptionService"
-    }
-]]
-
-[#assign dynamoDbTableChildConfiguration = [
-    {
-        "Names" : "Billing",
-        "Description" : "The billing mode for the table",
-        "Types"  : STRING_TYPE,
-        "Values" : [ "provisioned", "per-request" ],
-        "Default" : "provisioned"
-    },
-    {
-        "Names" : "Encrypted",
-        "Description" : "Enable at rest encryption",
-        "Types" : BOOLEAN_TYPE,
-        "Default" : true
-    },
-    {
-        "Names" : "Capacity",
-        "Children" : [
-            {
-                "Names" : "Read",
-                "Description" : "When using provisioned billing the maximum RCU of the table",
-                "Types" : NUMBER_TYPE,
-                "Default" : 1
-            },
-            {
-                "Names" : "Write",
-                "Description" : "When using provisioned billing the maximum WCU of the table",
-                "Types" : NUMBER_TYPE,
-                "Default" : 1
-            }
-        ]
-    },
-    {
-        "Names" : "Backup",
-        "Children" : [
-            {
-                "Names" : "Enabled",
-                "Description" : "Enables point in time recovery on the table",
-                "Types" : BOOLEAN_TYPE,
-                "Default" : false
-            }
-        ]
-    },
-    {
-        "Names" : "Stream",
-        "Children" : [
-            {
-                "Names" : "Enabled",
-                "Description" : "Enables dynamodb event stream",
-                "Types" : BOOLEAN_TYPE,
-                "Default" : false
-            },
-            {
-                "Names" : "ViewType",
-                "Types" : STRING_TYPE,
-                "Values" : [ "KEYS_ONLY", "NEW_IMAGE", "OLD_IMAGE", "NEW_AND_OLD_IMAGES" ],
-                "Default" : "NEW_IMAGE"
-            }
-        ]
-    }
-]]
-
-
 [#assign secretTemplateConfiguration = [
     {
         "Names" : "Generated",
@@ -802,33 +318,6 @@
         "Names" : "Requirements",
         "Description" : "Format requirements for the Secret",
         "AttributeSet" : SECRETSTRING_ATTRIBUTESET_TYPE
-    }
-]]
-
-[#assign networkRuleChildConfiguration = [
-    {
-        "Names" : "Ports",
-        "Description" : "A list of port ids from the Ports reference",
-        "Types" : ARRAY_OF_STRING_TYPE,
-        "Default" : []
-    },
-    {
-        "Names" : "IPAddressGroups",
-        "Description" : "A list of IP Address groups ids from the IPAddressGroups reference",
-        "Types" : ARRAY_OF_STRING_TYPE,
-        "Default" : []
-    },
-    {
-        "Names" : "SecurityGroups",
-        "Description" : "A list of security groups or ids - for internal use only",
-        "Types" : ARRAY_OF_STRING_TYPE,
-        "Default" : []
-    },
-    {
-        "Names" : "Description",
-        "Description" : "A description that will be applied to the rule",
-        "Types" : STRING_TYPE,
-        "Default" : ""
     }
 ]]
 
@@ -942,48 +431,12 @@
     },
     {
         "Names" : "AutoScaling",
-        "Children" : autoScalingChildConfiguration
+        "AttributeSet" : AUTOSCALEGROUP_ATTRIBUTESET_TYPE
     },
     {
         "Names" : "HostScalingPolicies",
         "SubObjects" : true,
-        "Children" : [
-            {
-                "Names" : "Type",
-                "Types" : STRING_TYPE,
-                "Values" : [ "Stepped", "Tracked", "Scheduled", "ComputeProvider" ],
-                "Default" : "ComputeProvider"
-            },
-            {
-                "Names" : "ComputeProvider",
-                "Children": [
-                    {
-                        "Names" : "MinAdjustment",
-                        "Description" : "The minimum instances to update during scaling activities",
-                        "Types" : NUMBER_TYPE,
-                        "Default" : 1
-                    },
-                    {
-                        "Names" : "MaxAdjustment",
-                        "Description" : "The maximum instances to  update during scaling activities",
-                        "Types" : NUMBER_TYPE,
-                        "Default" : 10000
-                    },
-                    {
-                        "Names" : "TargetCapacity",
-                        "Description" : "The target usage of the autoscale group to maintain as a percentage",
-                        "Types" : NUMBER_TYPE,
-                        "Default" : 90
-                    },
-                    {
-                        "Names" : "ManageTermination",
-                        "Description" : "Alow the computer provider to manage when instances will be terminated",
-                        "Types" : BOOLEAN_TYPE,
-                        "Default" : true
-                    }
-                ] + scalingPolicyChildrenConfiguration
-            }
-        ]
+        "AttributeSet" : SCALINGPOLICY_ECS_ATTRIBUTESET_TYPE
     },
     {
         "Names" : "DockerUsers",
@@ -1003,7 +456,7 @@
     {
         "Names" : "LogMetrics",
         "SubObjects" : true,
-        "Children" : logMetricChildrenConfiguration
+        "AttributeSet" : LOGMETRIC_ATTRIBUTESET_TYPE
     },
     {
         "Names" : "Alerts",
@@ -1099,7 +552,7 @@
     {
         "Names" : "ScalingPolicies",
         "SubObjects" : true,
-        "Children" : scalingPolicyChildrenConfiguration
+        "AttributeSet" : SCALINGPOLICY_ATTRIBUTESET_TYPE
     },
     {
         "Names" : "UseTaskRole",
@@ -1139,7 +592,7 @@
     {
         "Names" : "LogMetrics",
         "SubObjects" : true,
-        "Children" : logMetricChildrenConfiguration
+        "AttributeSet" : LOGMETRIC_ATTRIBUTESET_TYPE
     },
     {
         "Names" : "Alerts",
@@ -1315,7 +768,7 @@
     {
         "Names" : "LogMetrics",
         "SubObjects" : true,
-        "Children" : logMetricChildrenConfiguration
+        "AttributeSet" : LOGMETRIC_ATTRIBUTESET_TYPE
     },
     {
         "Names" : "Alerts",
@@ -1382,55 +835,3 @@
         "AttributeSet" : LINK_ATTRIBUTESET_TYPE
     }
 ]]
-
-[#-- Not for general use - framework only --]
-[#assign coreProfileChildConfiguration = [
-    {
-        "Names" : ["Profiles"],
-        "Children" : [
-            {
-                "Names" : "Deployment",
-                "Types" : ARRAY_OF_STRING_TYPE,
-                "Default" : []
-            },
-            {
-                "Names" : "Policy",
-                "Types" : ARRAY_OF_STRING_TYPE,
-                "Default" : []
-            },
-            {
-                "Names" : "Placement",
-                "Types" : STRING_TYPE,
-                "Default" : "default"
-            },
-            {
-                "Names" : "Baseline",
-                "Description" : "The profile used to lookup standard services provided by the segment baseline",
-                "Types" : STRING_TYPE,
-                "Default" : "default"
-            },
-            {
-                "Names" : "Testing",
-                "Description" : "The testing profiles to apply to the component",
-                "Types" : ARRAY_OF_STRING_TYPE,
-                "Default" : []
-            }
-        ]
-    }
-] ]
-
-
-[#assign tracingChildConfiguration =
-    [
-        {
-            "Names" : "Enabled",
-            "Type" : BOOLEAN_TYPE,
-            "Default" : true
-        },
-        {
-            "Names" : "Mode",
-            "Types" : STRING_TYPE,
-            "Values" : ["active", "passthrough"]
-        }
-    ]
-]

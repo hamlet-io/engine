@@ -74,7 +74,7 @@
             },
             {
                 "Names" : "AutoScaling",
-                "Children" : autoScalingChildConfiguration
+                "AttributeSet" : AUTOSCALEGROUP_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "Permissions",
