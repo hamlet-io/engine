@@ -302,7 +302,7 @@
                     {
                         "Names" : "ScalingPolicies",
                         "SubObjects" : true,
-                        "Children" : scalingPolicyChildrenConfiguration
+                        "AttributeSet" : SCALINGPOLICY_ATTRIBUTESET_TYPE
                     },
                     {
                         "Names" : "Parameters",

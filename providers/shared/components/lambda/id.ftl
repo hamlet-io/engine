@@ -58,12 +58,12 @@
             {
                 "Names" : "LogMetrics",
                 "SubObjects" : true,
-                "Children" : logMetricChildrenConfiguration
+                "AttributeSet" : LOGMETRIC_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "LogWatchers",
                 "SubObjects" : true,
-                "Children" : logWatcherChildrenConfiguration
+                "AttributeSet" : LOGWATCHER_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "Alerts",
@@ -173,7 +173,7 @@
             },
             {
                 "Names" : "Environment",
-                "Children" : settingsChildConfiguration
+                "AttributeSet" : ENVIRONMENTFORMAT_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "FixedCodeVersion",
@@ -220,7 +220,7 @@
             },
             {
                 "Names" : "Tracing",
-                "Children" : tracingChildConfiguration
+                "AttributeSet" : TRACING_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "ReservedExecutions",

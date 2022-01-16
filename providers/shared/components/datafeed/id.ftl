@@ -169,7 +169,7 @@
             {
                 "Names" : "LogWatchers",
                 "SubObjects" : true,
-                "Children" : logWatcherChildrenConfiguration
+                "AttributeSet" : LOGWATCHER_ATTRIBUTESET_TYPE
             }
         ]
 /]

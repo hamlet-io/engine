@@ -107,7 +107,7 @@
                     },
                     {
                         "Names" : "LB",
-                        "Children" : lbChildConfiguration
+                        "AttributeSet" : LBATTACH_ATTRIBUTESET_TYPE
                     }
                 ]
             },

@@ -24,7 +24,7 @@
             },
             {
                 "Names" : "WAF",
-                "Children" : wafChildConfiguration
+                "AttributeSet" : WAF_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "Pages",

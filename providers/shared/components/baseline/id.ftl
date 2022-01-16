@@ -198,11 +198,18 @@
             {
                 "Names" : "Notifications",
                 "SubObjects" : true,
-                "Children" : s3NotificationChildConfiguration
+                "AttributeSet" : OBJECTSTORE_NOTIFICATION_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "Encryption",
-                "Children" : s3EncryptionChildConfiguration
+                "Children" : [
+                    {
+                        "Names" : "Enabled",
+                        "Description" : "Enable at rest encryption",
+                        "Types" : BOOLEAN_TYPE,
+                        "Default" : false
+                    }
+                ]
             },
             {
                 "Names" : "Replication",

@@ -65,7 +65,7 @@
             {
                 "Names" : "WAF",
                 "Description" : "Web Application Firewall Integration",
-                "Children" : wafChildConfiguration
+                "AttributeSet" : WAF_ATTRIBUTESET_TYPE
             }
         ]
 /]

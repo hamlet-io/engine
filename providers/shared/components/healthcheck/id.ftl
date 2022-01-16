@@ -99,7 +99,7 @@
                 },
                 {
                     "Names" : "Tracing",
-                    "Children" : tracingChildConfiguration
+                    "AttributeSet" : TRACING_ATTRIBUTESET_TYPE
                 },
                 {
                     "Names" : "Schedule",

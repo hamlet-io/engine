@@ -18,6 +18,9 @@
 [#assign componentConfiguration = {} ]
 [#assign deploymentState = {} ]
 
+[#-- Legacy type mappings --]
+[#assign legacyTypeMapping = {} ]
+
 [#function findComponentMarkers]
     [#local markers =
         getPluginTree(
@@ -112,6 +115,15 @@
                 "Components" : children
             }
     /]
+[/#macro]
+
+[#macro addLegacyComponentTypeMapping type legacyType ]
+    [#assign legacyTypeMapping = mergeObjects(
+        legacyTypeMapping,
+        {
+            legacyType : type
+        }
+    )]
 [/#macro]
 
 [#-- Enables Deployment support for the component --]
@@ -386,7 +398,7 @@
         [#-- Special processing for profiles --]
         [#if resourceGroup == DEFAULT_RESOURCE_GROUP ]
             [#local providerAttributes = [] ]
-            [#local profileAttribute = coreProfileChildConfiguration[0] ]
+            [#local profileAttribute = (getAttributeSet(CORE_PROFILE_ATTRIBUTESET_TYPE).Attributes)[0] ]
             [#list attributes as attribute ]
                 [#if asArray(attribute.Names!attribute.Name![])?seq_contains("Profiles")]
                     [#local profileAttribute +=
