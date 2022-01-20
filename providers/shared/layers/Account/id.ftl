@@ -461,6 +461,23 @@
                     "Default" : []
                 }
             ]
+        },
+        {
+            "Names" : "Logging",
+            "Description" : "Account level resource logging configuration",
+            "Children" : [
+                {
+                    "Names" : "Encryption",
+                    "Description" : "Manage at-rest encryption of log storage",
+                    "Children" : [
+                        {
+                            "Names" : "Enabled",
+                            "Types" : BOOLEAN_TYPE,
+                            "Default" : false
+                        }
+                    ]
+                }
+            ]
         }
     ]
 /]
