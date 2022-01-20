@@ -37,6 +37,7 @@
     [#assign consoleDocumentDependencies = []]
 
     [#assign consoleCMKId = getAccountSSMSessionManagerKMSKeyId()]
+    [#assign accountCMKArn = getExistingReference(accountCMKId, ARN_ATTRIBUTE_TYPE, getCLOSegmentRegion())]
 
     [#if deploymentSubsetRequired("console", true) &&
             ! getExistingReference(consoleCMKId)?has_content ]
@@ -55,9 +56,20 @@
             [#case "cloudwatch"]
                 [#if deploymentSubsetRequired("lg", true) &&
                         isPartOfCurrentDeploymentUnit(consoleLgId)]
+
+                    [#if (accountObject.Logging.Encryption.Enabled)!false  ]
+                        [#if ! getExistingReference(accountCMKId)?has_content ]
+                            [@fatal
+                                message="Account CMK not found"
+                                detail="Run the cmk deployment at the account level to create the CMK"
+                            /]
+                        [/#if]
+                    [/#if]
+
                     [@createLogGroup
                         id=consoleLgId
                         name=consoleLgName
+                        kmsKeyId=accountCMKArn
                     /]
                 [/#if]
 
