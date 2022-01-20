@@ -9,5 +9,5 @@
                 "Value" : "Determines where a component will be deployed to"
             }
         ]
-    attributes=placementProfileConfiguration
+    attributes=getAttributeSet(PLACEMENTPROFILE_ATTRIBUTESET_TYPE).Attributes
 /]
