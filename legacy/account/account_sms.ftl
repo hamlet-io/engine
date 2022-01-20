@@ -43,14 +43,33 @@
 
     [#assign lgId = formatMobileNotifierLogGroupId(MOBILENOTIFIER_SMS_ENGINE, "", false) ]
     [#assign lgFailureId = formatMobileNotifierLogGroupId(MOBILENOTIFIER_SMS_ENGINE, "", true) ]
+
+    [#assign accountCMKArn = getExistingReference(accountCMKId, ARN_ATTRIBUTE_TYPE, getCLOSegmentRegion())]
+
     [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(lgId) ]
+
+        [#if (accountObject.Logging.Encryption.Enabled)!false ]
+            [#if ! getExistingReference(accountCMKId)?has_content ]
+
+                [#assign preconditionsMet = false]
+                [@fatal
+                    message="Account CMK not found"
+                    detail="Run the cmk deployment at the account level to create the CMK"
+                /]
+            [/#if]
+        [/#if]
+
         [@createLogGroup
             id=lgId
-            name=formatMobileNotifierLogGroupName(MOBILENOTIFIER_SMS_ENGINE, "", false) /]
+            name=formatMobileNotifierLogGroupName(MOBILENOTIFIER_SMS_ENGINE, "", false)
+            kmsKeyId=accountCMKArn
+        /]
 
         [@createLogGroup
             id=lgFailureId
-            name=formatMobileNotifierLogGroupName(MOBILENOTIFIER_SMS_ENGINE, "", true) /]
+            name=formatMobileNotifierLogGroupName(MOBILENOTIFIER_SMS_ENGINE, "", true)
+            kmsKeyId=accountCMKArn
+        /]
     [/#if]
 
     [#assign smsS3Id = formatAccountS3Id("ops") ]
