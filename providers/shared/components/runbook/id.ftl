@@ -38,6 +38,11 @@
                         "Default" : false
                     },
                     {
+                        "Names" : "Values",
+                        "Description" : "Restricts the provided value to one of these values",
+                        "Types" : ARRAY_OF_ANY_TYPE
+                    },
+                    {
                         "Names" : "Types",
                         "Description" : "The supported types of the input",
                         "Values" : [
