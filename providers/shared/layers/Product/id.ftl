@@ -126,7 +126,7 @@
         {
             "Names" : "PlacementProfiles",
             "SubObjects" : true,
-            "Children" : placementProfileConfiguration
+            "AttributeSet" : PLACEMENTPROFILE_ATTRIBUTESET_TYPE
         }
     ]
 /]

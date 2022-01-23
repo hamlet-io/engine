@@ -18,68 +18,29 @@
     attributes=[
         {
             "Names" : "Id",
+            "Description" : "A hamlet specific unique Id for the Account",
             "Types" : STRING_TYPE
         },
         {
-            "Names" : "Provider",
-            "Types" : STRING_TYPE,
-            "Default" : "aws",
-            "Description" : "Define which provider this account applies to"
-        },
-        {
             "Names" : "Name",
+            "Description" : "A hamlet specific unique name for the Account - Uses Id if not defined",
             "Types" : STRING_TYPE
         },
         {
             "Names" : "Title",
+            "Description" : "A long form title of the account for documentation",
             "Types" : STRING_TYPE
         },
         {
             "Names" : "Description",
+            "Description" : "A description of the account",
             "Types" : STRING_TYPE
         },
         {
-            "Names" : "Region",
-            "Types" : STRING_TYPE
-        },
-        {
-            "Names" : "Domain",
-            "Types" : STRING_TYPE
-        },
-        {
-            "Names" : "Profiles",
-            "Children" : [
-                {
-                    "Names" : "Deployment",
-                    "Types" : ARRAY_OF_STRING_TYPE,
-                    "Default" : []
-                },
-                {
-                    "Names" : "Policy",
-                    "Types" : ARRAY_OF_STRING_TYPE,
-                    "Default" : []
-                }
-            ]
-        }
-        {
-            "Names" : "DeploymentProfiles",
-            "SubObjects" : true,
-            "Children" : []
-        },
-        {
-            "Names" : "PolicyProfiles",
-            "SubObjects" : true,
-            "Children" : []
-        }
-        {
-            "Names" : "Modules",
-            "SubObjects" : true,
-            "AttributeSet" : MODULE_ATTRIBUTESET_TYPE
-        },
-        {
-            "Names" : "Plugins",
-            "SubObjects" : true,
-            "AttributeSet" : PLUGIN_ATTRIBUTESET_TYPE
+            "Names" : "Provider",
+            "Description" : "The name of the provider that the account belongs to",
+            "Types" : STRING_TYPE,
+            "Default" : "aws"
         },
         {
             "Names" :[
@@ -87,34 +48,93 @@
                 "AWSId",
                 "AzureId"
             ],
+            "Description" : "The unique Id of the account from the provider",
             "Types" : STRING_TYPE,
             "Default" : ""
         },
         {
+            "Names" : "Region",
+            "Description" : "The id of a Region Reference to use as the default",
+            "Types" : STRING_TYPE
+        },
+        {
+            "Names" : "Domain",
+            "Description" : "The id of a Domain Reference to use as the default",
+            "Types" : STRING_TYPE
+        },
+        {
+            "Names" : "Profiles",
+            "Description" : "Account wide profiles to apply to account and child resources",
+            "Children" : [
+                {
+                    "Names" : "Deployment",
+                    "Description" : "The id of a DeploymentProfile Reference or Account attribute to apply to all components",
+                    "Types" : ARRAY_OF_STRING_TYPE,
+                    "Default" : []
+                },
+                {
+                    "Names" : "Policy",
+                    "Description" : "The id of a PolicyProfile Reference or Account attribute to apply to all components",
+                    "Types" : ARRAY_OF_STRING_TYPE,
+                    "Default" : []
+                }
+            ]
+        }
+        {
+            "Names" : "DeploymentProfiles",
+            "Description" : "Account specific DeploymentProfiles to apply across all account components",
+            "SubObjects" : true,
+            "Children" : []
+        },
+        {
+            "Names" : "PolicyProfiles",
+            "Description" : "Account specific PolicyProfiles to apply across all account components",
+            "SubObjects" : true,
+            "Children" : []
+        }
+        {
+            "Names" : "Modules",
+            "Description" : "Modules to import and apply for any component that belongs to the account",
+            "SubObjects" : true,
+            "AttributeSet" : MODULE_ATTRIBUTESET_TYPE
+        },
+        {
+            "Names" : "Plugins",
+            "Description" : "Pluings to import and apply for any component that belongs to the account",
+            "SubObjects" : true,
+            "AttributeSet" : PLUGIN_ATTRIBUTESET_TYPE
+        },
+        {
             "Names" : "Seed",
+            "Description" : "A random seed to ensure global resource names are unique",
             "Types" : STRING_TYPE,
             "Mandatory" : true
         },
         {
             "Names" : "CostCentre",
+            "Description" : "A cost centre tag to apply to all components the account belongs to",
             "Types" : STRING_TYPE,
             "Default" : ""
         },
         {
             "Names" : "Console",
+            "Description" : "Configuration control for virtual machine consoles",
             "Children" : [
                 {
                     "Names" : "Encryption",
+                    "Description" : "Enable encryption of all content between the virtual machine and the console service",
                     "Children" : [
                         {
                             "Names" : "DedicatedKey",
+                            "Description" : "Use a dedicated KMS key instead of the default account kms key",
                             "Types" : BOOLEAN_TYPE,
                             "Default" : false
                         }
                     ]
                 },
                 {
-                    "Names" : "LoggingDestinations",
+                    "Names" : [ "LoggingDestinations", "aws:LoggingDestinations" ],
+                    "Description" : "AWS: where logs from the console session will be sent",
                     "Types" : ARRAY_OF_STRING_TYPE,
                     "Values" : [ "cloudwatch", "s3" ],
                     "Default" : [ "s3" ]
@@ -123,9 +143,11 @@
         },
         {
             "Names" : "S3",
+            "Description" : "Account level S3/Object store configuration",
             "Children" : [
                 {
                     "Names" : "Encryption",
+                    "Description" : "At-rest encryption management",
                     "Children" : [
                         {
                             "Names" : "Enabled",
@@ -134,6 +156,7 @@
                         },
                         {
                             "Names" : "EncryptionSource",
+                            "Description" : "The encryption service to use to encrypt data",
                             "Types" : STRING_TYPE,
                             "Values" : [ "EncryptionService", "aws:kms", "localservice", "aes256" ],
                             "Default" : "EncryptionService"
@@ -147,6 +170,7 @@
                 },
                 {
                     "Names" : "Versioning",
+                    "Description" : "Enable versioning on all account level object stores",
                     "Children" : [
                         {
                             "Names" : "Enabled",
@@ -159,9 +183,11 @@
         },
         {
             "Names" : "Volume",
+            "Description" : "Account wide controls over block storage volumes",
             "Children" : [
                 {
                     "Names" : "Encryption",
+                    "Description" : "Manage at-rest encryption of volumes",
                     "Children" : [
                         {
                             "Names" : "Enabled",
@@ -174,6 +200,7 @@
         },
         {
             "Names" : "aws:ecsAccountSettings",
+            "Description" : "AWS manage account level configuration of the Elastic Container Service",
             "Types" : OBJECT_TYPE,
             "Default" : {
                 "serviceLongArnFormat" : true,
@@ -184,25 +211,31 @@
         },
         {
             "Names" : "Audit",
+            "Description": "Manage the object store audit logging",
             "Children" : [
                 {
                     "Names" : "Expiration",
+                    "Description" : "The duration to keep logs for",
                     "Types" : [ NUMBER_TYPE, STRING_TYPE ]
                 },
                 {
                     "Names" : "Offline",
+                    "Description" : "The duration to keep logs before sending to offline storage",
                     "Types" : [ NUMBER_TYPE, STRING_TYPE ]
                 }
             ]
         },
         {
             "Names" : "Encryption",
+            "Description" : "Manage Account level encryption keys",
             "Children" : [
                 {
                     "Names" : "Alias",
+                    "Description" : "Control the alias of the KMS Key",
                     "Children" : [
                         {
                             "Names" : "IncludeSeed",
+                            "Description" : "Include a unique seed in the alias to ensure it is unique in the account",
                             "Types" : BOOLEAN_TYPE,
                             "Default" : false
                         }
@@ -211,24 +244,16 @@
             ]
         },
         {
-            "Names" : "Access",
-            "SubObjects" : true,
-            "Children" : [
-                {
-                    "Names" : "AWSId",
-                    "Types" : STRING_TYPE,
-                    "Mandatory" : true
-                }
-            ]
-        },
-        {
             "Names" : "Registry",
+            "Description" : "Manage the registries used to host account based copies for images",
             "Children" : [
                 {
                     "Names" : "ShareAccess",
+                    "Description"  : "Control access to the registries from external sources",
                     "Children" : [
                         {
-                            "Names" : "AWSAccounts",
+                            "Names" : ["ProviderIds", "AWSAccounts" ],
+                            "Description" : "The provider Ids of provider accounts to share with",
                             "Types" : ARRAY_OF_STRING_TYPE,
                             "Default" : []
                         }
@@ -425,16 +450,18 @@
         },
         {
             "Names" : "Operations",
+            "Description" : "Account wide control over the operations object store created within segments",
             "Children" : [
                 {
                     "Names" : "Expiration",
+                    "Description" : "The maximum time to keep opbjects in operations stores",
                     "Types" : NUMBER_TYPE
                 }
             ]
         },
         {
             "Names" : "aws:SES",
-            "Description" : "AWS SES Account configuration",
+            "Description" : "AWS: Simple Email Service Account wide configuration",
             "Children" : [
                 {
                     "Names" : "RuleSet",

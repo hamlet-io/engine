@@ -18,6 +18,7 @@
 [#assign OBJECTSTORE_NOTIFICATION_ATTRIBUTESET_TYPE = "objectstore_notification"]
 [#assign OPERATINGSYSTEM_ATTRIBUTESET_TYPE = "operatingsystem" ]
 [#assign OSPATCHING_ATTRIBUTESET_TYPE = "ospatching"]
+[#assign PLACEMENTPROFILE_ATTRIBUTESET_TYPE = "placementprofile"]
 [#assign PLUGIN_ATTRIBUTESET_TYPE = "plugin"]
 [#assign SCALINGPOLICY_ATTRIBUTESET_TYPE = "scalingpolicy"]
 [#assign SCALINGPOLICY_ECS_ATTRIBUTESET_TYPE = "scalingpolicy_ecs"]
