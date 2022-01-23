@@ -203,7 +203,7 @@
         kmsKeyId=accountCMKId
         replica=false
         replicaRegions=accountObject.Registry.ReplicaRegions
-        shareAccountIds=(accountObject.Registry.ShareAccess.AWSAccounts)![]
+        shareAccountIds=(accountObject.Registry.ShareAccess.ProviderIds)![]
     /]
 
     [#if deploymentSubsetRequired("epilogue", false)]
@@ -324,7 +324,7 @@
         kmsKeyId=accountCMKArn
         replica=true
         replicaRegions=(accountObject.Registry.ReplicaRegions)![]
-        shareAccountIds=(accountObject.Registry.ShareAccess.AWSAccounts)![]
+        shareAccountIds=(accountObject.Registry.ShareAccess.ProviderIds)![]
     /]
 
 [/#if]

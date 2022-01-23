@@ -28,6 +28,18 @@
                     "AttributeSet" : LINK_ATTRIBUTESET_TYPE
                 }
             ]
+        },
+        {
+            "Names" : "Encryption",
+            "Description" : "Mange encryption of log storage",
+            "Children" : [
+                {
+                    "Names" : "Enabled",
+                    "Description" : "Enable at rest encryption",
+                    "Types" : BOOLEAN_TYPE,
+                    "Default" : false
+                }
+            ]
         }
     ]
 /]

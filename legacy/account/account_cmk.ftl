@@ -44,6 +44,47 @@
                             {
                                 "AWS": formatAccountPrincipalArn()
                             }
+                        ),
+                        getPolicyStatement(
+                            [
+                                "kms:Encrypt*",
+                                "kms:Decrypt*",
+                                "kms:ReEncrypt*",
+                                "kms:GenerateDataKey*",
+                                "kms:Describe*"
+                            ],
+                            "*"
+                            {
+                                "Service" : {
+                                    "Fn::Sub" : [
+                                        r'logs.${Region}.amazonaws.com',
+                                        {
+                                            "Region" : {
+                                                "Ref" : "AWS::Region"
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "ArnLike": {
+                                    "kms:EncryptionContext:aws:logs:arn":  {
+                                        "Fn::Sub" : [
+                                            r'arn:aws:logs:${Region}:${AWSAccountId}:*',
+                                            {
+                                                "Region" : {
+                                                    "Ref" : "AWS::Region"
+                                                },
+                                                "AWSAccountId" : {
+                                                    "Ref" : "AWS::AccountId"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            },
+                            true,
+                            "CloudWatch Logs access to KMS for log storage"
                         )
                     ]
             /]
