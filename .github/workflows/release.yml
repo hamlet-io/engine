@@ -34,7 +34,7 @@ jobs:
           GENERATION_ENGINE_DIR: ${{github.workspace }}
           GENERATION_PLUGIN_DIRS: ${{ github.workspace }}
         run: |
-          hamlet engine get-engine
+          hamlet engine install-engine unicycle
           hamlet -i mock -p shared -p sharedtest -f default deploy test-deployments -p '--junitxml=junit.xml' -o 'hamlet_tests/'
 
 
