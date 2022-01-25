@@ -151,6 +151,7 @@
         occurrence.Configuration.Environment.General +
         occurrence.Configuration.Environment.Build +
         occurrence.Configuration.Environment.Sensitive +
+        occurrence.Configuration.Environment.Component +
         getDefaultLinkVariables(links, true) +
         baselineLinks?has_content?then(
             getDefaultBaselineVariables(baselineLinks),
