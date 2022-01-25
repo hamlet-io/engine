@@ -97,6 +97,11 @@
                         "Names" : "Security",
                         "Types" : STRING_TYPE,
                         "Default" : "default"
+                    },
+                    {
+                        "Names" : "Logging",
+                        "Types" : STRING_TYPE,
+                        "Default" : "default"
                     }
                 ]
             }
