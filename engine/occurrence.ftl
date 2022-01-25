@@ -344,6 +344,8 @@
                     "Environment" : {
                         "Build" :
                             getSettingsAsEnvironment(occurrence.Configuration.Settings.Build),
+                        "Component" :
+                            getSettingsAsEnvironment(occurrence.Configuration.Settings.Component),
                         "General" :
                             internalGetOccurrenceSettingsAsEnvironment(
                                 occurrence,
