@@ -10,6 +10,9 @@
 [#assign APIGATEWAY_USAGEPLAN_COMPONENT_TYPE = "apiusageplan"]
 [#assign APIGATEWAY_COMPONENT_DOCS_EXTENSION = "docs"]
 
+[#assign BACKUPSTORE_COMPONENT_TYPE = "backupstore"]
+[#assign BACKUPSTORE_REGIME_COMPONENT_TYPE = "backupstoreregime" ]
+
 [#assign BASELINE_COMPONENT_TYPE = "baseline" ]
 [#assign BASELINE_DATA_COMPONENT_TYPE = "baselinedata" ]
 [#assign BASELINE_KEY_COMPONENT_TYPE = "baselinekey" ]
