@@ -27,20 +27,13 @@
     /]
 [/#macro]
 
-[#function getModuleConfiguration name="" ]
-    [#if name?has_content ]
-        [#return getConfigurationSet(MODULE_CONFIGURATION_SCOPE, name)]
-    [#else]
-        [#local result = {}]
-            [#list getConfigurationSets(MODULE_CONFIGURATION_SCOPE) as set]
-                [#local result = mergeObjects(result, { set.Id : { "Attributes" : set.Attributes, "Properties" : set.Properties, "Configuration" : set.Configuration }} )]
-            [/#list]
-        [#return result]
-    [/#if]
+[#function getModuleConfiguration name provider ]
+    [#return (getConfigurationSets(MODULE_CONFIGURATION_SCOPE)?filter(
+            x -> x.Id == name &&  x.Configuration.Provider == provider )[0])!{}]
 [/#function]
 
 [#function getModuleDetails name provider parameters ]
-    [#local moduleConfig = getModuleConfiguration(name) ]
+    [#local moduleConfig = getModuleConfiguration(name, provider) ]
 
     [#if ! moduleConfig?has_content ]
         [#return {}]
