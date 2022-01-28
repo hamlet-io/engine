@@ -104,6 +104,21 @@
                         "Default" : "KeysOnly"
                     }
                 ]
+            },
+            {
+                "Names" : "Profiles",
+                "Children" : [
+                    {
+                        "Names" : "Alert",
+                        "Types" : STRING_TYPE,
+                        "Default" : "default"
+                    }
+                ]
+            }
+            {
+                "Names" : "Alerts",
+                "SubObjects" : true,
+                "AttributeSet" : ALERT_ATTRIBUTESET_TYPE
             }
         ]
 /]
