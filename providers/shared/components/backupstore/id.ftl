@@ -180,8 +180,8 @@
                 ]
             },
             {
-                "Names" : "Targets",
-                "Description" : "Mechanisms to determine what should be backed up",
+                "Names" : "Conditions",
+                "Description" : "Mechanisms to filter selected targets",
                 "Children" : [
                     {
                         "Names" : "MatchesStore",
@@ -214,10 +214,28 @@
                                 "Default" : true
                             }
                         ]
+                    }
+                ]
+            },
+            {
+                "Names" : "Targets",
+                "Description" : "Mechanisms to determine what should be backed up. Conditions are ORed",
+                "Children" : [
+                    {
+                        "Names" : "All",
+                        "Description" : "Consider all resources. Normally used with the MatchesStore condition",
+                        "Children" : [
+                            {
+                                "Names" : "Enabled",
+                                "Description" : "All resources are targets",
+                                "Types" : BOOLEAN_TYPE,
+                                "Default" : false
+                            }
+                        ]
                     },
                     {
                         "Names" : "Tag",
-                        "Description" : "Target must carry a tag specific to the store. Tag is added by linking from the component to the store",
+                        "Description" : "Include any target carrying a tag specific to the regime. Tag is added by linking from the component to the regime",
                         "Children" : [
                             {
                                 "Names" : "Enabled",
