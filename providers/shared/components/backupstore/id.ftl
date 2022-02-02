@@ -19,12 +19,6 @@
                         "Names" : "Enabled",
                         "Types" : BOOLEAN_TYPE,
                         "Default" : false
-                    },
-                    {
-                        "Names" : "Key",
-                        "Description" : "Baseline key to use for snapshot encryption",
-                        "Types" : STRING_TYPE,
-                        "Default" : "Encryption"
                     }
                 ]
             },
