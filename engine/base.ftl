@@ -1753,6 +1753,10 @@ are added.
 
     [#local prefix = prefix?ensure_ends_with(":")]
 
+    [#if prefix == disablePrefix ]
+        [#local prefix = ""]
+    [/#if]
+
     [#if depth gte maxDepth ]
         [#local prefixNames = false ]
         [#local prefixValues = false ]
@@ -1779,12 +1783,12 @@ are added.
         [#if ((attribute.Values)![])?has_content ]
             [#local prefixedValues = asArray(attribute.Values)?map(
                                         x -> x?is_string?then(
-                                                            x?starts_with(disablePrefix)?then(
-                                                                x?remove_beginning(disablePrefix),
-                                                                prefixValues?then( x?ensure_starts_with(prefix), x)
-                                                            ),
-                                                            x
-                                                        )
+                                            x?starts_with(disablePrefix)?then(
+                                                x?remove_beginning(disablePrefix),
+                                                prefixValues?then( x?ensure_starts_with(prefix), x)
+                                            ),
+                                            x
+                                        )
                                         )]
         [/#if]
 
