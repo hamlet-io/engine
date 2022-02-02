@@ -474,13 +474,21 @@ already prefixed attribute.
                         [#-- If extension value starts with the disable prefix, --]
                         [#-- value is shared so strip prefix, otherwise         --]
                         [#-- force extension value to be prefixed               --]
-                        [#local extendedValues +=
-                            [
-                                extensionValue?starts_with(disablePrefix)?then(
-                                    extensionValue?remove_beginning(disablePrefix),
-                                    extensionValue?ensure_starts_with(prefix)
-                                )
-                            ]]
+                        [#if prefix != disablePrefix ]
+                            [#local extendedValues +=
+                                [
+                                    extensionValue?starts_with(disablePrefix)?then(
+                                        extensionValue?remove_beginning(disablePrefix),
+                                        extensionValue?ensure_starts_with(prefix)
+                                    )
+                                ]]
+                        [#else]
+                            [#local extendedValues +=
+                                [
+                                    extensionValue?remove_beginning(disablePrefix)
+                                ]
+                            ]
+                        [/#if]
                     [#else ]
                         [#local extendedValues += extensionValue ]
                     [/#if]
