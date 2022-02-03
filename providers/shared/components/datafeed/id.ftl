@@ -53,6 +53,23 @@
                         "Default" : "error/"
                     },
                     {
+                        "Names" : "Compression",
+                        "Description" : "Apply compression to files saved to the bucket",
+                        "Children" : [
+                            {
+                                "Names" : "Enabled",
+                                "Types" : BOOLEAN_TYPE,
+                                "Default" : true
+                            },
+                            {
+                                "Names" : "Format",
+                                "Types" : STRING_TYPE,
+                                "Values" : [ "GZIP", "ZIP"],
+                                "Default" : "GZIP"
+                            }
+                        ]
+                    },
+                    {
                         "Names" : "Include",
                         "Description" : "Deployment specific details to add to prefix",
                         "Children" : [
@@ -148,6 +165,23 @@
                         "Description" : "The backup policy to apply to records",
                         "Values" : [ "AllDocuments", "FailedDocumentsOnly" ],
                         "Default" : "FailedDocumentsOnly"
+                    },
+                    {
+                        "Names" : "Compression",
+                        "Description" : "Apply compression to files saved to the bucket",
+                        "Children" : [
+                            {
+                                "Names" : "Enabled",
+                                "Types" : BOOLEAN_TYPE,
+                                "Default" : true
+                            },
+                            {
+                                "Names" : "Format",
+                                "Types" : STRING_TYPE,
+                                "Values" : [ "GZIP", "ZIP" ],
+                                "Default" : "GZIP"
+                            }
+                        ]
                     }
                 ]
             },
