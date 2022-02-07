@@ -44,6 +44,17 @@
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             },
             {
+                "Names" : "Logging",
+                "Description" : "Manage the logging services enabled for the directory",
+                "Children" : [
+                    {
+                        "Names" : "Enabled",
+                        "Types" : BOOLEAN_TYPE,
+                        "Default" : false
+                    }
+                ]
+            },
+            {
                 "Names" : "Profiles",
                 "Children" :
                     [
@@ -54,6 +65,11 @@
                         },
                         {
                             "Names" : "Network",
+                            "Types" : STRING_TYPE,
+                            "Default" : "default"
+                        },
+                        {
+                            "Names" : "Logging",
                             "Types" : STRING_TYPE,
                             "Default" : "default"
                         }
