@@ -54,6 +54,8 @@
     type=DB_COMPONENT_TYPE
 /]
 
+[#assign DDB_COMPONENT_TYPE = "ddb" ]
+
 [#assign DIRECTORY_COMPONENT_TYPE = "directory" ]
 
 [#assign EC2_COMPONENT_TYPE = "ec2"]
