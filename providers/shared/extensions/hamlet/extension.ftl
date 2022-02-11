@@ -41,6 +41,7 @@
     [@DefaultCoreVariables          enabled=false /]
     [@DefaultEnvironmentVariables   enabled=false /]
     [@DefaultBaselineVariables      enabled=false /]
+    [@DefaultComponentVariables     enabled=false /]
 
     [@Settings {
         "AWS_AUTOMATION_USER"   : awsAutomationUser,
@@ -208,15 +209,6 @@
         [@Volume
             name="dockerStage"
             containerPath=dockerStageDir
-            volumeEngine="ebs"
-            scope=dockerStagePersist?then(
-                        "shared",
-                        "task"
-            )
-            driverOpts={
-                "volumetype": "gp2",
-                "size": dockerStageSize
-            }
         /]
 
     [/#if]
