@@ -24,16 +24,15 @@
     [@DefaultCoreVariables enabled=false /]
     [@DefaultEnvironmentVariables enabled=false /]
     [@DefaultBaselineVariables enabled=false /]
-
-    [#local defaultEnv = _context.DefaultEnvironment]
+    [@DefaultComponentVariables enabled=false /]
 
     [@Hostname hostname=(_context.Name)?replace("_", "") /]
 
-    [#local dockerStageDir = defaultEnv["DOCKER_STAGE_DIR"]!"/home/jenkins"  ]
-    [#local dockerStageSize = defaultEnv["DOCKER_STAGE_SIZE_GB"]!"20"        ]
-    [#local dockerStagePersist = (defaultEnv["DOCKER_STAGE_PERSIST"]?boolean)!false ]
-    [#local dockerLibSize = defaultEnv["DOCKER_LIB_VOLUME_SIZE"]!"20"         ]
-    [#local dindTLSVerify = defaultEnv["DIND_DOCKER_TLS_VERIFY"]!"true"      ]
+    [#local dockerStageDir = _context.DefaultEnvironment["DOCKER_STAGE_DIR"]!"/home/jenkins"  ]
+    [#local dockerStageSize = _context.DefaultEnvironment["DOCKER_STAGE_SIZE_GB"]!"20"        ]
+    [#local dockerStagePersist = (_context.DefaultEnvironment["DOCKER_STAGE_PERSIST"]?boolean)!false ]
+    [#local dockerLibSize = _context.DefaultEnvironment["DOCKER_LIB_VOLUME_SIZE"]!"20"         ]
+    [#local dindTLSVerify = _context.DefaultEnvironment["DIND_DOCKER_TLS_VERIFY"]!"true"      ]
 
     [#if ((_context.Container.Image.Source)!"") != "containerregistry" ]
         [@Attributes
@@ -55,35 +54,49 @@
         /]
     [/#if]
 
-    [@Settings ["BUILD_REFERENCE"] /]
+    [#switch (_context.DefaultEnvironment["DOCKER_VOLUME_HOST"])!"ebs" ]
+        [#case "ebs"]
+            [@Volume
+                name="dockerStage"
+                containerPath=dockerStageDir
+                volumeEngine="ebs"
+                scope=dockerStagePersist?then(
+                            "shared",
+                            "task"
+                )
+                driverOpts={
+                    "volumetype": "gp2",
+                    "size": dockerStageSize
+                }
+            /]
 
-    [@Volume
-        name="dockerStage"
-        containerPath=dockerStageDir
-        volumeEngine="ebs"
-        scope=dockerStagePersist?then(
+            [@Volume
+                name="dind_lib"
+                containerPath="/var/lib/docker"
+                volumeEngine="ebs"
+                scope="task"
+                scope=dockerStagePersist?then(
                     "shared",
                     "task"
-        )
-        driverOpts={
-            "volumetype": "gp2",
-            "size": dockerStageSize
-        }
-    /]
+                )
+                driverOpts={
+                    "volumetype": "gp2",
+                    "size": dockerLibSize
+                }
+            /]
+            [#break]
 
-    [@Volume
-        name="dind_lib"
-        containerPath="/var/lib/docker"
-        volumeEngine="ebs"
-        scope="task"
-        scope=dockerStagePersist?then(
-            "shared",
-            "task"
-        )
-        driverOpts={
-            "volumetype": "gp2",
-            "size": dockerLibSize
-        }
-    /]
+        [#case "local"]
 
+            [@Volume
+                name="dockerStage"
+                containerPath=dockerStageDir
+            /]
+
+            [@Volume
+                name="dind_lib"
+                containerPath="/var/lib/docker"
+            /]
+            [#break]
+    [/#switch]
 [/#macro]
