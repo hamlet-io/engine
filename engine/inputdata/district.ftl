@@ -17,16 +17,55 @@
 
 [#-- Macros to assemble the district configuration --]
 [#macro addDistrict type layers properties=[]  ]
+
     [#local configuration =
         {
             "Type" : type,
             "Properties" : asArray(properties),
-            "Layers" : asArray(layers)
+            "Layers" :
+                getCompositeObject(
+                    [
+                        {
+                            "Names" : "InstanceOrder",
+                            "Description" : "Layers whose configuration data should be included in the solution for an instance of the district",
+                            "Type" : ARRAY_OF_STRING_TYPE,
+                            "Mandatory" : true
+                        },
+                        {
+                            "Names" : "NameOrder",
+                            "Description" : "Layers to be included in the name of an instance of the district. If not provided, the InstanceOrder is assumed.",
+                            "Type" : ARRAY_OF_STRING_TYPE
+                        },
+                        {
+                            "Names" : "NameParts",
+                            "SubObjects" : true,
+                            "Children" : [
+                                {
+                                    "Names" : "Enabled",
+                                    "Description" : "Should this part be ignored/omitted?",
+                                    "Type" : BOOLEAN_TYPE,
+                                    "Default" : true
+                                },
+                                {
+                                    "Names" : "Fixed",
+                                    "Description" : "Include a fixed string",
+                                    "Type" : STRING_TYPE
+                                },
+                                {
+                                    "Names" : "Ignore",
+                                    "Description" : "An array of values to not include if encountered",
+                                    "Type" : ARRAY_OF_STRING_TYPE
+                                }
+                            ]
+                        }
+                    ],
+                    layers
+                )
         }
     ]
 
     [#-- Ensure the provided layers are configured --]
-    [#list configuration.Layers as layer]
+    [#list configuration.Layers.InstanceOrder![] as layer]
         [#if ! isLayerConfigured(layer)]
             [@fatal
                 message="Unknown layer in " + type + " district configuration"
@@ -58,11 +97,11 @@
 
     [#local stackEntry = district ]
     [#if ! district?has_content]
-        [#local stackEntry = internalGetLinkDistrict(link, logErrors) ]
+        [#local stackEntry = internalGetLinkDistrict(link) ]
     [/#if]
 
     [#-- Check if the district has changed --]
-    [#if isStackEmpty(districtStack) || (!filterMatch(getTopOfStack(districtStack), link, EXACTLY_ONETOONE_FILTER_MATCH_BEHAVIOUR)) ]
+    [#if isStackEmpty(districtStack) || (!filterMatch(getTopOfStack(districtStack), stackEntry, EXACTLY_ONETOONE_FILTER_MATCH_BEHAVIOUR)) ]
         [#-- Update the input state with the new district --]
         [@pushInputFilter inputFilter=link /]
     [/#if]
@@ -86,6 +125,49 @@
     [/#if]
 
 [/#macro]
+
+[#-- Collect the name parts for the district --]
+[#function getDistrictNameParts link short=false]
+
+    [#-- First get the district instance --]
+    [#local district = internalGetLinkDistrict(link) ]
+
+    [#-- Now get the config for the district --]
+    [#local config = districtConfiguration[district.District!""]!{} ]
+
+    [#-- Determine the order of the name parts --]
+    [#local partsOrder = (config.Layers.NameOrder)!(config.Layers.InstanceOrder)![] ]
+
+    [#-- Determine the layer data to include in the name --]
+    [#local activeLayers = getActiveLayers() ]
+
+    [#-- Process the name parts - note that fixed parts don't have to correspond to a known layer --]
+    [#local nameParts = [] ]
+    [#list partsOrder as part]
+        [#local partConfig = (config.Layers.NameParts[part])!{} ]
+        [#if partConfig.Enabled!true]
+
+            [#-- Fixed string --]
+            [#if (partConfig.Fixed!"")?has_content]
+                [#local nameParts += [partConfig.Fixed] ]
+                [#continue]
+            [/#if]
+
+            [#-- Value based on layer --]
+            [#local layer = activeLayers[part]!{} ]
+            [#if layer?has_content]
+                [#local namePart = short?then(layer.Id,layer.Name) ]
+                [#-- Check for any values to be ignored (mainly to support legacy handling of "default") --]
+                [#if ! asArray(partConfig.Ignore![])?seq_contains(namePart) ]
+                    [#local nameParts += [ namePart ] ]
+                [/#if]
+            [/#if]
+        [/#if]
+    [/#list]
+
+    [#return nameParts ]
+
+[/#function]
 
 [#------------------------------------------------------
 -- Internal support functions for district processing --
@@ -111,7 +193,7 @@
     [#local result = {} ]
 
     [#-- Get the expected layers --]
-    [#local layers = (districtConfiguration[link.District!""].Layers)![] ]
+    [#local layers = (districtConfiguration[link.District!""].Layers.InstanceOrder)![] ]
     [#if layers?has_content]
         [#list layers as layer]
             [#-- Check for input filter attributes --]

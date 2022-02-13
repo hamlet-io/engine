@@ -228,8 +228,6 @@
     [@includeReferences blueprintObject /]
 
     [#-- Name prefixes --]
-    [#assign shortNamePrefixes = [] ]
-    [#assign fullNamePrefixes = [] ]
     [#assign cmdbProductLookupPrefixes = [] ]
 
     [#-- Testing --]
@@ -318,8 +316,6 @@
         [#assign productName = (productObject.Name)!"" ]
         [#assign productDomain = productObject.Domain!"" ]
 
-        [#assign shortNamePrefixes += [productId] ]
-        [#assign fullNamePrefixes += [productName] ]
         [#assign cmdbProductLookupPrefixes += ["shared"] ]
     [/#if]
 
@@ -346,8 +342,6 @@
                     "Name" : categoryName
                 } +
                 categories[categoryId]!{} ]
-            [#assign shortNamePrefixes += [environmentId] ]
-            [#assign fullNamePrefixes += [environmentName] ]
 
             [#assign cmdbProductLookupPrefixes +=
                 [
@@ -355,11 +349,6 @@
                     environmentName,
                     [environmentName, segmentName]
                 ] ]
-
-            [#if (segmentName != "default") ]
-                [#assign shortNamePrefixes += [segmentId] ]
-                [#assign fullNamePrefixes += [segmentName] ]
-            [/#if]
         [/#if]
 
         [#assign rotateKeys = segmentObject.RotateKeys ]
