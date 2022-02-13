@@ -282,7 +282,7 @@
                     "ShortTypedFullName" : formatSegmentShortName(occurrence.Core.Extensions.Id, type),
                     "ShortTypedRawFullName" : formatSegmentShortName(occurrence.Core.Extensions.RawId, type),
                     "RelativePath" : formatRelativePath(occurrence.Core.Extensions.Name),
-                    "ReltiveRawPath" : formatRelativePath(occurrence.Core.Extensions.RawName),
+                    "RelativeRawPath" : formatRelativePath(occurrence.Core.Extensions.RawName),
                     "FullRelativePath" : formatSegmentRelativePath(occurrence.Core.Extensions.Name),
                     "FullRelativeRawPath" : formatSegmentRelativePath(occurrence.Core.Extensions.RawName),
                     "AbsolutePath" : formatAbsolutePath(occurrence.Core.Extensions.Name),

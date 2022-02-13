@@ -18,17 +18,17 @@
 
 [#-- Format segment short name --]
 [#function formatSegmentShortName extensions...]
-    [#return formatName(shortNamePrefixes, extensions) ]
+    [#return formatName(getDistrictNameParts(getInputFilter(), true), extensions) ]
 [/#function]
 
 [#-- Format segment name --]
 [#function formatSegmentFullName extensions...]
-    [#return formatName(fullNamePrefixes,  extensions) ]
+    [#return formatName(getDistrictNameParts(getInputFilter(), false),  extensions) ]
 [/#function]
 
 [#-- Format environment name --]
 [#function formatEnvironmentFullName extensions...]
-    [#return formatName(fullNamePrefixes[0..1],  extensions) ]
+    [#return formatName(getDistrictNameParts(getInputFilter(), false)[0..1],  extensions) ]
 [/#function]
 
 [#-- Format a component short name - based on ids not names --]
@@ -74,7 +74,7 @@
 
 [#-- Format a segment path --]
 [#function formatSegmentPath absolute extensions...]
-    [#return formatPath(absolute, fullNamePrefixes, extensions)]
+    [#return formatPath(absolute, getDistrictNameParts(getInputFilter(), false), extensions)]
 [/#function]
 
 [#function formatSegmentRelativePath extensions...]
