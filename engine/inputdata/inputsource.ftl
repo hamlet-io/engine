@@ -648,6 +648,8 @@ A stack is used to capture the history of input state changes
 [#macro pushInputSource inputSource inputFilter={} ]
 
     [#-- Always include the InputSource in the filter --]
+    [#-- The source needs to be included to ensure    --]
+    [#-- cache checking considers a change in source  --]
     [#local newFilter = inputFilter + {"InputSource" : inputSource} ]
 
     [@debug
