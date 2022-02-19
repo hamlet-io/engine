@@ -90,14 +90,14 @@
 [#-- validated and normalised district     --]
 [#function getLinkDistrict link logErrors=true]
     [#-- Validate the district configuration --]
-    [#return internalGetLinkDistrict(link, logErrors) ]
+    [#return internalGetLinkDistrict(link, .caller_template_name, logErrors) ]
 [/#function]
 
 [#macro pushDistrict link district={} ]
 
     [#local stackEntry = district ]
     [#if ! district?has_content]
-        [#local stackEntry = internalGetLinkDistrict(link) ]
+        [#local stackEntry = internalGetLinkDistrict(link, .caller_template_name) ]
     [/#if]
 
     [#-- Check if the district has changed --]
@@ -130,7 +130,7 @@
 [#function getDistrictNameParts link short=false]
 
     [#-- First get the district instance --]
-    [#local district = internalGetLinkDistrict(link) ]
+    [#local district = internalGetLinkDistrict(link, .caller_template_name) ]
 
     [#-- Now get the config for the district --]
     [#local config = districtConfiguration[district.District!""]!{} ]
@@ -174,7 +174,7 @@
 --------------------------------------------------------]
 
 [#-- Construct a district stack entry --]
-[#function internalGetLinkDistrict link logErrors=true]
+[#function internalGetLinkDistrict link caller logErrors=true ]
 
     [#-- Handle "self" district --]
     [#if (link.District!"") == SELF_DISTRICT_TYPE]
@@ -205,7 +205,10 @@
                     [#if logErrors]
                         [@fatal
                             message='"${attribute}" attribute is required by a district type of "${link.District}"'
-                            context=link
+                            context={
+                                "Caller" : caller,
+                                "Link": link
+                            }
                         /]
                     [/#if]
                     [#local result = {} ]

@@ -88,6 +88,8 @@
 [/#macro]
 
 [#-- Command line options seeders --]
+
+[#-- Base commandline options --]
 [#function shared_configseeder_commandlineoptions filter state]
     [#return
         addToConfigPipelineClass(
@@ -196,6 +198,40 @@
     ]
 [/#function]
 
+[#-- Special handling of input source and input filter is required  --]
+[#-- during bootstrap processing of the input system. Normally, the --]
+[#-- input source specific command line option routine will be      --]
+[#-- invoked directly via the normal preference mechanism for       --]
+[#-- selecting step functions.                                      --]
+[#-- During bootstrap, only the command line option stage should be --]
+[#-- processed but the input source specific command line option    --]
+[#-- processing is still required.                                  --]
+[#function shared_configseeder_commandlineoptions_bootstrap filter state]
+
+    [#-- Get the shared options to pick up the requested input source --]
+    [#local newState = shared_configseeder_commandlineoptions(filter, state) ]
+
+    [#-- Include any input source specific command line options --]
+    [#local desiredInputSource =
+        newState[COMMAND_LINE_OPTIONS_CONFIG_INPUT_CLASS].Input.Source
+    ]
+    [#local stepFunction =
+        [
+            "shared_configseeder_commandlineoptions",
+            desiredInputSource
+        ]?join("_")
+    ]
+    [#if (.vars[stepFunction]!"")?is_directive]
+        [@debug
+            message="Invoking step function " + stepFunction
+            enabled=false
+        /]
+        [#local newState = (.vars[stepFunction])(filter, newState) ]
+    [/#if]
+
+    [#return newState]
+[/#function]
+
 [#function shared_configseeder_commandlineoptions_composite filter state]
     [#return
         addToConfigPipelineClass(
@@ -232,6 +268,14 @@
                 },
                 "Run" : {
                     "Id" : "runId098"
+                },
+                "Input" : {
+                    "Filter" : {
+                        "Tenant" :  tenant?has_content?then(tenant, "mocktenant"),
+                        "Product" : product?has_content?then(product, "mockproduct"),
+                        "Environment" : environment?has_content?then(environment, "mockenvironment"),
+                        "Segment" : segment?has_content?then(segment, "mocksegment")
+                    }
                 }
             }
         )
