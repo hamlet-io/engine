@@ -10,6 +10,6 @@
     ]
     layers={
         "InstanceOrder" : [ TENANT_LAYER_TYPE, PRODUCT_LAYER_TYPE, ENVIRONMENT_LAYER_TYPE ],
-        "NameOrder" : [ PRODUCT_LAYER_TYPE, ENVIRONMENT_LAYER_TYPE ]
+        "NamePartOrder" : [ PRODUCT_LAYER_TYPE, ENVIRONMENT_LAYER_TYPE ]
     }
 /]

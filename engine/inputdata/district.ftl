@@ -32,8 +32,8 @@
                             "Mandatory" : true
                         },
                         {
-                            "Names" : "NameOrder",
-                            "Description" : "Layers to be included in the name of an instance of the district. If not provided, the InstanceOrder is assumed.",
+                            "Names" : "NamePartOrder",
+                            "Description" : "Parts to be included in the name of an instance of the district. If not provided, the InstanceOrder is assumed. If not a defined name part, the part is assumed to be a layer.",
                             "Type" : ARRAY_OF_STRING_TYPE
                         },
                         {
@@ -126,6 +126,11 @@
 
 [/#macro]
 
+[#-- Get the ordering of layers for a district --]
+[#function getDistrictLayerOrder district]
+    [#return (districtConfiguration[district.District!""].Layers.InstanceOrder)![] ]
+[/#function]
+
 [#-- Collect the name parts for the district --]
 [#function getDistrictNameParts link short=false]
 
@@ -136,7 +141,7 @@
     [#local config = districtConfiguration[district.District!""]!{} ]
 
     [#-- Determine the order of the name parts --]
-    [#local partsOrder = (config.Layers.NameOrder)!(config.Layers.InstanceOrder)![] ]
+    [#local partsOrder = (config.Layers.NamePartOrder)!(config.Layers.InstanceOrder)![] ]
 
     [#-- Determine the layer data to include in the name --]
     [#local activeLayers = getActiveLayers() ]
@@ -168,6 +173,14 @@
     [#return nameParts ]
 
 [/#function]
+
+[#function getDistrictFullNameParts link ]
+    [#return getDistrictNameParts(link, false)]
+[/#function]
+[#function getDistrictShortNameParts link ]
+    [#return getDistrictNameParts(link, true)]
+[/#function]
+
 
 [#------------------------------------------------------
 -- Internal support functions for district processing --
