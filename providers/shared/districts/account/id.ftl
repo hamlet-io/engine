@@ -10,7 +10,7 @@
     ]
     layers={
         "InstanceOrder" : [ TENANT_LAYER_TYPE, ACCOUNT_LAYER_TYPE ],
-        "NameOrder" : [ "std" ],
+        "NamePartOrder" : [ "std" ],
         "NameParts" : {
             "std" : {
                 "Fixed" : "account"
