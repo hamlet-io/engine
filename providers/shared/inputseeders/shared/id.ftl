@@ -376,7 +376,7 @@
         ]
     [/#if]
 
-    [#if definitions?contains("null")]
+    [#if (definitions!"")?contains("null")]
         [@warn
             message="null JSON values not supportd in hamlet"
             detail="A possible null value was detected in a definition file - remove the null value if it is not required"
