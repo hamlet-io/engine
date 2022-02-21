@@ -376,8 +376,15 @@
         ]
     [/#if]
 
+    [#if definitions?contains("null")]
+        [@warn
+            message="null JSON values not supportd in hamlet"
+            detail="A possible null value was detected in a definition file - remove the null value if it is not required"
+        /]
+    [/#if]
+
     [#local compositeDefinitions =
-        ((definitions!"")?has_content && (!definitions?contains("null")))?then(
+        ((definitions!"")?has_content)?then(
             definitions?eval_json,
             {}
         )
