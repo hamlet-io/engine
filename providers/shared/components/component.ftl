@@ -764,6 +764,29 @@
         ]
     },
     {
+        "Names" : "Placement",
+        "Children" : [
+            {
+                "Names" : "ComputeProvider",
+                "Description" : "The compute provider placement policy",
+                "Children" : [
+                    {
+                        "Names" : "Default",
+                        "Children" : [
+                            {
+                                "Names" : "Provider",
+                                "Description" : "The default container compute provider - _engine uses the default provider of the engine",
+                                "Types"  : STRING_TYPE,
+                                "Values" : [ "_engine" ],
+                                "Default" : "_engine"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
         "Names" : "TaskLogGroup",
         "Types" : BOOLEAN_TYPE,
         "Default" : true
