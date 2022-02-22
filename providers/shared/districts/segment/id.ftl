@@ -8,12 +8,14 @@
             "Value" : "Segment level solutions"
         }
     ]
-    layers={
-        "InstanceOrder" : [ TENANT_LAYER_TYPE, PRODUCT_LAYER_TYPE, ENVIRONMENT_LAYER_TYPE, SEGMENT_LAYER_TYPE ],
-        "NamePartOrder" : [ PRODUCT_LAYER_TYPE, ENVIRONMENT_LAYER_TYPE, SEGMENT_LAYER_TYPE ],
-        "NameParts" : {
-            SEGMENT_LAYER_TYPE : {
-                "Ignore" : [ "default" ]
+    configuration={
+        "Layers" : {
+            "InstanceOrder" : [ TENANT_LAYER_TYPE, PRODUCT_LAYER_TYPE, ENVIRONMENT_LAYER_TYPE, SEGMENT_LAYER_TYPE ],
+            "NamePartOrder" : [ PRODUCT_LAYER_TYPE, ENVIRONMENT_LAYER_TYPE, SEGMENT_LAYER_TYPE ],
+            "NameParts" : {
+                SEGMENT_LAYER_TYPE : {
+                    "Ignore" : [ "default" ]
+                }
             }
         }
     }

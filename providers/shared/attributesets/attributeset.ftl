@@ -6,6 +6,7 @@
 [#assign CONTTAINERTASK_ATTRIBUTESET_TYPE = "containertask"]
 [#assign CONTEXTPATH_ATTRIBUTESET_TYPE = "contextpath"]
 [#assign CORE_PROFILE_ATTRIBUTESET_TYPE = "core_profile"]
+[#assign DISTRICT_ATTRIBUTESET_TYPE = "district"]
 [#assign ECS_COMPUTEIMAGE_ATTRIBUTESET_TYPE = "ecs_computeimage"]
 [#assign ENVIRONMENTFORMAT_ATTRIBUTESET_TYPE = "environmentformat"]
 [#assign LBATTACH_ATTRIBUTESET_TYPE = "lbattach"]
