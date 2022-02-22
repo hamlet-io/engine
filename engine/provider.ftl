@@ -214,6 +214,22 @@
                 [/#if]
             [/#list]
 
+            [#-- Determine the AttributeSets for the provider --]
+            [#local directories =
+                internalGetPluginFiles(
+                    [providerMarker.Path, "attributesets"],
+                    [
+                        ["[^/]+"]
+                    ]
+                )
+            ]
+            [#list directories as directory]
+                [@internalIncludeTemplatesInDirectory
+                    directory,
+                    ["id", "attributeset"]
+                /]
+            [/#list]
+
             [#-- Determine the layers for the provider --]
             [#local directories =
                 internalGetPluginFiles(
@@ -243,22 +259,6 @@
                 [@internalIncludeTemplatesInDirectory
                     directory,
                     ["id"]
-                /]
-            [/#list]
-
-            [#-- Determine the AttributeSets for the provider --]
-            [#local directories =
-                internalGetPluginFiles(
-                    [providerMarker.Path, "attributesets"],
-                    [
-                        ["[^/]+"]
-                    ]
-                )
-            ]
-            [#list directories as directory]
-                [@internalIncludeTemplatesInDirectory
-                    directory,
-                    ["id", "attributeset"]
                 /]
             [/#list]
 

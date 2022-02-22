@@ -8,7 +8,9 @@
             "Value" : "Tenant level solutions"
         }
     ]
-    layers={
-         "InstanceOrder" : [ TENANT_LAYER_TYPE ]
+    configuration={
+        "Layers" : {
+            "InstanceOrder" : [ TENANT_LAYER_TYPE ]
+        }
     }
 /]

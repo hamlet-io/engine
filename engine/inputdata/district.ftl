@@ -16,56 +16,27 @@
 [#assign districtConfiguration = {} ]
 
 [#-- Macros to assemble the district configuration --]
-[#macro addDistrict type layers properties=[]  ]
+[#macro addDistrict type configuration properties=[]  ]
 
-    [#local configuration =
+    [#local config =
         {
             "Type" : type,
             "Properties" : asArray(properties),
-            "Layers" :
+            "Configuration" :
                 getCompositeObject(
                     [
                         {
-                            "Names" : "InstanceOrder",
-                            "Description" : "Layers whose configuration data should be included in the solution for an instance of the district",
-                            "Type" : ARRAY_OF_STRING_TYPE,
-                            "Mandatory" : true
-                        },
-                        {
-                            "Names" : "NamePartOrder",
-                            "Description" : "Parts to be included in the name of an instance of the district. If not provided, the InstanceOrder is assumed. If not a defined name part, the part is assumed to be a layer.",
-                            "Type" : ARRAY_OF_STRING_TYPE
-                        },
-                        {
-                            "Names" : "NameParts",
-                            "SubObjects" : true,
-                            "Children" : [
-                                {
-                                    "Names" : "Enabled",
-                                    "Description" : "Should this part be ignored/omitted?",
-                                    "Type" : BOOLEAN_TYPE,
-                                    "Default" : true
-                                },
-                                {
-                                    "Names" : "Fixed",
-                                    "Description" : "Include a fixed string",
-                                    "Type" : STRING_TYPE
-                                },
-                                {
-                                    "Names" : "Ignore",
-                                    "Description" : "An array of values to not include if encountered",
-                                    "Type" : ARRAY_OF_STRING_TYPE
-                                }
-                            ]
+                            "Names" : "Layers",
+                            "AttributeSet" : DISTRICT_ATTRIBUTESET_TYPE
                         }
                     ],
-                    layers
+                    configuration
                 )
         }
     ]
 
     [#-- Ensure the provided layers are configured --]
-    [#list configuration.Layers.InstanceOrder![] as layer]
+    [#list (config.Configuration.Layers.InstanceOrder)![] as layer]
         [#if ! isLayerConfigured(layer)]
             [@fatal
                 message="Unknown layer in " + type + " district configuration"
@@ -79,7 +50,7 @@
         mergeObjects(
             districtConfiguration,
             {
-                type : configuration
+                type : config
             }
         )
     ]
@@ -128,7 +99,7 @@
 
 [#-- Get the ordering of layers for a district --]
 [#function getDistrictLayerOrder district]
-    [#return (districtConfiguration[district.District!""].Layers.InstanceOrder)![] ]
+    [#return (districtConfiguration[district.District!""].Configuration.Layers.InstanceOrder)![] ]
 [/#function]
 
 [#-- Collect the name parts for the district --]
@@ -138,7 +109,7 @@
     [#local district = internalGetLinkDistrict(link, .caller_template_name) ]
 
     [#-- Now get the config for the district --]
-    [#local config = districtConfiguration[district.District!""]!{} ]
+    [#local config = (districtConfiguration[district.District!""].Configuration)!{} ]
 
     [#-- Determine the order of the name parts --]
     [#local partsOrder = (config.Layers.NamePartOrder)!(config.Layers.InstanceOrder)![] ]
@@ -206,7 +177,7 @@
     [#local result = {} ]
 
     [#-- Get the expected layers --]
-    [#local layers = (districtConfiguration[link.District!""].Layers.InstanceOrder)![] ]
+    [#local layers = (districtConfiguration[link.District!""].Configuration.Layers.InstanceOrder)![] ]
     [#if layers?has_content]
         [#list layers as layer]
             [#-- Check for input filter attributes --]
