@@ -7,11 +7,6 @@
             {
                 "Type"  : "Description",
                 "Value" : "A managed NoSQL database instance"
-            },
-            {
-                "Type" : "Note",
-                "Value" : "Minor Version Upgrades - Are presently ignored by DocDB",
-                "Severity" : "warning"
             }
         ]
     attributes=
@@ -128,6 +123,10 @@
                 "Names" : "Backup",
                 "Children" : [
                     {
+                        "Names" : "BackupWindow",
+                        "AttributeSet" : BACKUPWINDOW_ATTRIBUTESET_TYPE
+                    },
+                    {
                         "Names" : "RetentionPeriod",
                         "Types" : NUMBER_TYPE,
                         "Default" : 35
@@ -160,14 +159,6 @@
             {
                 "Names" : "MaintenanceWindow",
                 "AttributeSet" : MAINTENANCEWINDOW_ATTRIBUTESET_TYPE
-            },
-            {
-                "Names" : "BackupWindow",
-                "AttributeSet" : BACKUPWINDOW_ATTRIBUTESET_TYPE
-            },
-            {
-                "Names" : "AutoMinorVersionUpgrade",
-                "Types" : BOOLEAN_TYPE
             },
             {
                 "Names" : "DBParameters",
@@ -231,48 +222,6 @@
                 "Description" : "Always create the database from a snapshot",
                 "Types" : BOOLEAN_TYPE,
                 "Default" : false
-            },
-            {
-                "Names" : "Monitoring",
-                "Description" : "Monitoring configuration options",
-                "Children" : [
-                    {
-                        "Names" : "QueryPerformance",
-                        "Description" : "Enable monitoring database query performance",
-                        "Children" : [
-                            {
-                                "Names" : "Enabled",
-                                "Types" : BOOLEAN_TYPE,
-                                "Default" : false
-                            },
-                            {
-                                "Names" : "RetentionPeriod",
-                                "Description" : "How long to keep data for ( days )",
-                                "Values" : [ 7, 731 ],
-                                "Types" : NUMBER_TYPE,
-                                "Default" : 7
-                            }
-                        ]
-                    },
-                    {
-                        "Names" : "DetailedMetrics",
-                        "Description" : "Enables detailed metric collection from the database host",
-                        "Children" : [
-                            {
-                                "Names" : "Enabled",
-                                "Types" : BOOLEAN_TYPE,
-                                "Default" : false
-                            },
-                            {
-                                "Names" : "CollectionInterval",
-                                "Description" : "Metric Collection interval ( seconds )",
-                                "Types" : NUMBER_TYPE,
-                                "Values" : [ 0, 1, 5, 10, 15, 30, 60 ],
-                                "Default" : 60
-                            }
-                        ]
-                    }
-                ]
             },
             {
                 "Names" : "Cluster",
