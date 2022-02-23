@@ -137,9 +137,8 @@
                 [#if policyStatements?has_content ]
                     [@createBucketPolicy
                         id=bucketPolicyId
-                        bucket=bucketName
+                        bucketId=bucketId
                         statements=policyStatements
-                        dependencies=bucketId
                     /]
                 [/#if]
             [/#if]
