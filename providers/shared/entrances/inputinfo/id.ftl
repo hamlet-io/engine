@@ -6,7 +6,7 @@
         [
             {
                 "Type"  : "Description",
-                "Value" : "Provides information for release management tasks performed by executors"
+                "Value" : "Provides information about the pipelines used for processing inputs"
             }
         ]
     commandlineoptions=[
