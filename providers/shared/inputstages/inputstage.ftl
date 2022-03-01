@@ -34,3 +34,5 @@
 [#assign SIMULATE_SHARED_INPUT_STAGE = "simulate"]
 
 [#assign QUALIFY_SHARED_INPUT_STAGE = "qualify"]
+
+[#assign NULLCLEAN_SHARED_INPUT_STAGE = "nullclean"]
