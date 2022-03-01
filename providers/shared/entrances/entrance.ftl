@@ -6,6 +6,7 @@
 [#assign CONFIGURATION_ENTRANCE_TYPE     = "configuration" ]
 [#assign DEPLOYMENT_ENTRANCE_TYPE        = "deployment" ]
 [#assign DEPLOYMENTTEST_ENTRANCE_TYPE    = "deploymenttest" ]
+[#assign INPUTINFO_ENTRANCE_TYPE         = "inputinfo" ]
 [#assign INFO_ENTRANCE_TYPE              = "info" ]
 [#assign LOADER_ENTRANCE_TYPE            = "loader" ]
 [#assign RUNBOOK_ENTRANCE_TYPE           = "runbook" ]
