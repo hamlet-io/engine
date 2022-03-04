@@ -85,7 +85,7 @@
 [#-- S3 settings/appdata storage  --]
 
 [#function getSettingsFilePrefix occurrence ]
-    [#return formatRelativePath("settings", occurrence.Core.FullRelativePath) ]
+    [#return formatRelativePath("settings", occurrence.Core.FullRelativeRawPath) ]
 [/#function]
 
 [#function getAppDataFilePrefix occurrence={} ]
