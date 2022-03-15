@@ -819,7 +819,7 @@
 
 [/#function]
 
-[#function syncFilesToBucketScript filesArrayName region bucket prefix cleanup=true excludes=[] ]
+[#function syncFilesToBucketScript filesArrayName region bucket prefix cleanup=true excludes=[] maxAge=-1 ]
 
     [#local excludeSwitches = ""]
     [#list asArray(excludes) as exclude]
@@ -843,8 +843,9 @@
                    "\"" + region         + "\"" + " " +
                    "\"" + bucket         + "\"" + " " +
                    "\"" + prefix         + "\"" + " " +
-                   "\"" + filesArrayName + "\"" + " " +
-                   valueIfTrue("--delete", cleanup, "") +
+                   "\"" + filesArrayName + "\"" +
+                   valueIfTrue(" --delete", cleanup, "") +
+                   valueIfTrue(" --cache-control max-age=${maxAge?c}", maxAge >= 0, "") +
                    excludeSwitches +
                    " || return $?",
             "    ;;",
