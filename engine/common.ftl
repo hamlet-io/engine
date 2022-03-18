@@ -866,16 +866,17 @@
 
 [#function findAsFilesScript filesArrayName settings]
     [#-- Create an array for the files --]
+    [#-- Sort results so files are consistently ordered in scripts etc --]
+    [#-- This assists in preventing false positives when detecting     --]
+    [#-- changes                                                       --]
     [#local result = [] ]
-    [#list settings as setting]
-        [#if setting.AsFile?has_content]
-            [#local result +=
-                [
-                    "addToArray" + " " +
-                       "\"" + "filePathsToSync" + "\"" + " " +
-                       "\"" + setting.AsFile    + "\""
-                ] ]
-        [/#if]
+    [#list settings?filter(s -> s.AsFile?has_content)?sort_by("AsFile") as setting]
+        [#local result +=
+            [
+                "addToArray" + " " +
+                    "\"" + "filePathsToSync" + "\"" + " " +
+                    "\"" + setting.AsFile    + "\""
+            ] ]
     [/#list]
     [#local result += ["#"] ]
 
