@@ -115,7 +115,7 @@
                 "Input" : {
                     "Source" : inputSource!"composite",
                     "Filter" :
-                        attributeIfContent("District", district!SEGMENT_DISTRICT_TYPE) +
+                        attributeIfContent("DistrictType", districtType!SEGMENT_DISTRICT_TYPE) +
                         attributeIfContent("Tenant", tenant!"") +
                         attributeIfContent("Product", product!"") +
                         attributeIfContent("Environment", environment!"") +
