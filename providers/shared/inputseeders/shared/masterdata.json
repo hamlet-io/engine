@@ -1959,21 +1959,21 @@
     "segment": {
       "Priority": 100,
       "Level": "segment",
-      "District" : "segment",
+      "DistrictType" : "segment",
       "OutputPrefix" : "seg",
       "ResourceSets": {}
     },
     "solution": {
       "Priority": 200,
       "Level": "solution",
-      "District" : "segment",
+      "DistrictType" : "segment",
       "OutputPrefix" : "soln",
       "ResourceSets": {}
     },
     "application": {
       "Priority": 300,
       "Level": "application",
-      "District" : "segment",
+      "DistrictType" : "segment",
       "OutputPrefix" : "app",
       "ResourceSets": {}
     }
