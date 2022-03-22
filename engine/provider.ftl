@@ -249,7 +249,7 @@
             [#-- Determine the districts for the provider --]
             [#local directories =
                 internalGetPluginFiles(
-                    [providerMarker.Path, "districts"],
+                    [providerMarker.Path, "districttypes"],
                     [
                         ["[^/]+"]
                     ]
@@ -258,7 +258,7 @@
             [#list directories as directory]
                 [@internalIncludeTemplatesInDirectory
                     directory,
-                    ["id"]
+                    ["id", "districttype"]
                 /]
             [/#list]
 
@@ -963,8 +963,8 @@
 
     [#-- aws/districts/district.ftl --]
     [@internalIncludeTemplatesInDirectory
-        [providerMarker.Path, "districts"],
-        ["district" ]
+        [providerMarker.Path, "districttypes"],
+        ["districttype" ]
     /]
 
     [#-- aws/references/reference.ftl --]

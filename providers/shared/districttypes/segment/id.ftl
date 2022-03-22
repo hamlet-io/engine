@@ -1,6 +1,6 @@
 [#ftl]
 
-[@addDistrict
+[@addDistrictType
     type=SEGMENT_DISTRICT_TYPE
     properties=[
         {
