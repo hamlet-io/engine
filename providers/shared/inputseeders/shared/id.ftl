@@ -277,6 +277,7 @@
                 "Input" : {
                     "Filter" : {
                         "Tenant" :  tenant?has_content?then(tenant, "mocktenant"),
+                        "Account": account?has_content?then(account, "mockacct"),
                         "Product" : product?has_content?then(product, "mockproduct"),
                         "Environment" : environment?has_content?then(environment, "mockenvironment"),
                         "Segment" : segment?has_content?then(segment, "mocksegment")
