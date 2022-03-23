@@ -99,7 +99,7 @@
 
 [#-- Get the ordering of layers for a district --]
 [#function getDistrictLayerOrder district]
-    [#return (districtConfiguration[district.District!""].Configuration.Layers.InstanceOrder)![] ]
+    [#return (districtConfiguration[district.DistrictType!""].Configuration.Layers.InstanceOrder)![] ]
 [/#function]
 
 [#-- Collect the name parts for the district --]
@@ -109,7 +109,7 @@
     [#local district = internalGetLinkDistrict(link, .caller_template_name) ]
 
     [#-- Now get the config for the district --]
-    [#local config = (districtConfiguration[district.District!""].Configuration)!{} ]
+    [#local config = (districtConfiguration[district.DistrictType!""].Configuration)!{} ]
 
     [#-- Determine the order of the name parts --]
     [#local partsOrder = (config.Layers.NamePartOrder)!(config.Layers.InstanceOrder)![] ]
