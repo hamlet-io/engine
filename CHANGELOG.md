@@ -1,6 +1,69 @@
 # Changelog
 
-## Unreleased (2022-01-06)
+## Unreleased (2022-03-23)
+
+#### New Features
+
+* max-age control on bucket content ([#1953](https://github.com/hamlet-io/engine/issues/1953))
+* add inputinfo entrance
+* add null value cleaner to input stages
+* (adaptor): add support for alert configuration
+* full names based on district
+* (ecs): add support for default task compute provider
+* add support for using local docker volumes for builds
+* (directory): support for log forwarding
+* (datafeed): compression control for buckets
+* (globaldb): add alerts support
+* (backup): Backup support ([#1921](https://github.com/hamlet-io/engine/issues/1921))
+* (legacy): add encryption at rest support for logs
+* add account layer control over logging
+* add logging profile support for encryption at rest
+* (tasks): add basic tasks
+* (ses): add control over IP access policy
+* (tasks): extend ssh tasks and add bash command
+* (ecs): add initprocess support for containers
+* (cdn): add origin connection timeout support
+#### Fixes
+
+* district type for district lookup
+* include account in mock filter layers
+* encryption of logs for sms
+* use raw path for settings path prefix
+* Apply suggestions from code review
+* (apigateway): handling of null values in definitions
+* prefix handling for shared provider
+* (lb): add required logging profile to lb ([#1925](https://github.com/hamlet-io/engine/issues/1925))
+* module lookup process
+* include component settings in environment
+* (cdn): add logging profile
+* (cd): engine install
+* domain parent handling
+#### Refactorings
+
+* asfile ordering ([#1955](https://github.com/hamlet-io/engine/issues/1955))
+* use local engine definition for testing
+* hamlet and dind docker extensions
+* update deployment group district handling
+* rename district to district type
+* remove task containers from shared provider
+* consolidate link functions
+* remove type based attributes from healthchecks
+* (s3): use recommended process for bucket policy
+* (district): use attributeset for config
+* more specific name part config
+* bootstrap clo processing
+* backup encryption key ([#1927](https://github.com/hamlet-io/engine/issues/1927))
+* (backup): Configuration options ([#1926](https://github.com/hamlet-io/engine/issues/1926))
+* Account descriptions and placement profiles ([#1916](https://github.com/hamlet-io/engine/issues/1916))
+* attributesets for components
+* move domain and certificate to reference data
+#### Others
+
+* update runtimes for lambda environment
+
+Full set of changes: [`8.4.0...2fe5466`](https://github.com/hamlet-io/engine/compare/8.4.0...2fe5466)
+
+## 8.4.0 (2022-01-06)
 
 #### New Features
 
@@ -136,6 +199,7 @@
 * enforce resource group registration
 #### Others
 
+* changelog bump ([#1812](https://github.com/hamlet-io/engine/issues/1812))
 * fix attribute description spelling
 * add comment on priority setup
 * add winrm ports to masterdata
@@ -143,7 +207,7 @@
 * correct attribute description
 * changelog bump ([#1731](https://github.com/hamlet-io/engine/issues/1731))
 
-Full set of changes: [`8.3.0...451ae3c`](https://github.com/hamlet-io/engine/compare/8.3.0...451ae3c)
+Full set of changes: [`8.3.0...8.4.0`](https://github.com/hamlet-io/engine/compare/8.3.0...8.4.0)
 
 ## 8.3.0 (2021-09-17)
 
