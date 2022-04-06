@@ -196,7 +196,7 @@
                 },
                 {
                     "Names" : "Maximum",
-                    "Description" : "The maximum time that an origin can specify to cache content - seconds',
+                    "Description" : "The maximum time that an origin can specify to cache content - seconds",
                     "Types" : NUMBER_TYPE,
                     "Default" : 31536000
                 },
@@ -259,7 +259,7 @@
                 {
                     "Names" : "Type",
                     "Types" : STRING_TYPE,
-                    "Values" : [ LAMBDA_FUNCTION_COMPONENT_TYPE]
+                    "Values" : [ LAMBDA_FUNCTION_COMPONENT_TYPE],
                     "Default" : LAMBDA_FUNCTION_COMPONENT_TYPE
                 },
                 {
