@@ -70,7 +70,7 @@
                     },
                     {
                         "Names" : "ResponseCode",
-                        "Description" : "The HTTP Respose code returned to the user",
+                        "Description" : "The HTTP Response code returned to the user",
                         "Types" : NUMBER_TYPE,
                         "Default" : 200
                     },
