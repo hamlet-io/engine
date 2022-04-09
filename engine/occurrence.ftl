@@ -852,12 +852,12 @@ already prefixed attribute.
             cmdbProductLookupPrefixes,
             namespaces
         ) ]
-
     [#-- a local unit build commit/tag takes preference over a shared one --]
     [#local occurrenceBuildCommit = occurrenceBuild.COMMIT!{} ]
     [#local occurrenceBuildTag = occurrenceBuild.TAG!{} ]
     [#local occurrenceBuildFormats = occurrenceBuild.FORMATS!{} ]
     [#local occurrenceBuildScope = occurrenceBuild.SCOPE!{} ]
+    [#local occurrenceBuildSource = occurrenceBuild.SOURCE!{}]
 
     [#-- Reference could be to a deployment unit (legacy) or a component --]
     [#local matchedReference = "" ]
@@ -928,6 +928,10 @@ already prefixed attribute.
                     deploymentUnit
                 )
             )
+        ) +
+        attributeIfContent(
+            "BUILD_SOURCE",
+            contentIfContent(occurrenceBuildSource, occurrenceBuild.SOURCE!{})
         )
     ]
 [/#function]

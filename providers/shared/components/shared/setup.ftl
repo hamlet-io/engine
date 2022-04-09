@@ -305,3 +305,36 @@
         [/#if]
     [/#list]
 [/#macro]
+
+[#-- Build unit details --]
+[#macro shared_imagedetails_generationcontract occurrence ]
+    [@addDefaultGenerationContract subsets=["config"] /]
+[/#macro]
+
+[#macro shared_imagedetails_config occurrence ]
+    [#local allOccurrences = asFlattenedArray( [ occurrence, occurrence.Occurrences![] ], true )]
+    [#list allOccurrences as occurrence ]
+
+        [#if (occurrence.Configuration.Settings.Build)?has_content &&
+                ((occurrence.Configuration.Settings.Build.BUILD_REFERENCE.Value)!"")?has_content]
+            [@addToDefaultJsonOutput
+                content={
+                    "Images" : combineEntities(
+                        (getOutputContent(JSON_DEFAULT_OUTPUT_TYPE)["Images"])![],
+                        [
+                            {
+                                "Occurrence" : occurrence.Core.TypedRawName,
+                                "BUILD_UNIT": (occurrence.Configuration.Settings.Build.BUILD_UNIT.Value)!"",
+                                "BUILD_REFERENCE": (occurrence.Configuration.Settings.Build.BUILD_REFERENCE.Value)!"",
+                                "BUILD_FORMATS": (occurrence.Configuration.Settings.Build.BUILD_FORMATS.Value[0])!"",
+                                "APP_REFERENCE": (occurrence.Configuration.Settings.Build.APP_REFERENCE.Value)!"",
+                                "BUILD_SOURCE": (occurrence.Configuration.Settings.Build.BUILD_SOURCE.Value)!""
+                            }
+                        ],
+                        APPEND_COMBINE_BEHAVIOUR
+                    )
+                }
+            /]
+        [/#if]
+    [/#list]
+[/#macro]
