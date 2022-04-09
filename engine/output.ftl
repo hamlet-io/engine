@@ -608,6 +608,7 @@
         [#case "schemaset"]
         [#case "unitlist"]
         [#case "validate"]
+        [#case "imagedetails"]
             [#local filename_parts =
                         mergeObjects(
                             filename_parts,
