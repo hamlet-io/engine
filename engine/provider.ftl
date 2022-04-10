@@ -294,6 +294,22 @@
                 /]
             [/#list]
 
+            [#-- Determine the solution extensions for the provider --]
+            [#local directories =
+                internalGetPluginFiles(
+                    [providerMarker.Path, "solution"],
+                    [
+                        ["[^/]+"]
+                    ]
+                )
+            ]
+            [#list directories as directory]
+                [@internalIncludeTemplatesInDirectory
+                    directory,
+                    [ "id", "solution" ]
+                /]
+            [/#list]
+
             [#-- Determine the modules for the provider --]
             [#local directories =
                 internalGetPluginFiles(

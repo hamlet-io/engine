@@ -12,6 +12,7 @@
 [#include "flow.ftl" ]
 
 [#-- Dynamic Configuration entry points --]
+[#include "configuration/configuration.ftl"]
 [#include "configuration/attributeset.ftl"]
 [#include "configuration/blueprint.ftl"]
 [#include "configuration/component.ftl" ]
@@ -20,6 +21,7 @@
 [#include "configuration/layer.ftl"]
 [#include "configuration/module.ftl" ]
 [#include "configuration/reference.ftl" ]
+[#include "configuration/solution.ftl" ]
 [#include "configuration/task.ftl" ]
 [#include "configuration/dynamicvalues.ftl" ]
 
