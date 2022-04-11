@@ -354,10 +354,6 @@
         [#assign rotateKeys = segmentObject.RotateKeys ]
 
         [#assign network = segmentObject.Network ]
-        [#assign internetAccess = network.InternetAccess]
-
-        [#assign natEnabled = internetAccess && segmentObject.NAT.Enabled ]
-        [#assign natHosted = segmentObject.NAT.Hosted]
 
         [#assign sshEnabled = segmentObject.Bastion.Enabled ]
         [#assign sshActive = sshEnabled && segmentObject.Bastion.Active ]
@@ -385,29 +381,6 @@
 
         [#assign flowlogsOffline =
                         getActiveLayerAttributes( ["Operations", "FlowLogs", "Offline"], [ SEGMENT_LAYER_TYPE, ENVIRONMENT_LAYER_TYPE ], "" )[0] ]
-    [/#if]
-
-    [#-- Solution --]
-    [#if isLayerActive(SOLUTION_LAYER_TYPE) ]
-        [#assign solutionObject = getActiveLayer(SOLUTION_LAYER_TYPE) ]
-        [#if ((solutionObject.Id)!"")?has_content ]
-            [#assign solnMultiAZ =
-                        getActiveLayerAttributes( ["MultiAZ" ], [ SOLUTION_LAYER_TYPE, ENVIRONMENT_LAYER_TYPE ], false )[0] ]
-            [#assign RDSAutoMinorVersionUpgrade =
-                        getActiveLayerAttributes( ["RDS", "AutoMinorVersionUpgrade" ], [ SEGMENT_LAYER_TYPE, SOLUTION_LAYER_TYPE, ENVIRONMENT_LAYER_TYPE ], true )[0] ]
-
-            [#assign natPerAZ = natEnabled &&
-                                (
-                                    (natHosted && solnMultiAZ) ||
-                                    ((segmentObject.NAT.MultiAZ)!false)
-                                ) ]
-
-        [#else]
-            [#-- Handle global vars when solution is not defined --]
-            [#assign solnMultiAZ = false]
-            [#assign RDSAutoMinorVersionUpgrade = false]
-            [#assign natPerAZ = false]
-        [/#if]
     [/#if]
 
     [#-- Deployment Profiles use the standard CMDB override mechanism --]

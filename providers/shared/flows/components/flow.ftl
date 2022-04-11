@@ -16,7 +16,6 @@
                     "Name" : key
                 } + value ]
 
-            [#assign multiAZ = component.MultiAZ!solnMultiAZ]
             [#local occurrenceStart = .now]
             [#list requiredOccurrences(
                 getOccurrences(tier, component),

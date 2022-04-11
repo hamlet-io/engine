@@ -28,6 +28,12 @@
                 "Default" : [ "_localnet" ]
             },
             {
+                "Names" : [ "MultiAZ", "MultiZone"],
+                "Description" : "Deploy resources to multiple Availablity Zones",
+                "Types" : BOOLEAN_TYPE,
+                "Default" : false
+            },
+            {
                 "Names" : "Links",
                 "SubObjects" : true,
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
@@ -89,7 +95,7 @@
                 "AttributeSet" : MAINTENANCEWINDOW_ATTRIBUTESET_TYPE
             },
             {
-                "Names" : "AutoMinorUpgrade",
+                "Names" : ["AutoMinorVersionUpgrade", "AutoMinorUpgrade"],
                 "Types" : BOOLEAN_TYPE,
                 "Default" : true
             },

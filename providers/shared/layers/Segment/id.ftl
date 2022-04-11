@@ -174,40 +174,10 @@
             ]
         },
         {
-            "Names" : "NAT",
-            "Children" : [
-                {
-                    "Names" : "Enabled",
-                    "Types" : BOOLEAN_TYPE,
-                    "Default" : true
-                },
-                {
-                    "Names" : "Hosted",
-                    "Types" : BOOLEAN_TYPE,
-                    "Default" : false
-                },
-                {
-                    "Names" : "MultiAZ",
-                    "Types" : BOOLEAN_TYPE,
-                    "Default" : false
-                }
-            ]
-        },
-        {
             "Names" : "RotateKeys",
             "Types" : BOOLEAN_TYPE,
             "Default" : true
         },
-        {
-            "Names" : "RDS",
-            "Children" : [
-                {
-                    "Names" : "AutoMinorVersionUpgrade",
-                    "Types" : BOOLEAN_TYPE,
-                    "Default" : true
-                }
-            ]
-        }
         {
             "Names" : "S3",
             "Children" : [
