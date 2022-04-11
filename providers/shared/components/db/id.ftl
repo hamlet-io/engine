@@ -40,6 +40,12 @@
                 "Types" : STRING_TYPE
             },
             {
+                "Names" : [ "MultiAZ", "MultiZone"],
+                "Description" : "Deploy resources to multiple Availablity Zones",
+                "Types" : BOOLEAN_TYPE,
+                "Default" : false
+            },
+            {
                 "Names" : "IPAddressGroups",
                 "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : [ "_localnet" ]
@@ -178,13 +184,14 @@
             },
             {
                 "Names" : "AllowMajorVersionUpgrade",
-                "Description" : "If the EngineVersion paramter is updated allow for major version updates to run",
+                "Description" : "If the EngineVersion parameter is updated allow for major version updates to run",
                 "Types" : BOOLEAN_TYPE,
                 "Default" : true
             },
             {
                 "Names" : "AutoMinorVersionUpgrade",
-                "Types" : BOOLEAN_TYPE
+                "Types" : BOOLEAN_TYPE,
+                "Default": true
             },
             {
                 "Names" : "DatabaseName",

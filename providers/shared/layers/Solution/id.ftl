@@ -50,19 +50,6 @@
             "Names" : "LinkRefs",
             "SubObjects" : true,
             "AttributeSet" : LINK_ATTRIBUTESET_TYPE
-        },
-        {
-            "Names" : "MultiAZ",
-            "Types" : BOOLEAN_TYPE
-        },
-        {
-            "Names" : "RDS",
-            "Children" : [
-                {
-                    "Names" : "AutoMinorVersionUpgrade",
-                    "Types" : BOOLEAN_TYPE
-                }
-            ]
         }
     ]
 /]

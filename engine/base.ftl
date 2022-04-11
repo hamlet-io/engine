@@ -1718,22 +1718,13 @@ are added.
 
 [#macro validateCompositeObject attributes=[] objects=[] ]
 
-    [#-- Common Parameters that are used throughout        --]
-    [#-- but are as-yet unaccounted for in the             --]
-    [#-- composite object definitions.                     --]
-    [#-- TODO(rossmurr4y): add commonParams to definitions --]
-    [#local commonParams = [
-        "multiAZ", "MultiAZ"]
-    ]
-
     [#local attributes = normaliseCompositeConfiguration(attributes)]
 
     [#local validKeys = asFlattenedArray(attributes?map(c -> (c?is_hash && c.Names??)?then(c.Names, c)))]
     [#list asFlattenedArray(objects) as object]
         [#list object?keys as key]
             [#if !(validKeys?seq_contains("*")) &&
-                    !(validKeys?seq_contains(key)) &&
-                    !(commonParams?seq_contains(key))]
+                    !(validKeys?seq_contains(key)) ]
 
                 [@fatal
                     message="Invalid Attribute Found."

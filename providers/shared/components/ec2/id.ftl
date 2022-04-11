@@ -18,6 +18,12 @@
                 "Default" : [ "_all" ]
             },
             {
+                "Names" : [ "MultiAZ", "MultiZone"],
+                "Description" : "Deploy resources to multiple Availablity Zones",
+                "Types" : BOOLEAN_TYPE,
+                "Default" : false
+            },
+            {
                 "Names" : "FixedIP",
                 "Types" : BOOLEAN_TYPE,
                 "Default" : false

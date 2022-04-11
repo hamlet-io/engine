@@ -45,7 +45,11 @@
       "Title": "Beta Environment",
       "Description": "Preproduction environment according to DTO classification",
       "Category": "stg",
-      "MultiAZ": true,
+      "Profiles": {
+        "Deployment": [
+          "MultiAZ"
+        ]
+      },
       "Operations": {
         "Expiration": 90
       },
@@ -107,7 +111,11 @@
       "Title": "Preproduction Environment",
       "Description": "Deployment, performance, volume testing",
       "Category": "stg",
-      "MultiAZ": true,
+      "Profiles": {
+        "Deployment": [
+          "MultiAZ"
+        ]
+      },
       "Operations": {
         "Expiration": 90
       },
@@ -120,7 +128,11 @@
       "Title": "Staging Environment",
       "Description": "Deployment, performance, volume testing. Staging is used both as a specific environment and as a category of environments.",
       "Category": "stg",
-      "MultiAZ": true,
+      "Profiles": {
+        "Deployment": [
+          "MultiAZ"
+        ]
+      },
       "Operations": {
         "Expiration": 90
       },
@@ -133,7 +145,12 @@
       "Title": "Production Environment",
       "Description": "Kind of obvious...",
       "Category": "prod",
-      "MultiAZ": true,
+      "Profiles": {
+        "Deployment": [
+          "MultiAZ",
+          "DisableAutoMinorVersionUpgrade"
+        ]
+      },
       "Operations": {
         "Expiration": 365
       },
@@ -906,7 +923,7 @@
         "Timeout": "5"
       }
     },
-    "winrm" : {
+    "winrm": {
       "Port": 5985,
       "Protocol": "TCP",
       "IPProtocol": "tcp",
@@ -917,7 +934,7 @@
         "Timeout": "5"
       }
     },
-    "winrm-tls" : {
+    "winrm-tls": {
       "Port": 5986,
       "Protocol": "TCP",
       "IPProtocol": "tcp",
@@ -1836,7 +1853,7 @@
           "MarginTime": 540,
           "FuzzPercentage": 100
         },
-        "StartupAction" : "add",
+        "StartupAction": "add",
         "ReplayWindowSize": 1024,
         "DeadPeerDetectionTimeout": 30,
         "DeadPeerDetectionAction": "clear",
@@ -1947,11 +1964,11 @@
         "DeploymentFramework": "default"
       }
     },
-    "shared" : {
-      "default" : {
-        "Provider" : "shared",
-        "Region" : "shared",
-        "DeploymentFramework" : "default"
+    "shared": {
+      "default": {
+        "Provider": "shared",
+        "Region": "shared",
+        "DeploymentFramework": "default"
       }
     }
   },
@@ -1959,28 +1976,30 @@
     "segment": {
       "Priority": 100,
       "Level": "segment",
-      "DistrictType" : "segment",
-      "OutputPrefix" : "seg",
+      "DistrictType": "segment",
+      "OutputPrefix": "seg",
       "ResourceSets": {}
     },
     "solution": {
       "Priority": 200,
       "Level": "solution",
-      "DistrictType" : "segment",
-      "OutputPrefix" : "soln",
+      "DistrictType": "segment",
+      "OutputPrefix": "soln",
       "ResourceSets": {}
     },
     "application": {
       "Priority": 300,
       "Level": "application",
-      "DistrictType" : "segment",
-      "OutputPrefix" : "app",
+      "DistrictType": "segment",
+      "OutputPrefix": "app",
       "ResourceSets": {}
     }
   },
   "DeploymentModes": {
-    "_orphan" : {
-      "Operations": [ "delete" ],
+    "_orphan": {
+      "Operations": [
+        "delete"
+      ],
       "Membership": "orphaned",
       "Priority": {
         "GroupFilter": ".*",
@@ -1988,7 +2007,9 @@
       }
     },
     "update": {
-      "Operations": [ "update" ],
+      "Operations": [
+        "update"
+      ],
       "Membership": "priority",
       "Priority": {
         "GroupFilter": ".*",
@@ -1996,7 +2017,9 @@
       }
     },
     "maintenance": {
-      "Operations": [ "update" ],
+      "Operations": [
+        "update"
+      ],
       "Membership": "priority",
       "Priority": {
         "GroupFilter": ".*",
@@ -2004,7 +2027,9 @@
       }
     },
     "hibernate": {
-      "Operations": [ "update" ],
+      "Operations": [
+        "update"
+      ],
       "Membership": "priority",
       "Priority": {
         "GroupFilter": ".*",
@@ -2012,7 +2037,9 @@
       }
     },
     "stop": {
-      "Operations": [ "delete" ],
+      "Operations": [
+        "delete"
+      ],
       "Membership": "priority",
       "Priority": {
         "GroupFilter": ".*",
@@ -2020,11 +2047,36 @@
       }
     },
     "stopstart": {
-      "Operations": [ "delete", "update" ],
+      "Operations": [
+        "delete",
+        "update"
+      ],
       "Membership": "priority",
       "Priority": {
         "GroupFilter": ".*",
         "Order": "LowestFirst"
+      }
+    }
+  },
+  "DeploymentProfiles": {
+    "MultiAZ": {
+      "Description": "Enable MultiAZ on all components that support it",
+      "Modes": {
+        "*": {
+          "*": {
+            "MultiAZ": true
+          }
+        }
+      }
+    },
+    "DisableAutoMinorVersionUpgrade": {
+      "Description": "Disable DisableAutoMinorVersionUpgrade option on all components that support it",
+      "Modes": {
+        "*": {
+          "*": {
+            "DisableAutoMinorVersionUpgrade": false
+          }
+        }
       }
     }
   }

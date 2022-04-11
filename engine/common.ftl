@@ -273,7 +273,7 @@
     [#return getOccurrenceProfile(occurrence, "Processor", PROCESSOR_REFERENCE_TYPE, profileName, type)]
 [/#function]
 
-[#function getProcessorCounts processorProfile multiAz=false desiredCount="" minCount="" maxCount="" ]
+[#function getProcessorCounts processorProfile multiAZ=false desiredCount="" minCount="" maxCount="" ]
 
     [#local fixedMaxCount = maxCount?has_content?then(
                                 maxCount,
