@@ -661,7 +661,6 @@
             [#switch part ]
                 [#case "Account"]
                 [#case "Product"]
-                [#case "Solution"]
                 [#case "Environment"]
                 [#case "Segment"]
                     [#local layerDetails = getActiveLayer(part)]

@@ -45,7 +45,7 @@
             state,
             BLUEPRINT_CONFIG_INPUT_CLASS,
             {
-                "Solution" : {
+                "Product" : {
                     "Modules" : {
                         "internaltest" : {
                             "Provider" : "sharedtest",
