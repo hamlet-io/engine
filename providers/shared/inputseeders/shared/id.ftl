@@ -383,9 +383,6 @@
                     "mockedup": {
                         "Domain": "mockdomain"
                     }
-                },
-                "Solution": {
-                    "Id": "mockapp"
                 }
             },
             FIXTURE_SHARED_INPUT_STAGE
