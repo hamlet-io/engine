@@ -37,6 +37,8 @@
     [#assign consoleDocumentDependencies = []]
 
     [#assign consoleCMKId = getAccountSSMSessionManagerKMSKeyId()]
+
+    [#assign accountCMKId = formatAccountCMKTemplateId()]
     [#assign accountCMKArn = getExistingReference(accountCMKId, ARN_ATTRIBUTE_TYPE, getCLOSegmentRegion())]
 
     [#if deploymentSubsetRequired("console", true) &&
