@@ -818,7 +818,7 @@
             ) &&
             (
                 (!state.Region?has_content) ||
-                (pointSet.Region == state.Region)
+                (!state.Region?is_hash && pointSet.Region == state.Region)
             ) &&
             (
                 (!state.DeploymentUnit?has_content) ||
