@@ -11,16 +11,18 @@
 
 [#-- Fetch the current configuration for a layer --]
 [#-- Assumes layer is expected to be active --]
-[#function getActiveLayer type ]
+[#function getActiveLayer type required=true ]
     [#local activeData = getActiveLayers() ]
     [#-- Layer may not be active depending on the input filter --]
     [#if activeData[type]?? ]
         [#return activeData[type] ]
     [#else]
-        [@fatal
-            message="Could not find layer"
-            detail=type
-        /]
+        [#if required]
+            [@fatal
+                message="Could not find required active layer"
+                detail=type
+            /]
+        [/#if]
         [#return {} ]
     [/#if]
 [/#function]
@@ -123,13 +125,6 @@
 
 [#-- Determine if the layer is active based on the provided input filter --]
 [#function internalIsActiveLayer configuration filter ]
-    [#-- Temporarily assume that if a layer is known, it is active --]
-    [#-- This is mainly to handle the solution layer. Future       --]
-    [#-- refactoring will see it removed as a layer and handled by --]
-    [#-- more general solution handling code                       --]
-    [#-- TODO(mfl): Remove once solution is no longer a layer      --]
-    [#return true]
-
     [#if getFilterAttribute(filter, configuration.Configuration.InputFilterAttributes[0].Id)?has_content]
         [#-- Assume only one attribute per filter --]
         [#return true]
