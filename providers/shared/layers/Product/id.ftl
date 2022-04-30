@@ -134,7 +134,7 @@
 [#-- Temporary function --]
 [#-- TODO(mfl) remove once integrated into the input pipeline --]
 [#function getProductLayerRegion ]
-    [#local product = getActiveLayer(PRODUCT_LAYER_TYPE) ]
+    [#local product = getActiveLayer(PRODUCT_LAYER_TYPE, false) ]
     [#return (product[getCLODeploymentUnit()].Region)!product.Region!"" ]
 [/#function]
 

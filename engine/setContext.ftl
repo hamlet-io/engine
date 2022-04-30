@@ -384,39 +384,29 @@
     [/#if]
 
     [#-- Deployment Profiles use the standard CMDB override mechanism --]
-    [#-- Deployment profiles for tenant and account are provided for  --]
-    [#-- backwards compatability                                      --]
-
-    [#assign deploymentProfiles =
-        forceProfileComponentTypesToLowerCase(
-            mergeObjects(
-                blueprintObject.DeploymentProfiles!{},
-                productObject.DeploymentProfiles!{},
-                tenantObject.DeploymentProfiles!{},
-                accountObject.DeploymentProfiles!{}
-            )
-        )
-    ]
+    [#assign deploymentProfiles = (blueprintObject.DeploymentProfiles)!{} ]
+    [#list getActiveLayerAttributes(["DeploymentProfiles"]) as  deploymentProfile ]
+        [#assign deploymentProfiles = mergeObjects(
+            deploymentProfiles,
+            forceProfileComponentTypesToLowerCase(deploymentProfile)
+        )]
+    [/#list]
 
     [#-- Policy Profiles reflect the desired enforcement hierarchy --]
-    [#assign policyProfiles =
-        forceProfileComponentTypesToLowerCase(
-            mergeObjects(
-                blueprintObject.PolicyProfiles!{},
-                productObject.PolicyProfiles!{},
-                accountObject.PolicyProfiles!{},
-                tenantObject.PolicyProfiles!{}
-            )
-        )
-    ]
+    [#assign policyProfiles = (blueprintObject.PolicyProfiles)!{} ]
+    [#list getActiveLayerAttributes(["PolicyProfiles"]) as policyProfile ]
+        [#assign policyProfiles = mergeObjects(
+            policyProfiles,
+            forceProfileComponentTypesToLowerCase(policyProfile)
+        )]
+    [/#list]
 
-    [#-- Cludge for now to get placement profiles working --]
-    [#assign placementProfiles =
-        (blueprintObject.PlacementProfiles)!{} +
-        mergeObjects(
-            (productObject.PlacementProfiles)!{},
-            (tenantObject.PlacementProfiles)!{}
-        ) ]
+    [#assign placementProfiles = (blueprintObject.PlacementProfiles)!{} ]
+    [#list getActiveLayerAttributes(["PlacementProfiles"], [ TENANT_LAYER_TYPE, PRODUCT_LAYER_TYPE] ) as placementProfile ]
+        [#assign placementProfiles = mergeObjects(
+            placementProfiles, placementProfile
+        )]
+    [/#list]
 
     [#-- Country Groups --]
     [#assign countryGroups = getReferenceData(COUNTRYGROUP_REFERENCE_TYPE, true) ]
