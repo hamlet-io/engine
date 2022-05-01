@@ -61,11 +61,6 @@
 /]
 
 [@addSeederToStatePipeline
-    stage=FIXTURE_SHARED_INPUT_STAGE
-    seeder=SHARED_INPUT_SEEDER
-/]
-
-[@addSeederToStatePipeline
     stage=CMDB_SHARED_INPUT_STAGE
     seeder=SHARED_INPUT_SEEDER
 /]
@@ -321,6 +316,13 @@
                             "b": {
                                 "Title": "Zone C"
                             }
+                        }
+                    }
+                },
+                "PlacementProfiles": {
+                    "default": {
+                        "default": {
+                            "Region": "mock-region-1"
                         }
                     }
                 }
@@ -768,30 +770,33 @@
     ]
 [/#function]
 
-[#function shared_stateseeder_fixture filter state]
+[#function shared_stateseeder_simulate filter state]
 
-    [#local id = state.Id]
-    [#switch id?split("X")?last ]
-        [#case URL_ATTRIBUTE_TYPE ]
-            [#local value = "https://mock.local/" + id ]
-            [#break]
-        [#case IP_ADDRESS_ATTRIBUTE_TYPE ]
-            [#local value = "123.123.123.123" ]
-            [#break]
-        [#default]
-            [#local value = formatId( "##MockOutput", id, "##") ]
-    [/#switch]
+    [#-- Override any value already mocked by the shared seeder --]
+    [#if (!state.Value?has_content) || (state.Mocked!false)]
+        [#local id = state.Id]
+        [#switch id?split("X")?last ]
+            [#case URL_ATTRIBUTE_TYPE ]
+                [#local value = "https://mock.local/" + id ]
+                [#break]
+            [#case IP_ADDRESS_ATTRIBUTE_TYPE ]
+                [#local value = "123.123.123.123" ]
+                [#break]
+            [#default]
+                [#local value = formatId( "##MockOutput", id, "##") ]
+        [/#switch]
 
-    [#return
-        mergeObjects(
-            state,
-            {
-                "Value" : value,
-                "Mocked" : true
-            }
-        )
-    ]
-
+        [#return
+            mergeObjects(
+                state,
+                {
+                    "Value" : value,
+                    "Mocked" : true
+                }
+            )
+        ]
+    [/#if]
+    [#return state]
 [/#function]
 
 [#function shared_stateseeder_cmdb filter state]
