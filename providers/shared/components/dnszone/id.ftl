@@ -15,8 +15,20 @@
                 "Names" : "external:ProviderId",
                 "Description" : "The provider identifier for the DNS zone",
                 "Types" : STRING_TYPE
+            },
+            {
+                "Names": "Profiles",
+                "Children" : [
+                    {
+                        "Names" : "Network",
+                        "Description" : "Defines the private network profile applied to the zone ( public if empty)",
+                        "Types" : STRING_TYPE,
+                        "Default" : ""
+                    }
+                ]
             }
-        ]
+        ] +
+        domainNameChildConfiguration
 /]
 
 [@addComponentDeployment
