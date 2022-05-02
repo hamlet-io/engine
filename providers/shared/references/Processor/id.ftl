@@ -101,17 +101,7 @@
             nodeCountChildConfiguration
         },
         {
-            "Names" : [ "ddb", "DDB" ],
-            "Children" : [
-                {
-                    "Names" : "Processor",
-                    "Types" : STRING_TYPE
-                }
-            ] +
-            nodeCountChildConfiguration
-        },
-        {
-            "Names" : [ "ddb", "DDB" ],
+            "Names" : [ "docdb" ],
             "Children" : [
                 {
                     "Names" : "Processor",
