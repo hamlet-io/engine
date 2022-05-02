@@ -30,6 +30,12 @@
                 "Types" : STRING_TYPE
             },
             {
+                "Names" : [ "MultiAZ", "MultiZone"],
+                "Description" : "Deploy resources to multiple Availablity Zones",
+                "Types" : BOOLEAN_TYPE,
+                "Default" : false
+            },
+            {
                 "Names" : "IPAddressGroups",
                 "Description" : "The source ip addresses that can access the cache",
                 "Types" : ARRAY_OF_STRING_TYPE,

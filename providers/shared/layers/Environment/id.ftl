@@ -41,11 +41,6 @@
             "Types" : STRING_TYPE
         },
         {
-            "Names" : "MultiAZ",
-            "Types" : BOOLEAN_TYPE,
-            "Default" : false
-        }
-        {
             "Names" : "Profiles",
             "Children" : [
                 {
@@ -136,16 +131,6 @@
                 {
                     "Names" : "Segment",
                     "Types" : STRING_TYPE
-                }
-            ]
-        },
-        {
-            "Names" : "RDS",
-            "Children" : [
-                {
-                    "Names" : "AutoMinorVersionUpgrade",
-                    "Types" : BOOLEAN_TYPE,
-                    "Default" : true
                 }
             ]
         },

@@ -334,6 +334,12 @@
         "Default" : []
     },
     {
+        "Names" : [ "MultiAZ", "MultiZone"],
+        "Description" : "Deploy resources to multiple Availablity Zones",
+        "Types" : BOOLEAN_TYPE,
+        "Default" : false
+    },
+    {
         "Names" : "FixedIP",
         "Types" : BOOLEAN_TYPE,
         "Default" : false
@@ -546,6 +552,12 @@
         "Default" : "ec2"
     },
     {
+        "Names" : [ "MultiAZ", "MultiZone"],
+        "Description" : "Deploy resources to multiple Availablity Zones",
+        "Types" : BOOLEAN_TYPE,
+        "Default" : false
+    },
+    {
         "Names" : "Containers",
         "SubObjects" : true,
         "AttributeSet" : CONTTAINERTASK_ATTRIBUTESET_TYPE
@@ -729,6 +741,12 @@
         "Types" : STRING_TYPE,
         "Values" : [ "ec2" ],
         "Default" : "ec2"
+    },
+    {
+        "Names" : [ "MultiAZ", "MultiZone"],
+        "Description" : "Deploy resources to multiple Availablity Zones",
+        "Types" : BOOLEAN_TYPE,
+        "Default" : false
     },
     {
         "Names" : "Containers",

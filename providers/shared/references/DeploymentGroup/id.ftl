@@ -29,8 +29,8 @@
             "Mandatory" : true
         },
         {
-            "Names" : "District",
-            "Description" : "The id of the district for components included in the deployment group",
+            "Names" : "DistrictType",
+            "Description" : "The DistrictType to include as part of the Deployment Group",
             "Types" : STRING_TYPE,
             "Mandatory" : true
         },

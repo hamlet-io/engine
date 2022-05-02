@@ -93,7 +93,6 @@
 
         [#if component?is_hash]
 
-            [#assign multiAZ = component.MultiAZ!solnMultiAZ]
             [#local componentType = getComponentType(component)]
 
             [#-- Only include deployed Occurrences --]

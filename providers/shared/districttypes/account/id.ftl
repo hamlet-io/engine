@@ -1,6 +1,6 @@
 [#ftl]
 
-[@addDistrict
+[@addDistrictType
     type=ACCOUNT_DISTRICT_TYPE
     properties=[
         {

@@ -27,6 +27,13 @@
     [#return ""]
 [/#function]
 
+[#function getHealthCheckProtocol port]
+    [#return (port.HealthCheck.Protocol == "_protocol")?then(
+        (port.Protocol)!port.IPProtocol,
+        port.HealthCheck.Protocol
+    )]
+[/#function]
+
 [@addReference
     type=PORT_REFERENCE_TYPE
     pluralType="Ports"
@@ -55,6 +62,13 @@
         {
             "Names" : "HealthCheck",
             "Children" : [
+                {
+                    "Names" : "Protocol",
+                    "Description": "The protocol used for healthchecks. _protocol uses the ports protocol",
+                    "Types" : STRING_TYPE,
+                    "Values" : [ "_protocol", "TCP", "UDP", "HTTP", "HTTPS"],
+                    "Default" : "_protocol"
+                },
                 {
                     "Names" : "Path",
                     "Types" : STRING_TYPE

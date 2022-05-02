@@ -19,7 +19,10 @@
 
     [@includeServicesConfiguration
         provider=AWS_PROVIDER
-        services=[AWS_IDENTITY_SERVICE ]
+        services=[
+            AWS_IDENTITY_SERVICE,
+            AWS_KEY_MANAGEMENT_SERVICE
+        ]
         deploymentFramework=getCLODeploymentFramework()
     /]
 
@@ -43,6 +46,7 @@
 
     [#assign lgId = formatMobileNotifierLogGroupId(MOBILENOTIFIER_SMS_ENGINE, "", false) ]
     [#assign lgFailureId = formatMobileNotifierLogGroupId(MOBILENOTIFIER_SMS_ENGINE, "", true) ]
+    [#assign accountCMKId = formatAccountCMKTemplateId()]
 
     [#assign accountCMKArn = getExistingReference(accountCMKId, ARN_ATTRIBUTE_TYPE, getCLOSegmentRegion())]
 

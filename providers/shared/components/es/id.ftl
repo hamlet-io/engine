@@ -24,6 +24,12 @@
                 "Mandatory" : true
             },
             {
+                "Names" : [ "MultiAZ", "MultiZone"],
+                "Description" : "Deploy resources to multiple Availablity Zones",
+                "Types" : BOOLEAN_TYPE,
+                "Default" : false
+            },
+            {
                 "Names" : "AdvancedOptions",
                 "SubObjects" : true,
                 "Children" : [

@@ -16,7 +16,7 @@
 [#assign districtConfiguration = {} ]
 
 [#-- Macros to assemble the district configuration --]
-[#macro addDistrict type configuration properties=[]  ]
+[#macro addDistrictType type configuration properties=[]  ]
 
     [#local config =
         {
@@ -99,7 +99,7 @@
 
 [#-- Get the ordering of layers for a district --]
 [#function getDistrictLayerOrder district]
-    [#return (districtConfiguration[district.District!""].Configuration.Layers.InstanceOrder)![] ]
+    [#return (districtConfiguration[district.DistrictType!""].Configuration.Layers.InstanceOrder)![] ]
 [/#function]
 
 [#-- Collect the name parts for the district --]
@@ -109,7 +109,7 @@
     [#local district = internalGetLinkDistrict(link, .caller_template_name) ]
 
     [#-- Now get the config for the district --]
-    [#local config = (districtConfiguration[district.District!""].Configuration)!{} ]
+    [#local config = (districtConfiguration[district.DistrictType!""].Configuration)!{} ]
 
     [#-- Determine the order of the name parts --]
     [#local partsOrder = (config.Layers.NamePartOrder)!(config.Layers.InstanceOrder)![] ]
@@ -161,7 +161,7 @@
 [#function internalGetLinkDistrict link caller logErrors=true ]
 
     [#-- Handle "self" district --]
-    [#if (link.District!"") == SELF_DISTRICT_TYPE]
+    [#if (link.DistrictType!"") == SELF_DISTRICT_TYPE]
         [#if isStackEmpty(districtStack) ]
             [#if logErrors]
                 [@fatal
@@ -177,7 +177,7 @@
     [#local result = {} ]
 
     [#-- Get the expected layers --]
-    [#local layers = (districtConfiguration[link.District!""].Configuration.Layers.InstanceOrder)![] ]
+    [#local layers = (districtConfiguration[link.DistrictType!""].Configuration.Layers.InstanceOrder)![] ]
     [#if layers?has_content]
         [#list layers as layer]
             [#-- Check for input filter attributes --]
@@ -188,7 +188,7 @@
                     [#-- Something is missing --]
                     [#if logErrors]
                         [@fatal
-                            message='"${attribute}" attribute is required by a district type of "${link.District}"'
+                            message='"${attribute}" attribute is required by a district type of "${link.DistrictType}"'
                             context={
                                 "Caller" : caller,
                                 "Link": link
@@ -211,7 +211,7 @@
 
     [#return
         valueIfContent(
-            result + { "District" : link.District!"" },
+            result + { "DistrictType" : link.DistrictType!"" },
             result
         )
     ]

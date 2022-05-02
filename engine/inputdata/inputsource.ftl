@@ -41,6 +41,10 @@ input source.
 --]
 [#assign inputSources = {} ]
 
+[#function getInputSources ]
+    [#return inputSources ]
+[/#function]
+
 [#macro registerInputSource id description]
     [#assign inputSources =
         mergeObjects(
@@ -61,6 +65,10 @@ input source.
 [/#macro]
 
 [#assign inputStages = {} ]
+
+[#function getInputStages ]
+    [#return inputStages ]
+[/#function]
 
 [#macro registerInputStage id description stageState=false]
     [#assign inputStages =
@@ -128,6 +136,10 @@ appropriate to the purpose of the pipeline.
 --]
 [#assign inputSeeders = {} ]
 
+[#function getInputSeeders ]
+    [#return inputSeeders ]
+[/#function]
+
 [#macro registerInputSeeder id description ]
 
     [#assign inputSeeders =
@@ -149,6 +161,10 @@ the function of the transform is fixed, then it should be implemented
 as a seeder.
 --]
 [#assign inputTransformers = {} ]
+
+[#function getInputTransformers ]
+    [#return inputTransformers ]
+[/#function]
 
 [#macro registerInputTransformer id description]
 

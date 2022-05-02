@@ -12,10 +12,16 @@
     attributes=
         [
             {
-                "Names" : "Engine",
-                "Types" : STRING_TYPE,
-                "Values" : [ "ebs" ],
-                "Default" : "ebs"
+                "Names" : [ "MultiAZ", "MultiZone"],
+                "Description" : "Deploy resources to multiple Availablity Zones",
+                "Types" : BOOLEAN_TYPE,
+                "Default" : false
+            },
+            {
+                "Names" : "Zones",
+                "Description" : "A list of zoneIds to create virtual machines in, default is _all which will use all zones or the first for SingleAz",
+                "Types" : ARRAY_OF_STRING_TYPE,
+                "Default" : [ "_all" ]
             },
             {
                 "Names" : "Encrypted",
@@ -35,37 +41,7 @@
             },
             {
                 "Names" : "ProvisionedIops",
-                "Types" : NUMBER_TYPE,
-                "Default" : 100
-            },
-            {
-                "Names" : "Backup",
-                "Children" : [
-                    {
-                        "Names" : "Enabled",
-                        "Types" : BOOLEAN_TYPE,
-                        "Description" : "Create scheduled snapshots of the data volume",
-                        "Default" : true
-                    }
-                    {
-                        "Names" : "Schedule",
-                        "Types" : STRING_TYPE,
-                        "Description" : "Schedule in rate() or cron() formats",
-                        "Default" : "rate(1 day)"
-                    },
-                    {
-                        "Names" : "ScheduleTimeZone",
-                        "Types" : STRING_TYPE,
-                        "Description" : "When using a cron expression in Schedule sets the time zone to base it from",
-                        "Default" : "Etc/UTC"
-                    },
-                    {
-                        "Names" : "RetentionPeriod",
-                        "Types" : NUMBER_TYPE,
-                        "Description" : "How long to keep snapshot for in days",
-                        "Default" : 35
-                    }
-                ]
+                "Types" : NUMBER_TYPE
             }
         ]
 /]

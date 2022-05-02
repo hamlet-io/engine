@@ -12,6 +12,18 @@
     attributes=
         [
             {
+                "Names" : "Zones",
+                "Description" : "A list of zoneIds to create virtual machines in, default is _all which will use all zones or the first for SingleAz",
+                "Types" : ARRAY_OF_STRING_TYPE,
+                "Default" : [ "_all" ]
+            },
+            {
+                "Names" : [ "MultiAZ", "MultiZone"],
+                "Description" : "Deploy resources to multiple Availablity Zones",
+                "Types" : BOOLEAN_TYPE,
+                "Default" : false
+            },
+            {
                 "Names" : "FixedIP",
                 "Types" : BOOLEAN_TYPE,
                 "Default" : false

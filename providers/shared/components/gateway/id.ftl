@@ -62,6 +62,12 @@
                 ]
             },
             {
+                "Names" : [ "MultiAZ", "MultiZone"],
+                "Description" : "Deploy resources to multiple Availablity Zones",
+                "Types" : BOOLEAN_TYPE,
+                "Default" : false
+            },
+            {
                 "Names" : "Endpoints",
                 "Description" : "Endpoint Engine resources",
                 "SubObjects" : true,

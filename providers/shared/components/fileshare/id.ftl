@@ -24,6 +24,12 @@
                 "Default" : "NFS"
             },
             {
+                "Names" : [ "MultiAZ", "MultiZone"],
+                "Description" : "Deploy resources to multiple Availablity Zones",
+                "Types" : BOOLEAN_TYPE,
+                "Default" : false
+            },
+            {
                 "Names": "Size",
                 "Description" : "The size in Gb of the file share",
                 "Types": NUMBER_TYPE

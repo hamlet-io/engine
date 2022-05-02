@@ -3,8 +3,6 @@
 [@addExtension
     id="hamlet"
     aliases=[
-        "codeontap",
-        "_codeontap",
         "_hamlet"
     ]
     description=[
@@ -21,21 +19,8 @@
 
 [#macro shared_extension_hamlet_deployment_setup occurrence ]
 
-    [#local settings = _context.DefaultEnvironment]
-
-    [#local jenkinsAgentImage = settings["DOCKER_AGENT_IMAGE"]!"hamletio/hamlet"]
-
-    [#local awsAutomationUser = settings["AWS_AUTOMATION_USER"]!"ROLE" ]
-    [#local awsAgentAutomationRole = settings["AWS_AUTOMATION_ROLE"]!"codeontap-automation" ]
-
-    [#local azureAuthMethod = settings["AZ_AUTH_METHOD"]!"service" ]
-    [#local azureTenantId   = settings["AZ_TENANT_ID"]!""]
-
-    [#local dockerStageDir = settings["DOCKER_STAGE_DIR"]!"/tmp/docker-build" ]
-
-    [#if ((_context.Container.Image.Source)!"") != "containerregistry" ]
-        [@Attributes image=jenkinsAgentImage /]
-    [/#if]
+    [#local env = _context.DefaultEnvironment]
+    [#local awsAgentAutomationRole = env["HAMLET_AWS_AUTH_ROLE"]!"HamletFatal: Missing default assume role for hamlet" ]
 
     [@DefaultLinkVariables          enabled=false /]
     [@DefaultCoreVariables          enabled=false /]
@@ -44,12 +29,13 @@
     [@DefaultComponentVariables     enabled=false /]
 
     [@Settings {
-        "AWS_AUTOMATION_USER"   : awsAutomationUser,
-        "AWS_AUTOMATION_ROLE"   : awsAgentAutomationRole,
-        "AZ_AUTH_METHOD"        : azureAuthMethod,
-        "AZ_TENANT_ID"          : azureTenantId,
-        "DOCKER_STAGE_DIR"      : dockerStageDir,
-        "STARTUP_COMMANDS"      : (settings["STARTUP_COMMANDS"])!""
+        "HAMLET_AWS_AUTH_SOURCE" : env["HAMLET_AWS_AUTH_SOURCE"]!"INSTANCE:ECS",
+        "HAMLET_AWS_AUTH_ROLE"   : awsAgentAutomationRole,
+        "HAMLET_AWS_AUTH_USER"   : env["HAMLET_AWS_AUTH_USER"]!"",
+
+        "HAMLET_AZ_AUTH_METHOD"  : env["HAMLET_AZ_AUTH_METHOD"]!"service",
+
+        "STARTUP_COMMANDS"       : (env["STARTUP_COMMANDS"])!""
     }/]
 
     [#-- Propeties volumes provide a read only share between the jenkins server and the agents --]
@@ -69,36 +55,36 @@
 
     [#else]
 
-        [#if settings["CODEONTAPVOLUME"]?has_content ]
+        [#if env["CODEONTAPVOLUME"]?has_content ]
             [@Volume
                 name="codeontap"
                 containerPath="/var/opt/codeontap/"
-                hostPath=settings["CODEONTAPVOLUME"]
+                hostPath=env["CODEONTAPVOLUME"]
             /]
-        [#elseif settings["PROPERTIESVOLUME"]?has_content ]
+        [#elseif env["PROPERTIESVOLUME"]?has_content ]
             [@Volume
                 name="codeontap"
                 containerPath="/var/opt/codeontap/"
-                hostPath=settings["PROPERTIESVOLUME"]
+                hostPath=env["PROPERTIESVOLUME"]
             /]
         [/#if]
 
-        [#if settings["PROPERTIESVOLUME"]?has_content ]
+        [#if env["PROPERTIESVOLUME"]?has_content ]
             [@Volume
                 name="properties"
-                containerPath=(settings["PROPERTIES_DIR"])!"/var/opt/properties/"
-                hostPath=settings["PROPERTIESVOLUME"]
+                containerPath=(env["PROPERTIES_DIR"])!"/var/opt/properties/"
+                hostPath=env["PROPERTIESVOLUME"]
             /]
         [/#if]
 
     [/#if]
 
-    [#if settings["AWS_AUTOMATION_POLICIES"]?has_content ]
-        [@ManagedPolicy settings["AWS_AUTOMATION_POLICIES"]?split(",") /]
+    [#if env["AWS_AUTOMATION_POLICIES"]?has_content ]
+        [@ManagedPolicy env["AWS_AUTOMATION_POLICIES"]?split(",") /]
     [/#if]
 
-    [#if (settings["AWS_AUTOMATION_ACCOUNTS"]!"")?has_content ]
-        [#local automationAccounts = asArray( (settings["AWS_AUTOMATION_ACCOUNTS"]!"")?eval_json ) ]
+    [#if (env["AWS_AUTOMATION_ACCOUNTS"]!"")?has_content ]
+        [#local automationAccounts = asArray( (env["AWS_AUTOMATION_ACCOUNTS"]!"")?eval_json ) ]
 
         [#local automationAccountRoles = []]
         [#list automationAccounts as automationAccount ]
@@ -106,7 +92,8 @@
                                                     formatGlobalArn(
                                                         "iam",
                                                         formatRelativePath("role", awsAgentAutomationRole),
-                                                        automationAccount  )
+                                                        automationAccount
+                                                    )
                                                 ]]
         [/#list]
 
@@ -117,92 +104,23 @@
         /]
     [/#if]
 
-    [#if (settings["JENKINS_PERMANENT_AGENT"]!"false")?boolean  ]
-
-        [#local jenkinsUrl = settings["JENKINS_URL"] ]
-
-        [#if (settings["JENKINS_LOCAL_FQDN"]!"")?has_content ]
-            [#local jenkinsUrl = "http://" + settings["JENKINS_LOCAL_FQDN"] + ":8080" ]
-        [/#if]
-
-        [@Command
-            [
-                "-url",
-                jenkinsUrl,
-                settings["JENKINS_PERMANENT_AGENT_SECRET"],
-                settings["JENKINS_PERMANENT_AGENT_NAME"]
-            ]
-        /]
-    [/#if]
-
-    [#-- Docker Agent Access --]
-    [#local dockerEnabled = ((settings["ENABLE_DOCKER"])!"true")?boolean ]
-    [#local dindEnabled = (settings["DIND_ENABLED"]!"false")?boolean ]
-
-    [#if dockerEnabled && dindEnabled ]
-        [@fatal
-            message="DockerInDocker and DockerOutOfDocker Agent modes enabled"
-            context={
-                "ENABLE_DOCKER" : dockerEnabled,
-                "DIND_ENABLED" : dindEnabled
-            }
-            detail="Update settings so only one agent docker mode is enabled"
-        /]
-    [/#if]
-
-    [#-- DockerOutOfDocker Agent--]
-    [#-- The docker out of docker provides a bind mount volume to the containers own docker socket --]
-    [#-- This can cause issues with port conflicts and disk usage on the hosts. The AWS linux docker volumes dir is pretty small --]
-    [#if dockerEnabled ]
-
-        [#local dockerHostDaemon = settings["DOCKER_HOST_DAEMON"]!"/var/run/docker.sock"]
-
-        [@Volume
-            name="dockerDaemon"
-            containerPath="/var/run/docker.sock"
-            hostPath=dockerHostDaemon
-        /]
-
-        [@Volume
-            name="dockerStage"
-            containerPath=dockerStageDir
-            hostPath=dockerStageDir
-        /]
-    [/#if]
-
-
     [#-- DockerInDockerAgent --]
     [#-- In this model a sidercar container running in priviledged mode offers the docker service for the agent to use --]
     [#-- We also use a dockerStage directory to share local bind mounts between the agent and the dind host --]
     [#-- This agent requires the dind side car and enabling privledged mode in a container which is considered a secrity risk --]
     [#-- This requires the ecs host to have the ebs VolumeDriver Enabled --]
-    [#if dindEnabled ]
+    [#local dockerStageDir = env["DOCKER_STAGE_DIR"]!"/home/jenkins"  ]
+    [#local dindHost = env["DIND_DOCKER_HOST_URL"]!"tcp://dind:2376"  ]
+    [#local dindEnabled = (env["DIND_ENABLED"]!"true")?boolean]
 
-        [#local dockerStageDir = settings["DOCKER_STAGE_DIR"]!"/home/jenkins"  ]
-        [#local dockerStageSize = settings["DOCKER_STAGE_SIZE_GB"]!"20"        ]
-        [#local dockerStagePersist = (settings["DOCKER_STAGE_PERSIST"]?boolean)!false ]
-        [#local dindHost = settings["DIND_DOCKER_HOST_URL"]!"tcp://dind:2376"  ]
-        [#local dindTLSVerify = settings["DIND_DOCKER_TLS_VERIFY"]!"true"      ]
-
-        [#if dindTLSVerify?boolean ]
-            [@Settings
-                {
-                    "DOCKER_CERT_PATH" : "/docker/certs/client"
-                }
-            /]
-
-            [@Volume
-                name="dind_certs_client"
-                containerPath="/docker/certs/client"
-                readOnly=true
-            /]
-
-        [/#if]
+    [#if dindEnabled]
 
         [@Settings
             {
-                "DOCKER_HOST" : dindHost,
-                "DOCKER_TLS_VERIFY" : dindTLSVerify
+                "DOCKER_HOST"       : dindHost,
+                "DOCKER_TLS_VERIFY" : "true",
+                "DOCKER_CERT_PATH"  : "/docker/certs/client",
+                "DOCKER_STAGE_DIR"  : dockerStageDir
             }
         /]
 
@@ -211,5 +129,11 @@
             containerPath=dockerStageDir
         /]
 
+        [@Volume
+            name="dind_certs_client"
+            containerPath="/docker/certs/client"
+            readOnly=true
+        /]
     [/#if]
+
 [/#macro]

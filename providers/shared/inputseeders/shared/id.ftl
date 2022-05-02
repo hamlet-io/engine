@@ -31,6 +31,11 @@
 /]
 
 [@addSeederToConfigPipeline
+    stage=NULLCLEAN_SHARED_INPUT_STAGE
+    seeder=SHARED_INPUT_SEEDER
+/]
+
+[@addSeederToConfigPipeline
     stage=LAYER_SHARED_INPUT_STAGE
     seeder=SHARED_INPUT_SEEDER
 /]
@@ -110,7 +115,7 @@
                 "Input" : {
                     "Source" : inputSource!"composite",
                     "Filter" :
-                        attributeIfContent("District", district!SEGMENT_DISTRICT_TYPE) +
+                        attributeIfContent("DistrictType", districtType!SEGMENT_DISTRICT_TYPE) +
                         attributeIfContent("Tenant", tenant!"") +
                         attributeIfContent("Product", product!"") +
                         attributeIfContent("Environment", environment!"") +
@@ -272,6 +277,7 @@
                 "Input" : {
                     "Filter" : {
                         "Tenant" :  tenant?has_content?then(tenant, "mocktenant"),
+                        "Account": account?has_content?then(account, "mockacct"),
                         "Product" : product?has_content?then(product, "mockproduct"),
                         "Environment" : environment?has_content?then(environment, "mockenvironment"),
                         "Segment" : segment?has_content?then(segment, "mocksegment")
@@ -418,13 +424,6 @@
                 CMDB_SHARED_INPUT_STAGE
             )
         ]
-    [/#if]
-
-    [#if (definitions!"")?contains("null")]
-        [@warn
-            message="null JSON values not supportd in hamlet"
-            detail="A possible null value was detected in a definition file - remove the null value if it is not required"
-        /]
     [/#if]
 
     [#local compositeDefinitions =
@@ -685,6 +684,70 @@
 
     [#return result]
 
+[/#function]
+
+[#function removeNullValuesFromEntity entity]
+    [#if entity?is_sequence ]
+        [#local result = []]
+        [#local nullFound = false]
+
+        [#list entity as value]
+            [#if value?? ]
+                [#if value?is_hash || value?is_sequence  ]
+                    [#local result += [ removeNullValuesFromEntity(value) ]]
+                [#else]
+                    [#local result += [value]]
+                [/#if]
+            [#else]
+                [#local nullFound = true ]
+            [/#if]
+        [/#list]
+
+        [#if nullFound ]
+            [@warn
+                message="null value found in list - removing value"
+                detail="null values aren't supported by the hamlet engine - context has resulting list"
+                context=result
+            /]
+        [/#if]
+
+        [#return result]
+
+    [#elseif entity?is_hash]
+        [#local result = {}]
+        [#local nullFound = false]
+
+        [#list entity as key,value ]
+
+            [#if value?? ]
+                [#if value?is_hash || value?is_sequence ]
+                    [#local result += { key: removeNullValuesFromEntity(value)}]
+                [#else]
+                    [#local result += { key: value}]
+                [/#if]
+            [#else]
+                [#local nullFound = true]
+            [/#if]
+        [/#list]
+
+        [#if nullFound ]
+            [@warn
+                message="null value found in object - removing key"
+                detail="null values aren't supported by the hamlet engine - context has resulting object"
+                context=result
+            /]
+        [/#if]
+        [#return result]
+
+    [#else]
+        [#if value??]
+            [#return entity]
+        [/#if]
+    [/#if]
+[/#function]
+
+[#function shared_configseeder_nullclean filter state]
+    [#return removeNullValuesFromEntity(state)]
 [/#function]
 
 [#function shared_configtransformer_qualify filter state]

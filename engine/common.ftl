@@ -85,7 +85,7 @@
 [#-- S3 settings/appdata storage  --]
 
 [#function getSettingsFilePrefix occurrence ]
-    [#return formatRelativePath("settings", occurrence.Core.FullRelativePath) ]
+    [#return formatRelativePath("settings", occurrence.Core.FullRelativeRawPath) ]
 [/#function]
 
 [#function getAppDataFilePrefix occurrence={} ]
@@ -273,7 +273,7 @@
     [#return getOccurrenceProfile(occurrence, "Processor", PROCESSOR_REFERENCE_TYPE, profileName, type)]
 [/#function]
 
-[#function getProcessorCounts processorProfile multiAz=false desiredCount="" minCount="" maxCount="" ]
+[#function getProcessorCounts processorProfile multiAZ=false desiredCount="" minCount="" maxCount="" ]
 
     [#local fixedMaxCount = maxCount?has_content?then(
                                 maxCount,
@@ -819,7 +819,7 @@
 
 [/#function]
 
-[#function syncFilesToBucketScript filesArrayName region bucket prefix cleanup=true excludes=[] ]
+[#function syncFilesToBucketScript filesArrayName region bucket prefix cleanup=true excludes=[] maxAge=-1 ]
 
     [#local excludeSwitches = ""]
     [#list asArray(excludes) as exclude]
@@ -843,8 +843,9 @@
                    "\"" + region         + "\"" + " " +
                    "\"" + bucket         + "\"" + " " +
                    "\"" + prefix         + "\"" + " " +
-                   "\"" + filesArrayName + "\"" + " " +
-                   valueIfTrue("--delete", cleanup, "") +
+                   "\"" + filesArrayName + "\"" +
+                   valueIfTrue(" --delete", cleanup, "") +
+                   valueIfTrue(" --cache-control max-age=${maxAge?c}", maxAge >= 0, "") +
                    excludeSwitches +
                    " || return $?",
             "    ;;",
@@ -865,16 +866,17 @@
 
 [#function findAsFilesScript filesArrayName settings]
     [#-- Create an array for the files --]
+    [#-- Sort results so files are consistently ordered in scripts etc --]
+    [#-- This assists in preventing false positives when detecting     --]
+    [#-- changes                                                       --]
     [#local result = [] ]
-    [#list settings as setting]
-        [#if setting.AsFile?has_content]
-            [#local result +=
-                [
-                    "addToArray" + " " +
-                       "\"" + "filePathsToSync" + "\"" + " " +
-                       "\"" + setting.AsFile    + "\""
-                ] ]
-        [/#if]
+    [#list settings?filter(s -> s.AsFile?has_content)?sort_by("AsFile") as setting]
+        [#local result +=
+            [
+                "addToArray" + " " +
+                    "\"" + "filePathsToSync" + "\"" + " " +
+                    "\"" + setting.AsFile    + "\""
+            ] ]
     [/#list]
     [#local result += ["#"] ]
 

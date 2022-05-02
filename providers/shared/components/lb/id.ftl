@@ -63,6 +63,12 @@
                 "AttributeSet" : ALERT_ATTRIBUTESET_TYPE
             },
             {
+                "Names" : [ "MultiAZ", "MultiZone"],
+                "Description" : "Deploy resources to multiple Zones for high availablity",
+                "Types" : BOOLEAN_TYPE,
+                "Default" : false
+            },
+            {
                 "Names" : "Links",
                 "SubObjects" : true,
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE

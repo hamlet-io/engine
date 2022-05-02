@@ -17,6 +17,12 @@
                 "Default" : false
             },
             {
+                "Names" : [ "MultiAZ", "MultiZone"],
+                "Description" : "Deploy resources to multiple Availablity Zones",
+                "Types" : BOOLEAN_TYPE,
+                "Default" : false
+            },
+            {
                 "Names" : [ "Extensions", "Fragment", "Container" ],
                 "Description" : "Extensions to invoke as part of component processing",
                 "Types" : ARRAY_OF_STRING_TYPE,

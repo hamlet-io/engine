@@ -6,7 +6,7 @@
         [
             {
                 "Type"  : "Description",
-                "Value" : "A generic deployment process for non standard components"
+                "Value" : "A generic deployment process for non standard components provides a full context along with an occurrence that can be used for developing apis"
             },
             {
                 "Type" : "Providers",
@@ -102,6 +102,22 @@
                         ],
                         "Types" : STRING_TYPE,
                         "Mandatory" : true
+                    }
+                ]
+            },
+            {
+                "Names" : "Alerts",
+                "Description": "Custom namespace alerts deployed as part of the adaptor",
+                "SubObjects" : true,
+                "AttributeSet" : ALERT_ATTRIBUTESET_TYPE
+            },
+            {
+                "Names" : "Profiles",
+                "Children" : [
+                    {
+                        "Names" : "Alert",
+                        "Types" : STRING_TYPE,
+                        "Default" : "default"
                     }
                 ]
             }

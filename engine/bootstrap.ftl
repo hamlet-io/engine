@@ -41,7 +41,6 @@
 
 [#--Occurrence handling --]
 [#include "occurrence.ftl"]
-[#include "link.ftl"]
 
 [#-- Output handling --]
 [#include "output.ftl" ]
