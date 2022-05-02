@@ -1,7 +1,7 @@
 [#ftl]
 
 [@addComponent
-    type=DDB_COMPONENT_TYPE
+    type=DOCDB_COMPONENT_TYPE
     properties=
         [
             {
@@ -255,6 +255,6 @@
 /]
 
 [@addComponentDeployment
-    type=DDB_COMPONENT_TYPE
+    type=DOCDB_COMPONENT_TYPE
     defaultGroup="solution"
 /]

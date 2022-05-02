@@ -54,7 +54,7 @@
     type=DB_COMPONENT_TYPE
 /]
 
-[#assign DDB_COMPONENT_TYPE = "docdb" ]
+[#assign DOCDB_COMPONENT_TYPE = "docdb" ]
 
 [#assign DIRECTORY_COMPONENT_TYPE = "directory" ]
 
