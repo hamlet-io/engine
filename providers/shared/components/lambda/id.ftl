@@ -224,6 +224,11 @@
                 "Default" : -1
             },
             {
+                "Names" : "ProvisionedExecutions",
+                "Types" : NUMBER_TYPE,
+                "Default" : -1
+            },
+            {
                 "Names" : "Image",
                 "Description" : "Control the source of the image that is used for the function",
                 "Children" : [
