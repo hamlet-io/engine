@@ -1,5 +1,9 @@
 [#ftl]
 
+[#macro shared_view_unitlist_generationcontract ]
+    [@addDefaultGenerationContract subsets=[ "managementcontract" ] /]
+[/#macro]
+
 [#macro shared_view_unitlist_managementcontract ]
 
     [#-- Look through all pointSets to determine all of the possible deployments that exist --]
