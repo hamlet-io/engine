@@ -220,11 +220,13 @@
             },
             {
                 "Names" : "ReservedExecutions",
+                "Description" : "Number of instances within the overall account limit reserved for this function. This ensure it can scale out to this reservation regardless of what other functions do.",
                 "Types" : NUMBER_TYPE,
                 "Default" : -1
             },
             {
                 "Names" : "ProvisionedExecutions",
+                "Description" : "Minimum number of instances that should be available to service requests. It forms part of any configured reserved execution limit.",
                 "Types" : NUMBER_TYPE,
                 "Default" : -1
             },
