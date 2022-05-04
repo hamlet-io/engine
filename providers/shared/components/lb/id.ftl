@@ -345,6 +345,12 @@
                         "Description" : "Static endpoints for the load balancing port",
                         "Children"  : [
                             {
+                                "Names" : "External",
+                                "Description" : "If the static endpoint is inside the local network or external",
+                                "Types": BOOLEAN_TYPE,
+                                "Default" : true
+                            },
+                            {
                                 "Names" : "Links",
                                 "SubObjects" : true,
                                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
