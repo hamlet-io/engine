@@ -101,6 +101,16 @@
             nodeCountChildConfiguration
         },
         {
+            "Names" : [ "docdb" ],
+            "Children" : [
+                {
+                    "Names" : "Processor",
+                    "Types" : STRING_TYPE
+                }
+            ] +
+            nodeCountChildConfiguration
+        },
+        {
             "Names" : ["cache", "ElastiCache"],
             "Children" : [
                 {

@@ -56,6 +56,8 @@
     type=DB_COMPONENT_TYPE
 /]
 
+[#assign DOCDB_COMPONENT_TYPE = "docdb" ]
+
 [#assign DIRECTORY_COMPONENT_TYPE = "directory" ]
 
 [#assign EC2_COMPONENT_TYPE = "ec2"]

@@ -2,6 +2,7 @@
 
 [#assign ALERT_ATTRIBUTESET_TYPE = "alert" ]
 [#assign AUTOSCALEGROUP_ATTRIBUTESET_TYPE = "autoscalegroup"]
+[#assign BACKUPWINDOW_ATTRIBUTESET_TYPE = "backupwindow" ]
 [#assign COMPUTEIMAGE_ATTRIBUTESET_TYPE = "computeimage"]
 [#assign CONTTAINERTASK_ATTRIBUTESET_TYPE = "containertask"]
 [#assign CONTEXTPATH_ATTRIBUTESET_TYPE = "contextpath"]
