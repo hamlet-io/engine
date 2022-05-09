@@ -24,6 +24,8 @@
 [#assign CDN_COMPONENT_TYPE = "cdn"]
 [#assign CDN_ROUTE_COMPONENT_TYPE = "cdnroute" ]
 
+[#assign CERTIFICATEAUTHORITY_COMPONENT_TYPE = "certificateauthority"]
+
 [#assign CLIENTVPN_COMPONENT_TYPE = "clientvpn" ]
 
 [#assign COMPUTECLUSTER_COMPONENT_TYPE = "computecluster"]

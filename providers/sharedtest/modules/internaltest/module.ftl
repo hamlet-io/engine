@@ -97,7 +97,7 @@
                                 },
                                 "defaultPath" : {
                                     "Path" : "Occurrence.State.Attributes.ALLINCLUDES_CONTEXTPATH_OUTPUT",
-                                    "Value" : "mockacct-0123456789-mockedup-mockapp-integration-default-application-contextpath-allincludes"
+                                    "Value" : "mockacct-0123456789-mockedup-integration-default-application-contextpath-allincludes"
                                 }
                             }
                         }

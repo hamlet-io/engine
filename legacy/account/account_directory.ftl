@@ -12,50 +12,45 @@
         deploymentFramework=CLOUD_FORMATION_DEPLOYMENT_FRAMEWORK
     /]
 
-    [#assign directoryLogPolicyId = formatAccountResourceId("logpolicy", "directory")]
+    [#assign directoryLogPolicyId = formatAccountResourceId(AWS_CLOUDWATCH_LOG_RESOURCE_POLICY_RESOURCE_TYPE, "directory")]
     [#assign directoryLogPolicyName = formatName("account", "directory")]
 
     [#if deploymentSubsetRequired("lg", true) &&
             isPartOfCurrentDeploymentUnit(directoryLogPolicyId)]
 
-        [@cfResource
+        [@createLogResourcePolicy
             id=directoryLogPolicyId
-            type="AWS::Logs::ResourcePolicy"
-            properties=
-                {
-                  "PolicyName" : directoryLogPolicyName,
-                  "PolicyDocument" : {
-                        "Fn::Sub" : [
-                            getJSON(
+            name=directoryLogPolicyName
+            policyDocument={
+                "Fn::Sub" : [
+                    getJSON(
+                        {
+                            "Version": "2012-10-17",
+                            "Statement": [
                                 {
-                                    "Version": "2012-10-17",
-                                    "Statement": [
-                                        {
-                                            "Effect": "Allow",
-                                            "Principal": {
-                                                "Service": "ds.amazonaws.com"
-                                            },
-                                            "Action": [
-                                                "logs:CreateLogStream",
-                                                "logs:PutLogEvents"
-                                            ],
-                                            "Resource": r'arn:aws:logs:${Region}:${AWSAccountId}:log-group:/aws/directoryservice/*'
-                                        }
-                                    ]
+                                    "Effect": "Allow",
+                                    "Principal": {
+                                        "Service": "ds.amazonaws.com"
+                                    },
+                                    "Action": [
+                                        "logs:CreateLogStream",
+                                        "logs:PutLogEvents"
+                                    ],
+                                    "Resource": r'arn:aws:logs:${Region}:${AWSAccountId}:log-group:/aws/directoryservice/*'
                                 }
-                            ),
-                            {
-                                "Region" : {
-                                    "Ref" : "AWS::Region"
-                                },
-                                "AWSAccountId" : {
-                                    "Ref" : "AWS::AccountId"
-                                }
-                            }
-                        ]
+                            ]
+                        }
+                    ),
+                    {
+                        "Region" : {
+                            "Ref" : "AWS::Region"
+                        },
+                        "AWSAccountId" : {
+                            "Ref" : "AWS::AccountId"
+                        }
                     }
-                }
-            outputs={}
+                ]
+            }
         /]
 
     [/#if]

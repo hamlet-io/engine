@@ -53,7 +53,6 @@
                         "ProviderId" : true,
                         "Product" : true,
                         "Environment" : true,
-                        "Solution" : true,
                         "Segment" : true,
                         "Tier" : true,
                         "Component" : true,

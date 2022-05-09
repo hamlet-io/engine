@@ -661,7 +661,6 @@
             [#switch part ]
                 [#case "Account"]
                 [#case "Product"]
-                [#case "Solution"]
                 [#case "Environment"]
                 [#case "Segment"]
                     [#local layerDetails = getActiveLayer(part)]
@@ -745,7 +744,7 @@
         [#local resolvedLink =
             mergeObjects(
                 (getBlueprint().LinkRefs[lb.LinkRef])!{},
-                getActiveLayerAttributes( ["LinkRefs", lb.LinkRef], [ SOLUTION_LAYER_TYPE, PRODUCT_LAYER_TYPE, TENANT_LAYER_TYPE ] )
+                getActiveLayerAttributes( ["LinkRefs", lb.LinkRef], [ PRODUCT_LAYER_TYPE, TENANT_LAYER_TYPE ] )
             )
         ]
         [#if ! resolvedLink?has_content]
@@ -754,7 +753,7 @@
                 context=
                     mergeObjects(
                         (getBlueprint().LinkRefs)!{},
-                        getActiveLayerAttributes( ["LinkRefs"], [ SOLUTION_LAYER_TYPE, PRODUCT_LAYER_TYPE, TENANT_LAYER_TYPE ] )
+                        getActiveLayerAttributes( ["LinkRefs"], [ PRODUCT_LAYER_TYPE, TENANT_LAYER_TYPE ] )
                     )
                 detail=link
             /]

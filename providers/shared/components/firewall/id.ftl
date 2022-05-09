@@ -126,7 +126,7 @@
                 "Mandatory" : true
             },
             {
-                "Names" : "Type",
+                "Names" : "RuleType",
                 "Description" : "The type of rule to be applied",
                 "Types" : STRING_TYPE,
                 "Values" : [ "NetworkTuple", "HostFilter", "Complex" ],

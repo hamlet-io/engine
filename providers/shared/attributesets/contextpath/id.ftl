@@ -28,7 +28,6 @@
                 "Account",
                 "ProviderId",
                 "Product",
-                "Solution",
                 "Environment",
                 "Segment",
                 "Tier",
@@ -63,12 +62,6 @@
                 {
                     "Names" : "Environment",
                     "Description" : "The name of the environment",
-                    "Types" : BOOLEAN_TYPE,
-                    "Default" : false
-                },
-                {
-                    "Names" : "Solution",
-                    "Description" : "The name of the solution",
                     "Types" : BOOLEAN_TYPE,
                     "Default" : false
                 },

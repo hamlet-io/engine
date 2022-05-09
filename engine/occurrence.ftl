@@ -718,7 +718,7 @@ already prefixed attribute.
     [#local result = resources ]
     [#if resources?is_hash]
         [#list resources as alias,resource]
-            [#if resource.Id?has_content]
+            [#if resource?is_hash && resource.Id?has_content]
                 [#local result +=
                     {
                         alias :

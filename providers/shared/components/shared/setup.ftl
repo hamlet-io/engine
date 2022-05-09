@@ -77,20 +77,30 @@
 
             [#local testCaseNames = []]
             [#list testProfileNames as testProfileName ]
-                [#if (testProfiles[testProfileName]!{})?? ]
-                    [#local testProfileDetail = testProfiles[testProfileName] ]
+                [#if ! ((testProfiles[testProfileName])!{})?? ]
 
-                    [#if testProfileDetail["*"]?? ]
-                        [#local testCaseNames += testProfileDetail["*"].TestCases ]
-                    [/#if]
+                    [@fatal
+                        message="Test Profile not Found"
+                        context={
+                            "Component": occurrence.Core.RawFullName,
+                            "Profiles" : testProfileNames,
+                            "MissingProfile" : testProfileName
+                        }
+                    /]
+                    [#continue]
+                [/#if]
 
-                    [#if testProfileDetail[componentType]??]
-                        [#local testCaseNames += testProfileDetail[componentType].TestCases ]
-                    [/#if]
+                [#local testProfileDetail = testProfiles[testProfileName] ]
+                [#if testProfileDetail["*"]?? ]
+                    [#local testCaseNames = combineEntities(
+                        testCaseNames, testProfileDetail["*"].TestCases, UNIQUE_COMBINE_BEHAVIOUR) ]
+                [/#if]
+
+                [#if testProfileDetail[componentType]??]
+                    [#local testCaseNames = combineEntities(
+                        testCaseNames, testProfileDetail[componentType].TestCases, UNIQUE_COMBINE_BEHAVIOUR) ]
                 [/#if]
             [/#list]
-
-            [#local testCaseNames = getUniqueArrayElements(testCaseNames) ]
 
             [#local tests = {} ]
             [#list testCaseNames as testCaseName ]
@@ -102,202 +112,212 @@
                                                 ],
                                                 "_"
                                             )?replace("-", "_")]
-                [#if testCases[testCaseName]?? ]
-                    [#local testCase = testCases[testCaseName] ]
-
-                    [#local outputProviders = combineEntities(
-                                                    getLoaderProviders(),
-                                                    [ SHARED_PROVIDER],
-                                                    UNIQUE_COMBINE_BEHAVIOUR
-                                                )]
-
-                    [#local outputMapping = getGenerationContractStepOutputMappingFromSuffix( outputProviders, testCase.OutputSuffix)]
-                    [#local filePrefix = getOutputFilePrefix(
-                                            "deployment"
-                                            getCLODeploymentGroup(),
-                                            getCLODeploymentUnit(),
-                                            outputMapping["Subset"],
-                                            getActiveLayer(ACCOUNT_LAYER_TYPE).Name!"",
-                                            getCLOSegmentRegion(),
-                                            getCLOAccountRegion(),
-                                            "primary"
-                                    )]
-
-                    [#local outputFileName = formatName(filePrefix, outputMapping["OutputSuffix"]) ]
-
-                    [#if isPresent(testCase.Tools["cfn-lint"])]
-                        [#local tests = mergeObjects(
-                            tests,
-                            {
-                                testCaseFullName : {
-                                    "cfn_lint" : {} +
-                                    attributeIfContent(
-                                        "ignore_checks",
-                                        testCase.Tools["cfn-lint"].IgnoreChecks
-                                    )
-                                }
-                            }
-                        )]
-                    [/#if]
-
-                    [#if isPresent(testCase.Tools["checkov"])]
-                        [#local tests = mergeObjects(
-                            tests,
-                            {
-                                testCaseFullName : {
-                                    "checkov" : {
-                                        "framework" : testCase.Tools["checkov"].Framework
-                                    } +
-                                    attributeIfContent(
-                                        "skip_checks",
-                                        testCase.Tools["checkov"].SkipChecks
-                                    )
-                                }
-                            }
-                        )]
-                    [/#if]
-
-                    [#list (testCase.Structural.JSON.Match)!{} as id,matchTest ]
-                        [#local tests = combineEntities(tests,
-                            {
-                                testCaseFullName : {
-                                    "json_structure" : {
-                                        "match" : [
-                                            {
-                                                "path" : matchTest.Path,
-                                                "value" : matchTest.Value
-                                            }
-                                        ]
-                                    }
-                                }
-                            },
-                            APPEND_COMBINE_BEHAVIOUR
-                        )]
-                    [/#list]
-
-                    [#list (testCase.Structural.JSON.Length)!{} as id,legnthTest ]
-                        [#local tests = combineEntities(tests,
-                            {
-                                testCaseFullName : {
-                                    "json_structure"  : {
-                                        "length" : [
-                                                {
-                                                    "path" : legnthTest.Path,
-                                                    "value" : legnthTest.Count
-                                                }
-                                        ]
-                                    }
-                                }
-                            },
-                            APPEND_COMBINE_BEHAVIOUR
-                        )]
-                    [/#list]
-
-                    [#if testCase.Structural.JSON.Exists?has_content ]
-                        [#local existPaths = []]
-                        [#list testCase.Structural.JSON.Exists as path ]
-                            [#local existPaths += [
-                                    {
-                                        "path" : path
-                                    }
-                                ]
-                            ]
-                        [/#list]
-                        [#local tests = mergeObjects(
-                            tests,
-                            {
-                                testCaseFullName  : {
-                                    "json_structure" : {
-                                        "exists" : existPaths
-                                    }
-                                }
-                            }
-                        )]
-                    [/#if]
-
-                    [#if testCase.Structural.JSON.NotEmpty?has_content ]
-                        [#local notEmtpyPaths = []]
-                        [#list testCase.Structural.JSON.NotEmpty as path ]
-                            [#local notEmtpyPaths += [
-                                    {
-                                        "path" : path
-                                    }
-                                ]
-                            ]
-                        [/#list]
-                        [#local tests = mergeObjects(
-                            tests,
-                            {
-                                testCaseFullName  : {
-                                    "json_structure" : {
-                                        "not_empty" : notEmtpyPaths
-                                    }
-                                }
-                            }
-                        )]
-                    [/#if]
-
-                    [#list (testCase.Structural.CFN.Resource)!{} as id,CFNResourceTest ]
-                        [#local tests = combineEntities(tests,
-                            {
-                                testCaseFullName : {
-                                    "cfn_structure"  : {
-                                        "resource" : [
-                                            {
-                                                "id" : CFNResourceTest.Name,
-                                                "type" : CFNResourceTest.Type
-                                            }
-                                        ]
-                                    }
-                                }
-                            },
-                            APPEND_COMBINE_BEHAVIOUR
-                        )]
-                    [/#list]
-
-                    [#if testCase.Structural.CFN.Output?has_content ]
-                        [#local cfnOutputPaths = []]
-                        [#list testCase.Structural.CFN.Output as path ]
-                            [#local cfnOutputPaths += [
-                                    {
-                                        "id" : path
-                                    }
-                                ]
-                            ]
-                        [/#list]
-                        [#local tests = mergeObjects(
-                            tests,
-                            {
-                                testCaseFullName  : {
-                                    "cfn_structure" : {
-                                        "output" : cfnOutputPaths
-                                    }
-                                }
-                            }
-                        )]
-                    [/#if]
-
-                    [#if tests?has_content ]
-                        [#local tests = mergeObjects(
-                            tests,
-                            {
-                                testCaseFullName  : {
-                                    "filename" : outputFileName
-                                }
-                            }
-                        )]
-                    [#else]
-                        [@fatal
-                            message="No tests found for test case"
-                            context={
-                                "TestCaseFullName" : testCaseFullName,
-                                "FileName" : outputFileName
-                            }
-                        /]
-                    [/#if]
+                [#if ! testCases[testCaseName]?? ]
+                    [@fatal
+                        message="Test Case not Found"
+                        context={
+                            "Component": occurrence.Core.RawFullName,
+                            "TestCases" : testCaseNames,
+                            "MissingTestCase" : testCaseName
+                        }
+                    /]
+                    [#continue]
                 [/#if]
-            [/#list]
 
+                [#local testCase = testCases[testCaseName] ]
+
+                [#local outputProviders = combineEntities(
+                                                getLoaderProviders(),
+                                                [ SHARED_PROVIDER],
+                                                UNIQUE_COMBINE_BEHAVIOUR
+                                            )]
+
+                [#local outputMapping = getGenerationContractStepOutputMappingFromSuffix( outputProviders, testCase.OutputSuffix)]
+                [#local filePrefix = getOutputFilePrefix(
+                                        "deployment"
+                                        getCLODeploymentGroup(),
+                                        getCLODeploymentUnit(),
+                                        outputMapping["Subset"],
+                                        getActiveLayer(ACCOUNT_LAYER_TYPE).Name!"",
+                                        getCLOSegmentRegion(),
+                                        getCLOAccountRegion(),
+                                        "primary"
+                                )]
+
+                [#local outputFileName = formatName(filePrefix, outputMapping["OutputSuffix"]) ]
+
+                [#if isPresent(testCase.Tools["cfn-lint"])]
+                    [#local tests = mergeObjects(
+                        tests,
+                        {
+                            testCaseFullName : {
+                                "cfn_lint" : {} +
+                                attributeIfContent(
+                                    "ignore_checks",
+                                    testCase.Tools["cfn-lint"].IgnoreChecks
+                                )
+                            }
+                        }
+                    )]
+                [/#if]
+
+                [#if isPresent(testCase.Tools["checkov"])]
+                    [#local tests = mergeObjects(
+                        tests,
+                        {
+                            testCaseFullName : {
+                                "checkov" : {
+                                    "framework" : testCase.Tools["checkov"].Framework
+                                } +
+                                attributeIfContent(
+                                    "skip_checks",
+                                    testCase.Tools["checkov"].SkipChecks
+                                )
+                            }
+                        }
+                    )]
+                [/#if]
+
+                [#list (testCase.Structural.JSON.Match)!{} as id,matchTest ]
+                    [#local tests = combineEntities(tests,
+                        {
+                            testCaseFullName : {
+                                "json_structure" : {
+                                    "match" : [
+                                        {
+                                            "path" : matchTest.Path,
+                                            "value" : matchTest.Value
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        APPEND_COMBINE_BEHAVIOUR
+                    )]
+                [/#list]
+
+                [#list (testCase.Structural.JSON.Length)!{} as id,legnthTest ]
+                    [#local tests = combineEntities(tests,
+                        {
+                            testCaseFullName : {
+                                "json_structure"  : {
+                                    "length" : [
+                                            {
+                                                "path" : legnthTest.Path,
+                                                "value" : legnthTest.Count
+                                            }
+                                    ]
+                                }
+                            }
+                        },
+                        APPEND_COMBINE_BEHAVIOUR
+                    )]
+                [/#list]
+
+                [#if testCase.Structural.JSON.Exists?has_content ]
+                    [#local existPaths = []]
+                    [#list testCase.Structural.JSON.Exists as path ]
+                        [#local existPaths += [
+                                {
+                                    "path" : path
+                                }
+                            ]
+                        ]
+                    [/#list]
+                    [#local tests = mergeObjects(
+                        tests,
+                        {
+                            testCaseFullName  : {
+                                "json_structure" : {
+                                    "exists" : existPaths
+                                }
+                            }
+                        }
+                    )]
+                [/#if]
+
+                [#if testCase.Structural.JSON.NotEmpty?has_content ]
+                    [#local notEmtpyPaths = []]
+                    [#list testCase.Structural.JSON.NotEmpty as path ]
+                        [#local notEmtpyPaths += [
+                                {
+                                    "path" : path
+                                }
+                            ]
+                        ]
+                    [/#list]
+                    [#local tests = mergeObjects(
+                        tests,
+                        {
+                            testCaseFullName  : {
+                                "json_structure" : {
+                                    "not_empty" : notEmtpyPaths
+                                }
+                            }
+                        }
+                    )]
+                [/#if]
+
+                [#list (testCase.Structural.CFN.Resource)!{} as id,CFNResourceTest ]
+                    [#local tests = combineEntities(tests,
+                        {
+                            testCaseFullName : {
+                                "cfn_structure"  : {
+                                    "resource" : [
+                                        {
+                                            "id" : CFNResourceTest.Name,
+                                            "type" : CFNResourceTest.Type
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        APPEND_COMBINE_BEHAVIOUR
+                    )]
+                [/#list]
+
+                [#if testCase.Structural.CFN.Output?has_content ]
+                    [#local cfnOutputPaths = []]
+                    [#list testCase.Structural.CFN.Output as path ]
+                        [#local cfnOutputPaths += [
+                                {
+                                    "id" : path
+                                }
+                            ]
+                        ]
+                    [/#list]
+                    [#local tests = mergeObjects(
+                        tests,
+                        {
+                            testCaseFullName  : {
+                                "cfn_structure" : {
+                                    "output" : cfnOutputPaths
+                                }
+                            }
+                        }
+                    )]
+                [/#if]
+
+                [#if tests?has_content ]
+                    [#local tests = mergeObjects(
+                        tests,
+                        {
+                            testCaseFullName  : {
+                                "filename" : outputFileName
+                            }
+                        }
+                    )]
+                [#else]
+                    [@fatal
+                        message="No tests found for test case"
+                        context={
+                            "TestCaseFullName" : testCaseFullName,
+                            "FileName" : outputFileName
+                        }
+                    /]
+                [/#if]
+
+            [/#list]
 
             [@addToDefaultJsonOutput
                 content=tests

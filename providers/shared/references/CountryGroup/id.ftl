@@ -1,6 +1,6 @@
 [#ftl]
 
-[@addReference 
+[@addReference
     type=COUNTRYGROUP_REFERENCE_TYPE
     pluralType="CountryGroups"
     properties=[
@@ -20,3 +20,14 @@
         }
     ]
 /]
+
+[#function getGroupCountryCodes groups blacklist=false]
+    [#local codes = [] ]
+    [#list asFlattenedArray(groups) as group]
+        [#local groupEntry = (countryGroups[group])!{}]
+        [#if (groupEntry.Blacklist!false) == blacklist ]
+            [#local codes += asArray(groupEntry.Locations![]) ]
+        [/#if]
+    [/#list]
+    [#return codes]
+[/#function]

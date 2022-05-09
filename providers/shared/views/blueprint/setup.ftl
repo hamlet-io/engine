@@ -55,7 +55,6 @@
             "Name" : (segmentObject.Name)!segmentObject.Id,
             "Configuration" : segmentObject,
             "Account" : accountObject,
-            "Solution" : solutionObject,
             "Tiers" : getTierBlueprint()
         }
     ]]

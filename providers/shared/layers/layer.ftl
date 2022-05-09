@@ -9,9 +9,6 @@
 [#assign PRODUCT_LAYER_TYPE = "Product" ]
 [#assign PRODUCT_LAYER_REFERENCE_TYPE = "Products" ]
 
-[#assign SOLUTION_LAYER_TYPE = "Solution" ]
-[#assign SOLUTION_LAYER_REFERENCE_TYPE = "Solutions" ]
-
 [#assign ENVIRONMENT_LAYER_TYPE = "Environment" ]
 [#assign ENVIRONMENT_LAYER_REFERENCE_TYPE = "Environments" ]
 
