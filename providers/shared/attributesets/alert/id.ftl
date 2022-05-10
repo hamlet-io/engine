@@ -9,6 +9,12 @@
         }]
     attributes=[
         {
+            "Names" : "Enabled",
+            "Description" : "Should the alert be created",
+            "Types" : BOOLEAN_TYPE,
+            "Default" : true
+        },
+        {
             "Names" : "Namespace",
             "Types" : STRING_TYPE,
             "Default" : ""
