@@ -79,6 +79,23 @@
                 "Names" : "RunTime",
                 "Types" : STRING_TYPE,
                 "Description" : "Must be a valid runtime engine such as nodejs14.x. Refer https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html or https://docs.microsoft.com/en-us/azure/azure-functions/supported-languages",
+                "Values" : [
+                    "dotnet6",
+                    "dotnetcore1.0",
+                    "dotnetcore2.1",
+                    "go1.x",
+                    "java8",
+                    "java11",
+                    "nodejs12.x",
+                    "nodejs14.x",
+                    "python2.7",
+                    "python3.6",
+                    "python3.7",
+                    "python3.8",
+                    "python3.9",
+                    "ruby2.5"
+                ],
+                "AdditionalValues" : true,
                 "Mandatory" : true
             },
             {
