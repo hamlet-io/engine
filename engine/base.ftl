@@ -1491,20 +1491,37 @@ are added.
                         [#if attribute.Values?has_content]
                             [#list asArray(providedValue) as value]
                                 [#if !(attribute.Values?seq_contains(value)) ]
-                                    [#local messages +=
-                                        [
-                                            {
-                                                "Severity" : "fatal",
-                                                "Message" : "Attribute value is not one of the expected values",
-                                                "Context" : {
-                                                    "Name" : providedName,
-                                                    "Value" : value,
-                                                    "ExpectedValues" : attribute.Values,
-                                                    "Candidate" : providedCandidate
+                                    [#if ((attribute.AdditionalValues)!false)]
+                                        [#local messages +=
+                                            [
+                                                {
+                                                    "Severity" : "warning",
+                                                    "Message" : "Attribute value "+value+" is not one of the typical values, but will be passed through",
+                                                    "Context" : {
+                                                        "Name" : providedName,
+                                                        "Value" : value,
+                                                        "ExpectedValues" : attribute.Values,
+                                                        "Candidate" : providedCandidate
+                                                    }
                                                 }
-                                            }
+                                            ]
                                         ]
-                                    ]
+                                    [#else]
+                                        [#local messages +=
+                                            [
+                                                {
+                                                    "Severity" : "fatal",
+                                                    "Message" : "Attribute value is not one of the expected values",
+                                                    "Context" : {
+                                                        "Name" : providedName,
+                                                        "Value" : value,
+                                                        "ExpectedValues" : attribute.Values,
+                                                        "Candidate" : providedCandidate
+                                                    }
+                                                }
+                                            ]
+                                        ]
+                                    [/#if]
                                 [/#if]
                             [/#list]
                         [/#if]
@@ -1546,6 +1563,13 @@ are added.
             [#if mode?contains("logs") ]
                 [#list messages as message]
                     [#switch message.Severity]
+                        [#case "warning"]
+                            [@warning
+                                message=message.Message
+                                context=message.Context!{}
+                                detail=message.Detail!{}
+                            /]
+                            [#break]
                         [#case "fatal"]
                         [#default]
                             [@fatal
@@ -1693,6 +1717,7 @@ are added.
                     "DefaultBehaviour" : attribute.DefaultBehaviour!"ignore",
                     "DefaultProvided" : attribute.Default??,
                     "Values" : asArray(attribute.Values![]),
+                    "AdditionalValues" : attribute.AdditionalValues!false,
                     "Children" : normaliseCompositeConfiguration(
                         asArray(attribute.Children![])
                     ),
