@@ -1496,7 +1496,7 @@ are added.
                                             [
                                                 {
                                                     "Severity" : "warning",
-                                                    "Message" : "Attribute value "+value+" is not one of the typical values, but will be passed through",
+                                                    "Message" : "Attribute value \"" + value + "\" is not one of the typical values, but will be passed through",
                                                     "Context" : {
                                                         "Name" : providedName,
                                                         "Value" : value,
