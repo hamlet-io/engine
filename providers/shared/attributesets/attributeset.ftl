@@ -6,6 +6,7 @@
 [#assign COMPUTEIMAGE_ATTRIBUTESET_TYPE = "computeimage"]
 [#assign CONTTAINERTASK_ATTRIBUTESET_TYPE = "containertask"]
 [#assign CONTEXTPATH_ATTRIBUTESET_TYPE = "contextpath"]
+[#assign CONTEXTPATH_FULLPATH_ATTRIBUTESET_TYPE = "contextpath_fullpath"]
 [#assign CORE_PROFILE_ATTRIBUTESET_TYPE = "core_profile"]
 [#assign DISTRICT_ATTRIBUTESET_TYPE = "district"]
 [#assign ECS_COMPUTEIMAGE_ATTRIBUTESET_TYPE = "ecs_computeimage"]

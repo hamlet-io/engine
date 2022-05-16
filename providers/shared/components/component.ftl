@@ -120,6 +120,8 @@
     type=LB_COMPONENT_TYPE
 /]
 
+[#assign LOGSTORE_COMPONENT_TYPE = "logstore"]
+
 [#assign MOBILEAPP_COMPONENT_TYPE = "mobileapp"]
 
 [#assign MOBILENOTIFIER_COMPONENT_TYPE = "mobilenotifier" ]
