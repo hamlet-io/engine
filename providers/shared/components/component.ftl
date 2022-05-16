@@ -48,6 +48,8 @@
 
 [#assign DATASET_COMPONENT_TYPE = "dataset"]
 
+[#assign DATASTREAM_COMPONENT_TYPE = "datastream"]
+
 [#assign DATAVOLUME_COMPONENT_TYPE = "datavolume" ]
 
 [#assign DB_COMPONENT_TYPE = "db" ]
