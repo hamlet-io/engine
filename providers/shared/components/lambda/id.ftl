@@ -190,6 +190,13 @@
                         "Types" : STRING_TYPE,
                         "Description" : "A sha256 hash of the code zip file",
                         "Default" : ""
+                    },
+                    {
+                        "Names" : "DeletionPolicy",
+                        "Types" : STRING_TYPE,
+                        "Description" : "What should happen to the superceded version when new version on deploy?",
+                        "Values" : [ "Delete", "Retain" ],
+                        "Default" : "Retain"
                     }
                 ]
             },
