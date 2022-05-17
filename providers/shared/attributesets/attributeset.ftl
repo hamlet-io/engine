@@ -10,6 +10,7 @@
 [#assign DISTRICT_ATTRIBUTESET_TYPE = "district"]
 [#assign ECS_COMPUTEIMAGE_ATTRIBUTESET_TYPE = "ecs_computeimage"]
 [#assign ENVIRONMENTFORMAT_ATTRIBUTESET_TYPE = "environmentformat"]
+[#assign EVENT_ATTRIBUTESET_TYPE = "event" ]
 [#assign LBATTACH_ATTRIBUTESET_TYPE = "lbattach"]
 [#assign LINK_ATTRIBUTESET_TYPE = "link"]
 [#assign LOGMETRIC_ATTRIBUTESET_TYPE = "logmetric"]

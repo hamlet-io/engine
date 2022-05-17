@@ -245,6 +245,11 @@
                 ]
             },
             {
+                "Names" : "SystemNotifications",
+                "SubObjects" : true,
+                "AttributeSet" : EVENT_ATTRIBUTESET_TYPE
+            },
+            {
                 "Names" : "Alerts",
                 "SubObjects" : true,
                 "AttributeSet" : ALERT_ATTRIBUTESET_TYPE
