@@ -12,6 +12,12 @@
     attributes=
         [
             {
+                "Names" : "Engine",
+                "Description": "The service used to store the logs",
+                "Types" : [ STRING_TYPE ],
+                "Values" : []
+            },
+            {
                 "Names" : "Links",
                 "SubObjects" : true,
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
