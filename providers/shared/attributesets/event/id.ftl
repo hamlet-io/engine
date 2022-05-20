@@ -1,7 +1,7 @@
 [#ftl]
 
 [@addAttributeSet
-    type=EVENT_ATTRIBUTESET_TYPE
+    type=DB_SYSTEM_EVENT_ATTRIBUTESET_TYPE
     properties=[
         {
                 "Type"  : "Description",
