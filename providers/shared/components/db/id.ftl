@@ -247,7 +247,7 @@
             {
                 "Names" : "SystemNotifications",
                 "SubObjects" : true,
-                "AttributeSet" : EVENT_ATTRIBUTESET_TYPE
+                "AttributeSet" : DB_SYSTEM_EVENT_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "Alerts",
