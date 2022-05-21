@@ -103,6 +103,7 @@ object.
             },
             {
                 "Names" : ["AuthorisationModel", "AuthorizationModel", "Authentication"],
+                "Description" : "Model to use where IP filtering is part of the desired authorization approach",
                 "Types" : STRING_TYPE,
                 "Values" : [
                     "IP",
