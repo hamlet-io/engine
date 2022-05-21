@@ -102,9 +102,15 @@ object.
                 "Default" : []
             },
             {
-                "Names" : "Authentication",
+                "Names" : ["AuthorisationModel", "AuthorizationModel", "Authentication"],
                 "Types" : STRING_TYPE,
-                "Values" : ["IP", "SIG4ORIP", "SIG4ANDIP"],
+                "Values" : [
+                    "IP",
+                    "SIG4ORIP", "SIG4_OR_IP",
+                    "AUTHORISER_OR_IP", "AUTHORIZER_OR_IP",
+                    "SIG4ANDIP", "SIG4_AND_IP",
+                    "AUTHORISER_AND_IP", "AUTHORIZER_AND_IP"
+                ],
                 "Default" : "IP"
             },
             {
