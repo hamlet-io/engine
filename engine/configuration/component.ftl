@@ -337,6 +337,85 @@
                     "Mandatory" : true
                 }
             ]
+        },
+        {
+            "Names": "Tags",
+            "Description": "Key value pairs to apply to resources to identify them",
+            "Children": [
+                {
+                    "Names": "Common",
+                    "Description": "Include tags based on properties of the occurrence",
+                    "Children" : [
+                        {
+                            "Names": "Prefix",
+                            "Description": "A prefix to apply to common tags",
+                            "Types" : STRING_TYPE,
+                            "Default": "cot:"
+                        },
+                        {
+                            "Names" : "Layers",
+                            "Description" : "Include the names of the active layers",
+                            "Types" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Names" : "Solution",
+                            "Description" : "Include details of the solution",
+                            "Types" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Names": "Deployment",
+                            "Description": "Include details of the deployment",
+                            "Types": BOOLEAN_TYPE,
+                            "Default": true
+                        },
+                        {
+                            "Names": "CostCentre",
+                            "Description": "Include the cost centre for the account",
+                            "Types": BOOLEAN_TYPE,
+                            "Default": true
+                        },
+                        {
+                            "Names": "Component",
+                            "Description": "Include tags provided by the component",
+                            "Types": BOOLEAN_TYPE,
+                            "Default": true
+                        }
+                        {
+                            "Names" : "Name",
+                            "Description": "The component name attribute to use",
+                            "Types" : STRING_TYPE,
+                            "Values": [ "FullName", "FullRawName", "RawName", "Name", "ShortName", "ShortRawName", "ShortFullName", "ShortRawFullName" ],
+                            "Default" : "FullName"
+                        }
+                    ]
+                },
+                {
+                    "Names": "Additional",
+                    "Description": "Extra tags to include",
+                    "SubObjects": true,
+                    "Children": [
+                        {
+                            "Names": "Key",
+                            "Description": "The key of the tag ( uses the key of this object by default)",
+                            "Types": STRING_TYPE
+                        }
+                        {
+                            "Names": "Value",
+                            "Description": "The value of the tag",
+                            "Types": STRING_TYPE,
+                            "Mandatory": true
+                        },
+                        {
+                            "Names": "Enabled",
+                            "Description": "Include the tag",
+                            "Types": BOOLEAN_TYPE,
+                            "Default" : true
+                        }
+                    ]
+                }
+            ]
         }
     ] +
     includeTypeAttr?then(

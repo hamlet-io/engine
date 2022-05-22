@@ -207,8 +207,80 @@
     [/#if]
 [/#function]
 
-[#function getOccurrenceCoreTags occurrence={} name="" zone="" propagate=false flatten=false maxTagCount=-1]
-    [#return getCfTemplateCoreTags(name, (occurrence.Core.Tier)!"", (occurrence.Core.Component)!"", zone, propagate, flatten, maxTagCount)]
+[#function getOccurrenceTags occurrence componentTags={} nameExtensions=[]]
+
+    [#local tagConfiguration = occurrence.Configuration.Solution.Tags ]
+    [#local commonPrefix = tagConfiguration.Common.Prefix ]
+
+    [#local tags = {
+        "Name" : formatName(occurrence.Core[tagConfiguration.Common.Name], nameExtensions)
+    }]
+
+    [#if componentTags.Name?? ]
+        [#local tags = mergeObjects(tags, { "Name": componentTags.Name })]
+    [/#if]
+
+    [#if tagConfiguration.Common.Layers ]
+        [#list getActiveLayers() as type, layerInfo ]
+            [#local tags = mergeObjects(tags, { "${commonPrefix}" + type?lower_case: layerInfo.Name  })]
+        [/#list]
+    [/#if]
+
+    [#if tagConfiguration.Common.Solution]
+        [#local tags = mergeObjects(
+            tags,
+            {
+                "${commonPrefix}tier": occurrence.Core.Tier.Name,
+                "${commonPrefix}component": occurrence.Core.Component.RawName
+            }
+        )]
+    [/#if]
+
+    [#if tagConfiguration.Common.Deployment]
+        [#local tags = mergeObjects(
+            tags,
+            {} +
+            attributeIfContent(
+                "${commonPrefix}request",
+                getCLORequestReference()
+            ) +
+            attributeIfContent(
+                "${commonPrefix}configuration",
+                getCLOConfigurationReference()
+            )
+        )]
+    [/#if]
+
+    [#if tagConfiguration.Common.CostCentre]
+        [#local tags = mergeObjects(
+            tags,
+            {} +
+            attributeIfContent(
+                "${commonPrefix}costcentre",
+                getActiveLayerAttributes( ["CostCentre"], [ ACCOUNT_LAYER_TYPE ], "" )[0]
+            )
+        )]
+    [/#if]
+
+    [#if tagConfiguration.Common.Component]
+        [#list componentTags as key,value]
+            [#local tags = mergeObjects(
+                tags,
+                (key == "Name")?then(
+                    {},
+                    { "${commonPrefix}${key}": value }
+                )
+            )]
+        [/#list]
+    [/#if]
+
+    [#list tagConfiguration.Additional as id, tag]
+        [#if tag.Enabled]
+            [#local tags = mergeObjects(tags, { (tag.Key)!id: tag.Value })]
+        [/#if]
+    [/#list]
+
+    [#return tags]
 [/#function]
 
 [#-- Get processor settings --]
