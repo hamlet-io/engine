@@ -137,11 +137,16 @@
     [#if deploymentSubsetRequired("console", true) &&
             ! ( getCLODeploymentUnitAlternative() == "replace1" ) ]
 
+        [#assign ssmDocumentTags = {}]
+        [#list getActiveLayers() as type, layerInfo ]
+            [#assign ssmDocumentTags = mergeObjects(ssmDocumentTags, { "cot:${type}": layerInfo.Name  })]
+        [/#list]
+
         [@createSSMDocument
             id=consoleSSMDocumentId
             name=consoleSSMDocumentName
             content=documentContent
-            tags=getCfTemplateCoreTags("", "", "", "", false, false, 7)
+            tags=ssmDocumentTags
             documentType="Session"
             dependencies=consoleDocumentDependencies
         /]
