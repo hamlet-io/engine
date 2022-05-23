@@ -102,9 +102,14 @@ object.
                 "Default" : []
             },
             {
-                "Names" : "Authentication",
+                "Names" : ["AuthorisationModel", "AuthorizationModel", "Authentication"],
+                "Description" : "Model to use where IP filtering is part of the desired authorization approach",
                 "Types" : STRING_TYPE,
-                "Values" : ["IP", "SIG4ORIP", "SIG4ANDIP"],
+                "Values" : [
+                    "IP",
+                    "AUTHORISER_OR_IP", "AUTHORIZER_OR_IP",
+                    "AUTHORISER_AND_IP", "AUTHORIZER_AND_IP"
+                ],
                 "Default" : "IP"
             },
             {
