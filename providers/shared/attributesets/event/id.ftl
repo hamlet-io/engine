@@ -26,8 +26,10 @@
                 "read replica", 
                 "recovery", 
                 "restoration", 
-                "security"
-            ]
+                "security",
+                "_all"
+            ],
+            "Default" : [ "_all" ]
         },
         {
             "Names" : "Links",
