@@ -8,6 +8,7 @@
 [#assign CONTEXTPATH_ATTRIBUTESET_TYPE = "contextpath"]
 [#assign CONTEXTPATH_FULLPATH_ATTRIBUTESET_TYPE = "contextpath_fullpath"]
 [#assign CORE_PROFILE_ATTRIBUTESET_TYPE = "core_profile"]
+[#assign DB_SYSTEM_EVENT_ATTRIBUTESET_TYPE = "dbsysevent" ]
 [#assign DISTRICT_ATTRIBUTESET_TYPE = "district"]
 [#assign ECS_COMPUTEIMAGE_ATTRIBUTESET_TYPE = "ecs_computeimage"]
 [#assign ENVIRONMENTFORMAT_ATTRIBUTESET_TYPE = "environmentformat"]
