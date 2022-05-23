@@ -78,6 +78,7 @@
             {
                 "Names" : "RunTime",
                 "Types" : STRING_TYPE,
+                "Description" : "Must be a valid runtime engine such as nodejs14.x. Refer https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html or https://docs.microsoft.com/en-us/azure/azure-functions/supported-languages",
                 "Values" : [
                     "dotnet6",
                     "dotnetcore1.0",
@@ -94,6 +95,7 @@
                     "python3.9",
                     "ruby2.5"
                 ],
+                "AdditionalValues" : true,
                 "Mandatory" : true
             },
             {
@@ -190,6 +192,13 @@
                         "Types" : STRING_TYPE,
                         "Description" : "A sha256 hash of the code zip file",
                         "Default" : ""
+                    },
+                    {
+                        "Names" : "DeletionPolicy",
+                        "Types" : STRING_TYPE,
+                        "Description" : "What should happen to the superceded version when new version on deploy?",
+                        "Values" : [ "Delete", "Retain" ],
+                        "Default" : "Retain"
                     }
                 ]
             },
