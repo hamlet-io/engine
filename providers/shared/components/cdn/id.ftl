@@ -144,6 +144,12 @@
         ]
     attributes=[
         {
+            "Names" : "Priority",
+            "Description" : "The priority of this route, lower routes evaluated first",
+            "Types": NUMBER_TYPE,
+            "Default" : 100
+        },
+        {
             "Names" : "PathPattern",
             "Description" : "The path based pattern to match for this route to apply - one _default path pattern must be supplied",
             "Types" : STRING_TYPE,
