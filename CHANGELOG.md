@@ -1,6 +1,52 @@
 # Changelog
 
-## Unreleased (2022-03-23)
+## Unreleased (2022-05-25)
+
+#### New Features
+
+* (lb): define backends indepdent from port mappings
+* (cdn): add priority to cdn routes
+* tagging control for occurrences
+* (logstore): add engine parameter support
+* (logstore): add dedicated log storage component
+* (datastream): define data stream component
+* (lambda): chg constraint on runtime to warning
+* (lambda): remove constraint on runtime
+* (lambda): versioned lambda retention policy ([#1989](https://github.com/hamlet-io/engine/issues/1989))
+* (alerts): add enable attribute on alerts
+* add docdb support ([#1934](https://github.com/hamlet-io/engine/issues/1934))
+* (lb): define external or internal for lb endpoints
+* (lambda): provisioned executions ([#1980](https://github.com/hamlet-io/engine/issues/1980))
+* (dnszone): add support for network based configuration
+* add certificate authority component
+* add build details entrance for image reference info
+* (datavolume): zone control and remove backups
+* (cdn): add support for disabling event handlers
+* add support for HealthCheck Protocol
+* (ec2): add support for zone based deploy control
+#### Fixes
+
+* add generation contract for unitlist view
+* (runbook): don't include disabled tasks
+* only include active layers based on district type
+* (account): minor fixes for account level aws deployments
+* (firewall): rename type attribute on firewall rules
+* support regions in state that use refs
+* minor version upgrade control
+* typo
+* typos in attributes
+#### Refactorings
+
+* (apigateway): authorization models ([#1995](https://github.com/hamlet-io/engine/issues/1995))
+* testing output handling and test profiles
+* move functions out of setContext
+* update testing to remove solution layer
+* remove solution layer
+* move multiAZ to standard component configuraiton
+
+Full set of changes: [`8.5.0...b0e10c5`](https://github.com/hamlet-io/engine/compare/8.5.0...b0e10c5)
+
+## 8.5.0 (2022-03-25)
 
 #### New Features
 
@@ -59,9 +105,10 @@
 * move domain and certificate to reference data
 #### Others
 
+* changelog bump ([#1906](https://github.com/hamlet-io/engine/issues/1906))
 * update runtimes for lambda environment
 
-Full set of changes: [`8.4.0...2fe5466`](https://github.com/hamlet-io/engine/compare/8.4.0...2fe5466)
+Full set of changes: [`8.4.0...8.5.0`](https://github.com/hamlet-io/engine/compare/8.4.0...8.5.0)
 
 ## 8.4.0 (2022-01-06)
 
