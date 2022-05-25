@@ -116,6 +116,7 @@
 
 [#assign LB_COMPONENT_TYPE = "lb" ]
 [#assign LB_PORT_COMPONENT_TYPE = "lbport" ]
+[#assign LB_BACKEND_COMPONENT_TYPE = "lbbackend" ]
 
 [@addLegacyComponentTypeMapping
     legacyType="alb"

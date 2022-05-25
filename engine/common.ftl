@@ -788,7 +788,12 @@
     [#local targetTierId = (lb.Tier)!"" ]
     [#local targetComponentId = (lb.Component)!"" ]
     [#local targetLinkName = formatName(lb.LinkName) ]
-    [#local portMapping = contentIfContent(lb.PortMapping, port.Name)]
+    [#local subComponent = contentIfContent(
+                            contentIfContent(
+                                lb.SubComponent,
+                                lb.PortMapping),
+                            port.Name
+                        )]
 
     [#-- Need to be careful to allow an empty value for --]
     [#-- Instance/Version to be explicitly provided and --]
@@ -808,7 +813,7 @@
         } +
         attributeIfTrue("Instance", lb.Instance??, lb.Instance!"") +
         attributeIfTrue("Version",  lb.Version??, lb.Version!"") +
-        attributeIfContent("SubComponent",  portMapping)
+        attributeIfContent("SubComponent",  subComponent)
     ]
 
     [#local resolvedLink = {} ]

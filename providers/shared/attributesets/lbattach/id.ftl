@@ -27,7 +27,7 @@
         {
             "Names" : "Type",
             "Types" : STRING_TYPE,
-            "Values" : [ LB_PORT_COMPONENT_TYPE ],
+            "Values" : [ LB_PORT_COMPONENT_TYPE, LB_BACKEND_COMPONENT_TYPE ],
             "Default" : LB_PORT_COMPONENT_TYPE
         },
         {
