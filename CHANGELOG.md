@@ -1,6 +1,14 @@
 # Changelog
 
-## Unreleased (2022-05-25)
+## Unreleased (2022-05-26)
+
+#### Others
+
+* changelog bump
+
+Full set of changes: [`8.6.0...8756f96`](https://github.com/hamlet-io/engine/compare/8.6.0...8756f96)
+
+## 8.6.0 (2022-05-25)
 
 #### New Features
 
@@ -44,7 +52,7 @@
 * remove solution layer
 * move multiAZ to standard component configuraiton
 
-Full set of changes: [`8.5.0...b0e10c5`](https://github.com/hamlet-io/engine/compare/8.5.0...b0e10c5)
+Full set of changes: [`8.5.0...8.6.0`](https://github.com/hamlet-io/engine/compare/8.5.0...8.6.0)
 
 ## 8.5.0 (2022-03-25)
 
