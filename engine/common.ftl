@@ -789,9 +789,7 @@
     [#local targetComponentId = (lb.Component)!"" ]
     [#local targetLinkName = formatName(lb.LinkName) ]
     [#local subComponent = contentIfContent(
-                            contentIfContent(
-                                lb.SubComponent,
-                                lb.PortMapping),
+                            lb.SubComponent,
                             port.Name
                         )]
 

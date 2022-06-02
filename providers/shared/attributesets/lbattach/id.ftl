@@ -21,8 +21,9 @@
             "Types" : STRING_TYPE
         },
         {
-            "Names" : "SubComponent",
-            "Types" : STRING_TYPE
+            "Names" : ["SubComponent", "PortMapping", "Port"],
+            "Types" : STRING_TYPE,
+            "Default" : ""
         },
         {
             "Names" : "Type",
@@ -42,11 +43,6 @@
         {
             "Names" : "Version",
             "Types" : STRING_TYPE
-        },
-        {
-            "Names" : ["PortMapping", "Port"],
-            "Types" : STRING_TYPE,
-            "Default" : ""
         }
      ]
 /]
