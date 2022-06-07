@@ -1,12 +1,19 @@
 # Changelog
 
-## Unreleased (2022-05-26)
+## latest (2022-06-02)
 
+#### Fixes
+
+* lb link lookup
+#### Refactorings
+
+* use shared changelog workflow
 #### Others
 
 * changelog bump
+* changelog bump
 
-Full set of changes: [`8.6.0...8756f96`](https://github.com/hamlet-io/engine/compare/8.6.0...8756f96)
+Full set of changes: [`8.6.0...latest`](https://github.com/hamlet-io/engine/compare/8.6.0...latest)
 
 ## 8.6.0 (2022-05-25)
 
