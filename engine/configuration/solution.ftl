@@ -86,15 +86,12 @@
                 "Description": "Defines the components that belong to a district",
                 "SubObjects" : true,
                 "Children" : combineEntities(
-                    (getConfigurationSet(SOLUTION_CONFIGURATION_SCOPE, DISTRICT_SOLUTION_CONFIGURATION_SET)["Attributes"])![]
+                    (getConfigurationSet(SOLUTION_CONFIGURATION_SCOPE, DISTRICT_SOLUTION_CONFIGURATION_SET)["Attributes"])![],
                     (getConfigurationSet(SOLUTION_CONFIGURATION_SCOPE, SOLUTION_CONFIGURATION_SET)["Attributes"])![],
                     APPEND_COMBINE_BEHAVIOUR
                 )
             }
-        ] +
-
-        [#-- Supports the existing solution layout which uses the root --]
-        (getConfigurationSet(SOLUTION_CONFIGURATION_SCOPE, SOLUTION_CONFIGURATION_SET)["Attributes"])![]
+        ]
     /]
 
 [/#macro]

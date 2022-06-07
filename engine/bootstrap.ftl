@@ -33,6 +33,7 @@
 [#include "inputdata/reference.ftl" ]
 [#include "inputdata/setting.ftl" ]
 [#include "inputdata/seed.ftl" ]
+[#include "inputdata/solution.ftl" ]
 
 [#-- Plugin data loading --]
 [#include "extension.ftl" ]
