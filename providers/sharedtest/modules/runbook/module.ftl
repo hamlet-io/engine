@@ -57,7 +57,7 @@
                                 "step2" : {
                                     "Priority" : 20,
                                     "Task" : {
-                                        "Type" : "start_ssh_shell",
+                                        "Type" : "ssh_run_command",
                                         "Parameters" : {
                                             "Username" : {
                                                 "Value" : "admin"

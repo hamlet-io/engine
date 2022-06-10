@@ -18,7 +18,7 @@
                             "internaltest" : {
                                 "Instances" : {
                                     "default" : {
-                                        "deployment:Unit" : "shared-internaltest-base"
+                                        "deployment:Unit" : "shared-internaltest"
                                     }
                                 },
                                 "Profiles" : {

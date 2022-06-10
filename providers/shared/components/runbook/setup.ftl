@@ -31,6 +31,17 @@
         [#local runBookInputs = mergeObjects(runBookInputs, {k?ensure_starts_with("input:") : v })]
     [/#list]
 
+    [#local solution = resolveDynamicValues(
+            occurrence,
+            solution,
+            {
+                "inputs": runBookInputs,
+                "stepIds": (occurrence.Occurrences![])?filter(
+                    x -> x.Configuration.Solution.Enabled && x.Core.Type == RUNBOOK_STEP_COMPONENT_TYPE
+                )?map(x -> x.Core.SubComponent.RawId )
+            }
+    )]
+
     [@contractProperties
         properties=runBookInputs
     /]
@@ -39,6 +50,17 @@
 
         [#local core = subOccurrence.Core ]
         [#local solution = subOccurrence.Configuration.Solution ]
+
+        [#local solution = resolveDynamicValues(
+                subOccurrence,
+                solution,
+                {
+                    "inputs": runBookInputs,
+                    "stepIds": (occurrence.Occurrences![])?filter(
+                        x -> x.Configuration.Solution.Enabled && x.Core.Type == RUNBOOK_STEP_COMPONENT_TYPE
+                    )?map(x -> x.Core.SubComponent.RawId )
+                }
+        )]
 
         [#local stageId = core.SubComponent.RawName]
 
@@ -68,7 +90,7 @@
                 parameters={
                     "Test" : condition.Test,
                     "Condition" : condition.Match,
-                    "Value" : getRunBookValue(condition.Value, runBookInputs, subOccurrence, occurrence)
+                    "Value" : condition.Value
                 }
                 priority=10
                 mandatory=true
@@ -80,7 +102,7 @@
         [#list mergeObjects(solution.Task.Parameters, _context.TaskParameters) as id, parameter ]
             [#local taskParameters = mergeObjects(
                 taskParameters,
-                { id : getRunBookValue(parameter, runBookInputs, subOccurrence, occurrence)}
+                { id : parameter?is_hash?then(parameter.Value, parameter) }
             )]
         [/#list]
 
@@ -95,108 +117,6 @@
         /]
     [/#list]
 [/#macro]
-
-[#-- Resolves the different inputs to contract values that engines can process --]
-[#function getRunBookValue value inputs occurrence parentOccurrence ]
-    [#if value?is_hash ]
-        [#local value = value.Value]
-    [/#if]
-
-    [#if ( value?is_string && ! value?contains("__") ) || ! value?is_string ]
-        [#return value ]
-    [/#if]
-
-    [#local substitutions = value?split("__")]
-    [#local replacements = {}]
-
-    [#list substitutions as substitution ]
-        [#if substitution?matches('^([a-zA-Z0-9_-]*:){1,2}.*')]
-            [#local lookups = substitution?split(":") ]
-            [#local source = lookups[0] ]
-
-            [#switch source?lower_case ]
-                [#case "setting" ]
-                    [#local settingName = lookups[1] ]
-
-                    [#local collectedSettings = {}]
-                    [#list (occurrence.Configuration.Settings)?values?filter(x -> x?has_content) as settingGroup ]
-                        [#list settingGroup as key, value]
-                            [#local collectedSettings = mergeObjects(collectedSettings, { key : value } )]
-                        [/#list]
-                    [/#list]
-                    [#local replacements = mergeObjects(replacements, { "__${substitution}__" : (collectedSettings[settingName].Value)!"HamletFatal: substituion failed __${substitution}__" }) ]
-                    [#break]
-
-
-                [#case "attribute"]
-                    [#local linkId = lookups[1] ]
-                    [#local attributeName = lookups[2] ]
-
-                    [#local link = (occurrence.Configuration.Solution.Links[linkId])!{}]
-                    [#local linkTarget = getLinkTarget(occurrence, link)]
-
-                    [#if ! linkTarget?has_content ]
-                        [@fatal
-                            message="Link could not be found for attribute"
-                            context={
-                                "Step"  : occurrence.Core.Component.RawId,
-                                "LinkId" : linkId,
-                                "Links" : occurrence.Configuration.Solution.Links
-                            }
-                        /]
-                    [/#if]
-
-                    [#local replacements = mergeObjects(replacements, { "__${substitution}__" : (linkTarget.State.Attributes[attributeName])!"HamletFatal: substituion failed __${substitution}__" }) ]
-                    [#break]
-
-                [#case "input"]
-                    [#if inputs?has_content]
-                        [#local inputId = lookups[1] ]
-
-                        [#if ! inputs?keys?seq_contains(inputId)?has_content ]
-                            [@fatal
-                                message="Input Id could not be found"
-                                context={
-                                    "Step" : occurrence.Core.Component.RawId,
-                                    "Input" : inputId
-                                }
-                            /]
-                        [/#if]
-                        [#local replacements = mergeObjects(replacements, { "__${substitution}__" : "__Properties:${substitution}__" }) ]
-                    [/#if]
-                    [#break]
-
-                [#case "output"]
-                    [#if parentOccurrence?has_content ]
-                        [#local stepId = lookups[1]]
-                        [#local output = lookups[2]]
-
-                        [#if ! ((parentOccurrence.Occurrences)![])?map( x -> x.Core.SubComponent.RawId)?seq_contains(stepId) ]
-                            [@fatal
-                                message="Step could not be found for output condition"
-                                context={
-                                    "Step" : occurrence.Core.Component.RawId,
-                                    "Output" :{
-                                        "StepId" : stepId,
-                                        "Output" : output
-                                    }
-                                }
-                            /]
-                        [/#if]
-
-                        [#local replacements = mergeObjects(replacements, { "__${substitution}__" : "__Properties:${substitution}__" }) ]
-                    [/#if]
-                    [#break]
-            [/#switch]
-        [/#if]
-    [/#list]
-
-    [#list replacements as original, new ]
-        [#local value = value?replace(original, new)]
-    [/#list]
-
-    [#return value]
-[/#function]
 
 [#-- Provides information on the format of the runbook and what it does --]
 [#macro shared_runbook_default_runbookinfo_generationcontract occurrence ]
