@@ -21,6 +21,7 @@
 [#include "configuration/module.ftl" ]
 [#include "configuration/reference.ftl" ]
 [#include "configuration/task.ftl" ]
+[#include "configuration/dynamicvalues.ftl" ]
 
 [#-- Input data handling --]
 [#include "inputdata/inputsource.ftl" ]
