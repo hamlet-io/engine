@@ -17,20 +17,29 @@
             "Mandatory" : true
         }
     ]
-    supportedComponentTypes=[
-        RUNBOOK_COMPONENT_TYPE,
-        RUNBOOK_STEP_COMPONENT_TYPE
-    ]
 /]
 
-[#function shared_dynamicvalue_input value properties occurrence extraSources={} ]
-    [#if ((extraSources.inputs)!{})?has_content]
+[#function shared_dynamicvalue_input value properties sources={} ]
 
-        [#if ! extraSources.inputs?keys?seq_contains(properties.inputId)?has_content ]
+    [#if sources.occurrence?? ]
+        [#if ! [RUNBOOK_COMPONENT_TYPE, RUNBOOK_STEP_COMPONENT_TYPE]?seq_contains(sources.occurrence.Core.Type) ]
+            [@fatal
+                message="Dynamic value type ${OUTPUT_DYNAMIC_VALUE_TYPE} only supported for runbooks"
+                context={
+                    "ComponentId" : sources.occurrence.Core.Component.RawId,
+                    "SubComponentId" : (sources.occur.Core.SubComponent.RawId)!"",
+                    "DynamicValue" : "__${value}__"
+                }
+            /]
+        [/#if]
+    [/#if]
+
+    [#if sources.inputs?? && sources.occurrence?? ]
+        [#if ! sources.inputs?keys?seq_contains(properties.inputId)?has_content ]
             [@fatal
                 message="Input Id could not be found"
                 context={
-                    "Step" : occurrence.Core.Component.RawId,
+                    "Step" : sources.occurrence.Core.Component.RawId,
                     "Input" : inputId
                 }
             /]
@@ -38,5 +47,5 @@
         [#return "__Properties:${value}__" ]
     [/#if]
 
-    [#return value]
+    [#return "__${value}__"]
 [/#function]

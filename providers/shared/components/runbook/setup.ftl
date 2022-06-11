@@ -31,36 +31,24 @@
         [#local runBookInputs = mergeObjects(runBookInputs, {k?ensure_starts_with("input:") : v })]
     [/#list]
 
-    [#local solution = resolveDynamicValues(
-            occurrence,
-            solution,
-            {
-                "inputs": runBookInputs,
-                "stepIds": (occurrence.Occurrences![])?filter(
-                    x -> x.Configuration.Solution.Enabled && x.Core.Type == RUNBOOK_STEP_COMPONENT_TYPE
-                )?map(x -> x.Core.SubComponent.RawId )
-            }
-    )]
+    [#local dynamicInputs =  {
+            "inputs": runBookInputs,
+            "stepIds": (occurrence.Occurrences![])?filter(
+                x -> x.Configuration.Solution.Enabled && x.Core.Type == RUNBOOK_STEP_COMPONENT_TYPE
+            )?map(x -> x.Core.SubComponent.RawId ),
+            "occurrence" : occurrence
+        }]
 
     [@contractProperties
         properties=runBookInputs
     /]
 
-    [#list (occurrence.Occurrences![])?filter(x -> x.Configuration.Solution.Enabled ) as subOccurrence]
+    [#list (occurrence.Occurrences![])?filter(
+                x -> x.Configuration.Solution.Enabled )?map(
+                    x -> resolveDynamicValues(x, dynamicInputs)) as subOccurrence]
 
         [#local core = subOccurrence.Core ]
         [#local solution = subOccurrence.Configuration.Solution ]
-
-        [#local solution = resolveDynamicValues(
-                subOccurrence,
-                solution,
-                {
-                    "inputs": runBookInputs,
-                    "stepIds": (occurrence.Occurrences![])?filter(
-                        x -> x.Configuration.Solution.Enabled && x.Core.Type == RUNBOOK_STEP_COMPONENT_TYPE
-                    )?map(x -> x.Core.SubComponent.RawId )
-                }
-        )]
 
         [#local stageId = core.SubComponent.RawName]
 

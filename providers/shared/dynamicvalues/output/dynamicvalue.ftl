@@ -23,20 +23,29 @@
             "Mandatory" : true
         }
     ]
-    supportedComponentTypes=[
-        RUNBOOK_COMPONENT_TYPE,
-        RUNBOOK_STEP_COMPONENT_TYPE
-    ]
 /]
 
-[#function shared_dynamicvalue_output value properties occurrence extraSources={} ]
+[#function shared_dynamicvalue_output value properties sources={} ]
 
-    [#if ((extraSources.stepIds)!{})?has_content]
-        [#if ! (extraSources.stepIds)?seq_contains(properties.stepId) ]
+    [#if sources.occurrence?? ]
+        [#if ! [RUNBOOK_COMPONENT_TYPE, RUNBOOK_STEP_COMPONENT_TYPE]?seq_contains(sources.occurrence.Core.Type) ]
+            [@fatal
+                message="Dynamic value type ${OUTPUT_DYNAMIC_VALUE_TYPE} only supported for runbooks"
+                context={
+                    "ComponentId" : sources.occurrence.Core.Component.RawId,
+                    "SubComponentId" : (sources.occur.Core.SubComponent.RawId)!"",
+                    "DynamicValue" : "__${value}__"
+                }
+            /]
+        [/#if]
+    [/#if]
+
+    [#if sources.inputs?? && sources.occurrence?? ]
+        [#if ! (sources.stepIds)?seq_contains(properties.stepId) ]
             [@fatal
                 message="Step could not be found for output"
                 context={
-                    "Step" : occurrence.Core.Component.RawId,
+                    "Step" : sources.occurrence.Core.Component.RawId,
                     "Output" :{
                         "StepId" : properties.stepId,
                         "OutputKey" : properties.outputKey
@@ -48,5 +57,5 @@
         [#return "__Properties:${value}__"  ]
     [/#if]
 
-    [#return value]
+    [#return "__${value}__"]
 [/#function]
