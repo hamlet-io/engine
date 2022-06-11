@@ -17,16 +17,18 @@
             "Mandatory" : true
         }
     ]
-    supportedComponentTypes=["*"]
 /]
 
-[#function shared_dynamicvalue_setting value properties occurrence extraSources={} ]
-    [#local collectedSettings = {}]
-    [#list (occurrence.Configuration.Settings)?values?filter(x -> x?has_content) as settingGroup ]
-        [#list settingGroup as key, value]
-            [#local collectedSettings = mergeObjects(collectedSettings, { key : value } )]
+[#function shared_dynamicvalue_setting value properties sources={} ]
+    [#if sources.occurrence??]
+        [#local collectedSettings = {}]
+        [#list (sources.occurrence.Configuration.Settings)?values?filter(x -> x?has_content) as settingGroup ]
+            [#list settingGroup as key, value]
+                [#local collectedSettings = mergeObjects(collectedSettings, { key : value } )]
+            [/#list]
         [/#list]
-    [/#list]
 
-    [#return (collectedSettings[properties.settingEnvKey].Value)!""]
+        [#return (collectedSettings[properties.settingEnvKey].Value)!""]
+    [/#if]
+    [#return "__${value}__"]
 [/#function]

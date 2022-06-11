@@ -23,24 +23,26 @@
             "Mandatory" : true
         }
     ]
-    supportedComponentTypes=["*"]
 /]
 
-[#function shared_dynamicvalue_attribute value properties occurrence extraSources={} ]
+[#function shared_dynamicvalue_attribute value properties sources={} ]
 
-    [#local link = (occurrence.Configuration.Solution.Links[properties.linkId])!{}]
-    [#local linkTarget = getLinkTarget(occurrence, link)]
+    [#if sources.occurrence?? ]
+        [#local link = (sources.occurrence.Configuration.Solution.Links[properties.linkId])!{}]
+        [#local linkTarget = getLinkTarget(sources.occurrence, link)]
 
-    [#if ! linkTarget?has_content ]
-        [@fatal
-            message="Link could not be found for attribute"
-            context={
-                "Step"  : occurrence.Core.Component.RawId,
-                "LinkId" : properties.linkId,
-                "Links" : occurrence.Configuration.Solution.Links
-            }
-        /]
+        [#if ! linkTarget?has_content ]
+            [@fatal
+                message="Link could not be found for attribute"
+                context={
+                    "Step"  : sources.occurrence.Core.Component.RawId,
+                    "LinkId" : properties.linkId,
+                    "Links" : sources.occurrence.Configuration.Solution.Links
+                }
+            /]
+        [/#if]
+
+        [#return (linkTarget.State.Attributes[properties.attributeName])!"" ]
     [/#if]
-
-    [#return (linkTarget.State.Attributes[properties.attributeName])!"" ]
+    [#return "__${vaule}__"]
 [/#function]

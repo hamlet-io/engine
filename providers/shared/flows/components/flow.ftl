@@ -969,13 +969,14 @@ that doesn't match the link.
 
                         }]
 
-                    [#local occurrence +=
-                        {
-                            "Configuration" : {
-                                "Solution" : resolveDynamicValues(occurrence, occurrence.Configuration.Solution)
+                    [#local occurrence = mergeObjects(
+                            occurrence,
+                            {
+                                "Configuration" : {
+                                    "Solution" : resolveDynamicValues(occurrence.Configuration.Solution, {"occurrence" : occurrence})
+                                }
                             }
-                        }
-                    ]
+                        )]
 
                     [#-- Add suboccurrences --]
                     [#local subOccurrences = [] ]

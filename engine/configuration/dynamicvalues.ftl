@@ -7,23 +7,13 @@
     description="Configuration of Dynamic Value providers"
 /]
 
-[#macro addDynamicValueProvider type parameterOrder parameterAttributes supportedComponentTypes=["*"] properties=[]]
+[#macro addDynamicValueProvider type parameterOrder parameterAttributes properties=[]]
 
     [@addConfigurationSet
         scopeId=DYNAMIC_VALUE_CONFIGURATION_SCOPE
         id=type
         properties=properties
         attributes=[
-            {
-                "Names": "ComponentType",
-                "Description": "The supported component types for this dynamic value provider"
-            } +
-            ( ! supportedComponentTypes?seq_contains("*"))?then(
-                {
-                    "Values": supportedComponentTypes
-                },
-                {}
-            ),
             {
                 "Names" : "ParameterOrder",
                 "Description" : "The order that the parameters are set in the substitution value",
@@ -67,7 +57,7 @@
 [/#function]
 
 
-[#function getDynamicValue occurrence value extraSources={} ]
+[#function getDynamicValue value sources={} ]
 
     [#if ( value?is_string && ! value?contains("__") ) || ! value?is_string ]
         [#return value ]
@@ -96,38 +86,31 @@
             [#local attributeValues = getCompositeObject(
                 dynamicValueProvider.Attributes,
                 {
-                    "ComponentType": occurrence.Core.Type,
                     "Parameters" : parameters
                 }
             )]
 
             [#local substitutionValue = parameterOrder?map( x -> attributeValues.Parameters[x])?join(":") ]
 
-            [#list (occurrence.State.ResourceGroups)?values as resourceGroup ]
+            [#list combineEntities(getLoaderProviders(), [ SHARED_PROVIDER], UNIQUE_COMBINE_BEHAVIOUR) as provider ]
 
-                [#local placement = (resourceGroup.Placement)!{} ]
-                [#if placement?has_content ]
-                    [#local functionOptions =
-                        [
-                            [placement.Provider, "dynamicvalue", type, placement.DeploymentFramework],
-                            [placement.Provider, "dynamicvalue", type ],
-                            [SHARED_PROVIDER, "dynamicvalue", type, placement.DeploymentFramework],
-                            [SHARED_PROVIDER, "dynamicvalue", type ]
-                        ]]
+                [#local functionOptions =
+                    [
+                        [provider, "dynamicvalue", type ]
+                    ]]
 
-                    [#local function = getFirstDefinedDirective(functionOptions)]
-                    [#if function?has_content]
-                        [#local replacements =  mergeObjects(
-                            replacements,
-                            { substitution : .vars[function](substitution, attributeValues.Parameters, occurrence, extraSources) }
-                        )]
-                    [#else]
-                        [@debug
-                            message="Unable to invoke any of the function options"
-                            context=macroOptions
-                            enabled=false
-                        /]
-                    [/#if]
+                [#local function = getFirstDefinedDirective(functionOptions)]
+                [#if function?has_content]
+                    [#local replacements =  mergeObjects(
+                        replacements,
+                        { substitution : .vars[function](substitution, attributeValues.Parameters, sources) }
+                    )]
+                [#else]
+                    [@debug
+                        message="Unable to invoke any of the function options"
+                        context=macroOptions
+                        enabled=false
+                    /]
                 [/#if]
             [/#list]
         [/#if]
@@ -142,21 +125,21 @@
 
 
 [#-- Resolve all Dynamic Values in a given value --]
-[#function resolveDynamicValues occurrence value extraSources={} ]
+[#function resolveDynamicValues value sources={} ]
     [#local result = {}]
     [#if value?is_hash ]
         [#list value as k,v ]
-            [#local result = mergeObjects(result, { k: resolveDynamicValues(occurrence, v, extraSources)})]
+            [#local result = mergeObjects(result, { k: resolveDynamicValues(v, sources)})]
         [/#list]
 
     [#elseif value?is_sequence]
         [#local result = []]
         [#list value as v]
-            [#local result = combineEntities(result, resolveDynamicValues(occurrence, v extraSources))]
+            [#local result = combineEntities(result, resolveDynamicValues(v, sources))]
         [/#list]
 
     [#elseif value?is_string]
-        [#return getDynamicValue(occurrence, value, extraSources)]
+        [#return getDynamicValue(value, sources)]
 
     [#else]
         [#return value]
