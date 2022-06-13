@@ -78,7 +78,7 @@
             [#local parameters = {}]
 
             [#list parameterOrder as param ]
-                [#if param?has_content]
+                [#if param?has_content && (lookups[param?index])?has_content ]
                     [#local parameters = mergeObjects(parameters, { param: lookups[param?index]})]
                 [/#if]
             [/#list]
@@ -117,7 +117,11 @@
     [/#list]
 
     [#list replacements as original, new ]
-        [#local value = value?replace("__${original}__", new)]
+        [#if new?is_string]
+            [#local value = value?replace("__${original}__", new)]
+        [#else]
+            [#return new]
+        [/#if]
     [/#list]
 
     [#return value]
