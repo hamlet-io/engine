@@ -139,7 +139,7 @@
     [#elseif value?is_sequence]
         [#local result = []]
         [#list value as v]
-            [#local result = combineEntities(result, resolveDynamicValues(v, sources))]
+            [#local result = combineEntities(result, resolveDynamicValues(v, sources), APPEND_COMBINE_BEHAVIOUR)]
         [/#list]
 
     [#elseif value?is_string]
