@@ -358,7 +358,7 @@
                 /]
             [/#list]
 
-            [#-- Determine the tasks for the provider --]
+            [#-- Determine the dynamic value providers for the provider --]
             [#local directories =
                 internalGetPluginFiles(
                     [providerMarker.Path, "dynamicvalues"],
