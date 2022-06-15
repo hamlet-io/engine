@@ -1,6 +1,6 @@
 [#ftl]
 
-[#assign DYNAMIC_VALUE_CONFIGURATION_SCOPE = "DyanmicValues" ]
+[#assign DYNAMIC_VALUE_CONFIGURATION_SCOPE = "DynamicValue" ]
 
 [@addConfigurationScope
     id=DYNAMIC_VALUE_CONFIGURATION_SCOPE
