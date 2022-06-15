@@ -10,7 +10,7 @@
 
 [#function splitDomainName name]
     [#if !name?contains(".") ]
-        [@fatal message="Missing domain name for API docs" context={ "splitDomainName" : name } /]
+        [@fatal message="Missing or invalid domain name" context={ "splitDomainName" : name } /]
         [#return [] ]
     [#else]
         [#return name?split(".")]
