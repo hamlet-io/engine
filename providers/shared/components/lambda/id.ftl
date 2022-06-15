@@ -199,6 +199,11 @@
                         "Description" : "What should happen to the superceded version when new version on deploy?",
                         "Values" : [ "Delete", "Retain" ],
                         "Default" : "Retain"
+                    },
+                    {
+                        "Names" : "Alias",
+                        "Types" : STRING_TYPE,
+                        "Description" : "Provide a logical name pointing to the most recent version"
                     }
                 ]
             },
