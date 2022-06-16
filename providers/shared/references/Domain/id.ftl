@@ -152,7 +152,7 @@
     [/#if]
 
     [#list result as entry]
-        [#if !entry.Name?contains(".")]
+        [#if !(entry.Name?contains("."))]
             [@fatal message="Invalid domain \""+entry.Name+"\"" context={ "certificateObject": certificateObject, "result": result } /]
         [/#if]
     [/#list]
