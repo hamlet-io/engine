@@ -151,5 +151,11 @@
         [#local result = extendedResult]
     [/#if]
 
+    [#list result as entry]
+        [#if !entry.Name?contains(".")]
+            [@fatal message="Invalid domain \""+entry.Name+"\"" context={ "certificateObject": certificateObject, "result": result } /]
+        [/#if]
+    [/#list]
+
     [#return result]
 [/#function]
