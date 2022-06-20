@@ -86,7 +86,7 @@
                         "Types" : STRING_TYPE
                     },
                     {
-                        "Names" : "PrivateKeySource",
+                        "Names" : "PrivateKey",
                         "Description" : "The push notification private key",
                         "Types" : STRING_TYPE
                     }
