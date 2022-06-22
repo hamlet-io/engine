@@ -19,7 +19,7 @@
             "Names" : "Condition",
             "Description" : "How to test the value",
             "Types" : STRING_TYPE,
-            "Values" : [ "Equals", "StartsWith", "EndsWith", "Contains" ],
+            "Values" : [ "Equals", "StartsWith", "EndsWith", "Contains", "NotEquals" ],
             "Mandatory" : true
         }
         {
