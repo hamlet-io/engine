@@ -6,7 +6,7 @@
         [
             {
                 "Type" : "Description",
-                "Value" : "An external component which is not part of codeontap"
+                "Value" : "An external component which is not part of your solution"
             }
         ]
     attributes=[]
