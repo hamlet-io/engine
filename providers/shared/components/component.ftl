@@ -110,6 +110,8 @@
 
 [#assign HOSTING_PLATFORM_COMPONENT_TYPE = "hostingplatform"]
 
+[#assign IMAGE_COMPONENT_TYPE = "image"]
+
 [#assign INTERNALTEST_COMPONENT_TYPE = "internaltest" ]
 
 [#assign LAMBDA_COMPONENT_TYPE = "lambda"]
