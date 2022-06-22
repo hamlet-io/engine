@@ -94,13 +94,18 @@
                     "Names" : "Match",
                     "Description" : "How to match the value of the setting",
                     "Types" : STRING_TYPE,
-                    "Values" : [ "Contains", "Equals", "StartsWith", "EndsWith"],
+                    "Values" : [
+                        "Contains",
+                        "Equals",
+                        "StartsWith",
+                        "EndsWith",
+                        "NotEquals"
+                    ],
                     "Default" : "Equals"
                 },
                 {
                     "Names" : "Test",
                     "Description" : "The test to match the value against",
-                    "Mandatory" : true,
                     "Types" : [
                         STRING_TYPE,
                         BOOLEAN_TYPE
