@@ -58,7 +58,8 @@
                 "DefaultEnvironment" : defaultEnvironment(subOccurrence, contextLinks),
                 "Environment" : {},
                 "Links" : contextLinks,
-                "TaskParameters" : {}
+                "TaskParameters" : solution.Task.Parameters,
+                "Conditions" : solution.Conditions
             }
         ]
         [#local _context = invokeExtensions(subOccurrence, _context, {}, [], false, "runbook")]
@@ -70,16 +71,20 @@
             mandatory=true
         /]
 
-        [#list solution.Conditions as id, condition]
+        [#list _context.Conditions as id, condition]
             [@contractStep
                 id=formatName("condition", core.SubComponent.RawId)
                 stageId=stageId
                 taskType=CONDITIONAL_STAGE_SKIP_TASK_TYPE
-                parameters={
-                    "Test" : condition.Test,
-                    "Condition" : condition.Match,
-                    "Value" : condition.Value
-                }
+                parameters=
+                    resolveDynamicValues(
+                        {
+                            "Test" : (condition.Test)!"",
+                            "Condition" : condition.Match,
+                            "Value" : condition.Value
+                        }
+                        runBookInputs
+                    )
                 priority=10
                 mandatory=true
                 status="skip_stage_if_failure"
@@ -87,7 +92,7 @@
         [/#list]
 
         [#local taskParameters = {}]
-        [#list mergeObjects(solution.Task.Parameters, _context.TaskParameters) as id, parameter ]
+        [#list _context.TaskParameters as id, parameter ]
             [#local taskParameters = mergeObjects(
                 taskParameters,
                 { id : parameter?is_hash?then(parameter.Value, parameter) }
@@ -98,7 +103,7 @@
             id=core.SubComponent.RawId
             stageId=stageId
             taskType=solution.Task.Type
-            parameters=taskParameters
+            parameters=resolveDynamicValues(taskParameters, dynamicInputs)
             priority=100
             mandatory=true
             status="available"

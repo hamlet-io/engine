@@ -44,7 +44,8 @@
                 }
             /]
         [/#if]
-        [#return "__Properties:${value}__" ]
+
+        [#return (sources.inputs["input:${properties.inputId}"])!"" ]
     [/#if]
 
     [#return "__${value}__"]
