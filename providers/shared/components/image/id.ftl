@@ -26,11 +26,11 @@
         },
         {
             "Names" : "Source",
-            "Description" : "The source of the image",
+            "Description" : "The source of the image - Local: an image built locally - ContainerRegistry: a public container registry - URL: a public URL",
             "Types" : STRING_TYPE,
             "Mandatory" : true,
-            "Values" : [ "Registry", "ContainerRegistry", "URL" ],
-            "Default" : "Registry"
+            "Values" : [ "Local", "ContainerRegistry", "URL" ],
+            "Default" : "Local"
         },
         {
             "Names" : "Source:ContainerRegistry",
