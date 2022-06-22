@@ -635,6 +635,7 @@
     [#switch entrance ]
         [#case "deployment" ]
         [#case "deploymenttest" ]
+        [#case "stackoutput"]
 
             [#-- overrride the level prefix to align with older deployment groups --]
             [#local deploymentGroupDetails = getDeploymentGroupDetails(deployment_group)]

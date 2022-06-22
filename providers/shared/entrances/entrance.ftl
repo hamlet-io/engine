@@ -16,5 +16,6 @@
 [#assign SCHEMALIST_ENTRANCE_TYPE        = "schemalist" ]
 [#assign OCCURRENCES_ENTRANCE_TYPE       = "occurrences" ]
 [#assign RELEASEINFO_ENTRANCE_TYPE       = "releaseinfo" ]
+[#assign STACKOUTPUT_ENTRANCE_TYPE       = "stackoutput" ]
 [#assign UNITLIST_ENTRANCE_TYPE          = "unitlist" ]
 [#assign VALIDATE_ENTRANCE_TYPE          = "validate" ]
