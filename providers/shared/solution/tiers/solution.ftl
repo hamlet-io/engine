@@ -9,8 +9,25 @@
             "SubObjects" : true,
             "Children" : [
                 {
+                    "Names" : "Index",
+                    "Description" : "A unique index number used when ordering tiers",
+                    "Types" : NUMBER_TYPE,
+                    "Mandatory" : true
+                },
+                {
+                    "Names" : "Active",
+                    "Description" : "Defines if the layer should be used. Automatically true if components are defined",
+                    "Types" : BOOLEAN_TYPE,
+                    "Default" : false
+                },
+                {
                     "Names" : "Network",
                     "Children" : [
+                        {
+                            "Names" : "Enabled",
+                            "Types" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
                         {
                             "Names" : "Link",
                             "AttributeSet" : LINK_ATTRIBUTESET_TYPE
@@ -27,13 +44,7 @@
                 },
                 {
                     "Names" : "Components",
-                    "SubObjects" : true,
-                    "Children" : [
-                        {
-                            "Names" : "*",
-                            "Types" : OBJECT_TYPE
-                        }
-                    ]
+                    "Types" : ANY_TYPE
                 }
             ]
         }

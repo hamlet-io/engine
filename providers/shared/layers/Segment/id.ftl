@@ -201,21 +201,6 @@
             "Names" : "Data",
             "Children" : [
                 {
-                    "Names" : "Public",
-                    "Children" : [
-                        {
-                            "Names" : "Enabled",
-                            "Types" : BOOLEAN_TYPE,
-                            "Default" : false
-                        },
-                        {
-                            "Names" : [ "IPAddressGroups", "IPWhitelist" ],
-                            "Types" : ARRAY_OF_STRING_TYPE,
-                            "Default" : []
-                        }
-                    ]
-                },
-                {
                     "Names" : "Expiration",
                     "Types" : [ NUMBER_TYPE, STRING_TYPE ]
                 },

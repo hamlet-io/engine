@@ -19,7 +19,8 @@
     [#if deploymentModeDetails?has_content ]
         [#local executionPolicy = deploymentModeDetails.ExecutionPolicy ]
 
-        [#if deploymentGroupDetails.DistrictType == getCommandLineOptions()["Input"]["Filter"]["DistrictType"] ]
+        [#if deploymentGroupDetails.DistrictType == "*" ||
+                deploymentGroupDetails.DistrictType == getCommandLineOptions()["Input"]["Filter"]["DistrictType"] ]
 
             [#local mandatoryContract = false]
             [#switch executionPolicy ]

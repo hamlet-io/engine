@@ -146,7 +146,6 @@
     [#return (getRegions()[contentIfContent( region, getAccountRegion() ) ])!{} ]
 [/#function]
 
-
 [#-- Active zones --]
 [#function getZones]
     [#local result = [] ]
@@ -180,6 +179,9 @@
 [#macro setContext]
 
     [#assign blueprintObject = getBlueprint() ]
+
+    [#-- Load the solution data that will be used for occurrences --]
+    [@includeSolutionData blueprintObject /]
 
     [#-- Load reference data for any references defined by providers --]
     [@includeReferences blueprintObject /]
