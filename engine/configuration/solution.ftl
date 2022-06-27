@@ -23,6 +23,12 @@
     id=DISTRICT_SOLUTION_CONFIGURATION_SET
     attributes=[
         {
+            "Names": "Priority",
+            "Description" : "The priority order for the inclusion of this solution - Lowest = last loaded",
+            "Types" : NUMBER_TYPE,
+            "Default" : 100
+        },
+        {
             "Names" : "District",
             "Descriptions" : "Defines the layers that the solution applies to",
             "Children" : [
@@ -95,3 +101,12 @@
     /]
 
 [/#macro]
+
+
+[#function getSolutionConfiguration ]
+    [#local result = []]
+    [#list getConfigurationSets(SOLUTION_CONFIGURATION_SCOPE) as set]
+        [#local result = combineEntities(result, set.Attributes, APPEND_COMBINE_BEHAVIOUR)]
+    [/#list]
+    [#return result]
+[/#function]

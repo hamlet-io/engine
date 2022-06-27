@@ -32,7 +32,7 @@
             "Names" : "DistrictType",
             "Description" : "The DistrictType to include as part of the Deployment Group",
             "Types" : STRING_TYPE,
-            "Mandatory" : true
+            "Default" : "*"
         },
         {
             "Names" : "OutputPrefix",

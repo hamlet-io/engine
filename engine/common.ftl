@@ -111,34 +111,6 @@
     [/#if]
 [/#function]
 
-[#function getAppDataPublicFilePrefix occurrence={} ]
-    [#if segmentObject.Data.Public.Enabled ]
-        [#if occurrence?has_content]
-            [#local override =
-                getOccurrenceSettingValue(
-                    occurrence,
-                    [
-                        ["FilePrefixes", "AppPublic"],
-                        ["FilePrefixes", "AppData"],
-                        ["DefaultFilePrefix"]
-                    ], true) ]
-            [#return
-                formatRelativePath(
-                    "apppublic",
-                    valueIfContent(
-                        formatSegmentRelativePath(override),
-                        override,
-                        occurrence.Core.FullRelativePath
-                    )
-                ) ]
-        [#else]
-            [#return _context.Environment["APPDATA_PUBLIC_PREFIX"] ]
-        [/#if]
-    [#else]
-        [#return ""]
-    [/#if]
-[/#function]
-
 [#function getBackupsFilePrefix occurrence={} ]
     [#if occurrence?has_content ]
         [#return formatRelativePath("backups", occurrence.Core.FullRelativePath) ]

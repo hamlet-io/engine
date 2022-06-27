@@ -1976,21 +1976,21 @@
     "segment": {
       "Priority": 100,
       "Level": "segment",
-      "DistrictType": "segment",
+      "DistrictType": "*",
       "OutputPrefix": "seg",
       "ResourceSets": {}
     },
     "solution": {
       "Priority": 200,
       "Level": "solution",
-      "DistrictType": "segment",
+      "DistrictType": "*",
       "OutputPrefix": "soln",
       "ResourceSets": {}
     },
     "application": {
       "Priority": 300,
       "Level": "application",
-      "DistrictType": "segment",
+      "DistrictType": "*",
       "OutputPrefix": "app",
       "ResourceSets": {}
     }

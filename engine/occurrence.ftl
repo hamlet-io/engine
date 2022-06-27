@@ -635,26 +635,35 @@
 
 [#function internalCreateOccurrenceCoreSettings occurrence]
     [#local core = occurrence.Core ]
+    [#local layerSettings = {}]
+    [#list getActiveLayers() as type, layer ]
+        [#local layerSettings = mergeObjects(
+            layerSettings,
+            {
+                type?upper_case : layer.Name
+            }
+        )]
+    [/#list]
+
     [#return
         asFlattenedSettings(
-            {
-                "TEMPLATE_TIMESTAMP" : .now?iso_utc,
-                "PRODUCT" : productName,                [#-- Have a layer setup --]
-                "ENVIRONMENT" : environmentName,
-                "SEGMENT" : segmentName,
-                "TIER" : core.Tier.Name,
-                "COMPONENT" : core.Component.Name,
-                "COMPONENT_INSTANCE" : core.Instance.Name,
-                "COMPONENT_VERSION" : core.Version.Name,
-                "REQUEST_REFERENCE" : getCLORequestReference(),
-                "CONFIGURATION_REFERENCE" : getCLOConfigurationReference(),
-                "APPDATA_PREFIX" : getAppDataFilePrefix(occurrence),
-                "APPSETTINGS_PREFIX" : getSettingsFilePrefix(occurrence),
-                "CREDENTIALS_PREFIX" : getSettingsFilePrefix(occurrence),
-                "SETTINGS_PREFIX" : getSettingsFilePrefix(occurrence)
-            } +
+            mergeObjects(
+                layerSettings,
+                {
+                    "TEMPLATE_TIMESTAMP" : .now?iso_utc,
+                    "TIER" : core.Tier.Name,
+                    "COMPONENT" : core.Component.Name,
+                    "COMPONENT_INSTANCE" : core.Instance.Name,
+                    "COMPONENT_VERSION" : core.Version.Name,
+                    "REQUEST_REFERENCE" : getCLORequestReference(),
+                    "CONFIGURATION_REFERENCE" : getCLOConfigurationReference(),
+                    "APPDATA_PREFIX" : getAppDataFilePrefix(occurrence),
+                    "APPSETTINGS_PREFIX" : getSettingsFilePrefix(occurrence),
+                    "CREDENTIALS_PREFIX" : getSettingsFilePrefix(occurrence),
+                    "SETTINGS_PREFIX" : getSettingsFilePrefix(occurrence)
+                }
+            ) +
             attributeIfContent("SUBCOMPONENT", (core.SubComponent.Name)!"") +
-            attributeIfContent("APPDATA_PUBLIC_PREFIX", getAppDataPublicFilePrefix(occurrence)) +
             attributeIfContent("SES_REGION", (productObject.SES.Region)!"")         [#-- Should be removed and made into something else - standard extension --]
         )
     ]
@@ -679,7 +688,7 @@
     [#local occurrenceBuild =
         internalCreateOccurrenceSettings(
             (getSettings().Builds.Products)!{},
-            productName,
+            getDistrictFullNameParts(getInputFilter())[0],
             cmdbProductLookupPrefixes,
             namespaces
         ) ]
@@ -714,7 +723,7 @@
             [#local nextReference =
                 internalCreateOccurrenceSettings(
                     (getSettings().Builds.Products)!{},
-                    productName,
+                    getDistrictFullNameParts(getInputFilter())[0],
                     buildLookupPrefixes,
                     [
                         {"Key" : formattedReference, "Match" : "exact"}
@@ -791,7 +800,7 @@
     [#return
         internalCreateOccurrenceSettings(
             (getSettings().Settings.Products)!{},
-            productName,
+            getDistrictFullNameParts(getInputFilter())[0],
             cmdbProductLookupPrefixes,
             namespaces) ]
 [/#function]
@@ -803,7 +812,7 @@
         markAsSensitiveSettings(
             internalCreateOccurrenceSettings(
                 (getSettings().Sensitive.Products)!{},
-                productName,
+                getDistrictFullNameParts(getInputFilter())[0],
                 cmdbProductLookupPrefixes,
                 namespaces) ) ]
 [/#function]
