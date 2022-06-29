@@ -82,13 +82,14 @@
         [/#if]
     [/#list]
 
-    [#list solutionTiers?sort_by("Index") as tier ]
+    [#list (getActiveSolution().Tiers)!{} as id, tier ]
         [#if tier.Components?has_content]
             [#local result = combineEntities(
                 result,
                 [
                     mergeObjects(
                         tier,
+                        addIdNameToObject(tier, id)
                         {
                             "Active" : true
                         }
