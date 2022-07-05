@@ -7,6 +7,7 @@
 
 [#macro includeSolutionData blueprint ]
     [#local configuration = getSolutionConfiguration()]
+    [#local result = {}]
 
     [#-- Get the blueprint base Tiers object to include as a Segment solution --]
     [#if isLayerActive(SEGMENT_LAYER_TYPE)]
@@ -15,7 +16,21 @@
 
         [#local tiers = {}]
         [#list (blueprint.Tiers)!{} as id, tier ]
-            [#local indexedTier = mergeObjects(tier, { "Index": (segmentObject.Network.Tiers.Order![])?seq_index_of(id) })]
+
+            [#-- Need to handle the different possibilities of the index --]
+            [#local index = 40 - tier?index]
+            [#if (segmentObject.Network.Tiers.Order![])?seq_contains(id)]
+                [#local index = (segmentObject.Network.Tiers.Order![])?seq_index_of(id)]
+            [#elseif (segmentObject.Tiers.Order![])?seq_contains(id) ]
+                [#local index = 30 - (segmentObject.Tiers.Order![])?seq_index_of(id)]
+            [/#if]
+
+            [#local indexedTier = mergeObjects(
+                {
+                    "Index": index
+                },
+                tier
+            )]
             [#local tiers = mergeObjects( tiers, { id : indexedTier })]
         [/#list]
 
@@ -32,12 +47,31 @@
             },
             "Tiers" : tiers
         }]
-        [#assign solutionData = mergeObjects(solutionData, { "_baseSegmentTiers" : getCompositeObject(configuration, baseSegmentSolutionData)})]
+        [#local result = mergeObjects(result, { "_baseSegmentTiers" : getCompositeObject(configuration, baseSegmentSolutionData)})]
     [/#if]
 
     [#list (blueprint.Solutions)!{} as id, solution]
-        [#assign solutionData = mergeObjects(solutionData, { id: getCompositeObject(configuration, solution)})]
+        [#local result = mergeObjects(result, { id: getCompositeObject(configuration, solution)})]
     [/#list]
+
+    [#list result as id, solution]
+        [#local tierIndexes = ((solution.Tiers)!{})?values?map(x -> x.Index) ]
+        [#list tierIndexes as i ]
+            [#if tierIndexes?seq_index_of(i) != tierIndexes?seq_last_index_of(i) ]
+                [@fatal
+                    message="Duplicate tier index found"
+                    detail="All tiers must have a unique index to ensure network placement"
+                    context={
+                        "Solution" : id,
+                        "Tiers" : ((solution.Tiers)!{})?values?filter(x -> x.Index == i )?map(x -> { "Id": x.Id, "Name": x.Name, "Index": x.Index}),
+                        "TierIndexes" : tierIndexes
+                    }
+                /]
+            [/#if]
+        [/#list]
+    [/#list]
+
+    [#assign solutionData = mergeObjects(solutionData, result)]
 [/#macro]
 
 [#function getSolutions ]
@@ -67,34 +101,20 @@
 [#function getTiers]
     [#local result = [] ]
 
-    [#local solutionTiers = ((getActiveSolution().Tiers)!{})?values?filter(x -> (x.Index)?is_number && x.Index > 0) ]
-    [#local tierIndexes = solutionTiers?map(x -> x.Index) ]
-    [#list tierIndexes as i ]
-        [#if tierIndexes?seq_index_of(i) != tierIndexes?seq_last_index_of(i) ]
-            [@fatal
-                message="Duplicate tier index found"
-                detail="All tiers must have a unique index to ensure network placement"
-                context={
-                    "Tiers" : solutionTiers?values,
-                    "TierIndexes" : tierIndexes
-                }
-            /]
-        [/#if]
-    [/#list]
-
+    [#local solutionTiers = ((getActiveSolution().Tiers)!{})?values ]
     [#list (getActiveSolution().Tiers)!{} as id, tier ]
         [#if tier.Components?has_content]
             [#local result = combineEntities(
                 result,
                 [
                     mergeObjects(
-                        tier,
-                        addIdNameToObject(tier, id)
+                        addIdNameToObject(tier, id),
                         {
                             "Active" : true
                         }
                     )
-                ]
+                ],
+                APPEND_COMBINE_BEHAVIOUR
             )]
         [/#if]
     [/#list]
