@@ -32,5 +32,5 @@
         [#local linkTarget = getLinkTarget(sources.occurrence, link)]
         [#return (linkTarget.State.Attributes[properties.attributeName])!"" ]
     [/#if]
-    [#return "__${vaule}__"]
+    [#return "__${value}__"]
 [/#function]
