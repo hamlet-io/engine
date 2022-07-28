@@ -605,10 +605,13 @@
         [#case "info"]
         [#case "loader"]
         [#case "occurrences"]
-        [#case "schemaset"]
+        [#case "schemalist"]
         [#case "unitlist"]
         [#case "validate"]
         [#case "imagedetails"]
+        [#case "releaseinfo"]
+        [#case "configuration"]
+        [#case "inputinfo"]
             [#local filename_parts =
                         mergeObjects(
                             filename_parts,
@@ -629,6 +632,21 @@
                         )
             ]
             [#break]
+
+        [#case "deployment"]
+        [#case "deploymentest"]
+        [#case "stackoutput"]
+        [#case "buildblueprint"]
+            [#break]
+
+        [#default]
+            [@fatal
+                message="Output file prefix: missing deployment detail configuration"
+                detail="each entrance needs to define thier requirment for deployment based information in file naming"
+                context={
+                    "Entrance": entrance
+                }
+            /]
     [/#switch]
 
     [#-- Deployment based prefixing --]
@@ -636,6 +654,7 @@
         [#case "deployment" ]
         [#case "deploymenttest" ]
         [#case "stackoutput"]
+        [#case "buildblueprint"]
 
             [#-- overrride the level prefix to align with older deployment groups --]
             [#local deploymentGroupDetails = getDeploymentGroupDetails(deployment_group)]
