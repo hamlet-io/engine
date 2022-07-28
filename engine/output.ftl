@@ -634,7 +634,7 @@
             [#break]
 
         [#case "deployment"]
-        [#case "deploymentest"]
+        [#case "deploymenttest"]
         [#case "stackoutput"]
         [#case "buildblueprint"]
             [#break]
