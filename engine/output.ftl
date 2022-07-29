@@ -606,6 +606,7 @@
         [#case "loader"]
         [#case "occurrences"]
         [#case "schemalist"]
+        [#case "schema"]
         [#case "unitlist"]
         [#case "validate"]
         [#case "imagedetails"]
@@ -642,7 +643,7 @@
         [#default]
             [@fatal
                 message="Output file prefix: missing deployment detail configuration"
-                detail="each entrance needs to define thier requirment for deployment based information in file naming"
+                detail="Each entrance needs to define their requirement for deployment based information in file naming"
                 context={
                     "Entrance": entrance
                 }
