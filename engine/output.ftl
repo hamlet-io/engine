@@ -612,6 +612,8 @@
         [#case "imagedetails"]
         [#case "releaseinfo"]
         [#case "configuration"]
+        [#case "runbookinfo"]
+        [#case "runbook"]
         [#case "inputinfo"]
             [#local filename_parts =
                         mergeObjects(
@@ -655,7 +657,6 @@
         [#case "deployment" ]
         [#case "deploymenttest" ]
         [#case "stackoutput"]
-        [#case "buildblueprint"]
 
             [#-- overrride the level prefix to align with older deployment groups --]
             [#local deploymentGroupDetails = getDeploymentGroupDetails(deployment_group)]
