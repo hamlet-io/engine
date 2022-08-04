@@ -33,7 +33,7 @@
                 message="Dynamic value type ${OUTPUT_DYNAMIC_VALUE_TYPE} only supported for runbooks"
                 context={
                     "ComponentId" : sources.occurrence.Core.Component.RawId,
-                    "SubComponentId" : (sources.occur.Core.SubComponent.RawId)!"",
+                    "SubComponentId" : (sources.occurrence.Core.SubComponent.RawId)!"",
                     "DynamicValue" : "__${value}__"
                 }
             /]

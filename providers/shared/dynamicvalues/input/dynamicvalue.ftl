@@ -24,10 +24,10 @@
     [#if sources.occurrence?? ]
         [#if ! [RUNBOOK_COMPONENT_TYPE, RUNBOOK_STEP_COMPONENT_TYPE]?seq_contains(sources.occurrence.Core.Type) ]
             [@fatal
-                message="Dynamic value type ${OUTPUT_DYNAMIC_VALUE_TYPE} only supported for runbooks"
+                message="Dynamic value type ${INPUT_DYNAMIC_VALUE_TYPE} only supported for runbooks"
                 context={
                     "ComponentId" : sources.occurrence.Core.Component.RawId,
-                    "SubComponentId" : (sources.occur.Core.SubComponent.RawId)!"",
+                    "SubComponentId" : (sources.occurrence.Core.SubComponent.RawId)!"",
                     "DynamicValue" : "__${value}__"
                 }
             /]
