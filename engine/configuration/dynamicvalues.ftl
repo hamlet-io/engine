@@ -90,8 +90,6 @@
                 }
             )]
 
-            [#local substitutionValue = parameterOrder?map( x -> attributeValues.Parameters[x])?join(":") ]
-
             [#list combineEntities(getLoaderProviders(), [ SHARED_PROVIDER], UNIQUE_COMBINE_BEHAVIOUR) as provider ]
 
                 [#local functionOptions =
