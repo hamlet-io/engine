@@ -212,6 +212,12 @@
                 ]
             },
             {
+                "Names" : [ "Extensions" ],
+                "Description" : "Extensions to invoke as part of component processing",
+                "Types" : ARRAY_OF_STRING_TYPE,
+                "Default" : []
+            },
+            {
                 "Names" : "Replication",
                 "Children" : [
                     {
