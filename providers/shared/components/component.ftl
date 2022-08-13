@@ -23,6 +23,9 @@
 
 [#assign CDN_COMPONENT_TYPE = "cdn"]
 [#assign CDN_ROUTE_COMPONENT_TYPE = "cdnroute" ]
+[#assign CDN_ORIGIN_COMPONENT_TYPE = "cdnorigin" ]
+[#assign CDN_CACHE_POLICY_COMPONENT_TYPE = "cdncachepolicy" ]
+[#assign CDN_RESPONSE_POLICY_COMPONENT_TYPE = "cdnresponsepolicy" ]
 
 [#assign CERTIFICATEAUTHORITY_COMPONENT_TYPE = "certificateauthority"]
 

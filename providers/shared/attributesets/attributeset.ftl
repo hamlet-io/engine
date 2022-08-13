@@ -3,6 +3,8 @@
 [#assign ALERT_ATTRIBUTESET_TYPE = "alert" ]
 [#assign AUTOSCALEGROUP_ATTRIBUTESET_TYPE = "autoscalegroup"]
 [#assign BACKUPWINDOW_ATTRIBUTESET_TYPE = "backupwindow" ]
+[#assign CDNORIGIN_ATTRIBUTESET_TYPE = "cdnorigin"]
+[#assign CDNTTL_ATTRIBUTESET_TYPE = "cdnttl"]
 [#assign COMPUTEIMAGE_ATTRIBUTESET_TYPE = "computeimage"]
 [#assign CONTTAINERTASK_ATTRIBUTESET_TYPE = "containertask"]
 [#assign CONTEXTPATH_ATTRIBUTESET_TYPE = "contextpath"]
