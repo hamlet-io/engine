@@ -388,7 +388,7 @@
 [@addChildComponent
     type=CDN_RESPONSE_POLICY_COMPONENT_TYPE
     parent=CDN_COMPONENT_TYPE
-    childAttribute="ResponsePolicy"
+    childAttribute="ResponsePolicys"
     linkAttributes="ResponsePolicy"
     properties=
         [
