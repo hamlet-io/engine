@@ -63,6 +63,12 @@
                 "SubObjects" : true,
                 "Children" : [
                     {
+                        "Names" : "Enabled",
+                        "Description" : "Enable the response override",
+                        "Types" : BOOLEAN_TYPE,
+                        "Default" : true
+                    }
+                    {
                         "Names" : "ErrorCode",
                         "Description" : "The code to trigger the response for",
                         "Types" : NUMBER_TYPE,
@@ -388,7 +394,7 @@
 [@addChildComponent
     type=CDN_RESPONSE_POLICY_COMPONENT_TYPE
     parent=CDN_COMPONENT_TYPE
-    childAttribute="ResponsePolicys"
+    childAttribute="ResponsePolicies"
     linkAttributes="ResponsePolicy"
     properties=
         [
