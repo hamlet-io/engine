@@ -9,7 +9,12 @@
 [/#function]
 
 [#function splitDomainName name]
-    [#return name?split(".")]
+    [#if !name?contains(".") ]
+        [@fatal message="Missing or invalid domain name" context={ "splitDomainName" : name } /]
+        [#return [] ]
+    [#else]
+        [#return name?split(".")]
+    [/#if]
 [/#function]
 
 [#function formatNameExtension extensions...]
