@@ -41,6 +41,7 @@
 [#assign CONTENTHUB_NODE_COMPONENT_TYPE = "contentnode"]
 
 [#assign CORRESPONDENT_COMPONENT_TYPE = "correspondent"]
+[#assign CORRESPONDENT_CHANNEL_COMPONENT_TYPE = "correspondentchannel"]
 
 [#assign DATAFEED_COMPONENT_TYPE = "datafeed" ]
 
@@ -108,6 +109,8 @@
 [#assign HEALTHCHECK_COMPONENT_TYPE = "healthcheck" ]
 
 [#assign HOSTING_PLATFORM_COMPONENT_TYPE = "hostingplatform"]
+
+[#assign IMAGE_COMPONENT_TYPE = "image"]
 
 [#assign INTERNALTEST_COMPONENT_TYPE = "internaltest" ]
 

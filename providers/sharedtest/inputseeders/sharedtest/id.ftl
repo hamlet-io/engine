@@ -47,6 +47,10 @@
             {
                 "Product" : {
                     "Modules" : {
+                        "dynamicvalue" : {
+                            "Provider" : "sharedtest",
+                            "Name" : "dynamicvalue"
+                        },
                         "internaltest" : {
                             "Provider" : "sharedtest",
                             "Name" : "internaltest"

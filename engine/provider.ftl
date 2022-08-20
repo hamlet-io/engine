@@ -358,6 +358,22 @@
                 /]
             [/#list]
 
+            [#-- Determine the dynamic value providers for the provider --]
+            [#local directories =
+                internalGetPluginFiles(
+                    [providerMarker.Path, "dynamicvalues"],
+                    [
+                        ["[^/]+"]
+                    ]
+                )
+            ]
+            [#list directories as directory]
+                [@internalIncludeTemplatesInDirectory
+                    directory,
+                    ["id", "name", "dynamicvalue"]
+                /]
+            [/#list]
+
             [#-- Determine the output writers for the provider --]
             [#local directories =
                 internalGetPluginFiles(
@@ -374,7 +390,7 @@
                 /]
             [/#list]
 
-            [#-- Determine the output hanlders for the provider --]
+            [#-- Determine the output handlers for the provider --]
             [#local directories =
                 internalGetPluginFiles(
                     [providerMarker.Path, "outputhandlers"],
@@ -995,6 +1011,12 @@
     [@internalIncludeTemplatesInDirectory
         [providerMarker.Path, "tasks"],
         ["task" ]
+    /]
+
+    [#-- aws/dynamicvalues/dynamicvalue.ftl --]
+    [@internalIncludeTemplatesInDirectory
+        [providerMarker.Path, "dynamicvalues"],
+        ["dynamicvalue"]
     /]
 
     [#-- aws/resourcelabels/resourcelabel.ftl --]

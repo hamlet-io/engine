@@ -63,6 +63,12 @@
             "Names" : "HealthCheck",
             "Children" : [
                 {
+                    "Names" : "Enabled",
+                    "Description": "Will the health check be run",
+                    "Types" : BOOLEAN_TYPE,
+                    "Default" : true
+                },
+                {
                     "Names" : "Protocol",
                     "Description": "The protocol used for healthchecks. _protocol uses the ports protocol",
                     "Types" : STRING_TYPE,

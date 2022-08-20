@@ -358,3 +358,17 @@
         [/#if]
     [/#list]
 [/#macro]
+
+[#-- Stack Output File --]
+[#macro shared_stackoutput_generationcontract occurrence]
+    [@addDefaultGenerationContract subsets=["stack"] /]
+[/#macro]
+
+[#macro shared_stackoutput occurrence ]
+    [#list getCommandLineOptions()["StackOutputContent"] as key,value ]
+        [@stackOutput
+            key=key
+            value=value
+        /]
+    [/#list]
+[/#macro]

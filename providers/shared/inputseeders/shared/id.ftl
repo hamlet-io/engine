@@ -109,6 +109,7 @@
                 [#-- Input data control --]
                 "Input" : {
                     "Source" : inputSource!"composite",
+                    "RootDir": (rootDir)!"",
                     "Filter" :
                         attributeIfContent("DistrictType", districtType!SEGMENT_DISTRICT_TYPE) +
                         attributeIfContent("Tenant", tenant!"") +

@@ -967,7 +967,16 @@ that doesn't match the link.
                         {
                             "State" : constructOccurrenceState(occurrence, parentOccurrence)
 
-                        } ]
+                        }]
+
+                    [#local occurrence = mergeObjects(
+                            occurrence,
+                            {
+                                "Configuration" : {
+                                    "Solution" : resolveDynamicValues(occurrence.Configuration.Solution, {"occurrence" : occurrence})
+                                }
+                            }
+                        )]
 
                     [#-- Add suboccurrences --]
                     [#local subOccurrences = [] ]

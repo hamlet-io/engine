@@ -136,6 +136,12 @@
                 "SubObjects" : true,
                 "Children" : [
                     {
+                        "Names" : "Enabled",
+                        "Description" : "Enable the use of the condition",
+                        "Type" : BOOLEAN_TYPE,
+                        "Default" : true
+                    },
+                    {
                         "Names" : "Type",
                         "Description" : "The type of the condition that will be applied",
                         "Mandatory" : true,

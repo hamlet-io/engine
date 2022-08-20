@@ -31,6 +31,12 @@
                 "Names" : "Links",
                 "SubObjects" : true,
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
+            },
+            {
+                "Names" : "Extensions",
+                "Description" : "Extensions to invoke as part of component processing",
+                "Types" : ARRAY_OF_STRING_TYPE,
+                "Default" : []
             }
         ]
 /]
