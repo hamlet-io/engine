@@ -1,6 +1,46 @@
 # Changelog
 
-## latest (2022-06-02)
+## latest (2022-08-23)
+
+#### New Features
+
+* (baseline): add extension support for data ([#2028](https://github.com/hamlet-io/engine/issues/2028))
+* (port): add enable for port healthcheck ([#2030](https://github.com/hamlet-io/engine/issues/2030))
+* (entrance): stackoutput entrance
+* add support for topic and queue extensions
+* tasks and extensions for images in runbooks
+* (image): add support for the image component
+* (lambda): lambda alias ([#2015](https://github.com/hamlet-io/engine/issues/2015))
+* add support for dynamic value evaulation
+* (correspondent): add  support for channel configuration
+* (lb): add enable support for conditions
+#### Fixes
+
+* (dn): Test for missing domain name ([#2008](https://github.com/hamlet-io/engine/issues/2008))
+* (dynamicinput): error message text ([#2027](https://github.com/hamlet-io/engine/issues/2027))
+* set buildblueprint output file name ([#2026](https://github.com/hamlet-io/engine/issues/2026))
+* schema entrance output filename ([#2025](https://github.com/hamlet-io/engine/issues/2025))
+* typo for deployment test
+* (output): output prefix handling
+* typo in dynamicvalue return
+* (dynamicvalue): remove fatal on missing link
+* update naming for source
+* correct private key property name ([#2017](https://github.com/hamlet-io/engine/issues/2017))
+* (dynamicvalue): fix typo in configuration scope
+* (dynamicvalue): resolve handling for lists ([#2013](https://github.com/hamlet-io/engine/issues/2013))
+* comment update
+* handle empty values or object references
+#### Refactorings
+
+* (runbook): support dynamic values in conditions
+* remove occurrence dependency and apply at the occurrence level
+#### Others
+
+* (lambda): update lambda runtime versions ([#2031](https://github.com/hamlet-io/engine/issues/2031))
+
+Full set of changes: [`8.6.2...latest`](https://github.com/hamlet-io/engine/compare/8.6.2...latest)
+
+## 8.6.2 (2022-06-07)
 
 #### Fixes
 
@@ -10,10 +50,11 @@
 * use shared changelog workflow
 #### Others
 
+* update changelog ([#2004](https://github.com/hamlet-io/engine/issues/2004))
 * changelog bump
 * changelog bump
 
-Full set of changes: [`8.6.0...latest`](https://github.com/hamlet-io/engine/compare/8.6.0...latest)
+Full set of changes: [`8.6.0...8.6.2`](https://github.com/hamlet-io/engine/compare/8.6.0...8.6.2)
 
 ## 8.6.0 (2022-05-25)
 
