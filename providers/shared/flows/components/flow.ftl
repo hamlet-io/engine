@@ -151,7 +151,16 @@
     [#if ! (link.Tier?has_content && link.Component?has_content) ]
         [@fatal
             message="Link requires \"Tier\" and \"Component\" attributes"
-            context=link
+            context={
+                "Source": {
+                    "Tier": (occurrence.Core.Tier.Id)!"",
+                    "Component": (occurrence.Core.Component.RawId)!"",
+                    "SubComponent": (occurrence.Core.SubComponent.RawId)!"",
+                    "Instance": (occurrence.Core.Instance.Id)!"",
+                    "Version": (occurrence.Core.Version.Id)!""
+                },
+                "Link": link
+            }
         /]
         [#return {} ]
     [/#if]
