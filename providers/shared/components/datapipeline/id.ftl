@@ -72,7 +72,7 @@
                         "Description" : "The source of the image - registry: the local hamlet registry - url: an external public url",
                         "Types" : STRING_TYPE,
                         "Mandatory" : true,
-                        "Values" : [ "registry", "url" ],
+                        "Values" : [ "link", "registry", "url" ],
                         "Default" : "registry"
                     },
                     {
@@ -91,6 +91,10 @@
                                 "Default" : ""
                             }
                         ]
+                    },
+                    {
+                        "Names": "Link",
+                        "AttributeSet": LINK_ATTRIBUTESET_TYPE
                     }
                 ]
             }

@@ -251,7 +251,7 @@
                         "Description" : "The source of the image - registry is the hamlet registry",
                         "Types" : STRING_TYPE,
                         "Mandatory" : true,
-                        "Values" : [ "registry", "url", "extension" ],
+                        "Values" : [ "link", "registry", "url", "extension" ],
                         "Default" : "registry"
                     },
                     {
@@ -288,6 +288,10 @@
                                 "Default" : '//'
                             }
                         ]
+                    },
+                    {
+                        "Names": "Link",
+                        "AttributeSet": LINK_ATTRIBUTESET_TYPE
                     }
                 ]
             }
