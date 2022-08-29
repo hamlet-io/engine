@@ -473,6 +473,8 @@
         [/#if]
     [/#if]
 
+    [#local attributes = expandCompositeConfiguration(attributes, true, false)]
+
     [#if provider == SHARED_ATTRIBUTES ]
         [#-- Special processing for profiles --]
         [#if resourceGroup == DEFAULT_RESOURCE_GROUP ]

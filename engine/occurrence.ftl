@@ -439,6 +439,9 @@ already prefixed attribute.
     [#local result = [] ]
     [#local prefix = prefix?ensure_ends_with(":") ]
 
+    [#local attributes = expandCompositeConfiguration(attributes, true, false)]
+    [#local extensions = expandCompositeConfiguration(extensions, true, false)]
+
     [#-- First extend existing attributes --]
     [#list asArray(attributes) as attribute]
 

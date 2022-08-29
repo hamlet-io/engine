@@ -1651,7 +1651,7 @@ are added.
     [#return result]
 [/#function]
 
-[#function expandCompositeConfiguration attributes ]
+[#function expandCompositeConfiguration attributes baseSets=true childSets=true ]
 
     [#-- If attribute value is defined as an AttributeSet, evaluate --]
     [#-- it and use the result as the attribute's Children.         --]
@@ -1659,8 +1659,20 @@ are added.
     [#if attributes?has_content]
         [#list asFlattenedArray(attributes) as attribute]
             [#if attribute?is_hash ]
-                [#if attribute.AttributeSet?has_content && !(attribute.Children?has_content)]
-                    [#-- AttributeSet provides the child attributes --]
+                [#-- Support base references to attribute sets which replace the attribute with the contents of the attribute set --]
+                [#if baseSets && attribute.AttributeSet?has_content && attribute?keys?size == 1 ]
+                    [#local attributeSet = (getAttributeSet(attribute.AttributeSet).Attributes)![] ]
+
+                    [#if !attributeSet?has_content ]
+                        [@fatal
+                            message="Could not extend base level attribute set"
+                            context=attribute
+                        /]
+                    [#else]
+                        [#local evaluatedRefAttributes += attributeSet ]
+                    [/#if]
+                [#-- AttributeSet provides the child attributes --]
+                [#elseif childSets && attribute.AttributeSet?has_content && !(attribute.Children?has_content)]
                     [#local children = (getAttributeSet(attribute.AttributeSet).Attributes)![] ]
 
                     [#if !children?has_content ]

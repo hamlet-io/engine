@@ -111,7 +111,7 @@
             {
                 "Names" : [ "Certificate", "Hostname" ],
                 "Description" : "The configuration of the hostname used for this lb port rule",
-                "Children" : certificateChildConfiguration
+                "AttributeSet" : CERTIFICATE_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "HostFilter",

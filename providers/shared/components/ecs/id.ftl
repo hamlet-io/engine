@@ -9,7 +9,11 @@
                 "Value" : "An autoscaling container host cluster"
             }
         ]
-    attributes=containerHostAttributes
+    attributes=[
+        {
+            "AttributeSet": CONTAINERHOST_ATTRIBUTESET_TYPE
+        }
+    ]
 /]
 
 [@addComponentDeployment
@@ -29,7 +33,11 @@
                 "Value" : "An orchestrated container with always on scheduling"
             }
         ]
-    attributes=containerServiceAttributes
+    attributes=[
+        {
+            "AttributeSet": CONTAINERSERVICE_ATTRIBUTESET_TYPE
+        }
+    ]
 /]
 
 [@addComponentDeployment
@@ -49,7 +57,11 @@
                 "Value" : "A container defintion which is invoked on demand"
             }
         ]
-    attributes=containerTaskAttributes
+    attributes=[
+        {
+            "AttributeSet": CONTAINERTASK_ATTRIBUTESET_TYPE
+        }
+    ]
 /]
 
 [@addComponentDeployment

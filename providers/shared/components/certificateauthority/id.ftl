@@ -60,7 +60,7 @@
                     {
                         "Names" : "CommonName",
                         "Description" : "The Common name of the root CA",
-                        "Children" : hostNameChildConfiguration
+                        "AttributeSet" : HOSTNAME_ATTRIBUTESET_TYPE
                     }
                 ]
             },

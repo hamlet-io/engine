@@ -26,9 +26,11 @@
                         "Default" : ""
                     }
                 ]
+            },
+            {
+                "AttributeSet": DOMAINNAME_ATTRIBUTESET_TYPE
             }
-        ] +
-        domainNameChildConfiguration
+        ]
 /]
 
 [@addComponentDeployment

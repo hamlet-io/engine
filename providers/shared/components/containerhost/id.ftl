@@ -13,9 +13,11 @@
         {
             "Names" : "Engine",
             "Types" : STRING_TYPE
+        },
+        {
+            "AttributeSet":  CONTAINERHOST_ATTRIBUTESET_TYPE
         }
-    ] +
-    containerHostAttributes
+    ]
 /]
 
 [@addComponentDeployment

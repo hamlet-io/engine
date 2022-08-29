@@ -20,7 +20,7 @@
             {
                 "Names" : "Hostname" ,
                 "Description": "FQDN for the Directory Service",
-                "Children" : certificateChildConfiguration
+                "AttributeSet" : CERTIFICATE_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "IPAddressGroups",
@@ -108,7 +108,7 @@
                     },
                     {
                         "Names" : "Secret",
-                        "Children" : secretConfiguration
+                        "AttributeSet" : SECRETSOURCE_ATTRIBUTESET_TYPE
                     },
                     {
                         "Names" : [ "Link", "SecretStore" ],

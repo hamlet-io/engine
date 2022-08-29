@@ -26,7 +26,7 @@
             },
             {
                 "Names" : "Namespace",
-                "Children" : domainNameChildConfiguration
+                "AttributeSet" : DOMAINNAME_ATTRIBUTESET_TYPE
             }
         ]
 /]
@@ -50,7 +50,7 @@
             {
                 "Names" : "ServiceName",
                 "Description" : "The hostname portion of the DNS record which will identify this service",
-                "Children" : hostNameChildConfiguration
+                "AttributeSet" : HOSTNAME_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "RecordTypes",

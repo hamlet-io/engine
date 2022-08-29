@@ -13,7 +13,7 @@
         [
             {
                 "Names" : "DomainName",
-                "Children" : domainNameChildConfiguration
+                "AttributeSet" : DOMAINNAME_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "Links",

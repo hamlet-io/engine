@@ -32,10 +32,48 @@
                 "Value" : "A manually defined secret"
             }
         ]
-    attributes=
-        secretConfiguration +
-        secretTemplateConfiguration +
-        secretRotationConfiguration
+    attributes=[
+            {
+                "Names" : "Generated",
+                "Children" : [
+                    {
+                        "Names" : "Content",
+                        "Description" : "A JSON object which contains the nonsensitve parts of the secret",
+                        "Types" : OBJECT_TYPE,
+                        "Default" : {
+                            "username" : "admin"
+                        }
+                    },
+                    {
+                        "Names" : "SecretKey",
+                        "Description" : "The key in the JSON secret to set the generated secret to",
+                        "Types" : STRING_TYPE,
+                        "Default" : "password"
+                    }
+                ]
+            },
+            {
+                "Names" : "Lifecycle",
+                "Description" : "The lifecycle for a given Secret.",
+                "Children" : [
+                    {
+                        "Names" : "Rotation",
+                        "Description" : "The Secret rotation schedule, in number of days - accepts rate() or cron() formats.",
+                        "Children" : [
+                            {
+                                "Names" : "Enabled",
+                                "Description" : "Enable Secret rotation.",
+                                "Types" : BOOLEAN_TYPE,
+                                "Default" : false
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "AttributeSet": SECRETSOURCE_ATTRIBUTESET_TYPE
+            }
+        ]
     parent=SECRETSTORE_COMPONENT_TYPE
     childAttribute="Secrets"
     linkAttributes="Secret"
