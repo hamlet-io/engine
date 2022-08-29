@@ -23,7 +23,7 @@
 
     [#local certificateObject =
         getCompositeObject(
-            certificateChildConfiguration,
+            getAttributeSet(CERTIFICATE_ATTRIBUTESET_TYPE).Attributes,
             asFlattenedArray(
                 arrayIfContent((blueprintObject.CertificateBehaviours)!{}, (blueprintObject.CertificateBehaviours)!{}) +
                 arrayIfContent((tenantObject.CertificateBehaviours)!{}, (tenantObject.CertificateBehaviours)!{}) +

@@ -30,7 +30,7 @@
             },
             {
                 "Names" : [ "Certificate", "Hostname" ],
-                "Children" : certificateChildConfiguration
+                "AttributeSet" : CERTIFICATE_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "Profiles",

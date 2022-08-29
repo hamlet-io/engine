@@ -9,7 +9,11 @@
                 "Value" : "A container defintion which is invoked on demand"
             }
         ]
-    attributes=containerTaskAttributes
+    attributes=[
+        {
+            "AttributeSet": CONTAINERTASK_ATTRIBUTESET_TYPE
+        }
+    ]
 /]
 
 [@addComponentDeployment

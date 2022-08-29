@@ -9,7 +9,11 @@
                 "Value" : "An orchestrated container with always on scheduling"
             }
         ]
-    attributes=containerServiceAttributes
+    attributes=[
+        {
+            "AttributeSet": CONTAINERSERVICE_ATTRIBUTESET_TYPE
+        }
+    ]
 /]
 
 [@addComponentDeployment

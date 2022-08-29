@@ -1,47 +1,89 @@
 [#ftl]
 
 [@addAttributeSet
-    type=CONTTAINERTASK_ATTRIBUTESET_TYPE
+    type=CONTAINERTASK_ATTRIBUTESET_TYPE
     properties=[
         {
                 "Type"  : "Description",
-                "Value" : "Descirbes each container that will be used as part of a service or task"
+                "Value" : "Describes the configuration required for a container task"
         }
     ]
     attributes=[
         {
-            "Names" : [ "Extensions", "Fragment", "Container" ],
-            "Description" : "Extensions to invoke as part of component processing",
-            "Types" : ARRAY_OF_STRING_TYPE,
-            "Default" : []
+            "Names" : "Engine",
+            "Description" : "The engine used to run the container",
+            "Types" : STRING_TYPE,
+            "Values" : [ "ec2" ],
+            "Default" : "ec2"
         },
         {
-            "Names" : "Cpu",
-            "Description" : "The CPU share to assign to the container",
-            "Types" : NUMBER_TYPE,
-            "Default" : ""
-        },
-        {
-            "Names" : "Gpu",
-            "Description" : "The number of physical GPUs to assign to the container",
-            "Types" : NUMBER_TYPE,
-            "Default" : ""
-        },
-        {
-            "Names" : "Links",
-            "SubObjects": true,
-            "AttributeSet" : LINK_ATTRIBUTESET_TYPE
-        },
-        {
-            "Names" : "LocalLogging",
+            "Names" : [ "MultiAZ", "MultiZone"],
+            "Description" : "Deploy resources to multiple Availablity Zones",
             "Types" : BOOLEAN_TYPE,
             "Default" : false
         },
         {
-            "Names" : "LogDriver",
-            "Types" : STRING_TYPE,
-            "Values" : ["awslogs", "json-file", "fluentd"],
-            "Default" : "awslogs"
+            "Names" : "Containers",
+            "SubObjects" : true,
+            "AttributeSet" : CONTAINER_ATTRIBUTESET_TYPE
+        },
+        {
+            "Names" : "UseTaskRole",
+            "Types" : BOOLEAN_TYPE,
+            "Default" : true
+        },
+        {
+            "Names" : "Permissions",
+            "Children" : [
+                {
+                    "Names" : "Decrypt",
+                    "Types" : BOOLEAN_TYPE,
+                    "Default" : true
+                },
+                {
+                    "Names" : "AsFile",
+                    "Types" : BOOLEAN_TYPE,
+                    "Default" : true
+                },
+                {
+                    "Names" : "AppData",
+                    "Types" : BOOLEAN_TYPE,
+                    "Default" : true
+                },
+                {
+                    "Names" : "AppPublic",
+                    "Types" : BOOLEAN_TYPE,
+                    "Default" : true
+                }
+            ]
+        },
+        {
+            "Names" : "Placement",
+            "Children" : [
+                {
+                    "Names" : "ComputeProvider",
+                    "Description" : "The compute provider placement policy",
+                    "Children" : [
+                        {
+                            "Names" : "Default",
+                            "Children" : [
+                                {
+                                    "Names" : "Provider",
+                                    "Description" : "The default container compute provider - _engine uses the default provider of the engine",
+                                    "Types"  : STRING_TYPE,
+                                    "Values" : [ "_engine" ],
+                                    "Default" : "_engine"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Names" : "TaskLogGroup",
+            "Types" : BOOLEAN_TYPE,
+            "Default" : true
         },
         {
             "Names" : "LogMetrics",
@@ -54,94 +96,38 @@
             "AttributeSet" : ALERT_ATTRIBUTESET_TYPE
         },
         {
-            "Names" : "ContainerLogGroup",
-            "Types" : BOOLEAN_TYPE,
-            "Default" : false
-        },
-        {
-            "Names" : "RunCapabilities",
-            "Types" : ARRAY_OF_STRING_TYPE,
-            "Default" : []
-        },
-        {
-            "Names" : "Privileged",
-            "Types" : BOOLEAN_TYPE,
-            "Default" : false
-        },
-        {
-            "Names" : ["MaximumMemory", "MemoryMaximum", "MaxMemory"],
-            "Types" : NUMBER_TYPE,
-            "Description" : "Set to 0 to not set a maximum"
-        },
-        {
-            "Names" : ["MemoryReservation", "Memory", "ReservedMemory"],
-            "Types" : NUMBER_TYPE,
-            "Mandatory" : true
-        },
-        {
-            "Names" : "Ports",
-            "SubObjects" : true,
-            "Children" : [
-                {
-                    "Names": "Container",
-                    "Types": STRING_TYPE
-                },
-                {
-                    "Names" : "DynamicHostPort",
-                    "Types" : BOOLEAN_TYPE,
-                    "Default" : false
-                },
-                {
-                    "Names" : "LB",
-                    "AttributeSet" : LBATTACH_ATTRIBUTESET_TYPE
-                },
-                {
-                    "Names" : "Registry",
-                    "AttributeSet" : SRVREGATTACH_ATTRIBUTESET_TYPE
-                },
-                {
-                    "Names" : "IPAddressGroups",
-                    "Types" : ARRAY_OF_STRING_TYPE,
-                    "Default" : []
-                }
-            ]
-        },
-        {
-            "Names" : "Image",
-            "Description" : "Set the source of the components image",
-            "Children" : [
-                {
-                    "Names" : "Source",
-                    "Description" : "The source of the image",
-                    "Types" : STRING_TYPE,
-                    "Mandatory" : true,
-                    "Values" : [ "registry", "containerregistry" ],
-                    "Default" : "Registry"
-                },
-                {
-                    "Names" : "Source:containerregistry",
-                    "Description" : "A docker container registry to source the image from",
-                    "Children" : [
-                        {
-                            "Names" : "Image",
-                            "Description" : "The docker image that you want to use",
-                            "Types" : STRING_TYPE
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "Names" : "Version",
+            "Names" : "NetworkMode",
             "Types" : STRING_TYPE,
-            "Description" : "Override the version from the deployment unit",
+            "Values" : ["none", "bridge", "host"],
             "Default" : ""
         },
         {
-            "Names" : "ContainerNetworkLinks",
-            "Types" : ARRAY_OF_STRING_TYPE,
-            "Default" : []
-        }
+            "Names" : "FixedName",
+            "Types" : BOOLEAN_TYPE,
+            "Default" : false
+        },
+        {
+            "Names" : "Schedules",
+            "SubObjects" : true,
+            "Children" : [
+                {
+                    "Names" : "Enabled",
+                    "Types" : BOOLEAN_TYPE,
+                    "Default" : true
+                },
+                {
+                    "Names" : "Expression",
+                    "Types" : STRING_TYPE,
+                    "Default" : "rate(1 hours)"
+                },
+                {
+                    "Names" : "TaskCount",
+                    "Description" : "The number of tasks to run on the schedule",
+                    "Types" : NUMBER_TYPE,
+                    "Default" : 1
+                }
+            ]
+        },
         {
             "Names" : "Profiles",
             "Children" :
@@ -150,45 +136,23 @@
                         "Names" : "Alert",
                         "Types" : STRING_TYPE,
                         "Default" : "default"
+                    },
+                    {
+                        "Names" : "Network",
+                        "Types" : STRING_TYPE,
+                        "Default" : "default"
+                    },
+                    {
+                        "Names" : "Logging",
+                        "Types" : STRING_TYPE,
+                        "Default" : "default"
                     }
                 ]
         },
         {
-            "Names" : "RunMode",
-            "Description" : "A per container setting which can be used by the app to determine run mode for a container in a task - defaults to the second half of a dash separated id",
-            "Types" : STRING_TYPE,
-            "Default" : ""
-        },
-        {
-            "Names" : "Ulimits",
-            "Description" : "Linux OS based limits for the container",
-            "SubObjects" : true,
-            "Children" : [
-                {
-                    "Names" : "Name",
-                    "Description" : "The name of the ulimit to apply",
-                    "Types" : STRING_TYPE,
-                    "Mandatory" : true
-                },
-                {
-                    "Names" : "HardLimit",
-                    "Description" : "The OS level hard limit to apply",
-                    "Types" : NUMBER_TYPE,
-                    "Default" : 1024
-                },
-                {
-                    "Names" : "SoftLimit",
-                    "Description" : "The User level limit to apply",
-                    "Types" : NUMBER_TYPE,
-                    "Default" : 1024
-                }
-            ]
-        },
-        {
-            "Names" : "InitProcess",
-            "Description" : "Enable a docker based init process to manage processes",
-            "Types" : BOOLEAN_TYPE,
-            "Default" : false
+            "Names" : "Links",
+            "SubObjects": true,
+            "AttributeSet" : LINK_ATTRIBUTESET_TYPE
         }
     ]
 /]

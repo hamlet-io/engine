@@ -102,7 +102,7 @@
             {
                 "Names" : [ "Certificate", "Hostname" ],
                 "Description" : "The hostname to use of the CDN",
-                "Children" : certificateChildConfiguration
+                "AttributeSet" : CERTIFICATE_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "AssumeSNI",
@@ -590,5 +590,9 @@
                 "Value" : "A Origin which serves content"
             }
         ]
-    attributes=getAttributeSet(CDNORIGIN_ATTRIBUTESET_TYPE).Attributes
+    attributes=[
+        {
+            "AttributeSet": CDNORIGIN_ATTRIBUTESET_TYPE
+        }
+    ]
 /]

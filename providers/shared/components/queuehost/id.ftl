@@ -116,7 +116,7 @@
                     },
                     {
                         "Names" : "Secret",
-                        "Children" : secretConfiguration
+                        "AttributeSet" : SECRETSOURCE_ATTRIBUTESET_TYPE
                     },
                     {
                         "Names" : "SecretStore",

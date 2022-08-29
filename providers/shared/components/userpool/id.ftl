@@ -199,7 +199,7 @@
                 "Children" : [
                     {
                         "Names" : [ "Certificate", "Hostname" ],
-                        "Children" : certificateChildConfiguration
+                        "AttributeSet" : CERTIFICATE_ATTRIBUTESET_TYPE
                     }
                 ]
             },

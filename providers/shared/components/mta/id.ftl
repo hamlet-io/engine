@@ -21,7 +21,7 @@
             {
                 "Names" : [ "Hostname", "Certificate" ],
                 "Description" : "Configure the domain(s) associated with this MTA",
-                "Children" : certificateChildConfiguration
+                "AttributeSet" : CERTIFICATE_ATTRIBUTESET_TYPE
             },
             {
                 "Names" : "IPAddressGroups",

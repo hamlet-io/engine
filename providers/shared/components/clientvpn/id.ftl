@@ -152,7 +152,7 @@
             {
                 "Names" : "Certificate",
                 "Description" : "The certificate hostname to use for the clientVPN",
-                "Children" : certificateChildConfiguration
+                "AttributeSet" : CERTIFICATE_ATTRIBUTESET_TYPE
             }
         ]
 /]
