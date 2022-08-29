@@ -161,6 +161,10 @@
                         "AttributeSet" : OSPATCHING_ATTRIBUTESET_TYPE
                     },
                     {
+                        "Names" : "AntiVirus",
+                        "AttributeSet" : ANTIVIRUS_ATTRIBUTESET_TYPE
+                    },
+                    {
                         "Names" : "ComputeTasks",
                         "Description" : "Customisation to setup the compute instance from its image",
                         "Children" : [
