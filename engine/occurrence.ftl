@@ -316,8 +316,7 @@
                         "Account" : internalCreateAccountSettings(),
                         "Product" :
                             internalCreateOccurrenceProductSettings(occurrence) +
-                            internalCreateOccurrenceSensitiveSettings(occurrence),
-                        "Component" : internalCreateOccurrenceComponentSettings(occurrence)
+                            internalCreateOccurrenceSensitiveSettings(occurrence)
                     }
                 }
             }
@@ -344,8 +343,6 @@
                     "Environment" : {
                         "Build" :
                             getSettingsAsEnvironment(occurrence.Configuration.Settings.Build),
-                        "Component" :
-                            getSettingsAsEnvironment(occurrence.Configuration.Settings.Component),
                         "General" :
                             internalGetOccurrenceSettingsAsEnvironment(
                                 occurrence,
@@ -360,6 +357,36 @@
                 }
             }
         ) ]
+    [#return occurrence]
+[/#function]
+
+[#function constructOccurrenceComponentSettings occurrence ]
+    [#local occurrence =
+        mergeObjects(
+            occurrence,
+            {
+                "Configuration" : {
+                    "Settings" : {
+                        "Component" : internalCreateOccurrenceComponentSettings(occurrence)
+                    }
+                }
+            }
+        )
+    ]
+
+    [#local occurrence =
+        mergeObjects(
+            occurrence,
+            {
+                "Configuration" : {
+                    "Environment" : {
+                        "Component" : getSettingsAsEnvironment(occurrence.Configuration.Settings.Component)
+                    }
+                }
+            }
+        )
+    ]
+
     [#return occurrence]
 [/#function]
 
