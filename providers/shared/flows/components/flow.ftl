@@ -970,6 +970,7 @@ that doesn't match the link.
 
                     [#-- Add settings --]
                     [#local occurrence = constructOccurrenceSettings(occurrence, type) ]
+                    [#local occurrence = constructOccurrenceComponentSettings(occurrence)]
 
                     [#-- Add state --]
                     [#local occurrence +=
@@ -986,6 +987,9 @@ that doesn't match the link.
                                 }
                             }
                         )]
+
+                    [#-- Run Component Settings again to get dynamic values sorted --]
+                    [#local occurrence = constructOccurrenceComponentSettings(occurrence)]
 
                     [#-- Add suboccurrences --]
                     [#local subOccurrences = [] ]
