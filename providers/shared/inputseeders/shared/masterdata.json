@@ -413,6 +413,7 @@
       "Name": "shared",
       "Title": "Shared Tier",
       "Description": "Shared Tier",
+      "Index": 40,
       "Network": {
         "Enabled": true,
         "Link": {
