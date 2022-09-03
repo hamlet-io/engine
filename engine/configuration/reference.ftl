@@ -39,7 +39,7 @@
         scopeId=REFERENCE_CONFIGURATION_SCOPE
         id=type
         properties=referenceProperties
-        attributes=attributes
+        attributes=expandBaseCompositeConfiguration(attributes)
     /]
 [/#macro]
 
