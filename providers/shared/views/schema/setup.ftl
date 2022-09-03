@@ -96,7 +96,9 @@
                         convertAttributesToJsonSchemaProperties(
                             compressCompositeConfiguration(
                                 normaliseCompositeConfiguration(
-                                    definition.Attributes
+                                    expandBaseCompositeConfiguration(
+                                        definition.Attributes
+                                    )
                                 )
                             )
                         )

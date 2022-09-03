@@ -473,7 +473,7 @@
         [/#if]
     [/#if]
 
-    [#local attributes = expandCompositeConfiguration(attributes, true, false)]
+    [#local attributes = expandBaseCompositeConfiguration(attributes)]
 
     [#if provider == SHARED_ATTRIBUTES ]
         [#-- Special processing for profiles --]
