@@ -114,11 +114,6 @@
                     "Names" : "AppData",
                     "Types" : BOOLEAN_TYPE,
                     "Default" : false
-                },
-                {
-                    "Names" : "AppPublic",
-                    "Types" : BOOLEAN_TYPE,
-                    "Default" : false
                 }
             ]
         },
