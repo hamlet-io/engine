@@ -1247,8 +1247,10 @@ are added.
         [/#if]
     [/#list]
 
-    [#local expandedAttributes = expandCompositeConfiguration(attributes)]
-    [#local normalisedAttributes = normaliseCompositeConfiguration(expandedAttributes)]
+    [#local normalisedAttributes =
+        expandBaseCompositeConfiguration(
+            expandCompositeConfiguration(
+                normaliseCompositeConfiguration(attributes)))]
 
     [#-- Determine the values for explicitly listed attributes --]
     [#local result = {} ]
@@ -1651,16 +1653,13 @@ are added.
     [#return result]
 [/#function]
 
-[#function expandCompositeConfiguration attributes baseSets=true childSets=true ]
-
-    [#-- If attribute value is defined as an AttributeSet, evaluate --]
-    [#-- it and use the result as the attribute's Children.         --]
+[#-- Support base references to attribute sets which replace the attribute with the contents of the attribute set --]
+[#function expandBaseCompositeConfiguration attributes ]
     [#local evaluatedRefAttributes = []]
     [#if attributes?has_content]
         [#list asFlattenedArray(attributes) as attribute]
             [#if attribute?is_hash ]
-                [#-- Support base references to attribute sets which replace the attribute with the contents of the attribute set --]
-                [#if baseSets && attribute.AttributeSet?has_content && attribute?keys?size == 1 ]
+                [#if attribute.AttributeSet?has_content && ! attribute.Names?? ]
                     [#local attributeSet = (getAttributeSet(attribute.AttributeSet).Attributes)![] ]
 
                     [#if !attributeSet?has_content ]
@@ -1671,8 +1670,27 @@ are added.
                     [#else]
                         [#local evaluatedRefAttributes += attributeSet ]
                     [/#if]
+                [#elseif attribute.Children?has_content]
+                    [#local evaluatedRefAttributes += [ attribute + {"Children": expandBaseCompositeConfiguration(attribute.Children)}]]
+                [#else]
+                    [#local evaluatedRefAttributes += [attribute] ]
+                [/#if]
+            [/#if]
+        [/#list]
+    [/#if]
+    [#return evaluatedRefAttributes]
+[/#function]
+
+[#function expandCompositeConfiguration attributes ]
+
+    [#-- If attribute value is defined as an AttributeSet, evaluate --]
+    [#-- it and use the result as the attribute's Children.         --]
+    [#local evaluatedRefAttributes = []]
+    [#if attributes?has_content]
+        [#list asFlattenedArray(attributes) as attribute]
+            [#if attribute?is_hash ]
                 [#-- AttributeSet provides the child attributes --]
-                [#elseif childSets && attribute.AttributeSet?has_content && !(attribute.Children?has_content)]
+                [#if attribute.AttributeSet?has_content && !(attribute.Children?has_content)]
                     [#local children = (getAttributeSet(attribute.AttributeSet).Attributes)![] ]
 
                     [#if !children?has_content ]
