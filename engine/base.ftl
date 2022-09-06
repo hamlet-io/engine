@@ -1248,9 +1248,10 @@ are added.
     [/#list]
 
     [#local normalisedAttributes =
-        expandBaseCompositeConfiguration(
+        normaliseCompositeConfiguration(
             expandCompositeConfiguration(
-                normaliseCompositeConfiguration(attributes)))]
+                expandBaseCompositeConfiguration(
+                    attributes)))]
 
     [#-- Determine the values for explicitly listed attributes --]
     [#local result = {} ]
@@ -1659,7 +1660,10 @@ are added.
     [#if attributes?has_content]
         [#list asFlattenedArray(attributes) as attribute]
             [#if attribute?is_hash ]
-                [#if attribute.AttributeSet?has_content && ! attribute.Names?? ]
+                [#if attribute.AttributeSet?has_content
+                        && ! attribute.Names??
+                        && (attribute.Names)!"" != "Hamlet:Missing"  ]
+
                     [#local attributeSet = (getAttributeSet(attribute.AttributeSet).Attributes)![] ]
 
                     [#if !attributeSet?has_content ]
@@ -1668,7 +1672,7 @@ are added.
                             context=attribute
                         /]
                     [#else]
-                        [#local evaluatedRefAttributes += attributeSet ]
+                        [#local evaluatedRefAttributes += expandBaseCompositeConfiguration(attributeSet) ]
                     [/#if]
                 [#elseif attribute.Children?has_content]
                     [#local evaluatedRefAttributes += [ attribute + {"Children": expandBaseCompositeConfiguration(attribute.Children)}]]
@@ -1690,7 +1694,7 @@ are added.
         [#list asFlattenedArray(attributes) as attribute]
             [#if attribute?is_hash ]
                 [#-- AttributeSet provides the child attributes --]
-                [#if attribute.AttributeSet?has_content && !(attribute.Children?has_content)]
+                [#if attribute.AttributeSet?has_content && !(attribute.Children?has_content) && ((attribute.Names)!"")?has_content]
                     [#local children = (getAttributeSet(attribute.AttributeSet).Attributes)![] ]
 
                     [#if !children?has_content ]
@@ -1702,7 +1706,14 @@ are added.
                         [#local children = [{"Names" : "AttributeSet", "Types" : STRING_TYPE}] ]
                     [/#if]
 
-                    [#local evaluatedRefAttributes += [ attribute + { "Children" : expandCompositeConfiguration(children) } ] ]
+                    [#local evaluatedRefAttributes += [
+                        attribute + {
+                            "Children" :
+                                expandCompositeConfiguration(
+                                    expandBaseCompositeConfiguration(children)
+                                )
+                            }
+                        ]]
                 [#else]
                     [#-- Attribute has no reference to evaluate, so add to results --]
                     [#local evaluatedRefAttributes += [attribute]]
