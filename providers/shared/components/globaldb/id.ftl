@@ -52,6 +52,12 @@
                 "SubObjects" : true,
                 "Children" : [
                     {
+                        "Names" : "Enabled",
+                        "Description" : "Enable the creation of the secondary index",
+                        "Types": BOOLEAN_TYPE,
+                        "Default" : true
+                    },
+                    {
                         "Names" : "Name",
                         "Description" : "Index name",
                         "Types" : STRING_TYPE
