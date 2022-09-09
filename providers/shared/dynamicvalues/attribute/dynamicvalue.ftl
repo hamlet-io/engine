@@ -30,7 +30,9 @@
     [#if sources.occurrence?? ]
         [#local link = (sources.occurrence.Configuration.Solution.Links[properties.linkId])!{}]
         [#local linkTarget = getLinkTarget(sources.occurrence, link)]
-        [#return (linkTarget.State.Attributes[properties.attributeName])!"" ]
+
+        [#if linkTarget?has_content ]
+            [#return (linkTarget.State.Attributes[properties.attributeName])!"__HamletWarning: attribute ${properties.attributeName} not found for ${properties.linkId}__" ]
+        [/#if]
     [/#if]
-    [#return "__${value}__"]
 [/#function]

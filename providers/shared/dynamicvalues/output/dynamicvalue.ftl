@@ -56,6 +56,4 @@
 
         [#return "__Properties:${value}__"  ]
     [/#if]
-
-    [#return "__${value}__"]
 [/#function]

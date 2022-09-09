@@ -330,7 +330,8 @@
             {
                 "Configuration" : {
                     "Settings" : {
-                        "Core" : internalCreateOccurrenceCoreSettings(occurrence)
+                        "Core" : internalCreateOccurrenceCoreSettings(occurrence),
+                        "Component" : constructOccurrenceComponentSettings(occurrence)
                     }
                 }
             }
@@ -352,41 +353,12 @@
                             internalGetOccurrenceSettingsAsEnvironment(
                                 occurrence,
                                 {"Include" : {"General" : false}}
-                            )
-                    }
-                }
-            }
-        ) ]
-    [#return occurrence]
-[/#function]
-
-[#function constructOccurrenceComponentSettings occurrence ]
-    [#local occurrence =
-        mergeObjects(
-            occurrence,
-            {
-                "Configuration" : {
-                    "Settings" : {
-                        "Component" : internalCreateOccurrenceComponentSettings(occurrence)
-                    }
-                }
-            }
-        )
-    ]
-
-    [#local occurrence =
-        mergeObjects(
-            occurrence,
-            {
-                "Configuration" : {
-                    "Environment" : {
+                            ),
                         "Component" : getSettingsAsEnvironment(occurrence.Configuration.Settings.Component)
                     }
                 }
             }
-        )
-    ]
-
+        ) ]
     [#return occurrence]
 [/#function]
 
@@ -539,6 +511,25 @@
             }
         }
     )]
+[/#function]
+
+[#function constructOccurrenceComponentSettings occurrence]
+    [#local result = {}]
+    [#list (occurrence.Configuration.Solution.Settings)!{} as id, setting]
+        [#if (setting.Enabled)!true]
+            [#local result = mergeObjects(
+                result,
+                {
+                    id : {
+                        "Value" : setting.Value,
+                        "Sensitive" : setting.Sensitive,
+                        "Internal" : setting.Internal
+                    }
+                }
+            )]
+        [/#if]
+    [/#list]
+    [#return result ]
 [/#function]
 
 [#--------------------------------------------------------
@@ -774,25 +765,6 @@
             contentIfContent(occurrenceBuildSource, occurrenceBuild.SOURCE!{})
         )
     ]
-[/#function]
-
-[#function internalCreateOccurrenceComponentSettings occurrence]
-    [#local result = {}]
-    [#list (occurrence.Configuration.Solution.Settings)!{} as id, setting]
-        [#if (setting.Enabled)!true]
-            [#local result = mergeObjects(
-                result,
-                {
-                    id : {
-                        "Value" : setting.Value,
-                        "Sensitive" : setting.Sensitive,
-                        "Internal" : setting.Internal
-                    }
-                }
-            )]
-        [/#if]
-    [/#list]
-    [#return result ]
 [/#function]
 
 [#function internalCreateOccurrenceProductSettings occurrence ]

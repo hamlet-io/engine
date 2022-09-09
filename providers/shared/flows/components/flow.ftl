@@ -78,7 +78,7 @@
 
 [#-- Get the occurrences of versions/instances of a component --]
 [#function getOccurrences tier component ]
-    [#return internalGetOccurrences(component, tier) ]
+    [#return internalGetOccurrences(component, tier)]
 [/#function]
 
 [#function getLinkTarget occurrence link activeOnly=true activeRequired=false]
@@ -242,7 +242,7 @@
     [#-- A match to a component occurrence will also return --]
     [#-- any SubOccurrences. A match to a SubOccurrence     --]
     [#-- only returns the Suboccurrence itself              --]
-    [#local targetOccurrences = internalGetOccurrences(component, getTier(link.Tier), effectiveLink) ]
+    [#local targetOccurrences = internalGetOccurrences(component, getTier(link.Tier), effectiveLink)]
 
     [#if targetOccurrences?size > 1]
         [@fatal
@@ -463,6 +463,52 @@ implemented to avoid stack overflows.
 If a link is provided, the function will ignore any occurrence
 that doesn't match the link.
 --]
+[#function internalResolveOccurrenceDynamicValues occurrence ]
+    [#local occurrence = mergeObjects(
+        occurrence,
+        {
+            "Configuration" : {
+                "Solution" : resolveDynamicValues(occurrence.Configuration.Solution, {"occurrence": occurrence})
+            }
+        }
+    )]
+
+    [#local occurrence = mergeObjects(
+        occurrence,
+        {
+            "Configuration" : {
+                "Settings" : {
+                    "Component" : constructOccurrenceComponentSettings(occurrence)
+                }
+            }
+        }
+    )]
+
+    [#local occurrence = mergeObjects(
+        occurrence,
+        {
+            "Configuration" : {
+                "Environment" : {
+                    "Component" : getSettingsAsEnvironment(occurrence.Configuration.Settings.Component)
+                }
+            }
+        }
+    )]
+
+    [#if ((occurrence.Occurrences)![])?has_content]
+        [#local subOccurrences = []]
+        [#list occurrence.Occurrences as occurrence ]
+            [#local subOccurrences += [internalResolveOccurrenceDynamicValues(occurrence)]]
+        [/#list]
+        [#local occurrence = mergeObjects(
+            occurrence,
+            {
+                "Occurrences" : subOccurrences
+            }
+        )]
+    [/#if]
+    [#return occurrence]
+[/#function]
 
 [#function internalGetOccurrences component tier={} link={} parentOccurrence={} parentContexts=[] componentType="" ]
 
@@ -970,7 +1016,6 @@ that doesn't match the link.
 
                     [#-- Add settings --]
                     [#local occurrence = constructOccurrenceSettings(occurrence, type) ]
-                    [#local occurrence = constructOccurrenceComponentSettings(occurrence)]
 
                     [#-- Add state --]
                     [#local occurrence +=
@@ -978,18 +1023,6 @@ that doesn't match the link.
                             "State" : constructOccurrenceState(occurrence, parentOccurrence)
 
                         }]
-
-                    [#local occurrence = mergeObjects(
-                            occurrence,
-                            {
-                                "Configuration" : {
-                                    "Solution" : resolveDynamicValues(occurrence.Configuration.Solution, {"occurrence" : occurrence})
-                                }
-                            }
-                        )]
-
-                    [#-- Run Component Settings again to get dynamic values sorted --]
-                    [#local occurrence = constructOccurrenceComponentSettings(occurrence)]
 
                     [#-- Add suboccurrences --]
                     [#local subOccurrences = [] ]
@@ -1073,6 +1106,7 @@ that doesn't match the link.
                     [/#list]
 
                     [#local occurrence = occurrence + attributeIfContent("Occurrences", subOccurrences) ]
+                    [#local occurrence = internalResolveOccurrenceDynamicValues(occurrence)]
 
                     [#if link?has_content && tier?has_content && link.SubComponent?has_content ]
                         [#-- Link processing of an occurrence following suboccurrence assessment --]

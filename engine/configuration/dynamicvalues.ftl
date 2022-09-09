@@ -59,15 +59,15 @@
 
 [#function getDynamicValue value sources={} ]
 
-    [#if ( value?is_string && ! value?contains("__") ) || ! value?is_string ]
+    [#if ( value?is_string && ! value?matches(r'.*__[\w:]+?__.*')?has_content ) || ! value?is_string ]
         [#return value ]
     [/#if]
 
-    [#local substitutions = value?split("__")?filter(x -> x?matches('^[a-zA-Z0-9_-]*:.*'))]
     [#local replacements = {}]
+    [#local substitutions = value?matches(r'(__[\w:]+?__)')]
 
     [#list substitutions as substitution ]
-        [#local lookups = substitution?split(":") ]
+        [#local lookups = substitution?keep_after("__")?keep_before_last("__")?split(":") ]
         [#local type = lookups[0] ]
 
         [#local dynamicValueProvider = getDynamicValueProvider(type)]
@@ -101,7 +101,7 @@
                 [#if function?has_content]
                     [#local replacements =  mergeObjects(
                         replacements,
-                        { substitution : .vars[function](substitution, attributeValues.Parameters, sources) }
+                        { substitution : (.vars[function](substitution, attributeValues.Parameters, sources))!substitution }
                     )]
                 [#else]
                     [@debug
@@ -116,9 +116,14 @@
 
     [#list replacements as original, new ]
         [#if new?is_string]
-            [#local value = value?replace("__${original}__", new)]
+            [#local value = value?replace(original, new)]
+        [#elseif new?is_number || new?is_boolean ]
+            [#local value = value?replace(original, new?c)]
         [#else]
-            [#return new]
+            [#local value = value?replace(
+                original,
+                "__HamletFatal: invalid dynamic value replacement type for ${original}, value must be string, number or boolean__"
+            )]
         [/#if]
     [/#list]
 
