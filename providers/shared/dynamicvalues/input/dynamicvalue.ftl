@@ -47,6 +47,4 @@
 
         [#return (sources.inputs["input:${properties.inputId}"])!"" ]
     [/#if]
-
-    [#return "__${value}__"]
 [/#function]

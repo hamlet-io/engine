@@ -51,7 +51,7 @@
                             "Properties" : {
                                 "name" : {
                                     "Key" : "NAME",
-                                    "Value" : "dyanmicvalue-link-attribute-name"
+                                    "Value" : "dynamicvalue-link-attribute-name"
                                 }
                             },
                             "Profiles" : {
@@ -80,11 +80,11 @@
                                 },
                                 "resolvedLinkAttributeTag" : {
                                     "Path" : "Occurrence.Configuration.Solution.Tags.Additional.AttributeTag.Value",
-                                    "Value": "dyanmicvalue-link-attribute-name"
+                                    "Value": "dynamicvalue-link-attribute-name"
                                 },
                                 "combinedValueTag" : {
                                     "Path" : "Occurrence.Configuration.Solution.Tags.Additional.CombinedValueTag.Value",
-                                    "Value": "link:dyanmicvalue-link-attribute-name:setting:ComponentSettingValue"
+                                    "Value": "link:dynamicvalue-link-attribute-name:setting:ComponentSettingValue"
                                 }
                             }
                         }
