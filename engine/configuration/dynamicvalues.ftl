@@ -119,11 +119,18 @@
             [#local value = value?replace(original, new)]
         [#elseif new?is_number || new?is_boolean ]
             [#local value = value?replace(original, new?c)]
+        [#elseif (new?is_hash || new?is_sequence) && value == original]
+            [#local value = new]
         [#else]
-            [#local value = value?replace(
-                original,
-                "__HamletFatal: invalid dynamic value replacement type for ${original}, value must be string, number or boolean__"
-            )]
+            [@fatal
+                message="Invalid dynamic value replacement"
+                detail="The dynamic value should either be a string, number, boolean or completely replace the value with an object"
+                context={
+                    "Value": value,
+                    "DynamicValue" : original,
+                    "SubstituedValue": new
+                }
+            /]
         [/#if]
     [/#list]
 
