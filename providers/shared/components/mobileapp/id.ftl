@@ -31,8 +31,7 @@
                     {
                         "Names": "IdOverride",
                         "Description": "Override the existing id used in the expo app",
-                        "Types": STRING_TYPE,
-                        "Default": "__setting:ENVIRONMENT__"
+                        "Types": STRING_TYPE
                     }
                 ]
             },
