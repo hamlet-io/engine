@@ -26,7 +26,7 @@
                         {
                             "Names" : "Enabled",
                             "Types" : BOOLEAN_TYPE,
-                            "Default" : true
+                            "Default" : false
                         },
                         {
                             "Names" : "Link",
