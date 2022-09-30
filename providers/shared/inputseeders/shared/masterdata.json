@@ -220,7 +220,8 @@
         "ana",
         "mgmt",
         "docs",
-        "gbl"
+        "gbl",
+        "external"
       ]
     }
   },
@@ -438,6 +439,14 @@
       "Name": "global",
       "Title": "Global Tier",
       "Description": "Components which are used for Global Services",
+      "Network": {
+        "Enabled": false
+      }
+    },
+    "external": {
+      "Name": "external",
+      "Title": "External Tier",
+      "Description": "Components which represent resources external to, or not managed by, hamlet",
       "Network": {
         "Enabled": false
       }
