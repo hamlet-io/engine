@@ -232,13 +232,6 @@
     [#-- Network Endpoint Groups --]
     [#assign networkEndpointGroups = getReferenceData(NETWORKENDPOINTGROUP_REFERENCE_TYPE) ]
 
-    [#-- WAF --]
-    [#assign wafProfiles = getReferenceData(WAFPROFILE_REFERENCE_TYPE) ]
-    [#assign wafRuleGroups = getReferenceData(WAFRULEGROUP_REFERENCE_TYPE) ]
-    [#assign wafRules = getReferenceData(WAFRULE_REFERENCE_TYPE) ]
-    [#assign wafConditions = getReferenceData(WAFCONDITION_REFERENCE_TYPE) ]
-    [#assign wafValueSets = getReferenceData(WAFVALUESET_REFERENCE_TYPE) ]
-
     [#-- Tenants --]
     [#if isLayerActive(TENANT_LAYER_TYPE) ]
         [#-- assign tenants = getLayer(TENANT_LAYER_TYPE) --]
