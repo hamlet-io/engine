@@ -238,6 +238,9 @@
 
 [@addChildComponent
     type=USERPOOL_CLIENT_COMPONENT_TYPE
+    parent=USERPOOL_COMPONENT_TYPE
+    childAttribute="Clients"
+    linkAttributes="Client"
     properties=
         [
             {
@@ -266,6 +269,18 @@
                         "Names" : "Enabled",
                         "Types" : BOOLEAN_TYPE,
                         "Default" : true
+                    },
+                    {
+                        "Names": "CallbackUrls",
+                        "Types" : ARRAY_OF_STRING_TYPE,
+                        "Description" : "A list of authentication CallBack Url's authorised to use this client",
+                        "Default": []
+                    },
+                    {
+                        "Names": "LogoutUrls",
+                        "Types" : ARRAY_OF_STRING_TYPE,
+                        "Description" : "A list of logout urls which are authorised to use this client when performing logouts",
+                        "Default": []
                     }
                 ]
             },
@@ -319,9 +334,6 @@
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             }
         ]
-    parent=USERPOOL_COMPONENT_TYPE
-    childAttribute="Clients"
-    linkAttributes="Client"
 /]
 
 [@addChildComponent
