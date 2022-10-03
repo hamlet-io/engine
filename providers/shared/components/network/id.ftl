@@ -52,6 +52,21 @@
                                         "Description" : "A prefix for the s3 bucket destination",
                                         "Types" : STRING_TYPE,
                                         "Default" : "FlowLogs/"
+                                    },
+                                    {
+                                        "Names": "IncludeInPrefix",
+                                        "Description": "Context specific details to include in the prefix",
+                                        "Types": ARRAY_OF_STRING_TYPE,
+                                        "Values" : [
+                                            "Prefix",
+                                            "FullAbsolutePath",
+                                            "Id"
+                                        ],
+                                        "Default": [
+                                            "Prefix",
+                                            "FullAbsolutePath",
+                                            "Id"
+                                        ]
                                     }
                                 ]
                             }
