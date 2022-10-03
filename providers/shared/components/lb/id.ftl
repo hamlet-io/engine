@@ -15,7 +15,7 @@
                 "Names" : "Logs",
                 "Description" : "Enable request logging for requests",
                 "Types" : BOOLEAN_TYPE,
-                "Default" : false
+                "Default" : true
             },
             {
                 "Names" : "Engine",

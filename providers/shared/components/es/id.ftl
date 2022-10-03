@@ -112,7 +112,7 @@
             {
                 "Names" : "Logging",
                 "Types" : BOOLEAN_TYPE,
-                "Default" : false
+                "Default" : true
             },
             {
                 "Names" : "AllowMajorVersionUpdates",
