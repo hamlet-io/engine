@@ -50,7 +50,7 @@
                     {
                         "Names" : "Enabled",
                         "Types" : BOOLEAN_TYPE,
-                        "Default" : false
+                        "Default" : true
                     }
                 ]
             },
