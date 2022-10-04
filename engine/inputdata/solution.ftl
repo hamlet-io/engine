@@ -51,7 +51,7 @@
     [/#if]
 
     [#list (blueprint.Solutions)!{} as id, solution]
-        [#local result = mergeObjects(result, { id: getCompositeObject(configuration, solution)})]
+        [#local result = mergeObjects(result, { id: solution})]
     [/#list]
 
     [#list result as id, solution]
@@ -71,7 +71,7 @@
         [/#list]
     [/#list]
 
-    [#assign solutionData = mergeObjects(solutionData, result)]
+    [#assign solutionData = getCompositeObject(mergeObjects(solutionData, result))]
 [/#macro]
 
 [#function getSolutions ]
