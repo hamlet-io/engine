@@ -228,7 +228,7 @@
                     },
                     {
                         "Names": "Schedule",
-                        "Description" : "The schedule to run the crawler on - Format should in in the AWS Rate format",
+                        "Description" : "The schedule to run the crawler on - Format should in the AWS Rate format",
                         "Types": STRING_TYPE
                     },
                     {
