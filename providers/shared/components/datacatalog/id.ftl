@@ -118,8 +118,7 @@
                             {
                                 "Names": "Name",
                                 "Description": "The name of the column",
-                                "Types": STRING_TYPE,
-                                "Mandatory": true
+                                "Types": STRING_TYPE
                             },
                             {
                                 "Names" : "Type",
@@ -149,8 +148,7 @@
                             {
                                 "Names": "Name",
                                 "Description": "The name of the column",
-                                "Types": STRING_TYPE,
-                                "Mandatory": true
+                                "Types": STRING_TYPE
                             },
                             {
                                 "Names" : "Type",
