@@ -46,6 +46,9 @@
 [#assign CORRESPONDENT_COMPONENT_TYPE = "correspondent"]
 [#assign CORRESPONDENT_CHANNEL_COMPONENT_TYPE = "correspondentchannel"]
 
+[#assign DATACATALOG_COMPONENT_TYPE = "datacatalog"]
+[#assign DATACATALOG_TABLE_COMPONENT_TYPE = "datacatalogtable"]
+
 [#assign DATAFEED_COMPONENT_TYPE = "datafeed" ]
 
 [#assign DATAPIPELINE_COMPONENT_TYPE = "datapipeline"]
