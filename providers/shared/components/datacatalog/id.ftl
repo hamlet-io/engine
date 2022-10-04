@@ -128,7 +128,7 @@
                             },
                             {
                                 "Names": "Description",
-                                "Description": "A descrpition of the column",
+                                "Description": "A description of the column",
                                 "Types": STRING_TYPE,
                                 "Default" : ""
                             }
