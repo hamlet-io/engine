@@ -171,12 +171,12 @@
                 "Description" : "Defines the format of the data",
                 "Children": [
                     {
-                        "Names": "SerDe",
+                        "Names": "Serialisation",
                         "Description" : "Sets how the data should be serialised/deserialised",
                         "Children" : [
                             {
                                 "Names" : "Library",
-                                "Description": "The library to use for the SerDe process",
+                                "Description": "The library to use for the Serialisation process",
                                 "Types" : STRING_TYPE
                             },
                             {
