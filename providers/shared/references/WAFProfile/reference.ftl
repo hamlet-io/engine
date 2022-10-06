@@ -25,7 +25,10 @@
             [#local result += [
                 {
                     "Conditions" : conditionList,
-                    "Action" : ruleEntry.Action
+                    "Action" : ruleEntry.Action,
+                    "Engine": rules[ruleListEntry].Engine,
+                    "Engine:RateLimit": rules[ruleListEntry]["Engine:RateLimit"],
+                    "Engine:VendorManaged" : rules[ruleListEntry]["Engine:VendorManaged"]
                 } +
                 attributeIfContent("NameSuffix", rules[ruleListEntry].NameSuffix!"")
             ] ]
