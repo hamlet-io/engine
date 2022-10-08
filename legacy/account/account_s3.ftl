@@ -106,6 +106,9 @@
                 kmsKeyId=accountCMKArn
                 outputId=formatAccountS3Id(bucket)
                 replicationConfiguration=replicationConfiguration
+                publicAccessBlockConfiguration=(
+                    getPublicAccessBlockConfiguration()
+                )
             /]
 
             [#if bucket == "registry" ]
