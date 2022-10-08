@@ -30,6 +30,9 @@
                 lifecycleRules=lifecycleRules
                 versioning=true
                 cannedACL="LogDeliveryWrite"
+                publicAccessBlockConfiguration=(
+                    getPublicAccessBlockConfiguration()
+                )
             /]
         [/#if]
     [#else]

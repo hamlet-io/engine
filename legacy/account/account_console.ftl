@@ -91,6 +91,9 @@
                         encrypted=true
                         kmsKeyId=consoleCMKId
                         versioning=true
+                        publicAccessBlockConfiguration=(
+                            getPublicAccessBlockConfiguration()
+                        )
                     /]
                 [/#if]
 
