@@ -54,6 +54,7 @@
             /]
         [/#if]
 
+        [#local value = value?remove_beginning("__")?remove_ending("__") ]
         [#return "__Properties:${value}__"  ]
     [/#if]
 [/#function]
