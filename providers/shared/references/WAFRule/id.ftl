@@ -35,9 +35,9 @@
         {
             "Names" : "Engine",
             "Description" : "The engine of the rule that will be used to evaluate the traffic",
-            "Values" : [ "Conditonal", "RateLimit", "VendorManaged" ],
+            "Values" : [ "Conditional", "RateLimit", "VendorManaged" ],
             "Types": STRING_TYPE,
-            "Default" : "Conditonal"
+            "Default" : "Conditional"
         },
         {
             "Names" : "Engine:RateLimit",
