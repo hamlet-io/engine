@@ -129,6 +129,14 @@
     [#return result]
 [/#function]
 
+[#function getOccurrenceImage occurrence id="default" defaultWhenMissing=true ]
+    [#if id != "default" && defaultWhenMissing]
+        [#return ((occurrence.State.Images[id])!occurrence.State.Images["default"])!{}]
+    [/#if]
+
+    [#return (occurrence.State.Images[id])!{}]
+[/#function]
+
 [#function getOccurrenceNetwork occurrence]
     [#return getTierNetwork(occurrence.Core.Tier.Id)]
 [/#function]
@@ -344,6 +352,8 @@
                     "Environment" : {
                         "Build" :
                             getSettingsAsEnvironment(occurrence.Configuration.Settings.Build),
+                        "Image" :
+                            getSettingsAsEnvironment(occurrence.Configuration.Settings.Image),
                         "General" :
                             internalGetOccurrenceSettingsAsEnvironment(
                                 occurrence,
@@ -409,6 +419,7 @@
         [#-- Default resource group state --]
         [#local state =
             {
+                "Images": {},
                 "Resources" : {},
                 "Roles" : {
                     "Inbound" : {},
@@ -530,6 +541,40 @@
         [/#if]
     [/#list]
     [#return result ]
+[/#function]
+
+[#function constructOccurrenceImageSettings occurrence ]
+    [#if ((occurrence.State.Images)!{})?has_content]
+        [#local occurrence = mergeObjects(
+            occurrence,
+            {
+                "Configuration" : {
+                    "Settings" : {
+                        "Image": {
+                            "IMAGE_REFERENCE": {
+                                "Value": ((occurrence.State.Images)?values?map(x -> x?is_hash?then((x.Reference)!"", ""))?join(","))!""
+                            },
+                            "IMAGE_TAG": {
+                                "Value":  ((occurrence.State.Images)?values?map(x -> x?is_hash?then((x.Tag)!"", ""))?join(","))!""
+                            }
+                        }
+                    }
+                }
+            }
+        )]
+
+        [#local occurrence = mergeObjects(
+            occurrence,
+            {
+                "Configuration" : {
+                    "Environment" : {
+                        "Image" : getSettingsAsEnvironment(occurrence.Configuration.Settings.Image)
+                    }
+                }
+            }
+        )]
+    [/#if]
+    [#return occurrence]
 [/#function]
 
 [#--------------------------------------------------------

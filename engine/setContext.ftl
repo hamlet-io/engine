@@ -74,8 +74,8 @@
     [#return getExistingReference(formatAccountS3Id("code"), REGION_ATTRIBUTE_TYPE)]
 [/#function]
 
-[#function getRegistryBucket]
-    [#return getExistingReference(formatAccountS3Id("registry")) ]
+[#function getRegistryBucket region=""]
+    [#return getExistingReference(formatAccountS3Id("registry"), "", region) ]
 [/#function]
 
 [#function getRegistryBucketRegion]
