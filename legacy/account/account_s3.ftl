@@ -261,13 +261,6 @@
             r'return 0'
         ]]
 
-        [#assign s3RegistryIds = ""]
-        [#list accountObject["Registry"]["Registries"] as id,details ]
-            [#if details?is_hash && details.Enabled && details.Storage == "objectstore" ]
-                [#assign s3RegistryIds += '"${id}" ' ]
-            [/#if]
-        [/#list]
-
         [#-- Make sure code bucket is up to date and registries initialised --]
         [#if deploymentSubsetRequired("epilogue", false) ]
             [@addToDefaultBashScriptOutput
@@ -277,18 +270,6 @@
                     ] +
                         scriptSyncContent +
                     [
-                        "}",
-                        "#",
-                        "function initialise_registries() {",
-                        "  info \"Initialising the registry bucket ...\"",
-                        "  local registry_marker=\"$(getTopTempDir)/registry\"",
-                        "  touch \"$\{registry_marker}\"",
-                        "  for registry in \"$@\"; do",
-                        "    aws --region \"$\{ACCOUNT_REGION}\" s3 cp \"$\{registry_marker}\" \"s3://" +
-                                currentRegistryBucket + "/$\{registry}/.registry\" ||",
-                        "      { exit_status=$?; fatal \"Can't initialise the $\{registry} registry\"; return \"$\{exit_status}\"; }",
-                        "  done",
-                        "  return 0",
                         "}",
                         "#",
                         "case $\{STACK_OPERATION} in",

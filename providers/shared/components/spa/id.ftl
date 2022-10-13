@@ -59,38 +59,7 @@
             {
                 "Names" : "Image",
                 "Description" : "Control the source of the image that is used for the function",
-                "Children" : [
-                    {
-                        "Names" : "Source",
-                        "Description" : "The source of the image - registry is the hamlet registry",
-                        "Types" : STRING_TYPE,
-                        "Mandatory" : true,
-                        "Values" : [ "link", "registry", "url" ],
-                        "Default" : "registry"
-                    },
-                    {
-                        "Names" : "UrlSource",
-                        "Description" : "Url Source specific Configuration",
-                        "Children" : [
-                            {
-                                "Names" : "Url",
-                                "Description" : "The Url to the lambda zip file",
-                                "Types" : STRING_TYPE
-                            },
-                            {
-                                "Names" : "ImageHash",
-                                "Description" : "The expected sha1 hash of the Url if empty any will be accepted",
-                                "Types" : STRING_TYPE,
-                                "Default" : ""
-                            }
-                        ]
-                    },
-                    {
-                        "Names": "Link",
-                        "Description" : "The link to an image",
-                        "AttributeSet": LINK_ATTRIBUTESET_TYPE
-                    }
-                ]
+                "AttributeSet" : IMAGE_URL_ATTRIBUTESET_TYPE
             }
         ]
 /]

@@ -109,27 +109,7 @@
         {
             "Names" : "Image",
             "Description" : "Set the source of the components image",
-            "Children" : [
-                {
-                    "Names" : "Source",
-                    "Description" : "The source of the image",
-                    "Types" : STRING_TYPE,
-                    "Mandatory" : true,
-                    "Values" : [ "registry", "containerregistry" ],
-                    "Default" : "Registry"
-                },
-                {
-                    "Names" : "Source:containerregistry",
-                    "Description" : "A docker container registry to source the image from",
-                    "Children" : [
-                        {
-                            "Names" : "Image",
-                            "Description" : "The docker image that you want to use",
-                            "Types" : STRING_TYPE
-                        }
-                    ]
-                }
-            ]
+            "AttributeSet" : IMAGE_CONTAINER_ATTRIBUTESET_TYPE
         },
         {
             "Names" : "Version",

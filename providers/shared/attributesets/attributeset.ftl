@@ -21,6 +21,14 @@
 [#assign ECS_COMPUTEIMAGE_ATTRIBUTESET_TYPE = "ecs_computeimage"]
 [#assign ENVIRONMENTFORMAT_ATTRIBUTESET_TYPE = "environmentformat"]
 [#assign HOSTNAME_ATTRIBUTESET_TYPE = "hostname"]
+
+[#assign IMAGE_ATTRIBUTESET_TYPE = "image"]
+[#assign IMAGE_URL_ATTRIBUTESET_TYPE = "image_url"]
+[#assign IMAGE_URL_NONE_ATTRIBUTESET_TYPE = "image_url_none"]
+[#assign IMAGE_URL_EXTENSION_ATTRIBUTESET_TYPE = "image_url_extension" ]
+[#assign IMAGE_URL_EXTENSION_ARCHIVE_ATTRIBUTESET_TYPE = "image_url_extension_archive"]
+[#assign IMAGE_CONTAINER_ATTRIBUTESET_TYPE = "image_container"]
+
 [#assign LBATTACH_ATTRIBUTESET_TYPE = "lbattach"]
 [#assign LINK_ATTRIBUTESET_TYPE = "link"]
 [#assign LOGMETRIC_ATTRIBUTESET_TYPE = "logmetric"]

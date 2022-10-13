@@ -29,11 +29,11 @@
             "Description" : "The source of the image - Local: an image built locally - ContainerRegistry: a public container registry - URL: a public URL",
             "Types" : STRING_TYPE,
             "Mandatory" : true,
-            "Values" : [ "Local", "ContainerRegistry", "URL" ],
+            "Values" : [ "Local", "ContainerRegistry", "containerregistry", "URL" ],
             "Default" : "Local"
         },
         {
-            "Names" : "Source:ContainerRegistry",
+            "Names" : [ "Source:ContainerRegistry" "Source:containerregistry" ],
             "Description" : "A docker container registry to source the image from",
             "Children" : [
                 {

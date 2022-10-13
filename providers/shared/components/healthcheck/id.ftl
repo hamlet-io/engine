@@ -63,43 +63,13 @@
                 {
                     "Names" : "Image",
                     "Description" : "Control the source of the image for the healthcheck script",
-                    "Children" : [
-                        {
-                            "Names" : "Source",
-                            "Description" : "The source of the image - registry: the local hamlet registry - url: an external public url - none: no source image",
-                            "Types" : STRING_TYPE,
-                            "Mandatory" : true,
-                            "Values" : [ "link", "registry", "url", "none" ],
-                            "Default" : "registry"
-                        },
-                        {
-                            "Names" : "Source:url",
-                            "Description" : "Url Source specific Configuration",
-                            "Children" : [
-                                {
-                                    "Names" : "Url",
-                                    "Description" : "The Url to the openapi file",
-                                    "Types" : STRING_TYPE
-                                },
-                                {
-                                    "Names" : "ImageHash",
-                                    "Description" : "The expected sha1 hash of the Url if empty any will be accepted",
-                                    "Types" : STRING_TYPE,
-                                    "Default" : ""
-                                }
-                            ]
-                        },
-                        {
-                            "Names": "Link",
-                            "AttributeSet": LINK_ATTRIBUTESET_TYPE
-                        },
-                        {
-                            "Names" : "ScriptFileName",
-                            "Description" : "The name of the healthcheck script if the image is a zip",
-                            "Types" : STRING_TYPE,
-                            "Default" : "healthcheck.py"
-                        }
-                    ]
+                    "AttributeSet": IMAGE_URL_NONE_ATTRIBUTESET_TYPE
+                },
+                {
+                    "Names" : "ScriptFileName",
+                    "Description" : "The name of the healthcheck script if the image is a zip",
+                    "Types" : STRING_TYPE,
+                    "Default" : "healthcheck.py"
                 },
                 {
                     "Names" : "Tracing",
