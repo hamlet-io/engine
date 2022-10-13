@@ -352,8 +352,6 @@
                     "Environment" : {
                         "Build" :
                             getSettingsAsEnvironment(occurrence.Configuration.Settings.Build),
-                        "Image" :
-                            getSettingsAsEnvironment(occurrence.Configuration.Settings.Image),
                         "General" :
                             internalGetOccurrenceSettingsAsEnvironment(
                                 occurrence,
