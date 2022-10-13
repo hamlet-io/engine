@@ -1,6 +1,53 @@
 # Changelog
 
-## latest (2022-08-23)
+## latest (2022-10-12)
+
+#### New Features
+
+* (s3): block public access on account s3
+* (waf): add rule engines
+* (datacatalog): add new component ([#2049](https://github.com/hamlet-io/engine/issues/2049))
+* (userpool): add support callback urls solution
+* enable logging by default
+* (network): add prefix control for flow logs
+* (dynamicvalue): add IP Address group support
+* (globaldb): add enable support for indexes
+* migrate tiers and solution setup into configuration data approach
+* district based solutions
+* add support for base attribute set expansion
+* add support for links as image sources
+* extend missing link detail error message
+* (cdn): enable/disable error response overrides
+* (cdn): extended support for managing CDNS
+#### Fixes
+
+* (wafrule): engine type spelling ([#2058](https://github.com/hamlet-io/engine/issues/2058))
+* (dynamicvalue): correct the output for tasks ([#2057](https://github.com/hamlet-io/engine/issues/2057))
+* set tier indexes for tiers not in network
+* tier network configuration ([#2046](https://github.com/hamlet-io/engine/issues/2046))
+* (mobileapp): remove default on expo id override ([#2045](https://github.com/hamlet-io/engine/issues/2045))
+* (dynamicvalues): support objects in replace ([#2043](https://github.com/hamlet-io/engine/issues/2043))
+* nested expansion of attributes ([#2040](https://github.com/hamlet-io/engine/issues/2040))
+* split expand base configuration ([#2039](https://github.com/hamlet-io/engine/issues/2039))
+* set fixed index for shared tier
+* index handling for network ordering
+* tier lookup id name
+* configuration loading
+* update component settings for dynamic values
+* (cdn): Response Policy Child reference
+#### Refactorings
+
+* (waf): cleanup of shared provider setup
+* dynamic value handling ([#2042](https://github.com/hamlet-io/engine/issues/2042))
+* add apigw certificate
+* move AV configuration to shared
+#### Others
+
+* remove app public permissions attribute
+
+Full set of changes: [`8.7.0...latest`](https://github.com/hamlet-io/engine/compare/8.7.0...latest)
+
+## 8.7.0 (2022-08-23)
 
 #### New Features
 
@@ -36,9 +83,10 @@
 * remove occurrence dependency and apply at the occurrence level
 #### Others
 
+* update changelog ([#2007](https://github.com/hamlet-io/engine/issues/2007))
 * (lambda): update lambda runtime versions ([#2031](https://github.com/hamlet-io/engine/issues/2031))
 
-Full set of changes: [`8.6.2...latest`](https://github.com/hamlet-io/engine/compare/8.6.2...latest)
+Full set of changes: [`8.6.2...8.7.0`](https://github.com/hamlet-io/engine/compare/8.6.2...8.7.0)
 
 ## 8.6.2 (2022-06-07)
 
