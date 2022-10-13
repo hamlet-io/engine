@@ -195,14 +195,12 @@
     ]
 [/#macro]
 
-[#macro Attributes name="" image="" version="" essential=true]
+[#macro Attributes name="" essential=true]
     [#assign _context +=
         {
             "Essential" : essential
         } +
-        attributeIfContent("Name", name) +
-        attributeIfContent("Image", image) +
-        attributeIfContent("ImageVersion", version)
+        attributeIfContent("Name", name)
     ]
 [/#macro]
 
