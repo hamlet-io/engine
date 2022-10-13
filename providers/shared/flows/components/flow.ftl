@@ -1024,6 +1024,9 @@ that doesn't match the link.
 
                         }]
 
+                    [#-- Add Image settings after we have built the image in state --]
+                    [#local occurrence = constructOccurrenceImageSettings(occurrence)]
+
                     [#-- Add suboccurrences --]
                     [#local subOccurrences = [] ]
 
