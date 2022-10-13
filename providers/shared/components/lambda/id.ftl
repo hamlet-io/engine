@@ -238,57 +238,9 @@
                 "Default" : -1
             },
             {
-                "Names" : "Image",
-                "Description" : "Control the source of the image that is used for the function",
-                "Children" : [
-                    {
-                        "Names" : "Source",
-                        "Description" : "The source of the image - registry is the hamlet registry",
-                        "Types" : STRING_TYPE,
-                        "Mandatory" : true,
-                        "Values" : [ "link", "registry", "url", "extension" ],
-                        "Default" : "registry"
-                    },
-                    {
-                        "Names" : ["source:Url", "UrlSource"],
-                        "Description" : "Url Source specific Configuration",
-                        "Children" : [
-                            {
-                                "Names" : "Url",
-                                "Description" : "The Url to the lambda zip file",
-                                "Types" : STRING_TYPE
-                            },
-                            {
-                                "Names" : "ImageHash",
-                                "Description" : "The expected sha1 hash of the Url if empty any will be accepted",
-                                "Types" : STRING_TYPE,
-                                "Default" : ""
-                            }
-                        ]
-                    },
-                    {
-                        "Names" : "source:Extension",
-                        "Description" : "Use an inline extension to set the content of the function",
-                        "Children" : [
-                            {
-                                "Names" : "IncludeRunId",
-                                "Description" : "Adds the RunId as a comment to ensure that it is unique",
-                                "Types" : BOOLEAN_TYPE,
-                                "Default" : true
-                            },
-                            {
-                                "Names" : "CommentCharacters",
-                                "Description" : "The single line comment sequence for your language",
-                                "Types" : STRING_TYPE,
-                                "Default" : '//'
-                            }
-                        ]
-                    },
-                    {
-                        "Names": "Link",
-                        "AttributeSet": LINK_ATTRIBUTESET_TYPE
-                    }
-                ]
+                "Names": "Image",
+                "Description": "Control the source of the image that is used for the function",
+                "AttributeSet": IMAGE_URL_EXTENSION_ARCHIVE_ATTRIBUTESET_TYPE
             }
         ]
     parent=LAMBDA_COMPONENT_TYPE

@@ -117,6 +117,7 @@
 [#assign SECRET_ATTRIBUTE_TYPE = "secret"]
 [#assign RESULT_ATTRIBUTE_TYPE = "result" ]
 [#assign VERSION_ATTRIBUTE_TYPE = "version" ]
+[#assign TAG_ATTRIBUTE_TYPE = "tag" ]
 
 [#-- special attribute type to handle references --]
 [#assign REFERENCE_ATTRIBUTE_TYPE = "ref" ]
