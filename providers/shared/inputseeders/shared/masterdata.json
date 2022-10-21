@@ -1800,6 +1800,10 @@
     }
   },
   "WAFProfiles": {
+    "default": {
+      "Rules": [],
+      "DefaultAction": "ALLOW"
+    },
     "OWASP2017": {
       "Rules": [
         {
@@ -1827,7 +1831,7 @@
         },
         "application": {
           "HTTPSProfile": "ELBSecurityPolicy-TLS-1-2-2017-01",
-          "WAFProfile": "OWASP2017",
+          "WAFProfile": "default",
           "WAFValueSet": "default"
         },
         "classic": {
@@ -1838,17 +1842,17 @@
         "CDNHTTPSProfile": "TLSv1",
         "GatewayHTTPSProfile": "TLS_1_0",
         "ProtocolPolicy": "redirect-to-https",
-        "WAFProfile": "OWASP2017",
+        "WAFProfile": "default",
         "WAFValueSet": "default"
       },
       "spa": {
         "HTTPSProfile": "TLSv1",
-        "WAFProfile": "OWASP2017",
+        "WAFProfile": "default",
         "WAFValueSet": "default"
       },
       "cdn": {
         "HTTPSProfile": "TLSv1",
-        "WAFProfile": "OWASP2017",
+        "WAFProfile": "default",
         "WAFValueSet": "default"
       },
       "db": {
