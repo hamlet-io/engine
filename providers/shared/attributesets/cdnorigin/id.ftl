@@ -28,7 +28,8 @@
             "Default" : ""
         },
         {
-            "Names" : "Link",
+            "Names" : [ "OriginLink", "Link"],
+            "Description" : "A link to the origin that requests will route to",
             "Mandatory" : true,
             "AttributeSet" : LINK_ATTRIBUTESET_TYPE
         },
