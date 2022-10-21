@@ -1016,17 +1016,12 @@
 
     [#-- Permit the base outputs to be overridden - mainly for the deployment unit --]
     [#list baseOutputs + outputs as key,value ]
-        [#local outputString +=
-          "\"" + key + "\" \"" + value + "\" "
-        ]
+        [#local outputString += '"${key}" "${value}" ']
     [/#list]
 
     [#return
         [
-            "create_pseudo_stack" + " " +
-            "\"" + description + "\"" + " " +
-            "\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")" + (filesuffix?has_content)?then("-" + filesuffix, "") + "-pseudo-stack.json\" " +
-            outputString + " || return $?"
+            r'create_pseudo_stack "' + description + r'" "${CF_DIR}/$(fileBase "${BASH_SOURCE[0]}")' + (filesuffix?has_content)?then("-" + filesuffix, "") + r'-pseudo-stack.json" ' + outputString + r' || return $?'
         ]
     ]
 
