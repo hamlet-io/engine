@@ -82,7 +82,7 @@
                             "Test" : (condition.Test)!"",
                             "Condition" : condition.Match,
                             "Value" : condition.Value
-                        }
+                        },
                         runBookInputs
                     )
                 priority=10
