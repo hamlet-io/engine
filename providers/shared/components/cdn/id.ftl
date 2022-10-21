@@ -574,6 +574,11 @@
                     ]
                 }
             ]
+        },
+        {
+            "Names" : "Links",
+            "SubObjects" : true,
+            "AttributeSet" : LINK_ATTRIBUTESET_TYPE
         }
     ]
 /]
@@ -593,6 +598,11 @@
     attributes=[
         {
             "AttributeSet": CDNORIGIN_ATTRIBUTESET_TYPE
+        },
+        {
+            "Names" : "Links",
+            "SubObjects" : true,
+            "AttributeSet" : LINK_ATTRIBUTESET_TYPE
         }
     ]
 /]
