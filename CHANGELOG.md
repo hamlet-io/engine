@@ -1,6 +1,19 @@
 # Changelog
 
-## latest (2022-10-12)
+## latest (2022-10-24)
+
+#### Fixes
+
+* (waf): set default WAFProfile to default
+* (runbook): minor typo in code for conditions
+* (cdn): support for links on subcomponent
+#### Refactorings
+
+* shellcheck updates for pseudo stack
+
+Full set of changes: [`8.8.0...latest`](https://github.com/hamlet-io/engine/compare/8.8.0...latest)
+
+## 8.8.0 (2022-10-13)
 
 #### New Features
 
@@ -43,9 +56,10 @@
 * move AV configuration to shared
 #### Others
 
+* update changelog ([#2032](https://github.com/hamlet-io/engine/issues/2032))
 * remove app public permissions attribute
 
-Full set of changes: [`8.7.0...latest`](https://github.com/hamlet-io/engine/compare/8.7.0...latest)
+Full set of changes: [`8.7.0...8.8.0`](https://github.com/hamlet-io/engine/compare/8.7.0...8.8.0)
 
 ## 8.7.0 (2022-08-23)
 
