@@ -9,6 +9,12 @@
         }]
     attributes=[
         {
+            "Names": "Enabled",
+            "Description" : "Is the scaling policy enabled",
+            "Types": BOOLEAN_TYPE,
+            "Default": true
+        },
+        {
             "Names" : "Type",
             "Types" : STRING_TYPE,
             "Values" : [ "Stepped", "Tracked", "Scheduled" ],
