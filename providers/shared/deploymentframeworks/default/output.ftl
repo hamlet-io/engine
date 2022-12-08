@@ -16,6 +16,7 @@
 [#assign CONTRACT_DEFAULT_OUTPUT_TYPE = "contract"]
 [#assign INFO_DEFAULT_OUTPUT_TYPE = "info" ]
 [#assign STATE_OUTPUT_TYPE = "state" ]
+[#assign STACK_OUTPUT_TYPE = "stack"]
 
 [#-- SCRIPT_DEFAULT_OUTPUT_TYPE --]
 
@@ -665,6 +666,64 @@
     /]
 [/#macro]
 
+[#-- Stack Output --]
+[#function default_output_stack level="" include=""]
+    [@setOutputProperties
+        properties={ "type:file" : { "format" : "json" }}
+    /]
+    [@initialiseJsonOutput name="stack_outputs" /]
+
+    [@processFlows
+        level=level
+        framework=DEFAULT_DEPLOYMENT_FRAMEWORK
+        flows=getCLOFlows()
+    /]
+
+    [#if getOutputContent("stack_outputs")?has_content ]
+
+        [@mergeWithJsonOutput
+            name="stack_outputs"
+            content={
+                "Account" : getActiveLayer(ACCOUNT_LAYER_TYPE).ProviderId,
+                "Region": getRegion(),
+                "DeploymentUnit": getCLODeploymentUnit()
+            }
+        /]
+
+        [#local stackOutputs = []]
+        [#list getOutputContent("stack_outputs") as k,v]
+            [#local stackOutputs += [ {"OutputKey": k, "OutputValue": v}]]
+        [/#list]
+
+        [#return
+            {
+                "Metadata" : {
+                    "Id" : "state",
+                    "Prepared" : .now?iso_utc,
+                    "RunId" : getCLORunId(),
+                    "RequestReference" : getCLORequestReference(),
+                    "ConfigurationReference" : getCLOConfigurationReference()
+                },
+                "Stacks" : [
+                    {
+                        "Outputs": stackOutputs
+                    }
+                ]
+            }
+        ]
+    [/#if]
+    [#return {}]
+[/#function]
+
+
+[#macro stackOutput key value ]
+    [@mergeWithJsonOutput
+        name="stack_outputs"
+        content={
+            key : value
+        }
+    /]
+[/#macro]
 
 [#-- Add Output Step mappings for each output --]
 [@addGenerationContractStepOutputMapping
@@ -793,6 +852,14 @@
     outputType=STATE_OUTPUT_TYPE
     outputFormat=""
     outputSuffix="state.json"
+/]
+
+[@addGenerationContractStepOutputMapping
+    provider=SHARED_PROVIDER
+    subset="stack"
+    outputType=STACK_OUTPUT_TYPE
+    outputFormat=""
+    outputSuffix="stack.json"
 /]
 
 
