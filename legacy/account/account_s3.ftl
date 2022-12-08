@@ -268,17 +268,7 @@
                     [
                         "function sync_code_bucket() {"
                     ] +
-                        scriptSyncContent +
-                    [
-                        "}",
-                        "#",
-                        "case $\{STACK_OPERATION} in",
-                        "  create|update)",
-                        "    sync_code_bucket || return $?",
-                        "    initialise_registries ${s3RegistryIds} || return $?",
-                        "    ;;",
-                        " esac"
-                    ]
+                        scriptSyncContent
             /]
         [/#if]
     [/#if]
