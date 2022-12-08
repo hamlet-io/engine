@@ -65,6 +65,8 @@
     type=DB_COMPONENT_TYPE
 /]
 
+[#assign DB_PROXY_COMPONENT_TYPE = "dbproxy" ]
+
 [#assign DOCDB_COMPONENT_TYPE = "docdb" ]
 
 [#assign DIRECTORY_COMPONENT_TYPE = "directory" ]

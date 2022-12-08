@@ -342,3 +342,101 @@
     type=DB_COMPONENT_TYPE
     defaultGroup="solution"
 /]
+
+[@addChildComponent
+    type=DB_PROXY_COMPONENT_TYPE
+    parent=DB_COMPONENT_TYPE
+    childAttribute="Proxies"
+    linkAttributes="Proxy"
+    properties=
+        [
+            {
+                "Type" : "Description",
+                "Value" : "A database connection pooling proxy"
+            }
+        ]
+    attributes=[
+        {
+            "Names" : "Enabled",
+            "Description": "Is the proxy enabled",
+            "Types": BOOLEAN_TYPE,
+            "Default": true
+        },
+        {
+            "Names": "TargetTypes",
+            "Description" : "The type of the proxy targets to create based on the avaialble db resources",
+            "Types": ARRAY_OF_STRING_TYPE,
+            "Values" : [ "ReadWrite", "ReadOnly" ],
+            "Default" : [ "ReadWrite" ]
+        },
+        {
+            "Names": "ConnectionBorrowTimeout",
+            "Description" : "How long to wait for a connection to be released when no other connections are available",
+            "Types": NUMBER_TYPE
+        },
+        {
+            "Names" : "MaxConnectionsPercent",
+            "Description" : "The percentage of connections that the proxy can use",
+            "Types" : NUMBER_TYPE
+        },
+        {
+            "Names" : "MaxIdleConnectionsPercent",
+            "Description" : "The percentage of idle connections that are kept active",
+            "Types" : NUMBER_TYPE
+        },
+        {
+            "Names" : "AuthorisedUsers",
+            "Description" : "Defines the users who can use the Proxy",
+            "SubObjects" : true,
+            "Children" : [
+                {
+                    "Names" : "Source",
+                    "Description" : "The source of the user credentials - Secret = a secret component, DBRoot = the root credentials used on the parent DB",
+                    "Values" : ["Secret", "DBRoot"],
+                    "Default" : "Secret"
+                },
+                {
+                    "Names" : "Source:Secret",
+                    "Children": [
+                        {
+                            "Names" : "Username",
+                            "Description" : "The username if not provided in the secret",
+                            "Types" : STRING_TYPE
+                        },
+                        {
+                            "Names" : "Link",
+                            "Description" : "A link to the secret that holds the credentials for the db - secret should contain username and password as JSON object",
+                            "AttributeSet": LINK_ATTRIBUTESET_TYPE
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Names": "InitProxy",
+            "Description": "A SQL query for the proxy to run on the startup of a new connection",
+            "Types" : STRING_TYPE,
+            "Default" : ""
+        },
+        {
+                "Names" : "Profiles",
+                "Children": [
+                    {
+                        "Names" : "Network",
+                        "Types" : STRING_TYPE,
+                        "Default" : "default"
+                    }
+                ]
+        },
+        {
+            "Names" : "Links",
+            "SubObjects" : true,
+            "AttributeSet" : LINK_ATTRIBUTESET_TYPE
+        },
+        {
+            "Names" : "IPAddressGroups",
+            "Types" : ARRAY_OF_STRING_TYPE,
+            "Default" : [ "_localnet" ]
+        }
+    ]
+/]
