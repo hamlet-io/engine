@@ -15,10 +15,11 @@
 
 [#macro shared_extension_runbook_image_reference_output_runbook_setup occurrence ]
 
-    [#local image = (_context.Links["image"])!{}]
-    [#if ! image?has_content]
+    [#local imageLink = (_context.Links["image"])!{}]
+    [#if ! imageLink?has_content ]
         [#return]
     [/#if]
+    [#local image = imageLink.State.Images[_context.Inputs["input:ImageId"]] ]
 
     [#assign _context = mergeObjects(
         _context,
@@ -26,12 +27,12 @@
             "TaskParameters" : {
                 "StackOutputContent" : getJSON(
                     {
-                        image.State.Resources.image.Id: "__input:Reference__",
-                        formatId(image.State.Resources.image.Id, NAME_ATTRIBUTE_TYPE): "__input:Tag__"
+                        image.Id: "__input:Reference__",
+                        formatId(image.Id, NAME_ATTRIBUTE_TYPE): "__input:Tag__"
                     }
                 ),
-                "DeploymentUnit" : getOccurrenceDeploymentUnit(image),
-                "DeploymentGroup" : getOccurrenceDeploymentGroup(image)
+                "DeploymentUnit" : getOccurrenceDeploymentUnit(imageLink),
+                "DeploymentGroup" : getOccurrenceDeploymentGroup(imageLink)
             }
         }
     )]

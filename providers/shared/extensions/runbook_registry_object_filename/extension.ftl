@@ -15,17 +15,18 @@
 
 [#macro shared_extension_runbook_registry_object_filename_runbook_setup occurrence ]
 
-    [#local image = (_context.Links["image"])!{}]
-    [#if ! image?has_content]
+    [#local imageLink = (_context.Links["image"])!{}]
+    [#if ! imageLink?has_content ]
         [#return]
     [/#if]
+    [#local image = imageLink.State.Images[_context.Inputs["input:ImageId"]] ]
 
     [#assign _context = mergeObjects(
         _context,
         {
             "TaskParameters" : {
                 "DestinationPath" : {
-                    "Value" : "__output:zip_stage_path:path__/" + (image.State.Resources["image"].ImageFileName)!""
+                    "Value" : "__output:zip_stage_path:path__/" + (image.ImageFileName)!""
                 }
             }
         }
