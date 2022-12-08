@@ -59,7 +59,8 @@
                 "Environment" : {},
                 "Links" : contextLinks,
                 "TaskParameters" : solution.Task.Parameters,
-                "Conditions" : solution.Conditions
+                "Conditions" : solution.Conditions,
+                "Inputs": runBookInputs
             }
         ]
         [#local _context = invokeExtensions(subOccurrence, _context, {}, [], false, "runbook")]
