@@ -271,13 +271,7 @@
                         scriptSyncContent +
                     [
                         "}",
-                        "#",
-                        "case $\{STACK_OPERATION} in",
-                        "  create|update)",
-                        "    sync_code_bucket || return $?",
-                        "    initialise_registries ${s3RegistryIds} || return $?",
-                        "    ;;",
-                        " esac"
+                        "sync_code_bucket || exit $?"
                     ]
             /]
         [/#if]
