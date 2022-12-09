@@ -268,7 +268,11 @@
                     [
                         "function sync_code_bucket() {"
                     ] +
-                        scriptSyncContent
+                        scriptSyncContent +
+                    [
+                        "}",
+                        "sync_code_bucket || exit $?"
+                    ]
             /]
         [/#if]
     [/#if]
