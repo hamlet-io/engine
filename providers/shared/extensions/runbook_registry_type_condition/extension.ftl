@@ -15,17 +15,18 @@
 
 [#macro shared_extension_runbook_registry_type_condition_runbook_setup occurrence ]
 
-    [#local image = (_context.Links["image"])!{}]
-    [#if ! image?has_content]
+    [#local imageLink = (_context.Links["image"])!{}]
+    [#if ! imageLink?has_content ]
         [#return]
     [/#if]
+    [#local image = imageLink.State.Images[_context.Inputs["input:ImageId"]] ]
 
     [#assign _context = mergeObjects(
         _context,
         {
             "Conditions" : {
                 "registry_type" : {
-                    "Test" : (image.State.Resources["image"].RegistryType)!""
+                    "Test" : image.RegistryType
                 }
             }
         }
