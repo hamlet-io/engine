@@ -322,6 +322,65 @@
                     ]
                 }
             ]
+        },
+        {
+            "Names": "ProviderAuditing",
+            "Description": "Logging of cloud service provider actions",
+            "Children" : [
+                {
+                    "Names": "Enabled",
+                    "Description" : "Is the logging service enabled",
+                    "Types": BOOLEAN_TYPE,
+                    "Default" : true
+                },
+                {
+                    "Names" : "Scope",
+                    "Description" : "The Scope of the logging sent to this account - Account = this account, Tenancy = all accounts in tenancy",
+                    "Types" : STRING_TYPE,
+                    "Values" : [ "Account", "Tenancy"],
+                    "Default" : "Account"
+                },
+                {
+                    "Names": "Encryption",
+                    "Description" : "Manage at-rest encryption of data storage",
+                    "Children" : [
+                        {
+                            "Names" : "Enabled",
+                            "Types" : BOOLEAN_TYPE,
+                            "Default" : true
+                        }
+                    ]
+                },
+                {
+                    "Names" : "StorageLocations",
+                    "Description": "Where to store the audit logs",
+                    "SubObjects": true,
+                    "Children" : [
+                        {
+                            "Names" : "Type",
+                            "Description" : "The type of storage to use",
+                            "Values" : [ "Object", "Logs" ],
+                            "Default" : "Object"
+                        },
+                        {
+                            "Names": "Type:Object",
+                            "Children" : [
+                                {
+                                    "Names" : "Prefix",
+                                    "Description" : "A prefix to apply to objects store in logs - _provider = use the providers service name",
+                                    "Default" : "_provider"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "Names": "aws:InsightReporting",
+                    "Description" : "Enable proactive insight monitor logging",
+                    "Types" : BOOLEAN_TYPE,
+                    "Default" : true
+                }
+            ]
         }
     ]
 /]
