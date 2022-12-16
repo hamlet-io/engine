@@ -198,6 +198,12 @@
                 "Description" : "Provision a managed endpoint for login and oauth endpoints",
                 "Children" : [
                     {
+                        "Names": "Enabled",
+                        "Description": "Setup a custom hosted ui endpoint for login and oauth",
+                        "Types": BOOLEAN_TYPE,
+                        "Default" : true
+                    },
+                    {
                         "Names" : [ "Certificate", "Hostname" ],
                         "AttributeSet" : CERTIFICATE_ATTRIBUTESET_TYPE
                     }
