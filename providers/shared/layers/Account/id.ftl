@@ -222,6 +222,88 @@
                     "Names" : "Offline",
                     "Description" : "The duration to keep logs before sending to offline storage",
                     "Types" : [ NUMBER_TYPE, STRING_TYPE ]
+                },
+                {
+                    "Names": "ReplicationRules",
+                    "Description" : "Manage replication of the audit bucket to another location",
+                    "SubObjects": true,
+                    "Children": [
+                        {
+                            "Names" : "Enabled",
+                            "Description" : "Is the rule enabled",
+                            "Types": BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Names": "Priority",
+                            "Description" : "The priority of the rule when handling conflicts",
+                            "Types" : NUMBER_TYPE,
+                            "Default" : 100
+                        },
+                        {
+                            "Names" : "Destination",
+                            "Children" : [
+                                {
+                                    "Names" : "Id",
+                                    "Description" : "The unique Id of the destination that will receive the data",
+                                    "Types" : STRING_TYPE,
+                                    "Mandatory" : true
+                                },
+                                {
+                                    "Names": "ProviderId",
+                                    "Description" : "The Cloud Provider Id of where the destination is hosted - set to __local__ for own account",
+                                    "Types" : STRING_TYPE,
+                                    "Default" : "__local__"
+                                }
+                            ]
+                        },
+                        {
+                            "Names": "Filters",
+                            "Description" : "The filters to apply on objects that should be replicated",
+                            "SubObjects" : true,
+                            "Children" : [
+                                {
+                                    "Names" : "Enabled",
+                                    "Description" : "Is the filter enabled",
+                                    "Types": BOOLEAN_TYPE,
+                                    "Default" : true
+                                }
+                                {
+                                    "Names" : "Type",
+                                    "Types" : STRING_TYPE,
+                                    "Description" : "The type of prefix to use",
+                                    "Values" : [ "Prefix", "Tag" ],
+                                    "Mandatory" : true
+                                },
+                                {
+                                    "Names": "Type:Prefix",
+                                    "Description" : "Prefix specific controls applied on the filter",
+                                    "Children" : [
+                                        {
+                                            "Names" : "Prefix",
+                                            "Description" : "The prefix to filter objects based on",
+                                            "Types" : STRING_TYPE
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Names" : "Type:Tag",
+                                    "Children" : [
+                                        {
+                                            "Names" : "Key",
+                                            "Description" : "The key of the Tag",
+                                            "Types" : STRING_TYPE
+                                        },
+                                        {
+                                            "Names" : "Value",
+                                            "Description" : "The vlaue of the Tag",
+                                            "Types" : STRING_TYPE
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
                 }
             ]
         },
