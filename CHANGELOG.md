@@ -1,6 +1,31 @@
 # Changelog
 
-## latest (2022-10-24)
+## latest (2023-01-16)
+
+#### New Features
+
+* (audit): add support for replication ([#2080](https://github.com/hamlet-io/engine/issues/2080))
+* (cloudtrail): support for account cloudtrail ([#2079](https://github.com/hamlet-io/engine/issues/2079))
+* (userpool): control enabling hostedUI
+* (account): add aws es log access policy ([#2077](https://github.com/hamlet-io/engine/issues/2077))
+* (db): add proxy subcomponent
+* (attributeset): add enable for scaling policy
+* (image): adds support for images in occurrence
+#### Fixes
+
+* stackoutput generation and image upload runbooks ([#2075](https://github.com/hamlet-io/engine/issues/2075))
+* (account_s3): remove s3 registry initialisation ([#2076](https://github.com/hamlet-io/engine/issues/2076))
+* update release package version
+* add image settings setup
+* remove image settings for env
+#### Refactorings
+
+* standardise github actions
+* standardise image attributes
+
+Full set of changes: [`8.8.2...latest`](https://github.com/hamlet-io/engine/compare/8.8.2...latest)
+
+## 8.8.2 (2022-10-27)
 
 #### Fixes
 
@@ -10,8 +35,11 @@
 #### Refactorings
 
 * shellcheck updates for pseudo stack
+#### Others
 
-Full set of changes: [`8.8.0...latest`](https://github.com/hamlet-io/engine/compare/8.8.0...latest)
+* update changelog ([#2061](https://github.com/hamlet-io/engine/issues/2061))
+
+Full set of changes: [`8.8.0...8.8.2`](https://github.com/hamlet-io/engine/compare/8.8.0...8.8.2)
 
 ## 8.8.0 (2022-10-13)
 
