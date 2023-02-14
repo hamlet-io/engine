@@ -46,7 +46,6 @@
 [#assign BOOTSTRAP_REFERENCE_TYPE = "Bootstrap" ]
 [#assign BOOTSTRAPPROFILE_REFERENCE_TYPE = "BootstrapProfile" ]
 [#assign CORSPROFILE_REFERENCE_TYPE = "CORSProfile" ]
-[#assign SCRIPTSTORE_REFERENCE_TYPE = "ScriptStore" ]
 [#assign SECURITYPROFILE_REFERENCE_TYPE = "SecurityProfile" ]
 [#assign NETWORKPROFILE_REFERENCE_TYPE = "NetworkProfile" ]
 [#assign SERVICEROLE_REFERENCE_TYPE = "ServiceRole" ]

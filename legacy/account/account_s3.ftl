@@ -1,7 +1,7 @@
 
 [#macro setupAccountS3Buckets deploymentSubset versioning encryption encryptionSource kmsKeyId replica replicaRegions shareAccountIds=[] ]
 
-    [#local buckets = ["credentials", "code", "registry"] ]
+    [#local buckets = ["registry"] ]
     [#list buckets as bucket]
 
         [#if replica ]
@@ -111,9 +111,35 @@
                 )
             /]
 
+            [#assign policyStatements = [
+                getPolicyStatement(
+                    [
+                        "s3:*"
+                    ],
+                    [
+                        getArn(bucketId),
+                        {
+                            "Fn::Join": [
+                                "/",
+                                [
+                                    getArn(bucketId),
+                                    "*"
+                                ]
+                            ]
+                        }
+                    ],
+                    "*",
+                    {
+                        "Bool": {
+                            "aws:SecureTransport": "false"
+                        }
+                    },
+                    false
+                )
+            ]]
+
             [#if bucket == "registry" ]
                 [#assign awsShareAccounts = shareAccountIds ]
-                [#assign policyStatements = [] ]
                 [#list awsShareAccounts as awsAccount ]
 
                     [#assign accountPrincipal = {
@@ -194,7 +220,7 @@
 [#-- Standard set of buckets for an account --]
 [#if preconditionsMet && ( getCLODeploymentUnit() == "s3" || (groupDeploymentUnits!false) ) ]
     [#if deploymentSubsetRequired("generationcontract", false)]
-        [@addDefaultGenerationContract subsets=["template", "epilogue"] /]
+        [@addDefaultGenerationContract subsets=["template"] /]
     [/#if]
 
     [@setupAccountS3Buckets
@@ -208,74 +234,6 @@
         shareAccountIds=(accountObject.Registry.ShareAccess.ProviderIds)![]
     /]
 
-    [#if deploymentSubsetRequired("epilogue", false)]
-        [#assign currentCodeBucket =
-            contentIfContent(
-                getCodeBucket(),
-                formatName("account", "code", accountObject.Seed)
-            ) ]
-        [#assign currentRegistryBucket =
-            contentIfContent(
-                getRegistryBucket(),
-                formatName("account", "registry", accountObject.Seed)
-            ) ]
-
-        [#assign scriptSyncContent = [] ]
-        [#list scriptStores as key,scriptStore ]
-            [#if scriptStore?is_hash]
-                [#assign storePrefix = scriptStore.Destination.Prefix!key ]
-                [#assign scriptSyncContent += [
-                    "info \"Synching ScriptStore: " + key + "...\""
-                ]]
-
-                [#switch scriptStore.Engine ]
-                    [#case "local" ]
-                        [#assign scriptsDir = scriptStore.Source.Directory?replace("\\\{","{")]
-                        [#assign scriptSyncContent += [
-                            "if [[ -d \"" + scriptsDir + "\" ]]; then",
-                            "       aws --region \"$\{ACCOUNT_REGION}\" s3 sync --delete --exclude=\".git*\" \"" + scriptsDir + "\" \"s3://" +
-                                    currentCodeBucket + "/" + storePrefix + "/\" ||",
-                            "       { exit_status=$?; fatal \"Can't sync to the code bucket\"; return \"$\{exit_status}\"; }",
-                            "else",
-                                "fatal \"Local Script store not found - no sync performed\"; return 1",
-                            "fi"
-                        ]]
-                        [#break]
-
-                    [#case "github" ]
-                        [#assign scriptSyncContent += [
-                            r'stage_dir="${tmpdir}/' + storePrefix + r'"',
-                            r'mkdir -p "${stage_dir}"',
-                            r'# Clone the Repo',
-                            r'git_url="$( format_git_url "github" "github.com" "' + scriptStore.Source.Repository + r'" )"',
-                            r'clone_git_repo "${git_url}" "' + scriptStore.Source.Branch + r'" "${stage_dir}" || { exit_status=$?; fatal "Cant clone the script store"; return "${exit_status}"; }',
-                            r'       aws --region "${ACCOUNT_REGION}" s3 sync --delete --exclude=".git*" "${stage_dir}" "s3://' + currentCodeBucket + r'/' + storePrefix + r'/" ||',
-                            r'       { exit_status=$?; fatal "Cant sync to the code bucket"; return "${exit_status}"; }'
-                        ]]
-                        [#break]
-                [/#switch]
-            [/#if]
-        [/#list]
-        [#assign scriptSyncContent += [
-            r'# Ensure there is some content for the function',
-            r'return 0'
-        ]]
-
-        [#-- Make sure code bucket is up to date and registries initialised --]
-        [#if deploymentSubsetRequired("epilogue", false) ]
-            [@addToDefaultBashScriptOutput
-                content=
-                    [
-                        "function sync_code_bucket() {"
-                    ] +
-                        scriptSyncContent +
-                    [
-                        "}",
-                        "sync_code_bucket || exit $?"
-                    ]
-            /]
-        [/#if]
-    [/#if]
 [/#if]
 
 
