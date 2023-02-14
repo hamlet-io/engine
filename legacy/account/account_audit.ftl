@@ -34,7 +34,33 @@
             [/#if]
 
             [#assign sqsNotifications = []]
-            [#assign auditBucketPolicyStatements = []]
+
+            [#assign auditBucketPolicyStatements = [
+                getPolicyStatement(
+                    [
+                        "s3:*"
+                    ],
+                    [
+                        getArn(auditBucketId),
+                        {
+                            "Fn::Join": [
+                                "/",
+                                [
+                                    getArn(auditBucketId),
+                                    "*"
+                                ]
+                            ]
+                        }
+                    ],
+                    "*",
+                    {
+                        "Bool": {
+                            "aws:SecureTransport": "false"
+                        }
+                    },
+                    false
+                )
+            ]]
 
             [#if (accountObject.ProviderAuditing.StorageLocations)?values?filter( x -> x.Type == "Object")?size == 1 ]
 
