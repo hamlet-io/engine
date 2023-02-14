@@ -11,7 +11,7 @@
     attributes=[
         {
             "Names" : "StackOutputContent",
-            "Description" : "The key value parirs to write to the file as a JSON escaped string",
+            "Description" : "The key value pairs to write to the file as a JSON escaped string",
             "Types" : STRING_TYPE,
             "Mandatory" : true
         },
