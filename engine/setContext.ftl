@@ -25,12 +25,6 @@
 
     [#if enabled]
         [#if getLoaderProviders()?seq_contains("aws")]
-            [#assign credentialsBucket = getCredentialsBucket() ]
-            [#assign credentialsBucketRegion = getCredentialsBucketRegion() ]
-
-            [#assign codeBucket = getCodeBucket() ]
-            [#assign codeBucketRegion = getCodeBucketRegion() ]
-
             [#assign registryBucket = getRegistryBucket() ]
             [#assign registryBucketRegion = getRegistryBucketRegion() ]
 
@@ -58,22 +52,6 @@
 [/#macro]
 
 [#-- Account level buckets --]
-[#function getCredentialsBucket]
-    [#return getExistingReference(formatAccountS3Id("credentials")) ]
-[/#function]
-
-[#function getCredentialsBucketRegion]
-    [#return getExistingReference(formatAccountS3Id("credentials"), REGION_ATTRIBUTE_TYPE) ]
-[/#function]
-
-[#function getCodeBucket]
-    [#return getExistingReference(formatAccountS3Id("code")) ]
-[/#function]
-
-[#function getCodeBucketRegion]
-    [#return getExistingReference(formatAccountS3Id("code"), REGION_ATTRIBUTE_TYPE)]
-[/#function]
-
 [#function getRegistryBucket region=""]
     [#return getExistingReference(formatAccountS3Id("registry"), "", region) ]
 [/#function]
@@ -216,12 +194,6 @@
 
     [#-- CORS Profiles --]
     [#assign CORSProfiles = getReferenceData(CORSPROFILE_REFERENCE_TYPE) ]
-
-    [#-- Script Stores --]
-    [#assign scriptStores = getReferenceData(SCRIPTSTORE_REFERENCE_TYPE) ]
-
-    [#-- Bootstraps --]
-    [#assign bootstraps = getReferenceData(BOOTSTRAP_REFERENCE_TYPE, true) ]
 
     [#-- Log Filters --]
     [#assign logFilters = getReferenceData(LOGFILTER_REFERENCE_TYPE) ]

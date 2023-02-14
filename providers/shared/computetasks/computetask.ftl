@@ -131,14 +131,3 @@
         }
     ]
 /]
-
-[#assign COMPUTE_TASK_USER_BOOTSTRAP = "user_bootstrap" ]
-[@addComputeTask
-    type=COMPUTE_TASK_USER_BOOTSTRAP
-    properties=[
-        {
-            "Type" : "Description",
-            "Value" : "Run tasks provided through Bootstraps defined in the solution"
-        }
-    ]
-/]
