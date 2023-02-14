@@ -59,6 +59,78 @@
                     "Default" : ""
                 }
             ]
+        },
+        {
+            "Names" : "Format:docker",
+            "Description": "Format specific configuration for docker images",
+            "Children" : [
+                {
+                    "Names" : "ImmutableTags",
+                    "Description" : "Make tags immutablable",
+                    "Types": BOOLEAN_TYPE,
+                    "Default" : false
+                },
+                {
+                    "Names": "Scanning",
+                    "Description" : "Start scanning of images for vulnerabilities on upload",
+                    "Children" : [
+                        {
+                            "Names" : "Enabled",
+                            "Description" : "Enable scanning on upload",
+                            "Types" : BOOLEAN_TYPE,
+                            "Default": true
+                        }
+                    ]
+                },
+                {
+                    "Names": "Encryption",
+                    "Children" : [
+                        {
+                            "Names": "Enabled",
+                            "Description" : "Enable encryption at rest for the repository",
+                            "Types" : BOOLEAN_TYPE,
+                            "Default" : true
+                        }
+                    ]
+                },
+                {
+                    "Names" : "Lifecycle",
+                    "Description" : "Control the lifecycle of images in the container registry",
+                    "Children" : [
+                        {
+                            "Names" : "ConfiguratonSource",
+                            "Description": "Defines where the lifecycle policy comes from - Solution = simple configuration as part of solution, Extension = Use policy defined in an extension",
+                            "Types" : STRING_TYPE,
+                            "Values" : [ "Solution", "Extension" ],
+                            "Default": "Solution"
+                        },
+                        {
+                            "Names" : "Expiry",
+                            "Description" : "Control when images are removed from the registry",
+                            "Children" : [
+                                {
+                                    "Names" : "UntaggedDays",
+                                    "Description" : "How long (Days) until untagged images are removed - use _operations: to follow the layer configuration, or a number for a fixed value - set to 0 for no expiry",
+                                    "Types" : [ NUMBER_TYPE, STRING_TYPE],
+                                    "Default" : "_operations"
+                                },
+                                {
+                                    "Names" : "UntaggedMaxCount",
+                                    "Description": "How many untagged images to retain - set 0 for keep all",
+                                    "Types" : NUMBER_TYPE,
+                                    "Default" : 0
+                                },
+                                {
+                                    "Names" : "TaggedMaxCount",
+                                    "Description" : "How many tagged images to retain - set 0 to keep all",
+                                    "Types" : NUMBER_TYPE,
+                                    "Default" : 0
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
         }
     ]
 /]
