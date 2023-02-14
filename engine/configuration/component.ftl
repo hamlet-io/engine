@@ -137,6 +137,18 @@
             "Names" : "Unit",
             "Types" : STRING_TYPE,
             "Default" : defaultUnit
+        },
+        {
+            "Names": "Locks",
+            "Description" : "Apply locks on the deployment to control what can be completed",
+            "Children": [
+                {
+                    "Names" : "Delete",
+                    "Description" : "Don't allow the deployment to be deleted",
+                    "Types" : BOOLEAN_TYPE,
+                    "Default" : false
+                }
+            ]
         } +
         attributeIfTrue(
             "Values",

@@ -208,6 +208,18 @@
                         "Description" : "Enable at rest encryption",
                         "Types" : BOOLEAN_TYPE,
                         "Default" : false
+                    },
+                    {
+                        "Names" : "Transit",
+                        "Description" : "Control encryption in Transit processing",
+                        "Children" : [
+                            {
+                                "Names" : "Enabled",
+                                "Description": "Force the use of encryption in transit ( HTTPS )",
+                                "Types" : BOOLEAN_TYPE,
+                                "Default" : true
+                            }
+                        ]
                     }
                 ]
             },

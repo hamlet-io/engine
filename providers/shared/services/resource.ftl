@@ -28,3 +28,28 @@
     )
   ]
 [/#function]
+
+
+[#function getOccurrenceResourceIds resources ]
+    [#local resourceIds = []]
+
+    [#list resources as key,value ]
+        [#if value?is_hash && value.Id?? ]
+            [#local resourceIds = combineEntities(resourceIds, [ value.Id ], UNIQUE_COMBINE_BEHAVIOUR)]
+
+        [#elseif value?is_hash ]
+            [#list value as key, value ]
+                [#if value?is_hash ]
+                    [#local resourceIds = combineEntities(resourceIds, getOccurrenceResourceIds(value))]
+                [#elseif value?is_sequence]
+                    [#local resourceids = combineEntities(
+                      resourceIds,
+                      value?filter(x-> x?is_hash || x?is_sequence)?map(x -> getOccurrenceResourceIds(x))
+                    )]
+                [/#if]
+            [/#list]
+        [/#if]
+    [/#list]
+
+    [#return resourceIds ]
+[/#function]
