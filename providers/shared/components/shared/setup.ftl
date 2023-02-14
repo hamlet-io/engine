@@ -361,14 +361,45 @@
 
 [#-- Stack Output File --]
 [#macro shared_stackoutput_generationcontract occurrence]
-    [@addDefaultGenerationContract subsets=["stack"] /]
+    [#if getCLODeploymentUnit() == getOccurrenceDeploymentUnit(occurrence)
+            && getCLODeploymentGroup() == getOccurrenceDeploymentGroup(occurrence)]
+        [@addDefaultGenerationContract subsets=["stack"] alternatives=[occurrence.Core.RawFullName] /]
+    [/#if]
 [/#macro]
 
 [#macro shared_stackoutput occurrence ]
-    [#list getCommandLineOptions()["StackOutputContent"] as key,value ]
-        [@stackOutput
-            key=key
-            value=value
-        /]
-    [/#list]
+
+    [#if getCLODeploymentUnitAlternative() == occurrence.Core.RawFullName ]
+
+        [#local resourceIds = combineEntities(
+            getOccurrenceResourceIds(
+                occurrence.State.Resources),
+                ((occurrence.State.Images)![])?has_content?then(
+                    getOccurrenceResourceIds(occurrence.State.Images),
+                    []
+                )
+            )]
+
+        [#list getCommandLineOptions()["StackOutputContent"] as key,value ]
+            [#local resourceType = getResourceType(key) ]
+            [#local mapping = getOutputMappings(AWS_PROVIDER, resourceType, attributeType)]
+
+            [#list resourceIds as resourceId ]
+                [#if mapping?keys?map(
+                        x -> formatId(
+                            resourceId, (x == REFERENCE_ATTRIBUTE_TYPE)?then(
+                                "",
+                                x
+                            )
+                        )
+                    )?seq_contains(key)]
+
+                    [@stackOutput
+                        key=key
+                        value=value
+                    /]
+                [/#if]
+            [/#list]
+        [/#list]
+    [/#if]
 [/#macro]
