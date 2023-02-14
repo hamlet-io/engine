@@ -203,10 +203,8 @@
             "Description" : "AWS manage account level configuration of the Elastic Container Service",
             "Types" : OBJECT_TYPE,
             "Default" : {
-                "serviceLongArnFormat" : true,
-                "taskLongArnFormat" : true,
-                "containerInstanceLongArnFormat" : true,
-                "awsvpcTrunking" : true
+                "awsvpcTrunking": true,
+                "containerInsights": true
             }
         },
         {
