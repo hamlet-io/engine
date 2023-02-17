@@ -363,7 +363,7 @@
 [#macro shared_stackoutput_generationcontract occurrence]
     [#if getCLODeploymentUnit() == getOccurrenceDeploymentUnit(occurrence)
             && getCLODeploymentGroup() == getOccurrenceDeploymentGroup(occurrence)]
-        [@addDefaultGenerationContract subsets=["stack"] alternatives=[occurrence.Core.RawFullName] /]
+        [@addDefaultGenerationContract subsets=["stack"] alternatives=[occurrence.Core.RawFullName] contractCleanup=false /]
     [/#if]
 [/#macro]
 
