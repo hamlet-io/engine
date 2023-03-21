@@ -87,6 +87,35 @@
                             "Default" : "default"
                         }
                     ]
+            },
+            {
+                "Names" : "Encryption",
+                "Children" : [
+                    {
+                        "Names" : "Enabled",
+                        "Description": "Enable encyrption at rest for queue storage",
+                        "Types": BOOLEAN_TYPE,
+                        "Default" : false
+                    },
+                    {
+                        "Names": "KeyReuseTime",
+                        "Description": "When encyrption at rest is enabled how often to rotate the key",
+                        "Types": NUMBER_TYPE,
+                        "Default": 300
+                    },
+                    {
+                        "Names" : "Transit",
+                        "Description" : "Control encryption in Transit processing",
+                        "Children" : [
+                            {
+                                "Names" : "Enabled",
+                                "Description": "Force the use of encryption in transit ( HTTPS )",
+                                "Types" : BOOLEAN_TYPE,
+                                "Default" : true
+                            }
+                        ]
+                    }
+                ]
             }
         ]
 /]
