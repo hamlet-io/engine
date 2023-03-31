@@ -1859,7 +1859,9 @@
         "SSLCertificateAuthority": "rds-ca-2019"
       },
       "es": {
-        "ProtocolPolicy": "https-only"
+        "ProtocolPolicy": "https-only",
+        "HTTPSProfile": "Policy-Min-TLS-1-2-2019-07",
+        "NodeTransitEncryption": false
       },
       "IPSecVPN": {
         "IKEVersions": [

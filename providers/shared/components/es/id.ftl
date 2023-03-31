@@ -24,6 +24,11 @@
                 "Mandatory" : true
             },
             {
+                "Names" : [ "Certificate", "Hostname" ],
+                "Description" : "Configure a custom hostname for the service",
+                "AttributeSet" : CERTIFICATE_ATTRIBUTESET_TYPE
+            },
+            {
                 "Names" : [ "MultiAZ", "MultiZone"],
                 "Description" : "Deploy resources to multiple Availablity Zones",
                 "Types" : BOOLEAN_TYPE,
@@ -37,7 +42,7 @@
                         "Names" : "Id",
                         "Types" : STRING_TYPE
                     },
-                    {
+                    { 
                         "Names" : "Value",
                         "Types" : STRING_TYPE
                     }
