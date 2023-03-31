@@ -18,7 +18,8 @@
                     "Children" : [
                         {
                             "Names" : "HTTPSProfile",
-                            "Types" : STRING_TYPE
+                            "Types" : STRING_TYPE,
+                            "Description" : "Defines the TLS encryption profile used for HTTPS connections"
                         }
                     ]
                 },
@@ -27,7 +28,8 @@
                     "Children" : [
                         {
                             "Names" : "HTTPSProfile",
-                            "Types" : STRING_TYPE
+                            "Types" : STRING_TYPE,
+                            "Description" : "Defines the TLS encryption profile used for HTTPS connections"
                         },
                         {
                             "Names" : "WAFProfile",
@@ -44,7 +46,8 @@
                     "Children" : [
                         {
                             "Names" : "HTTPSProfile",
-                            "Types" : STRING_TYPE
+                            "Types" : STRING_TYPE,
+                            "Description" : "Defines the TLS encryption profile used for HTTPS connections"
                         }
                     ]
                 }
@@ -55,11 +58,13 @@
             "Children" : [
                 {
                     "Names" : [ "CDNHTTPSProfile", "HTTPSProfile"],
-                    "Types" : STRING_TYPE
+                    "Types" : STRING_TYPE,
+                    "Description" : "Defines the TLS encryption profile used for HTTPS connections"
                 },
                 {
                     "Names" : "GatewayHTTPSProfile",
                     "Types" : STRING_TYPE,
+                    "Description" : "Defines the TLS encryption profile used for HTTPS connections",
                     "Default" : "TLS_1_0"
                 },
                 {
@@ -81,6 +86,7 @@
             "Children" : [
                 {
                     "Names" : "HTTPSProfile",
+                    "Description" : "Defines the TLS encryption profile used for HTTPS connections",
                     "Types" : STRING_TYPE
                 },
                 {
@@ -107,8 +113,20 @@
             "Children" : [
                 {
                     "Names" : "ProtocolPolicy",
+                    "Description": "Define the protocols the ES endpoints are available on",
                     "Types" : STRING_TYPE,
-                    "Values" : [ "https-only", "http-https", "http-only" ]
+                    "Values" : [ "https-only", "http-https", "http-only" ],
+                    "Default" : "https-only"
+                },
+                {
+                    "Names" : "HTTPSProfile",
+                    "Types" : STRING_TYPE,
+                    "Description" : "Defines the TLS encryption profile used for HTTPS connections"
+                },
+                {
+                    "Names" : "NodeTransitEncryption",
+                    "Types" : BOOLEAN_TYPE,
+                    "Description" : "Require the use of node to node transit encryption"
                 }
             ]
         },
