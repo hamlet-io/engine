@@ -51,8 +51,9 @@
                 "Children" : [
                     {
                         "Names" : "RetentionPeriod",
-                        "Types" : STRING_TYPE,
-                        "Default" : ""
+                        "Description" : "How many days to keep snapshots for - 0 disabled snapshots",
+                        "Types" : NUMBER_TYPE,
+                        "Default" : 0
                     }
                 ]
             },
