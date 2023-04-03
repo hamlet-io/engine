@@ -266,6 +266,24 @@
                 "Default" : false
             },
             {
+                "Names" : "Logging",
+                "Description" : "Control logging exports from the db instance",
+                "Children" : [
+                    {
+                        "Names" : "Enabled",
+                        "Description" : "Is log exporting enabled",
+                        "Types" : BOOLEAN_TYPE,
+                        "Default" : true
+                    },
+                    {
+                        "Names" : "ExportedLogs",
+                        "Description" : "The log files to export - _all will export all logs the engine supports",
+                        "Types" : ARRAY_OF_STRING_TYPE,
+                        "Default" : [ "_all" ]
+                    }
+                ]
+            },
+            {
                 "Names" : "Monitoring",
                 "Description" : "Monitoring configuration options",
                 "Children" : [
