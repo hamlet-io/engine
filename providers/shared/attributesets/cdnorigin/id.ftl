@@ -83,6 +83,12 @@
                             "Default" : [ "_all" ]
                         },
                         {
+                            "Names" : "QueryParamExclude",
+                            "Description" : "Whether the QueryParams is a whitelist or a blacklist. ie Should the QueryParams be excluded",
+                            "Types" : BOOLEAN_TYPE,
+                            "Default" : false
+                        },
+                        {
                             "Names" : "Methods",
                             "Description" : "The HTTP Methods that will be forwarded to the origin",
                             "Types" : ARRAY_OF_STRING_TYPE,

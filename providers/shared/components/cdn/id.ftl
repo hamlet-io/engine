@@ -370,6 +370,12 @@
             "Default" : ["_all"]
         },
         {
+            "Names" : "QueryParamExclude",
+            "Description" : "Whether the QueryParams is a whitelist or a blacklist. ie Should the QueryParams be excluded",
+            "Types" : BOOLEAN_TYPE,
+            "Default" : false
+        },
+        {
             "Names" : "CompressionEncoding",
             "Description" : "A list of compression processes that are normalised and included in the cache policy",
             "Types" : ARRAY_OF_STRING_TYPE,
