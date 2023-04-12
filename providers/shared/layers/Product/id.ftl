@@ -133,9 +133,13 @@
 
 [#-- Temporary function --]
 [#-- TODO(mfl) remove once integrated into the input pipeline --]
-[#function getProductLayerRegion ]
+[#function getProductLayerRegion deploymentUnit=""]
     [#local product = getActiveLayer(PRODUCT_LAYER_TYPE, false) ]
-    [#return (product[getCLODeploymentUnit()].Region)!product.Region!"" ]
+    [#local deploymentUnit = deploymentUnit?has_content?then(
+        deploymentUnit,
+        getCLODeploymentUnit()
+    )]
+    [#return (product[deploymentUnit].Region)!product.Region!"" ]
 [/#function]
 
 [#function getProductLayerFilters filter]
