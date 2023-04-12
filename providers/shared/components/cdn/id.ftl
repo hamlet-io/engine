@@ -332,6 +332,12 @@
                     "Names" : "Enabled",
                     "Types" : BOOLEAN_TYPE,
                     "Default" : true
+                },
+                {
+                    "Names" : "IncludeBody",
+                    "Description" : "Include the body of a request in the event handler context",
+                    "Types" : BOOLEAN_TYPE,
+                    "Default": false
                 }
             ]
         }
