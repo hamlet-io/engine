@@ -467,9 +467,13 @@
 
 [#-- Temporary function --]
 [#-- TODO(mfl) remove once integrated into the input pipeline --]
-[#function getAccountLayerRegion ]
+[#function getAccountLayerRegion deploymentUnit="" ]
     [#local account = getActiveLayer(ACCOUNT_LAYER_TYPE) ]
-    [#return (account[getCLODeploymentUnit()].Region)!account.Region!""]
+    [#local deploymentUnit = deploymentUnit?has_content?then(
+        deploymentUnit,
+        getCLODeploymentUnit()
+    )]
+    [#return (account[deploymentUnit].Region)!account.Region!""]
 [/#function]
 
 [#function getAccountLayerFilters filter]
