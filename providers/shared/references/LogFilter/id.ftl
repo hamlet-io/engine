@@ -19,5 +19,5 @@
 /]
 
 [#function getLogFilterPattern logFilterId ]
-    [#return (logFilters[logFilterId].Pattern)!"" ]
+    [#return (getReferenceData(LOGFILTER_REFERENCE_TYPE)[logFilterId].Pattern)!"" ]
 [/#function]

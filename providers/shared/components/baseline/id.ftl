@@ -67,7 +67,7 @@
 [/#function]
 
 [#function getBaselineLinks occurrence baselineComponentNames activeOnly=true activeRequired=true  ]
-    [#local baselineProfile = baselineProfiles[occurrence.Configuration.Solution.Profiles.Baseline] ]
+    [#local baselineProfile = getReferenceData(BASELINEPROFILE_REFERENCE_TYPE)[occurrence.Configuration.Solution.Profiles.Baseline] ]
 
     [#local baselineLinkTargets = {} ]
 
