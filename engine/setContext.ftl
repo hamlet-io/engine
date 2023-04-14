@@ -186,24 +186,6 @@
     [#-- PortMappings --]
     [#assign portMappings = getReferenceData(PORTMAPPING_REFERENCE_TYPE) ]
 
-    [#-- Log Files --]
-    [#assign logFiles = getReferenceData(LOGFILE_REFERENCE_TYPE) ]
-
-    [#-- Log File Groups --]
-    [#assign logFileGroups = getReferenceData(LOGFILEGROUP_REFERENCE_TYPE) ]
-
-    [#-- CORS Profiles --]
-    [#assign CORSProfiles = getReferenceData(CORSPROFILE_REFERENCE_TYPE) ]
-
-    [#-- Log Filters --]
-    [#assign logFilters = getReferenceData(LOGFILTER_REFERENCE_TYPE) ]
-
-    [#-- Baseline Profiles --]
-    [#assign baselineProfiles = getReferenceData(BASELINEPROFILE_REFERENCE_TYPE) ]
-
-    [#-- Network Endpoint Groups --]
-    [#assign networkEndpointGroups = getReferenceData(NETWORKENDPOINTGROUP_REFERENCE_TYPE) ]
-
     [#-- Tenants --]
     [#if isLayerActive(TENANT_LAYER_TYPE) ]
         [#-- assign tenants = getLayer(TENANT_LAYER_TYPE) --]

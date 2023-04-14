@@ -424,9 +424,9 @@
     [#local zoneNetworkEndpoints = (regionObject.Zones[zone].NetworkEndpoints)![] ]
 
     [#list endpointGroups as endpointGroup ]
-        [#local services = getUniqueArrayElements( services, (networkEndpointGroups[endpointGroup].Services)![] ) ]
+        [#local services = getUniqueArrayElements( services, (getReferenceData(NETWORKENDPOINTGROUP_REFERENCE_TYPE)[endpointGroup].Services)![] ) ]
         [#-- These services are assumed to be required in all zones --]
-        [#local allZoneServiceEndpoints += (networkEndpointGroups[endpointGroup].AllZoneServices)!{} ]
+        [#local allZoneServiceEndpoints += (getReferenceData(NETWORKENDPOINTGROUP_REFERENCE_TYPE)[endpointGroup].AllZoneServices)!{} ]
     [/#list]
 
     [#list services as service ]
