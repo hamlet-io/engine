@@ -84,12 +84,17 @@
             {
                 "Names" : "Action",
                 "Types" : STRING_TYPE,
-                "Values" : ["forward", "drop", "log"],
+                "Values" : [
+                    "forward",
+                    "receive-bounce",
+                    "drop",
+                    "log"
+                ],
                 "Mandatory" : true
             },
             {
                 "Names" : "EventTypes",
-                "Description" : "Expected events to log  (send only)",
+                "Description" : "Expected events to log (send only)",
                 "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : [
                     "reject",
@@ -111,6 +116,42 @@
                 "Names" : "Links",
                 "SubObjects" : true,
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
+            },
+            {
+                "Names" : "Action:receive-bounce",
+                "Description" : "Specific configuration for using the receive-bounce action",
+                "Children" : [
+                    {
+                        "Names": "BounceType",
+                        "Description" : "The type of bounce to return to the sender - _custom lets you define it",
+                        "Values" : [ "no_address_found", "unauthorised", "custom" ],
+                        "Default" : "no_address_found"
+                    },
+                    {
+                        "Names": "BounceType:custom",
+                        "Description" : "Custom configuration to define the bounce details",
+                        "Children" : [
+                            {
+                                "Names": "Message",
+                                "Description": "The human readable message to return",
+                                "Types": STRING_TYPE,
+                                "Default" : ""
+                            },
+                            {
+                                "Names" : "SmtpReplyCode",
+                                "Description": "The RFC 5321 code to return",
+                                "Types" : STRING_TYPE,
+                                "Default" : "550"
+                            },
+                            {
+                                "Names": "SmtpStatusCode",
+                                "Description": "The RFC 3463 enhanced status code to return",
+                                "Types" : STRING_TYPE,
+                                "Default" : "0.0.0"
+                            }
+                        ]
+                    }
+                ]
             }
         ]
 /]
