@@ -11,18 +11,7 @@
         ""
       )
   ]
-
-  [#local unitRegion = getAccountLayerRegion(deploymentUnit)?has_content?then(
-    getAccountLayerRegion(deploymentUnit),
-    getProductLayerRegion(deploymentUnit)
-  )]
-
-  [#return !(pointObject.Value?has_content
-      && (
-        (pointObject.DeploymentUnit != currentDeploymentUnit)
-        || (pointObject.Region != unitRegion)
-      )
-    )]
+  [#return !(pointObject.Value?has_content && (pointObject.DeploymentUnit != currentDeploymentUnit))]
 [/#function]
 
 [#-- Is a resource part of the current deployment unit --]
