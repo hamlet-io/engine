@@ -127,7 +127,7 @@
             {
                 "Names" : "Path",
                 "Description" : "The http path the rule will be matched on",
-                "Types" : STRING_TYPE,
+                "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : "default"
             },
             {
