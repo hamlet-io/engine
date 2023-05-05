@@ -77,7 +77,7 @@
         },
         {
             "Names" : ["MaximumMemory", "MemoryMaximum", "MaxMemory"],
-            "Description" : "A hard limit of memory available to the contianer - Set to 0 to not set a maximum",
+            "Description" : "A hard limit of memory available to the container - Set to 0 to not set a maximum",
             "Types" : NUMBER_TYPE
         },
         {
@@ -132,7 +132,7 @@
         },
         {
             "Names" : "DependsOn",
-            "Description": "Defines depdencies between containers in the same task - this container won't start unless these depdencies are met",
+            "Description": "Defines dependencies between containers in the same task - this container won't start unless these dependencies are met",
             "SubObjects" : true,
             "Children" : [
                 {
