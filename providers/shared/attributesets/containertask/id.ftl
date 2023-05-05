@@ -28,6 +28,18 @@
             "AttributeSet" : CONTAINER_ATTRIBUTESET_TYPE
         },
         {
+            "Names" : "Cpu",
+            "Description" : "The Cpu available to all containers in the task - 0 will defer to the container allocations",
+            "Types" : NUMBER_TYPE,
+            "Default": 0
+        },
+        {
+            "Names" : "Memory",
+            "Description" : "The memory available to all containers in the task - 0 will defer to the container allocations",
+            "Types" : NUMBER_TYPE,
+            "Default": 0
+        },
+        {
             "Names" : "UseTaskRole",
             "Types" : BOOLEAN_TYPE,
             "Default" : true

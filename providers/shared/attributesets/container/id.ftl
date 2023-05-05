@@ -5,7 +5,7 @@
     properties=[
         {
                 "Type"  : "Description",
-                "Value" : "Descirbes each container that will be used as part of a service or task"
+                "Value" : "Describes each container that will be used as part of a service or task"
         }
     ]
     attributes=[
@@ -64,17 +64,25 @@
             "Default" : []
         },
         {
+            "Names" : "Essential",
+            "Description" : "If the container exits the task/service stops all containers and restarts",
+            "Types" : BOOLEAN_TYPE,
+            "Default" : true
+        },
+        {
             "Names" : "Privileged",
+            "Description": "Enable privileged host mode for the container",
             "Types" : BOOLEAN_TYPE,
             "Default" : false
         },
         {
             "Names" : ["MaximumMemory", "MemoryMaximum", "MaxMemory"],
-            "Types" : NUMBER_TYPE,
-            "Description" : "Set to 0 to not set a maximum"
+            "Description" : "A hard limit of memory available to the contianer - Set to 0 to not set a maximum",
+            "Types" : NUMBER_TYPE
         },
         {
             "Names" : ["MemoryReservation", "Memory", "ReservedMemory"],
+            "Description" : "A fixed allocation that is assigned to to this container",
             "Types" : NUMBER_TYPE,
             "Mandatory" : true
         },
@@ -121,7 +129,30 @@
             "Names" : "ContainerNetworkLinks",
             "Types" : ARRAY_OF_STRING_TYPE,
             "Default" : []
-        }
+        },
+        {
+            "Names" : "DependsOn",
+            "Description": "Defines depdencies between containers in the same task - this container won't start unless these depdencies are met",
+            "SubObjects" : true,
+            "Children" : [
+                {
+                    "Names" : "ContainerName",
+                    "Description" : "The name of the container to depend on uses the key of this object if not present",
+                    "Types" : STRING_TYPE
+                },
+                {
+                    "Names" : "Condition",
+                    "Description" : "The required state of the container to start this one",
+                    "Values" : [
+                        "START",
+                        "COMPLETE",
+                        "SUCCESS",
+                        "HEALTHY"
+                    ],
+                    "Default" : "START"
+                }
+            ]
+        },
         {
             "Names" : "Profiles",
             "Children" :
@@ -132,6 +163,12 @@
                         "Default" : "default"
                     }
                 ]
+        },
+        {
+            "Names": "ReadonlyRootFilesystem",
+            "Descriptions": "Makes the root of the filesystem read-only",
+            "Types" : BOOLEAN_TYPE,
+            "Default" : false
         },
         {
             "Names" : "RunMode",
