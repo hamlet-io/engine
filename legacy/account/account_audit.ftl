@@ -59,6 +59,26 @@
                         }
                     },
                     false
+                ),
+                getPolicyStatement(
+                    [
+                        "s3:PutObject"
+                    ],
+                    [
+                        getArn(auditBucketId),
+                        {
+                            "Fn::Join": [
+                                "/",
+                                [
+                                    getArn(auditBucketId),
+                                    "*"
+                                ]
+                            ]
+                        }
+                    ],
+                    {
+                        "Service": "logging.s3.amazonaws.com"
+                    }
                 )
             ]]
 
@@ -219,7 +239,6 @@
                 encryptionSource="AES256"
                 lifecycleRules=lifecycleRules
                 versioning=true
-                cannedACL="LogDeliveryWrite"
                 publicAccessBlockConfiguration=(
                     getPublicAccessBlockConfiguration()
                 )

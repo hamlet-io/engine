@@ -220,6 +220,12 @@
                         "Default" : "Daily"
                     }
                 ]
+            },
+            {
+                "Names" : "ObjectOwnership",
+                "Values" : [ "owner", "ownerpreferred", "writer"],
+                "Types" : STRING_TYPE,
+                "Description" : "Explicitly control the way in which object ownership should be treated"
             }
         ]
 /]
