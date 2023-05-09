@@ -136,6 +136,12 @@
                 "SubObjects" : true,
                 "Children" :    [
                     {
+                        "Names": "Enabled",
+                        "Description" : "Include this attribute in the schema",
+                        "Types" : BOOLEAN_TYPE,
+                        "Default": true
+                    },
+                    {
                         "Names" : "DataType",
                         "Values" : [ "String", "Number", "DateTime","Boolean"],
                         "Types" : STRING_TYPE,
