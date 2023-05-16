@@ -416,20 +416,17 @@
 [/#function]
 
 [#function getNetworkEndpoints endpointGroups zone region ]
-    [#local services = []]
+    [#local services = [] ]
+    [#local allZoneServiceEndpoints = {} ]
     [#local networkEndpoints = {}]
 
     [#local regionObject = getRegions()[region]]
     [#local zoneNetworkEndpoints = (regionObject.Zones[zone].NetworkEndpoints)![] ]
 
     [#list endpointGroups as endpointGroup ]
-        [#if networkEndpointGroups[endpointGroup]?? ]
-            [#list networkEndpointGroups[endpointGroup].Services as service ]
-                [#if !services?seq_contains(service) ]
-                    [#local services += [ service ]]
-                [/#if]
-            [/#list]
-        [/#if]
+        [#local services = getUniqueArrayElements( services, (networkEndpointGroups[endpointGroup].Services)![] ) ]
+        [#-- These services are assumed to be required in all zones --]
+        [#local allZoneServiceEndpoints += (networkEndpointGroups[endpointGroup].AllZoneServices)!{} ]
     [/#list]
 
     [#list services as service ]
@@ -443,7 +440,7 @@
         [/#list]
     [/#list]
 
-    [#return networkEndpoints]
+    [#return networkEndpoints + allZoneServiceEndpoints]
 [/#function]
 
 
