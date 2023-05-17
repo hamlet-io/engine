@@ -10,6 +10,19 @@
         [/#if]
         [#list ruleList as ruleListEntry]
             [#local conditionList = [] ]
+
+            [#if ! rules[ruleListEntry]??  ]
+                [@fatal
+                    message="Could not find rule for WAF Profile"
+                    context={
+                        "RuleId": ruleListEntry,
+                        "Profile": profile,
+                        "Rules": rules
+                    }
+                /]
+                [#continue]
+            [/#if]
+
             [#list asArray((rules[ruleListEntry].Conditions)![]) as condition]
                 [#local conditionDetail = conditions[condition.Condition]!{} ]
                 [#if conditionDetail?has_content]
