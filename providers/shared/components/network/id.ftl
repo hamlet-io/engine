@@ -147,6 +147,12 @@
                         "Names" : "Logging",
                         "Types" : STRING_TYPE,
                         "Default" : "default"
+                    },
+                    {
+                        "Names" : "Network",
+                        "Description" : "The network profile rules applied to the default access control groups",
+                        "Types" : STRING_TYPE,
+                        "Default" : "default"
                     }
                 ]
             }
@@ -207,6 +213,12 @@
                 "Names" : "Rules",
                 "SubObjects" : true,
                 "Children" : [
+                    {
+                        "Names" : "Enabled",
+                        "Description" : "Enable the rule",
+                        "Types": BOOLEAN_TYPE,
+                        "Default": true
+                    },
                     {
                         "Names" : "Priority",
                         "Types" : NUMBER_TYPE,
