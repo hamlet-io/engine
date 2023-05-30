@@ -74,7 +74,7 @@
 
         [#list _context.Conditions as id, condition]
             [@contractStep
-                id=formatName("condition", core.SubComponent.RawId)
+                id=formatName("condition", core.SubComponent.RawId, id)
                 stageId=stageId
                 taskType=CONDITIONAL_STAGE_SKIP_TASK_TYPE
                 parameters=
