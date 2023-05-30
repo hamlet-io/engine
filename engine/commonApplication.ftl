@@ -66,6 +66,7 @@
 
 
 [#function defaultEnvironment occurrence links baselineLinks={}]
+    [#local image = getOccurrenceImage(occurrence) ]
     [#return
         occurrence.Configuration.Environment.General +
         occurrence.Configuration.Environment.Build +
@@ -75,7 +76,9 @@
         baselineLinks?has_content?then(
             getDefaultBaselineVariables(baselineLinks),
             {}
-        )
+        ) +
+        attributeIfContent("BUILD_REFERENCE", image.Reference!"") +
+        attributeIfContent("APP_REFERENCE", image.Tag!"")
     ]
 [/#function]
 
