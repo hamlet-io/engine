@@ -108,6 +108,23 @@
                     "Description" : "A list of rules within the managed rule which should be disabled",
                     "Types" : ARRAY_OF_STRING_TYPE,
                     "Default" : []
+                },
+                {
+                    "Names" : "ActionOverrides",
+                    "Subobjects": true,
+                    "Children" : [
+                        {
+                            "Names" : "Name",
+                            "Description": "The name of the rule inside the vendor ruleset - uses the child id if not set",
+                            "Types" : STRING_TYPE
+                        },
+                        {
+                            "Names": "Action",
+                            "Description" : "The action to perform when the rule is matched",
+                            "Types" : STRING_TYPE,
+                            "Values": [ "BLOCK", "ALLOW", "COUNT"]
+                        }
+                    ]
                 }
             ]
         }

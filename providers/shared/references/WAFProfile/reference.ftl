@@ -38,7 +38,7 @@
             [#local result += [
                 {
                     "Conditions" : conditionList,
-                    "Action" : ruleEntry.Action,
+                    "Action" : (ruleEntry.Action)!"",
                     "Action:BLOCK": (ruleEntry["Action:BLOCK"])!{},
                     "Engine": rules[ruleListEntry].Engine,
                     "Engine:RateLimit": rules[ruleListEntry]["Engine:RateLimit"],
