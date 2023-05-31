@@ -83,7 +83,8 @@
                         "EXACTLY",
                         "STARTS_WITH",
                         "ENDS_WITH"
-                    ]
+                    ],
+                    "Default": "EXACTLY"
                 },
                 {
                     "Names" : "Targets",
@@ -106,7 +107,8 @@
                         "HTML_ENTITY_DECODE",
                         "LOWERCASE",
                         "URL_DECODE"
-                    ]
+                    ],
+                    "Default": ["NONE"]
                 },
                 {
                     "Names": "Type:LabelMatch",
