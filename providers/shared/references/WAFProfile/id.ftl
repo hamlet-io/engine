@@ -75,8 +75,12 @@
                                         {
                                             "Names" : "Content",
                                             "Description" : "The content of the Body",
-                                            "Types" : STRING_TYPE,
-                                            "Mandatory": true
+                                            "Types" : STRING_TYPE
+                                        },
+                                        {
+                                            "Names" : "ContentWAFValue",
+                                            "Description" : "The key for a value in the profile WAF ValueSet",
+                                            "Types" : STRING_TYPE
                                         },
                                         {
                                             "Names" : "ContentType",
