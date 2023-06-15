@@ -15,6 +15,13 @@
             "Description" : "Compute policy for container based resources",
             "Children" : [
                 {
+                    "Names" : "Providers",
+                    "Description" : "The proviers that are available",
+                    "Types"  : ARRAY_OF_STRING_TYPE,
+                    "Values" : [ "_autoscalegroup", "aws:fargate", "aws:fargatespot" ],
+                    "Default" : [ "_autoscalegroup", "aws:fargate", "aws:fargatespot" ]
+                },
+                {
                     "Names" : "Default",
                     "Description" : "Sets the default computer provider which will meet base capacity",
                     "Children" : [
