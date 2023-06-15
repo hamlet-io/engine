@@ -16,7 +16,7 @@
             "Children" : [
                 {
                     "Names" : "Providers",
-                    "Description" : "The proviers that are available",
+                    "Description" : "The providers that are available",
                     "Types"  : ARRAY_OF_STRING_TYPE,
                     "Values" : [ "_autoscalegroup", "aws:fargate", "aws:fargatespot" ],
                     "Default" : [ "_autoscalegroup", "aws:fargate", "aws:fargatespot" ]
