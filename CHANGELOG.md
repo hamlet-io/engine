@@ -1,9 +1,29 @@
 # Changelog
 
-## latest (2023-01-16)
+## latest (2023-06-15)
 
 #### New Features
 
+* (computeprovider): set available providers
+* (waf): add extended support for vendor rules
+* (waf): add support for custom responses
+* (network): support for network profile on net
+* private endpoint services ([#2106](https://github.com/hamlet-io/engine/issues/2106))
+* (userpool): add schema enable attributes
+* (ecs): task service limits, readonlyds, depend
+* (lb): add support for multiple paths ([#2102](https://github.com/hamlet-io/engine/issues/2102))
+* (mta): add support for bouncing emails
+* (cdn): include body for event handler function
+* add support for allExcept on cachepolicy ([#2096](https://github.com/hamlet-io/engine/issues/2096))
+* (db): add support for configuring db logging
+* (es): encryption and hostname control
+* (sqs): add support for encryption at rest
+* (audit): enforce https for s3 connections
+* (acct): remove the credentials and code bucket
+* add support for deployment locks
+* (s3): add support for transit encryption
+* (db): make enhanced monitoring the default
+* (image): add docker image repository config
 * (audit): add support for replication ([#2080](https://github.com/hamlet-io/engine/issues/2080))
 * (cloudtrail): support for account cloudtrail ([#2079](https://github.com/hamlet-io/engine/issues/2079))
 * (userpool): control enabling hostedUI
@@ -13,6 +33,17 @@
 * (image): adds support for images in occurrence
 #### Fixes
 
+* typo
+* add defaults for used attributes
+* image settings
+* (runbook): multiple conditions ([#2110](https://github.com/hamlet-io/engine/issues/2110))
+* handle missing block action
+* description typos
+* revert region inclusion in du check
+* include region for deployment checking
+* (cache): syntax for retention period
+* remove gen contract from stack outputs ([#2089](https://github.com/hamlet-io/engine/issues/2089))
+* cmdb write output for occurrences
 * stackoutput generation and image upload runbooks ([#2075](https://github.com/hamlet-io/engine/issues/2075))
 * (account_s3): remove s3 registry initialisation ([#2076](https://github.com/hamlet-io/engine/issues/2076))
 * update release package version
@@ -20,8 +51,16 @@
 * remove image settings for env
 #### Refactorings
 
+* use reference lookup methods over global
+* (waf): remove rule tuples and add error
+* (s3): object ownership support ([#2104](https://github.com/hamlet-io/engine/issues/2104))
+* (lambda): node 18 run-time ([#2092](https://github.com/hamlet-io/engine/issues/2092))
+* (waf): remove version control option
 * standardise github actions
 * standardise image attributes
+#### Others
+
+* update changelog ([#2069](https://github.com/hamlet-io/engine/issues/2069))
 
 Full set of changes: [`8.8.2...latest`](https://github.com/hamlet-io/engine/compare/8.8.2...latest)
 
