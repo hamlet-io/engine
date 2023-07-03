@@ -83,6 +83,7 @@ object.
             },
             {
                 "Names" : "Links",
+                "Description" : "For a private API, provide VPC Endpoints via an inbound link from an external service with a \"VPC_ENDPOINTS\" attribute",
                 "SubObjects" : true,
                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
             },
@@ -93,7 +94,7 @@ object.
             {
                 "Names" : "EndpointType",
                 "Types" : STRING_TYPE,
-                "Values" : ["EDGE", "REGIONAL"],
+                "Values" : ["EDGE", "REGIONAL", "PRIVATE"],
                 "Default" : "EDGE"
             },
             {
@@ -103,14 +104,14 @@ object.
             },
             {
                 "Names" : ["AuthorisationModel", "AuthorizationModel", "Authentication"],
-                "Description" : "Model to use where IP filtering is part of the desired authorization approach",
+                "Description" : "Authorization Model to use in conjunction with resource based policy filtering",
                 "Types" : STRING_TYPE,
                 "Values" : [
-                    "IP",
-                    "AUTHORISER_OR_IP", "AUTHORIZER_OR_IP",
-                    "AUTHORISER_AND_IP", "AUTHORIZER_AND_IP"
+                    "SOURCE", "IP",
+                    "AUTHORISER_OR_SOURCE", "AUTHORIZER_OR_SOURCE", "AUTHORISER_OR_IP", "AUTHORIZER_OR_IP",
+                    "AUTHORISER_AND_SOURCE", "AUTHORIZER_AND_SOURCE", "AUTHORISER_AND_IP", "AUTHORIZER_AND_IP"
                 ],
-                "Default" : "IP"
+                "Default" : "SOURCE"
             },
             {
                 "Names" : "CloudFront",
