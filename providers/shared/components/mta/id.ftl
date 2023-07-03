@@ -93,6 +93,12 @@
                 "Mandatory" : true
             },
             {
+                "Names": "StopAfterMatch",
+                "Type": BOOLEAN_TYPE,
+                "Description" : "If this rule is matched don't apply any other rules after this one",
+                "Default" : false
+            },
+            {
                 "Names" : "EventTypes",
                 "Description" : "Expected events to log (send only)",
                 "Types" : ARRAY_OF_STRING_TYPE,
