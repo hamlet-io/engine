@@ -24,19 +24,12 @@
 
 [#macro shared_occurrences_state occurrence ]
     [#local allOccurrences = asFlattenedArray( [ occurrence, occurrence.Occurrences![] ], true )]
-    [#list allOccurrences as occurrence ]
-
-        [#local occurrencestate = {}]
-        [#list occurrence as k, v ]
-            [#if k != "Occurrences" ]
-                [#local occurrencestate = mergeObjects(occurrencestate, { k : v }) ]
-            [/#if]
-        [/#list]
-
+    [#-- Only include enabled suboccurrences --]
+    [#list allOccurrences?filter(x -> x.Configuration.Solution.Enabled) as occurrence ]
         [@stateEntry
             type="Occurrences"
             id=occurrence.Core.TypedFullName
-            state=occurrencestate
+            state=removeObjectAttributes(occurrence, "Occurrences")
         /]
     [/#list]
 [/#macro]
