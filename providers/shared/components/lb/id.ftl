@@ -362,6 +362,13 @@
                                 "AttributeSet" : LINK_ATTRIBUTESET_TYPE
                             }
                         ]
+                    },
+                    {
+                        "Names" : "ClientIP",
+                        "Description" : "How to provide client IP to the target. By default, the lb address will be presented",
+                        "Types" : STRING_TYPE,
+                        "Values" : ["preserve", "proxy_protocol", "lb"],
+                        "Default" : "lb"
                     }
                 ]
             },
