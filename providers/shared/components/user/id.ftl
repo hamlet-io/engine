@@ -76,6 +76,12 @@
                         "Default" : true
                     }
                 ]
+            },
+            {
+                "Names" : "IPAddressGroups",
+                "Types" : ARRAY_OF_STRING_TYPE,
+                "Description" : "Limit User access based on IP Address",
+                "Default" : []
             }
         ]
     dependencies=[APIGATEWAY_COMPONENT_TYPE]
