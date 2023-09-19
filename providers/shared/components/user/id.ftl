@@ -82,6 +82,83 @@
                 "Types" : ARRAY_OF_STRING_TYPE,
                 "Description" : "Limit User access based on IP Address",
                 "Default" : []
+            },
+            {
+                "Names": "Username",
+                "Children" : [
+                    {
+                        "Names": "UseIdValues",
+                        "Description" : "When formatting the name use the Id of the parts instead of the Name",
+                        "Types" : BOOLEAN_TYPE,
+                        "Default" : true
+                    },
+                    {
+                        "Names" : "IncludeOrder",
+                        "Description" : "The order the includes are added in",
+                        "Types" : ARRAY_OF_STRING_TYPE,
+                        "Default": [
+                            "Product",
+                            "Environment",
+                            "Segment",
+                            "Component",
+                            "Instance",
+                            "Version",
+                            "Name"
+                        ]
+                    },
+                    {
+                        "Names" : "Include",
+                        "Description": "The parts of the occurrence context to include in the name",
+                        "Children" : [
+                            {
+                                "Names": "Product",
+                                "Types": BOOLEAN_TYPE,
+                                "Default": true
+                            },
+                            {
+                                "Names": "Environment",
+                                "Types": BOOLEAN_TYPE,
+                                "Default" : true
+                            },
+                            {
+                                "Names": "Segment",
+                                "Types": BOOLEAN_TYPE,
+                                "Default" : true
+                            },
+                            {
+                                "Names" : "Tier",
+                                "Types" : BOOLEAN_TYPE,
+                                "Default" : true
+                            },
+                            {
+                                "Names" : "Component",
+                                "Types" : BOOLEAN_TYPE,
+                                "Default" : true
+                            },
+                            {
+                                "Names" : "Instance",
+                                "Types" : BOOLEAN_TYPE,
+                                "Default" : true
+                            },
+                            {
+                                "Names" : "Version",
+                                "Types" : BOOLEAN_TYPE,
+                                "Default" : true
+                            },
+                            {
+                                "Names" : "Name",
+                                "Types" : BOOLEAN_TYPE,
+                                "Default" : false
+                            }
+                        ]
+                    },
+                    {
+                        "Names" : "Name",
+                        "Description" : "A custom field used to set a specifc name",
+                        "Types" : STRING_TYPE,
+                        "Default" : ""
+                    }
+                ]
             }
         ]
     dependencies=[APIGATEWAY_COMPONENT_TYPE]
