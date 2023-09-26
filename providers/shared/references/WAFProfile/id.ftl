@@ -28,7 +28,7 @@
                     "Names": "Action",
                     "Description" : "The action to perform when the rule is matched",
                     "Types" : STRING_TYPE,
-                    "Values": [ "BLOCK", "ALLOW"]
+                    "Values": [ "BLOCK", "ALLOW", "CHALLENGE", "COUNT"]
                 },
                 {
                     "Names": "Action:BLOCK",
@@ -96,6 +96,19 @@
                                     ]
                                 }
                             ]
+                        }
+                    ]
+                },
+                {
+                    "Names": "Action:CHALLENGE",
+                    "Description": "What to do when the WAF hits a challenge action",
+                    "Children": [
+                        {
+                            "Names": "Engine",
+                            "Description": "The type of challenge to issue",
+                            "Types": STRING_TYPE,
+                            "Values": ["CAPTCHA", "Transparent"],
+                            "Default" : "CAPTCHA"
                         }
                     ]
                 }
