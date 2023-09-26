@@ -86,6 +86,7 @@
 [@addComponentDeployment
     type=BACKUPSTORE_COMPONENT_TYPE
     defaultGroup="solution"
+    defaultPriority=150
 /]
 
 [@addChildComponent
