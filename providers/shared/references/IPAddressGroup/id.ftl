@@ -139,11 +139,9 @@
         [#case "__segment__"]
             [#local segmentCIDR = [] ]
             [#list getZones() as zone]
-                [#local zoneIP =
-                    getExistingReference(
-                        formatComponentEIPId("mgmt", "nat", zone),
-                        IP_ADDRESS_ATTRIBUTE_TYPE
-                    ) ]
+                [#local zoneIP = getExistingReference(
+                    formatResourceId(AWS_EIP_RESOURCE_TYPE, "mgmt", "nat", zone.Id)
+                )]
                 [#if zoneIP?has_content]
                     [#local segmentCIDR += [zoneIP + "/32" ] ]
                 [/#if]

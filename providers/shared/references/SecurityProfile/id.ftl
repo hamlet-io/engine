@@ -225,6 +225,21 @@
                     "Types" : STRING_TYPE
                 }
             ]
+        },
+        {
+            "Names" : "userpool",
+            "Children" : [
+                {
+                    "Names" : "WAFProfile",
+                    "Types" : STRING_TYPE,
+                    "Default" : "default"
+                },
+                {
+                    "Names" : "WAFValueSet",
+                    "Types" : STRING_TYPE,
+                    "Default" : "default"
+                }
+            ]
         }
     ]
 /]

@@ -40,6 +40,7 @@
                     "Conditions" : conditionList,
                     "Action" : (ruleEntry.Action)!"",
                     "Action:BLOCK": (ruleEntry["Action:BLOCK"])!{},
+                    "Action:CHALLENGE": (ruleEntry["Action:CHALLENGE"])!{},
                     "Engine": rules[ruleListEntry].Engine,
                     "Engine:RateLimit": rules[ruleListEntry]["Engine:RateLimit"],
                     "Engine:VendorManaged" : rules[ruleListEntry]["Engine:VendorManaged"]
