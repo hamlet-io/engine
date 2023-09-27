@@ -234,6 +234,11 @@
                 ]
             },
             {
+                "Names" : "WAF",
+                "Description" : "Controls the use of Web Application Firewall for userpool http endpoints",
+                "AttributeSet" : WAF_ATTRIBUTESET_TYPE
+            },
+            {
                 "Names" : "VerificationEmailType",
                 "Description" : "The default verification email option for message customization.",
                 "Values" : [ "code", "link"],
