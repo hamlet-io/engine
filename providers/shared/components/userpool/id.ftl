@@ -22,6 +22,21 @@
     attributes=
         [
             {
+                "Names" : "Profiles",
+                "Children" : [
+                    {
+                        "Names" : "Security",
+                        "Types" : STRING_TYPE,
+                        "Default" : "default"
+                    },
+                    {
+                        "Names" : "Logging",
+                        "Types" : STRING_TYPE,
+                        "Default" : "default"
+                    }
+                ]
+            },
+            {
                 "Names" : "MFA",
                 "Types" : [ BOOLEAN_TYPE, STRING_TYPE],
                 "Values" : [ "true", true, "false", false, "optional" ],
