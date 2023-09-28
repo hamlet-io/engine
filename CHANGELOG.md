@@ -1,6 +1,31 @@
 # Changelog
 
-## latest (2023-06-15)
+## latest (2023-09-28)
+
+#### New Features
+
+* (waf): add support for waf on userpools
+* (user): add user name control
+* (user): source IP filtering
+* (lb): client IP control ([#2119](https://github.com/hamlet-io/engine/issues/2119))
+* (vpcendpoint): policy support ([#2117](https://github.com/hamlet-io/engine/issues/2117))
+* (apigateway): private APIs ([#2115](https://github.com/hamlet-io/engine/issues/2115))
+* (mta): add stop after match action
+#### Fixes
+
+* missing waf userpool attrs ([#2125](https://github.com/hamlet-io/engine/issues/2125))
+* (userpool): add waf section that was lost ([#2124](https://github.com/hamlet-io/engine/issues/2124))
+* don't list disabled suboccurrences ([#2118](https://github.com/hamlet-io/engine/issues/2118))
+#### Refactorings
+
+* (backups): default priority ([#2123](https://github.com/hamlet-io/engine/issues/2123))
+#### Others
+
+* remove datapipeline support ([#1984](https://github.com/hamlet-io/engine/issues/1984))
+
+Full set of changes: [`8.9.0...latest`](https://github.com/hamlet-io/engine/compare/8.9.0...latest)
+
+## 8.9.0 (2023-06-16)
 
 #### New Features
 
@@ -60,9 +85,10 @@
 * standardise image attributes
 #### Others
 
+* update changelog ([#2081](https://github.com/hamlet-io/engine/issues/2081))
 * update changelog ([#2069](https://github.com/hamlet-io/engine/issues/2069))
 
-Full set of changes: [`8.8.2...latest`](https://github.com/hamlet-io/engine/compare/8.8.2...latest)
+Full set of changes: [`8.8.2...8.9.0`](https://github.com/hamlet-io/engine/compare/8.8.2...8.9.0)
 
 ## 8.8.2 (2022-10-27)
 
