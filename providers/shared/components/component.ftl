@@ -51,8 +51,6 @@
 
 [#assign DATAFEED_COMPONENT_TYPE = "datafeed" ]
 
-[#assign DATAPIPELINE_COMPONENT_TYPE = "datapipeline"]
-
 [#assign DATASET_COMPONENT_TYPE = "dataset"]
 
 [#assign DATASTREAM_COMPONENT_TYPE = "datastream"]
