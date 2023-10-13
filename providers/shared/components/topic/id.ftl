@@ -139,6 +139,32 @@
                 "Description" : "Deliver message as received not with JSON payload strucutre",
                 "Types" : BOOLEAN_TYPE,
                 "Default" : false
+            },
+            {
+                "Names": "Endpoints",
+                "Description": "Fixed endpoints to add to the subscription",
+                "SubObjects": true,
+                "Children": [
+                    {
+                        "Names": "Protocol",
+                        "Description": "The protocol to use when sending the message",
+                        "Types" : STRING_TYPE,
+                        "Values" : [
+                            "http",
+                            "https",
+                            "email",
+                            "email-json",
+                            "sms"
+                        ],
+                        "Mandatory": true
+                    },
+                    {
+                        "Names": "Address",
+                        "Description": "The address that receives the notification (URI, email address, phone number)",
+                        "Types" : STRING_TYPE,
+                        "Mandatory": true
+                    }
+                ]
             }
         ]
 /]
