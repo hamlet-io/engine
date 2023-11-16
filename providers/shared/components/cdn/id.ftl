@@ -105,6 +105,18 @@
                 "AttributeSet" : CERTIFICATE_ATTRIBUTESET_TYPE
             },
             {
+                "Names" : ["Aliases"],
+                "Description": "Hostnames included on the CDN",
+                "SubObjects" : true,
+                "Children" : [
+                    {
+                        "Names" : "Hostname",
+                        "Description" : "The hostname of the alias",
+                        "AttributeSet" : CERTIFICATE_ATTRIBUTESET_TYPE
+                    }
+                ]
+            },
+            {
                 "Names" : "AssumeSNI",
                 "Description" : "Use TLS Server Name Identification to route clients requests to the CDN",
                 "Types" : BOOLEAN_TYPE,
