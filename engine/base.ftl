@@ -1494,22 +1494,7 @@ are added.
                         [#if attribute.Values?has_content]
                             [#list asArray(providedValue) as value]
                                 [#if !(attribute.Values?seq_contains(value)) ]
-                                    [#if ((attribute.AdditionalValues)!false)]
-                                        [#local messages +=
-                                            [
-                                                {
-                                                    "Severity" : "warning",
-                                                    "Message" : "Attribute value \"" + value + "\" is not one of the typical values, but will be passed through",
-                                                    "Context" : {
-                                                        "Name" : providedName,
-                                                        "Value" : value,
-                                                        "ExpectedValues" : attribute.Values,
-                                                        "Candidate" : providedCandidate
-                                                    }
-                                                }
-                                            ]
-                                        ]
-                                    [#else]
+                                    [#if !((attribute.AdditionalValues)!false)]
                                         [#local messages +=
                                             [
                                                 {
