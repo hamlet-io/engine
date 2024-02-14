@@ -176,6 +176,7 @@
 
                 [#-- Ouput handling and writing --]
                 "Output" : {
+                    "cfDir": cfDir!"",
                     "FileName" : outputFileName!"",
                     "Directory" : outputDir!"",
                     "Writers" :

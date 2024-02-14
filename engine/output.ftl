@@ -693,6 +693,23 @@
                     [#break]
 
             [/#switch]
+
+            [#switch deployment_subset ]
+                [#case "deploymentcontract" ]
+                    [#local filename_parts =
+                        mergeObjects(
+                            filename_parts,
+                            {
+                                "entrance_prefix" : "",
+                                "deployment_group_prefix" : "",
+                                "deployment_unit_prefix" : "",
+                                "account_prefix" : "",
+                                "region_prefix" : "",
+                                "alternative_prefix" : ""
+                            }
+                        )]
+                    [#break]
+            [/#switch]
             [#break]
 
         [#case "diagraminfo"]

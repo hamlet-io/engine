@@ -744,6 +744,14 @@
 
 [@addGenerationContractStepOutputMapping
     provider=SHARED_PROVIDER
+    subset="deploymentcontract"
+    outputType=CONTRACT_DEFAULT_OUTPUT_TYPE
+    outputFormat=""
+    outputSuffix="deployment-contract.json"
+/]
+
+[@addGenerationContractStepOutputMapping
+    provider=SHARED_PROVIDER
     subset="pregeneration"
     outputType=SCRIPT_DEFAULT_OUTPUT_TYPE
     outputFormat=getOutputFormat(SCRIPT_DEFAULT_OUTPUT_TYPE)
