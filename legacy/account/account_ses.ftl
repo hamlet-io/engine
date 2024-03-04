@@ -1,7 +1,11 @@
 [#-- SES ruleset --]
 [#if getCLODeploymentUnit()?contains("sesruleset") || (groupDeploymentUnits!false) ]
     [#if deploymentSubsetRequired("generationcontract", false)]
-        [@addDefaultGenerationContract subsets=["template", "epilogue"] /]
+        [@addDefaultGenerationContract subsets=["deploymentcontract", "template", "epilogue"] /]
+    [/#if]
+
+    [#if deploymentSubsetRequired("deploymentcontract", false)]
+        [@addDefaultAWSDeploymentContract epilogue=true /]
     [/#if]
 
     [#if ! (accountObject["aws:SES"].RuleSet.Name)?has_content]

@@ -1,7 +1,11 @@
 [#-- Volume Encryption --]
 [#if getCLODeploymentUnit()?contains("volumeencrypt") || (groupDeploymentUnits!false) ]
     [#if deploymentSubsetRequired("generationcontract", false)]
-        [@addDefaultGenerationContract subsets="epilogue" /]
+        [@addDefaultGenerationContract subsets=["deploymentcontract", "epilogue"] /]
+    [/#if]
+
+    [#if deploymentSubsetRequired("deploymentcontract", false)]
+        [@addDefaultAWSDeploymentContract stack=false epilogue=true /]
     [/#if]
 
     [@includeServicesConfiguration

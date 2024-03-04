@@ -47,7 +47,10 @@
     [@initialiseTextOutput
         name=name
         format=BASH_DEFAULT_OUTPUT_FORMAT
-        headerLines="#!/usr/bin/env bash"
+        headerLines=[
+            "#!/usr/bin/env bash",
+            r'. "${GENERATION_BASE_DIR}/execution/common.sh"'
+        ]
     /]
 [/#macro]
 

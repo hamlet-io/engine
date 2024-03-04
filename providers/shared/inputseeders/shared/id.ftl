@@ -177,6 +177,7 @@
                 [#-- Ouput handling and writing --]
                 "Output" : {
                     "cfDir": cfDir!"",
+                    "segmentOperationsDir": segmentOperationsDir!"",
                     "FileName" : outputFileName!"",
                     "Directory" : outputDir!"",
                     "Writers" :
