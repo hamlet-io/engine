@@ -7,4 +7,4 @@ on:
 
 jobs:
   create_changelog:
-    uses: hamlet-io/.github/.github/workflows/changelog.yml@1.0.0
+    uses: hamlet-io/.github/.github/workflows/changelog.yml@1.1.4
