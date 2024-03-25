@@ -1,7 +1,11 @@
 [#if getCLODeploymentUnit()?contains("es") || (groupDeploymentUnits!false) ]
 
     [#if deploymentSubsetRequired("generationcontract", false)]
-        [@addDefaultGenerationContract subsets=[ "template" ] /]
+        [@addDefaultGenerationContract subsets=["deploymentcontract", "template" ] /]
+    [/#if]
+
+    [#if deploymentSubsetRequired("deploymentcontract", false)]
+        [@addDefaultAWSDeploymentContract /]
     [/#if]
 
     [@includeServicesConfiguration

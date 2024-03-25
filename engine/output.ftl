@@ -693,6 +693,45 @@
                     [#break]
 
             [/#switch]
+
+            [#switch deployment_subset ]
+                [#case "deploymentcontract" ]
+                    [#if alternative == "final" ]
+                        [#local filename_parts =
+                            mergeObjects(
+                                filename_parts,
+                                {
+                                    "entrance_prefix" : "",
+                                    "alternative_prefix" : ""
+                                }
+                            )]
+                    [#else ]
+                        [#local filename_parts =
+                            mergeObjects(
+                                filename_parts,
+                                {
+                                    "entrance_prefix" : "",
+                                    "deployment_group_prefix" : "",
+                                    "deployment_unit_prefix" : "",
+                                    "account_prefix" : "",
+                                    "region_prefix" : "",
+                                    "alternative_prefix" : ""
+                                }
+                            )]
+                    [/#if]
+                    [#break]
+
+                [#case "stack" ]
+                    [#local filename_parts =
+                        mergeObjects(
+                            filename_parts,
+                            {
+                                "entrance_prefix" : "",
+                                "alternative_prefix" : ""
+                            }
+                        )]
+                    [#break]
+            [/#switch]
             [#break]
 
         [#case "diagraminfo"]

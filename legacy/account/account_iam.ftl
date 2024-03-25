@@ -1,6 +1,10 @@
 [#if getCLODeploymentUnit()?contains("iam") ]
     [#if deploymentSubsetRequired("generationcontract", false)]
-        [@addDefaultGenerationContract subsets="template" /]
+        [@addDefaultGenerationContract subsets=["deploymentcontract", "template"] /]
+    [/#if]
+
+    [#if deploymentSubsetRequired("deploymentcontract", false)]
+        [@addDefaultAWSDeploymentContract /]
     [/#if]
 
     [@includeServicesConfiguration

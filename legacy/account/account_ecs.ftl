@@ -1,15 +1,19 @@
 [#-- ECS Account Settings --]
 [#if getCLODeploymentUnit()?contains("ecs") || (groupDeploymentUnits!false) ]
     [#if deploymentSubsetRequired("generationcontract", false)]
-        [@addDefaultGenerationContract subsets="epilogue" /]
+        [@addDefaultGenerationContract subsets=["deploymentcontract", "epilogue"] /]
     [/#if]
+
+    [#if deploymentSubsetRequired("deploymentcontract", false)]
+        [@addDefaultAWSDeploymentContract stack=false epilogue=true /]
+    [/#if]
+
 
     [@includeServicesConfiguration
         provider=AWS_PROVIDER
         services=[ ]
         deploymentFramework=getCLODeploymentFramework()
     /]
-
 
     [#-- Allow of overriding the settings if required --]
     [#assign ecsAccountSettings = accountObject["aws:ecsAccountSettings"]]

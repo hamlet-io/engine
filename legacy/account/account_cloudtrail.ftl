@@ -1,7 +1,11 @@
 [#-- AWS CloudTrail log forwarding --]
 [#if getCLODeploymentUnit()?contains("cloudtrail") || (groupDeploymentUnits!false) ]
     [#if deploymentSubsetRequired("generationcontract", false)]
-        [@addDefaultGenerationContract subsets="template" /]
+        [@addDefaultGenerationContract subsets=["deploymentcontract", "template"] /]
+    [/#if]
+
+    [#if deploymentSubsetRequired("deploymentcontract", false)]
+        [@addDefaultAWSDeploymentContract /]
     [/#if]
 
     [@includeServicesConfiguration

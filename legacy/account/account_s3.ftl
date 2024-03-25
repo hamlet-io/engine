@@ -179,7 +179,6 @@
 [#assign preconditionsMet = true]
 
 [#if getCLODeploymentUnit() == "s3" || getCLODeploymentUnit() == "s3replica" || (groupDeploymentUnits!false) ]
-
     [@includeServicesConfiguration
         provider=AWS_PROVIDER
         services=[
@@ -220,7 +219,12 @@
 [#-- Standard set of buckets for an account --]
 [#if preconditionsMet && ( getCLODeploymentUnit() == "s3" || (groupDeploymentUnits!false) ) ]
     [#if deploymentSubsetRequired("generationcontract", false)]
-        [@addDefaultGenerationContract subsets=["template"] /]
+        [@addDefaultGenerationContract subsets=[
+           "deploymentcontract", "template"] /]
+    [/#if]
+
+    [#if deploymentSubsetRequired("deploymentcontract", false)]
+        [@addDefaultAWSDeploymentContract /]
     [/#if]
 
     [@setupAccountS3Buckets
@@ -239,7 +243,11 @@
 
 [#if preconditionsMet && ( getCLODeploymentUnit() == "s3replica" || (groupDeploymentUnits!false)) ]
     [#if deploymentSubsetRequired("generationcontract", false)]
-        [@addDefaultGenerationContract subsets=["template"] /]
+        [@addDefaultGenerationContract subsets=["deploymentcontract", "template"] /]
+    [/#if]
+
+    [#if deploymentSubsetRequired("deploymentcontract", false)]
+        [@addDefaultAWSDeploymentContract /]
     [/#if]
 
     [@includeServicesConfiguration

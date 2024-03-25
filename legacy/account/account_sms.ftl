@@ -28,7 +28,11 @@
 
     [#assign cloudWatchRoleId = formatAccountRoleId("sms","cloudwatch")]
     [#if deploymentSubsetRequired("generationcontract", false)]
-        [@addDefaultGenerationContract subsets=["epilogue", "cli"] /]
+        [@addDefaultGenerationContract subsets=["deplyoymentcontract", "epilogue", "cli"] /]
+    [/#if]
+
+    [#if deploymentSubsetRequired("deploymentcontract", false)]
+        [@addDefaultAWSDeploymentContract epilogue=true stack=false /]
     [/#if]
 
     [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(cloudWatchRoleId)]
