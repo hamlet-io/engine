@@ -1,9 +1,11 @@
 # Changelog
 
-## latest (2023-09-28)
+## latest (2024-03-25)
 
 #### New Features
 
+* (cdn): add support for configuring aliases ([#2128](https://github.com/hamlet-io/engine/issues/2128))
+* (topic): add fixed subscription config
 * (waf): add support for waf on userpools
 * (user): add user name control
 * (user): source IP filtering
@@ -18,9 +20,12 @@
 * don't list disabled suboccurrences ([#2118](https://github.com/hamlet-io/engine/issues/2118))
 #### Refactorings
 
+* remove typical values warning ([#2129](https://github.com/hamlet-io/engine/issues/2129))
 * (backups): default priority ([#2123](https://github.com/hamlet-io/engine/issues/2123))
 #### Others
 
+* update github actions shared workflows
+* update changelog ([#2114](https://github.com/hamlet-io/engine/issues/2114))
 * remove datapipeline support ([#1984](https://github.com/hamlet-io/engine/issues/1984))
 
 Full set of changes: [`8.9.0...latest`](https://github.com/hamlet-io/engine/compare/8.9.0...latest)
