@@ -1,6 +1,6 @@
 # Changelog
 
-## latest (2024-03-25)
+## latest (2024-03-27)
 
 #### New Features
 
@@ -24,6 +24,7 @@
 * (backups): default priority ([#2123](https://github.com/hamlet-io/engine/issues/2123))
 #### Others
 
+* update changelog ([#2126](https://github.com/hamlet-io/engine/issues/2126))
 * update github actions shared workflows
 * update changelog ([#2114](https://github.com/hamlet-io/engine/issues/2114))
 * remove datapipeline support ([#1984](https://github.com/hamlet-io/engine/issues/1984))
