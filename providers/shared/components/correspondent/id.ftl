@@ -50,12 +50,24 @@
                 "Mandatory" : true
             },
             {
+                "Names" : "AuthMethod",
+                "Description": "The authentication method that you want Amazon Pinpoint to use when authenticating with APNs. Valid options are key or certificate.",
+                "Types" : STRING_TYPE,
+                "Values" : [ "certificate", "token" ],
+                "Mandatory" : false
+            },
+            {
                 "Names" : "engine:Firebase",
                 "Description" : "Specific channel configuration for Firebase/Google notification services",
                 "Children" : [
                     {
                         "Names" : "APIKey",
                         "Description" : "The setting or link name to use for the API Key - setting:_setting name_ - link: _link name_",
+                        "Types" : STRING_TYPE
+                    },
+                    {
+                        "Names" : "Token",
+                        "Description" : "The setting or link name to use for the Token Credentials - setting:_setting name_ - link: _link name_",
                         "Types" : STRING_TYPE
                     }
                 ]
@@ -73,6 +85,26 @@
                         "Names" : "PrivateKey",
                         "Description" : "The push notification private key",
                         "Types" : STRING_TYPE
+                    },
+                    {
+                        "Names" : "TokenKeyId",
+                        "Description" : "The key identifier that's assigned to the APNs signing key",
+                        "Types" : STRING_TYPE
+                    },
+                    {
+                        "Names" : "BundleId",
+                        "Description" : "The bundle identifier that's assigned to the iOS app",
+                        "Types" : STRING_TYPE
+                    },
+                    {
+                        "Names" : "TeamId",
+                        "Description" : "The identifier that's assigned to the Apple Developer Account team",
+                        "Types" : STRING_TYPE
+                    },
+                    {
+                        "Names" : "TokenKey",
+                        "Description" : "The authentication key to use for APNs tokens",
+                        "Types" : STRING_TYPE
                     }
                 ]
             },
@@ -88,6 +120,26 @@
                     {
                         "Names" : "PrivateKey",
                         "Description" : "The push notification private key",
+                        "Types" : STRING_TYPE
+                    },
+                    {
+                        "Names" : "TokenKeyId",
+                        "Description" : "The key identifier that's assigned to the APNs signing key",
+                        "Types" : STRING_TYPE
+                    },
+                    {
+                        "Names" : "BundleId",
+                        "Description" : "The bundle identifier that's assigned to the iOS app",
+                        "Types" : STRING_TYPE
+                    },
+                    {
+                        "Names" : "TeamId",
+                        "Description" : "The identifier that's assigned to the Apple Developer Account team",
+                        "Types" : STRING_TYPE
+                    },
+                    {
+                        "Names" : "TokenKey",
+                        "Description" : "The authentication key to use for APNs tokens",
                         "Types" : STRING_TYPE
                     }
                 ]
