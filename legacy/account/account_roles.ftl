@@ -1,9 +1,12 @@
 [#-- Account level roles --]
 [#if getCLODeploymentUnit()?contains("roles")  || (groupDeploymentUnits!false) ]
     [#if deploymentSubsetRequired("generationcontract", false)]
-        [@addDefaultGenerationContract subsets="template" /]
+        [@addDefaultGenerationContract subsets=["deploymentcontract", "template"] /]
     [/#if]
 
+    [#if deploymentSubsetRequired("deploymentcontract", false)]
+        [@addDefaultAWSDeploymentContract /]
+    [/#if]
 
     [@includeServicesConfiguration
         provider=AWS_PROVIDER

@@ -14,7 +14,11 @@
     [#if accountObject.Seed?has_content]
 
         [#if deploymentSubsetRequired("generationcontract", false)]
-            [@addDefaultGenerationContract subsets="template" /]
+            [@addDefaultGenerationContract subsets=["deploymentcontract", "template" ] /]
+        [/#if]
+
+        [#if deploymentSubsetRequired("deploymentcontract", false)]
+            [@addDefaultAWSDeploymentContract /]
         [/#if]
 
         [#assign s3EncryptionEnabled = accountObject.S3.Encryption.Enabled  ]

@@ -2,13 +2,17 @@
 
     [#if deploymentSubsetRequired("generationcontract", false)]
         [@addDefaultGenerationContract
-            subsets=[ "prologue", "template" ]
+            subsets=[ "deploymentcontract", "prologue", "template" ]
             alternatives=[
                 "primary",
                 { "subset" : "template", "alternative" : "replace1" },
                 { "subset" : "template", "alternative" : "replace2" }
             ]
         /]
+    [/#if]
+
+    [#if deploymentSubsetRequired("deploymentcontract", false)]
+        [@addDefaultAWSDeploymentContract prologue=true /]
     [/#if]
 
     [@includeServicesConfiguration
