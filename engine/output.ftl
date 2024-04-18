@@ -721,16 +721,6 @@
                     [/#if]
                     [#break]
 
-                [#case "stack" ]
-                    [#local filename_parts =
-                        mergeObjects(
-                            filename_parts,
-                            {
-                                "entrance_prefix" : "",
-                                "alternative_prefix" : ""
-                            }
-                        )]
-                    [#break]
             [/#switch]
             [#break]
 
