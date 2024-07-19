@@ -1856,7 +1856,7 @@
         "WAFValueSet": "default"
       },
       "db": {
-        "SSLCertificateAuthority": "rds-ca-2019"
+        "SSLCertificateAuthority": "rds-ca-rsa2048-g1"
       },
       "es": {
         "ProtocolPolicy": "https-only",
