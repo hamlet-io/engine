@@ -55,6 +55,17 @@
     ]
 /]
 
+[#assign COMPUTE_TASK_APPWHITELIST_CONFIG = "appwhitelist_config" ]
+[@addComputeTask
+    type=COMPUTE_TASK_APPWHITELIST_CONFIG
+    properties=[
+        {
+            "Type"  : "Description",
+            "Value" : "Configure installed appwhitelist"
+        }
+    ]
+/]
+
 [#assign COMPUTE_TASK_SYSTEM_LOG_FORWARDING = "system_log_forwarding" ]
 [@addComputeTask
     type=COMPUTE_TASK_SYSTEM_LOG_FORWARDING
