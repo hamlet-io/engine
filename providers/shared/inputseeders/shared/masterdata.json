@@ -1267,6 +1267,7 @@
       ],
       "blacklistedips": [],
       "whitelistedips": [],
+      "whitelistedipsipv6": [],
       "blacklistedcountrycodes": [],
       "whitelistedcountrycodes": [],
       "sqlheaders": [
