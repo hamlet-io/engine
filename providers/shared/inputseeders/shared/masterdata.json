@@ -1622,6 +1622,17 @@
         }
       ]
     },
+    "whitelistipsipv6": {
+      "Type": "IPMatch",
+      "Description": "Whitelist IPV6 IPs",
+      "Filters": [
+        {
+          "Targets": [
+            "whitelistedipsipv6"
+          ]
+        }
+      ]
+    },
     "blacklistcountries": {
       "Type": "GeoMatch",
       "Description": "Blacklist Countries",
@@ -1764,6 +1775,16 @@
       "Conditions": [
         {
           "Condition": "whitelistips",
+          "Negated": false
+        }
+      ]
+    },
+    "whitelistipsipv6": {
+      "Description": "Whitelist IPV6 IPs",
+      "NameSuffix": "whitelistipsipv6",
+      "Conditions": [
+        {
+          "Condition": "whitelistipsipv6",
           "Negated": false
         }
       ]
