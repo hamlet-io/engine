@@ -115,8 +115,8 @@
                                     "Default" : "_operations"
                                 },
                                 {
-                                    "Names" : "TaggedDays",
-                                    "Description" : "How long (Days) until untagged images are removed - use _operations: to follow the layer configuration, or a number for a fixed value - set to 0 for no expiry",
+                                    "Names" : "Days",
+                                    "Description" : "How long (Days) until images are removed - use _operations: to follow the layer configuration, or a number for a fixed value - set to 0 for no expiry",
                                     "Types" : [ NUMBER_TYPE, STRING_TYPE],
                                     "Default" : "_operations"
                                 },
