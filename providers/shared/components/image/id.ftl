@@ -112,13 +112,13 @@
                                     "Names" : "UntaggedDays",
                                     "Description" : "How long (Days) until untagged images are removed - use _operations: to follow the layer configuration, or a number for a fixed value - set to 0 for no expiry",
                                     "Types" : [ NUMBER_TYPE, STRING_TYPE],
-                                    "Default" : "_operations"
+                                    "Default" : 0
                                 },
                                 {
                                     "Names" : "Days",
                                     "Description" : "How long (Days) until images are removed - use _operations: to follow the layer configuration, or a number for a fixed value - set to 0 for no expiry",
                                     "Types" : [ NUMBER_TYPE, STRING_TYPE],
-                                    "Default" : "_operations"
+                                    "Default" : 0
                                 },
                                 {
                                     "Names" : "UntaggedMaxCount",
@@ -131,6 +131,30 @@
                                     "Description" : "How many tagged images to retain - set 0 to keep all",
                                     "Types" : NUMBER_TYPE,
                                     "Default" : 0
+                                }
+                            ]
+                        },
+                        {
+                            "Names" : "Archive",
+                            "Description" : "Control when images are moved into archive storage class",
+                            "Children" : [
+                                {
+                                    "Names" : "Days",
+                                    "Description" : "How long (Days) until images are archived - use _operations: to follow the layer configuration, or a number for a fixed value - set to 0 for no archive",
+                                    "Types" : [ NUMBER_TYPE, STRING_TYPE],
+                                    "Default" : "_operations"
+                                }
+                            ]
+                        },
+                        {
+                            "Names" : "ExpireTransitioned",
+                            "Description" : "Control when transitioned images are expired",
+                            "Children" : [
+                                {
+                                    "Names" : "Days",
+                                    "Description" : "How long (Days) until images are removed after transition to archive - use _operations: to follow the layer configuration, or a number for a fixed value - set to 0 for no expiry",
+                                    "Types" : [ NUMBER_TYPE, STRING_TYPE],
+                                    "Default" : 90
                                 }
                             ]
                         }
