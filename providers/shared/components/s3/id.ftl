@@ -40,6 +40,11 @@
                         "Description" : "Provide either a date or a number of days"
                     },
                     {
+                        "Names" : "Prefix",
+                        "Types" : STRING_TYPE,
+                        "Default" : ""
+                    },
+                    {
                         "Names" : "Versioning",
                         "Types" : BOOLEAN_TYPE,
                         "Description" : "Enable versioning - this setting is deprecated - use the same named top level attribute",
