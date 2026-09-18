@@ -1,6 +1,29 @@
 # Changelog
 
-## latest (2024-03-25)
+## latest (2026-09-18)
+
+#### New Features
+
+* webauth and managed login support for cognito
+* add prefix to s3 lifecycle
+* (image): add archive/expiry default lifecycle rules
+* add days ECR policy
+* add tagged days ECR policy
+* init empty WafValueSet for whitelistedipsipv6
+* WAF ACL's to support IPv6
+* add deployment contract support and cf_dir ([#2131](https://github.com/hamlet-io/engine/issues/2131))
+* support recommended token auth method for Pinpoint channels ([#2133](https://github.com/hamlet-io/engine/issues/2133))
+#### Fixes
+
+* pytest versiob
+* naming for stack output file ([#2134](https://github.com/hamlet-io/engine/issues/2134))
+#### Others
+
+* bump default RDS SSLCertificateAuthority as 2019 CA expiring ([#2135](https://github.com/hamlet-io/engine/issues/2135))
+
+Full set of changes: [`9.1.0...latest`](https://github.com/hamlet-io/engine/compare/9.1.0...latest)
+
+## 9.1.0 (2024-03-27)
 
 #### New Features
 
@@ -24,11 +47,12 @@
 * (backups): default priority ([#2123](https://github.com/hamlet-io/engine/issues/2123))
 #### Others
 
+* update changelog ([#2126](https://github.com/hamlet-io/engine/issues/2126))
 * update github actions shared workflows
 * update changelog ([#2114](https://github.com/hamlet-io/engine/issues/2114))
 * remove datapipeline support ([#1984](https://github.com/hamlet-io/engine/issues/1984))
 
-Full set of changes: [`8.9.0...latest`](https://github.com/hamlet-io/engine/compare/8.9.0...latest)
+Full set of changes: [`8.9.0...9.1.0`](https://github.com/hamlet-io/engine/compare/8.9.0...9.1.0)
 
 ## 8.9.0 (2023-06-16)
 
