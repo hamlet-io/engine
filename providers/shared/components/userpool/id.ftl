@@ -45,7 +45,7 @@
             {
                 "Names" : "MFAMethods",
                 "Types" : ARRAY_OF_STRING_TYPE,
-                "Values" : [ "SMS", "SoftwareToken" ],
+                "Values" : [ "SMS", "SoftwareToken", "EMAIL_OTP" ],
                 "Default" : [ "SMS" ]
             },
             {
@@ -227,6 +227,17 @@
                     {
                         "Names" : [ "Certificate", "Hostname" ],
                         "AttributeSet" : CERTIFICATE_ATTRIBUTESET_TYPE
+                    },
+                    {
+                        "Names" : "ManagedLoginVersion",
+                        "Description" : "",
+                        "Types" : NUMBER_TYPE
+                    },
+                    {
+                        "Names" : "UseCognitoProvidedBranding",
+                        "Description" : "",
+                        "Types" : BOOLEAN_TYPE,
+                        "Default" : false
                     }
                 ]
             },
@@ -259,6 +270,31 @@
                 "Values" : [ "code", "link"],
                 "Types" : STRING_TYPE,
                 "Default" : "code"
+            },
+            {
+                "Names" : "PasskeyEnabled",
+                "Description" : "PasskeyEnabled flag",
+                "Types": BOOLEAN_TYPE,
+                "Default" : true
+            },
+            {
+                "Names" : "WebAuthnFactorConfiguration",
+                "Description" : "Whether passkey acts as the sole factor or must be combined with another factor",
+                "Values": ["single", "mfa"],
+                "Types" : STRING_TYPE
+            },
+            {
+                "Names" : "WebAuthnUserVerification",
+                "Description" : "When required, users can only register and sign in users with passkeys that are capable of user verification. When preferred, your user pool doesn't require the use of authenticators with user verification but encourages it.",
+                "Values" : ["required", "preferred"],
+                "Types": STRING_TYPE
+            },
+            {
+                "Names" : "AllowedFirstAuthFactors",
+                "Description" : "When required, users can only register and sign in users with passkeys that are capable of user verification. When preferred, your user pool doesn't require the use of authenticators with user verification but encourages it.",
+                "Values" : ["WEB_AUTHN", "EMAIL_OTP", "PASSWORD"],
+                "Types": ARRAY_OF_STRING_TYPE,
+                "Default" : []
             }
         ]
 /]
@@ -340,6 +376,13 @@
                 "Types" : ARRAY_OF_STRING_TYPE,
                 "Default" : [ "COGNITO" ]
             },
+            {
+                "Names" : "ExplicitAuthFlows",
+                "Description" : "",
+                "Types" : ARRAY_OF_STRING_TYPE,
+                "Default" : [ "ALLOW_USER_AUTH", "ALLOW_REFRESH_TOKEN_AUTH" ],
+                "Default" : []
+            }
             {
                 "Names" : "ResourceScopes",
                 "Description" : "Resources that the client is permitted to access",
