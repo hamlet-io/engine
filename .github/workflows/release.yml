@@ -23,6 +23,7 @@ jobs:
       - name: Install
         run: |
           pip install hamlet
+          pip install "pytest>=7.2.0" --break-system-packages
 
       - name: Run Tests
         run: |
